@@ -3,6 +3,9 @@
         android:label="brevet_map"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAtEryGf0D1DuufeMZgHP_sPFVlFrqrVr8"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -41,4 +44,6 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 </manifest>
