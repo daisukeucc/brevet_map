@@ -3,24 +3,24 @@ import 'dart:convert';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 
-/// 緯度1度あたりの距離（km）。北方向の概算に使用。
+/// 緯度1度あたりの距離（km）。北方向の概算に使用
 const double _kmPerDegreeLat = 111.32;
 
-/// 現在地をスタート兼ゴールとした約100kmの往復ルート用に、北へ約50kmの経由地1つを返す。
-/// 経路: 現在地 → 経由地(北) → 現在地（行きと帰りは同じ道）。
+/// 現在地をスタート兼ゴールとした約100kmの往復ルート用に、北へ約50kmの経由地1つを返す
+/// 経路: 現在地 → 経由地(北) → 現在地（行きと帰りは同じ道）
 List<LatLng> computeWaypointsFor100kmLoop(double lat, double lng) {
   const distanceKm = 50.0;
   final w1 = LatLng(lat + distanceKm / _kmPerDegreeLat, lng);
   return [w1];
 }
 
-/// Directions API の取得成功時の戻り値。保存用の [encoded] と描画用の [points] を含む。
+/// Directions API の取得成功時の戻り値。保存用の [encoded] と描画用の [points] を含む
 typedef FetchDirectionsResult = ({List<LatLng> points, String encoded});
 
-/// Directions API を呼び、ルートのポリラインをデコードして返す。
-/// [waypoints] を渡すと、origin → waypoints → destination の順で経路を取得する。
-/// 高速道路・自動車専用道路は avoid=highways で除外する。
-/// 失敗時は null。[encoded] はアプリ内保存用（Google のエンコード済みポリライン）。
+/// Directions API を呼び、ルートのポリラインをデコードして返す
+/// [waypoints] を渡すと、origin → waypoints → destination の順で経路を取得する
+/// 高速道路・自動車専用道路は avoid=highways で除外する
+/// 失敗時は null。[encoded] はアプリ内保存用（Google のエンコード済みポリライン）
 Future<FetchDirectionsResult?> fetchDirections({
   required LatLng origin,
   required LatLng destination,
@@ -59,7 +59,7 @@ Future<FetchDirectionsResult?> fetchDirections({
   }
 }
 
-/// Google のエンコード済みポリラインを [LatLng] にデコードする。
+/// Google のエンコード済みポリラインを [LatLng] にデコードする
 List<LatLng> decodePolyline(String encoded) {
   final points = <LatLng>[];
   int index = 0;
