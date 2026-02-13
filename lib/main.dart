@@ -68,7 +68,10 @@ class _MyHomePageState extends State<MyHomePage>
   StreamSubscription<Position>? _positionStreamSubscription;
 
   /// 位置取得中に表示する左→右アニメーションバー用
-  AnimationController? _progressBarController;
+  static const _progressBarUpdateInterval = Duration(milliseconds: 100);
+  static const _progressBarCycleDuration = Duration(milliseconds: 1800);
+  ValueNotifier<double>? _progressBarValue;
+  Timer? _progressBarTimer;
 
   @override
   void initState() {
@@ -133,7 +136,9 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
-    _progressBarController?.dispose();
+    _progressBarTimer?.cancel();
+    _progressBarTimer = null;
+    _progressBarValue = null;
     _positionStreamSubscription?.cancel();
     _volumeSubscription?.cancel();
     _volumeKeySubscription?.cancel();
@@ -147,16 +152,21 @@ class _MyHomePageState extends State<MyHomePage>
     if (_positionStreamSubscription != null) {
       _positionStreamSubscription?.cancel();
       _positionStreamSubscription = null;
-      _progressBarController?.stop();
-      _progressBarController?.reset();
+      _progressBarTimer?.cancel();
+      _progressBarTimer = null;
+      _progressBarValue = null;
       setState(() {});
       return;
     }
-    _progressBarController ??= AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    );
-    _progressBarController!.repeat();
+    _progressBarValue = ValueNotifier(0.0);
+    final step = _progressBarUpdateInterval.inMilliseconds /
+        _progressBarCycleDuration.inMilliseconds;
+    _progressBarTimer = Timer.periodic(_progressBarUpdateInterval, (t) {
+      if (!mounted || _positionStreamSubscription == null) return;
+      double v = _progressBarValue!.value + step;
+      if (v >= 1.0) v = 0.0;
+      _progressBarValue!.value = v;
+    });
     final stream = Geolocator.getPositionStream(
       locationSettings: const LocationSettings(
         accuracy: LocationAccuracy.medium,
@@ -174,8 +184,9 @@ class _MyHomePageState extends State<MyHomePage>
       onError: (_) {
         _positionStreamSubscription?.cancel();
         _positionStreamSubscription = null;
-        _progressBarController?.stop();
-        _progressBarController?.reset();
+        _progressBarTimer?.cancel();
+        _progressBarTimer = null;
+        _progressBarValue = null;
         if (mounted) setState(() {});
       },
     );
@@ -188,8 +199,9 @@ class _MyHomePageState extends State<MyHomePage>
         state == AppLifecycleState.inactive) {
       _positionStreamSubscription?.cancel();
       _positionStreamSubscription = null;
-      _progressBarController?.stop();
-      _progressBarController?.reset();
+      _progressBarTimer?.cancel();
+      _progressBarTimer = null;
+      _progressBarValue = null;
       if (mounted) setState(() {});
       if (state == AppLifecycleState.paused) return;
     }
@@ -749,7 +761,7 @@ class _MyHomePageState extends State<MyHomePage>
                     ),
                   ),
                   if (_positionStreamSubscription != null &&
-                      _progressBarController != null)
+                      _progressBarValue != null)
                     Positioned(
                       left: 0,
                       right: 0,
@@ -759,13 +771,13 @@ class _MyHomePageState extends State<MyHomePage>
                         width: double.infinity,
                         color: Colors.red.shade900,
                         child: ClipRect(
-                          child: AnimatedBuilder(
-                            animation: _progressBarController!,
-                            builder: (context, child) {
+                          child: ValueListenableBuilder<double>(
+                            valueListenable: _progressBarValue!,
+                            builder: (context, value, child) {
                               return LayoutBuilder(
                                 builder: (context, constraints) {
                                   const barWidth = 80.0;
-                                  final left = (_progressBarController!.value *
+                                  final left = (value *
                                           (constraints.maxWidth + barWidth)) -
                                       barWidth;
                                   return Stack(
