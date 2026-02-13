@@ -8,6 +8,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.dart';
 
+import 'package:screen_brightness/screen_brightness.dart';
+
 import 'api_config.dart';
 import 'directions_repository.dart';
 import 'first_launch_repository.dart';
@@ -73,6 +75,12 @@ class _MyHomePageState extends State<MyHomePage>
   ValueNotifier<double>? _progressBarValue;
   Timer? _progressBarTimer;
 
+  /// スライダー表示値（0.0〜1.0）。0.5＝現在の輝度（初期値）。
+  double _brightnessSliderValue = 0.5;
+  /// 起動時の輝度。スライダー中央（0.5）がこの値になる。
+  double _initialBrightness = 0.5;
+  bool _brightnessSupported = true;
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +89,32 @@ class _MyHomePageState extends State<MyHomePage>
     _positionFuture = _getPositionWithPermission();
     _preloadSavedRoute();
     _setupVolumeZoomListener();
+    _loadInitialBrightness();
+  }
+
+  /// 起動時に現在の画面明るさを読み込み、スライダー中央の基準とする
+  Future<void> _loadInitialBrightness() async {
+    try {
+      final value = await ScreenBrightness().current;
+      final brightness = value.clamp(0.0, 1.0);
+      if (mounted) {
+        setState(() {
+          _initialBrightness = brightness;
+          _brightnessSliderValue = 0.5; // 真ん中＝今の輝度
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _brightnessSupported = false);
+    }
+  }
+
+  /// スライダー値（0〜1、0.5＝初期輝度）を実際の輝度（0〜1）に変換
+  double _sliderValueToBrightness(double slider) {
+    if (slider <= 0.5) {
+      return _initialBrightness * (slider / 0.5);
+    }
+    return _initialBrightness +
+        (1.0 - _initialBrightness) * ((slider - 0.5) / 0.5);
   }
 
   /// ボリューム上でズームイン、下でズームアウト
@@ -733,6 +767,53 @@ class _MyHomePageState extends State<MyHomePage>
                         ],
                       ),
                     ),
+                    if (_brightnessSupported)
+                      Positioned(
+                        right: 16,
+                        bottom: 24,
+                        child: Material(
+                          color: Colors.white,
+                          elevation: 5,
+                          shadowColor: Colors.black26,
+                          borderRadius: BorderRadius.circular(24),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 4,
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.brightness_6,
+                                  color: Colors.black87,
+                                  size: 22,
+                                ),
+                                SizedBox(
+                                  height: 120,
+                                  child: RotatedBox(
+                                    quarterTurns: 3,
+                                    child: Slider(
+                                      value: _brightnessSliderValue,
+                                      onChanged: (value) async {
+                                        setState(() =>
+                                            _brightnessSliderValue = value);
+                                        final brightness =
+                                            _sliderValueToBrightness(value);
+                                        try {
+                                          await ScreenBrightness()
+                                              .setApplicationScreenBrightness(
+                                                  brightness);
+                                        } catch (_) {}
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),

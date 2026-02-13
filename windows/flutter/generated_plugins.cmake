@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   geolocator_windows
+  screen_brightness_windows
   volume_controller
 )
 
