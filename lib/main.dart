@@ -9,6 +9,7 @@ import 'package:volume_controller/volume_controller.dart';
 import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.dart';
 
 import 'package:screen_brightness/screen_brightness.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'api_config.dart';
 import 'directions_repository.dart';
@@ -90,6 +91,7 @@ class _MyHomePageState extends State<MyHomePage>
     _preloadSavedRoute();
     _setupVolumeZoomListener();
     _loadInitialBrightness();
+    WakelockPlus.enable();
   }
 
   /// 起動時に現在の画面明るさを読み込み、スライダー中央の基準とする
@@ -170,6 +172,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
+    WakelockPlus.disable();
     _progressBarTimer?.cancel();
     _progressBarTimer = null;
     _progressBarValue = null;
@@ -231,6 +234,7 @@ class _MyHomePageState extends State<MyHomePage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
+      WakelockPlus.disable();
       _positionStreamSubscription?.cancel();
       _positionStreamSubscription = null;
       _progressBarTimer?.cancel();
@@ -242,6 +246,7 @@ class _MyHomePageState extends State<MyHomePage>
 
     if (state != AppLifecycleState.resumed) return;
 
+    WakelockPlus.enable();
     // 設定アプリから戻ってきた場合のみ: 位置情報を再取得してウィジェットを再描画
     if (_expectingReturnFromSettings) {
       _expectingReturnFromSettings = false;
