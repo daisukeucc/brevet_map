@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:io' show Platform;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:volume_controller/volume_controller.dart';
+import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.dart';
 
 import 'api_config.dart';
 import 'directions_repository.dart';
@@ -51,6 +54,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   /// 「設定を開く」で設定アプリへ送った場合に true。フォア復帰時に位置情報を再取得するため
   bool _expectingReturnFromSettings = false;
 
+  /// ボリュームボタンでズームするためのリスナー（iOSは volume_controller、Androidは keydown でインターセプト）
+  StreamSubscription<double>? _volumeSubscription;
+  StreamSubscription<HardwareButton>? _volumeKeySubscription;
+  double? _previousVolume;
+
+  /// ボリュームキー1回あたりのズーム量
+  static const _volumeZoomAmountUp = 1.8;
+  static const _volumeZoomAmountDown = 1.8;
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +70,44 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     // アプリ起動時の地図表示・ルート表示: 位置取得と保存済みルートの事前読み込み
     _positionFuture = _getPositionWithPermission();
     _preloadSavedRoute();
+    _setupVolumeZoomListener();
+  }
+
+  /// ボリューム上でズームイン、下でズームアウト
+  void _setupVolumeZoomListener() {
+    if (Platform.isAndroid) {
+      _volumeKeySubscription =
+          FlutterAndroidVolumeKeydown.stream.listen((event) {
+        if (mapController == null) return;
+        if (event == HardwareButton.volume_up) {
+          mapController!
+              .animateCamera(CameraUpdate.zoomBy(_volumeZoomAmountUp));
+        } else if (event == HardwareButton.volume_down) {
+          mapController!
+              .animateCamera(CameraUpdate.zoomBy(-_volumeZoomAmountDown));
+        }
+      });
+      return;
+    }
+    VolumeController.instance.showSystemUI = false;
+    _volumeSubscription = VolumeController.instance.addListener((volume) {
+      if (_previousVolume == null) {
+        _previousVolume = volume;
+        return;
+      }
+      if (volume > _previousVolume! && mapController != null) {
+        mapController!.animateCamera(CameraUpdate.zoomBy(_volumeZoomAmountUp));
+        VolumeController.instance.setVolume(_previousVolume!);
+        return;
+      }
+      if (volume < _previousVolume! && mapController != null) {
+        mapController!
+            .animateCamera(CameraUpdate.zoomBy(-_volumeZoomAmountDown));
+        VolumeController.instance.setVolume(_previousVolume!);
+        return;
+      }
+      _previousVolume = volume;
+    }, fetchInitialVolume: true);
   }
 
   /// 保存済みルートを事前に読み込む（地図の初期カメラ位置を設定するため）
@@ -76,6 +126,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _volumeSubscription?.cancel();
+    _volumeKeySubscription?.cancel();
     _routeAnimationTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
