@@ -583,7 +583,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   zoom: 14.0,
                 ),
                 myLocationEnabled: true,
-                myLocationButtonEnabled: true,
+                myLocationButtonEnabled: false,
                 polylines: _routePolylines,
                 markers: _routeMarkers,
                 onMapCreated: (controller) async {
@@ -604,10 +604,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   }
                 },
               ),
-              // ルート全体表示ボタン（左下に配置、現在地ボタンと重ならない）
+              // ルート全体表示ボタン
               Positioned(
-                left: 16,
-                bottom: 24,
+                right: 16,
+                top: 24,
                 child: Tooltip(
                   message: 'ルート全体を表示',
                   child: Material(
