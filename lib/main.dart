@@ -48,12 +48,15 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   List<LatLng>? _fullRoutePoints;
   int _animatedRoutePointCount = 0;
 
+  /// 「設定を開く」で設定アプリへ送った場合に true。フォア復帰時に位置情報を再取得するため
+  bool _expectingReturnFromSettings = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // アプリ起動時の地図表示・ルート表示: 位置取得と保存済みルートの事前読み込み
     _positionFuture = _getPositionWithPermission();
-    // 保存済みルートがあれば先に読み込む（2回目以降の起動時）
     _preloadSavedRoute();
   }
 
@@ -80,11 +83,48 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      // 設定アプリから戻ってきた等のケースで、状態を再取得して再描画する
+    if (state != AppLifecycleState.resumed) return;
+
+    // 設定アプリから戻ってきた場合のみ: 位置情報を再取得してウィジェットを再描画
+    if (_expectingReturnFromSettings) {
+      _expectingReturnFromSettings = false;
+      if (!mounted) return;
       setState(() {
         _positionFuture = _getPositionWithPermission();
       });
+      return;
+    }
+
+    // 通常のフォアグラウンド復帰: 現在地を取得してカメラのみ移動（地図は再描画しない）
+    _moveCameraToCurrentPosition();
+  }
+
+  /// 現在地を取得し、カメラをその位置に移動する。ダイアログは出さない。地図の再描画は行わない
+  Future<void> _moveCameraToCurrentPosition() async {
+    final position = await _getCurrentPositionSilent();
+    if (!mounted || position == null || mapController == null) return;
+    await mapController!.animateCamera(
+      CameraUpdate.newLatLng(LatLng(position.latitude, position.longitude)),
+    );
+  }
+
+  /// 現在地を取得する。許可なし・無効の場合は null を返し、ダイアログは出さない
+  /// キャッシュを優先して即返し、なければ medium 精度で取得（high より速い）
+  Future<Position?> _getCurrentPositionSilent() async {
+    if (!await Geolocator.isLocationServiceEnabled()) return null;
+    final permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied ||
+        permission == LocationPermission.deniedForever) {
+      return null;
+    }
+    try {
+      final lastPosition = await Geolocator.getLastKnownPosition();
+      if (lastPosition != null) return lastPosition;
+      return await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+      );
+    } catch (_) {
+      return null;
     }
   }
 
@@ -123,7 +163,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           '位置情報が無効です',
           '位置情報サービスがオフになっています。端末の設定でオンにしてください。',
           okText: '設定を開く',
-          onOk: Geolocator.openLocationSettings,
+          onOk: () {
+            _expectingReturnFromSettings = true;
+            Geolocator.openLocationSettings();
+          },
         );
       });
       return null;
@@ -150,7 +193,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           '位置情報の許可が必要です',
           '位置情報の許可が「今後表示しない」になっています。アプリ設定から許可をオンにしてください。',
           okText: '設定を開く',
-          onOk: Geolocator.openAppSettings,
+          onOk: () {
+            _expectingReturnFromSettings = true;
+            Geolocator.openAppSettings();
+          },
         );
       });
       return null;
@@ -172,8 +218,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     }
   }
 
-  /// 初回起動: Directions API でルート取得→保存→描画。2回目以降: 保存済みルートを読み出して描画（API は呼ばない）。
-  /// 地図表示後にバックグラウンドで実行され、ルート取得後にアニメーションで表示する。
+  /// 初回起動: Directions API でルート取得→保存→描画。2回目以降: 保存済みルートを読み出して描画（API は呼ばない）
+  /// 地図表示後にバックグラウンドで実行され、ルート取得後にアニメーションで表示する
   Future<void> _fetchOrLoadRouteIfNeeded(Position position) async {
     if (_hasStartedInitialRouteFetch) return;
     _hasStartedInitialRouteFetch = true;
