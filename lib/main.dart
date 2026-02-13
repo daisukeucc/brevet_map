@@ -60,8 +60,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   double? _previousVolume;
 
   /// ボリュームキー1回あたりのズーム量
-  static const _volumeZoomAmountUp = 1.8;
-  static const _volumeZoomAmountDown = 1.8;
+  static const _volumeZoomAmountUp = 1.2;
+  static const _volumeZoomAmountDown = 1.2;
 
   @override
   void initState() {
