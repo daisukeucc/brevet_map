@@ -478,6 +478,17 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     );
   }
 
+  /// ルート全体表示
+  Future<void> _animateToRouteBounds() async {
+    final points = _fullRoutePoints ?? _savedRoutePoints;
+    if (points == null || points.isEmpty || mapController == null) return;
+    final bounds = _boundsFromPoints(points);
+    if (bounds == null) return;
+    await mapController!.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, 80),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -509,34 +520,67 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             _fetchOrLoadRouteIfNeeded(position);
           });
 
-          return GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: LatLng(
-                position.latitude,
-                position.longitude,
-              ),
-              zoom: 14.0,
-            ),
-            myLocationEnabled: true,
-            myLocationButtonEnabled: true,
-            polylines: _routePolylines,
-            markers: _routeMarkers,
-            onMapCreated: (controller) async {
-              mapController = controller;
-              // 保存済みルートがある場合は、地図作成直後にルート全体が見えるようにカメラを移動
-              if (_savedRoutePoints != null && _savedRoutePoints!.isNotEmpty) {
-                final bounds = _boundsFromPoints(_savedRoutePoints!);
-                if (bounds != null) {
-                  await controller.animateCamera(
-                    CameraUpdate.newLatLngBounds(bounds, 80),
-                  );
-                  // カメラ移動後にアニメーション開始
-                  if (mounted) {
-                    _startRouteAnimation(_savedRoutePoints!);
+          return Stack(
+            children: [
+              GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(
+                    position.latitude,
+                    position.longitude,
+                  ),
+                  zoom: 14.0,
+                ),
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                polylines: _routePolylines,
+                markers: _routeMarkers,
+                onMapCreated: (controller) async {
+                  mapController = controller;
+                  // 保存済みルートがある場合は、地図作成直後にルート全体が見えるようにカメラを移動
+                  if (_savedRoutePoints != null &&
+                      _savedRoutePoints!.isNotEmpty) {
+                    final bounds = _boundsFromPoints(_savedRoutePoints!);
+                    if (bounds != null) {
+                      await controller.animateCamera(
+                        CameraUpdate.newLatLngBounds(bounds, 80),
+                      );
+                      // カメラ移動後にアニメーション開始
+                      if (mounted) {
+                        _startRouteAnimation(_savedRoutePoints!);
+                      }
+                    }
                   }
-                }
-              }
-            },
+                },
+              ),
+              // ルート全体表示ボタン（左下に配置、現在地ボタンと重ならない）
+              Positioned(
+                left: 16,
+                bottom: 24,
+                child: Tooltip(
+                  message: 'ルート全体を表示',
+                  child: Material(
+                    color: Colors.white,
+                    elevation: 5,
+                    shadowColor: Colors.black26,
+                    shape: const CircleBorder(),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: _animateToRouteBounds,
+                      customBorder: const CircleBorder(),
+                      child: const SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: Icon(
+                          Icons.zoom_out_map,
+                          color: Colors.black87,
+                          size: 24,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
