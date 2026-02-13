@@ -604,32 +604,61 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
                   }
                 },
               ),
-              // ルート全体表示ボタン
+              // ルート全体表示・現在地ボタン（右上に縦並び）
               Positioned(
                 right: 16,
                 top: 24,
-                child: Tooltip(
-                  message: 'ルート全体を表示',
-                  child: Material(
-                    color: Colors.white,
-                    elevation: 5,
-                    shadowColor: Colors.black26,
-                    shape: const CircleBorder(),
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      onTap: _animateToRouteBounds,
-                      customBorder: const CircleBorder(),
-                      child: const SizedBox(
-                        width: 44,
-                        height: 44,
-                        child: Icon(
-                          Icons.zoom_out_map,
-                          color: Colors.black87,
-                          size: 24,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Tooltip(
+                      message: 'ルート全体を表示',
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        shadowColor: Colors.black26,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: _animateToRouteBounds,
+                          customBorder: const CircleBorder(),
+                          child: const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Icon(
+                              Icons.zoom_out_map,
+                              color: Colors.black87,
+                              size: 24,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 12),
+                    Tooltip(
+                      message: '現在地を表示',
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        shadowColor: Colors.black26,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: _moveCameraToCurrentPosition,
+                          customBorder: const CircleBorder(),
+                          child: const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Icon(
+                              Icons.my_location,
+                              color: Colors.black87,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
