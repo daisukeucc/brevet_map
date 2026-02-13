@@ -40,7 +40,8 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+class _MyHomePageState extends State<MyHomePage>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   GoogleMapController? mapController;
   Future<Position?>? _positionFuture;
   Set<Polyline> _routePolylines = {};
@@ -62,6 +63,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   /// ボリュームキー1回あたりのズーム量
   static const _volumeZoomAmountUp = 1.2;
   static const _volumeZoomAmountDown = 1.2;
+
+  /// 位置情報ストリーム（開始ボタンで開始・停止）
+  StreamSubscription<Position>? _positionStreamSubscription;
+
+  /// 位置取得中に表示する左→右アニメーションバー用
+  AnimationController? _progressBarController;
 
   @override
   void initState() {
@@ -126,6 +133,8 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _progressBarController?.dispose();
+    _positionStreamSubscription?.cancel();
     _volumeSubscription?.cancel();
     _volumeKeySubscription?.cancel();
     _routeAnimationTimer?.cancel();
@@ -133,8 +142,58 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  /// ストリームで位置情報取得を開始または停止する
+  void _toggleLocationStream() {
+    if (_positionStreamSubscription != null) {
+      _positionStreamSubscription?.cancel();
+      _positionStreamSubscription = null;
+      _progressBarController?.stop();
+      _progressBarController?.reset();
+      setState(() {});
+      return;
+    }
+    _progressBarController ??= AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+    _progressBarController!.repeat();
+    final stream = Geolocator.getPositionStream(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.medium,
+      ),
+    );
+    _positionStreamSubscription = stream.listen(
+      (Position position) {
+        if (!mounted || mapController == null) return;
+        mapController!.animateCamera(
+          CameraUpdate.newLatLng(
+            LatLng(position.latitude, position.longitude),
+          ),
+        );
+      },
+      onError: (_) {
+        _positionStreamSubscription?.cancel();
+        _positionStreamSubscription = null;
+        _progressBarController?.stop();
+        _progressBarController?.reset();
+        if (mounted) setState(() {});
+      },
+    );
+    setState(() {});
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _positionStreamSubscription?.cancel();
+      _positionStreamSubscription = null;
+      _progressBarController?.stop();
+      _progressBarController?.reset();
+      if (mounted) setState(() {});
+      if (state == AppLifecycleState.paused) return;
+    }
+
     if (state != AppLifecycleState.resumed) return;
 
     // 設定アプリから戻ってきた場合のみ: 位置情報を再取得してウィジェットを再描画
@@ -572,94 +631,164 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             _fetchOrLoadRouteIfNeeded(position);
           });
 
-          return Stack(
+          return Column(
             children: [
-              GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: LatLng(
-                    position.latitude,
-                    position.longitude,
-                  ),
-                  zoom: 14.0,
-                ),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: false,
-                polylines: _routePolylines,
-                markers: _routeMarkers,
-                onMapCreated: (controller) async {
-                  mapController = controller;
-                  // 保存済みルートがある場合は、地図作成直後にルート全体が見えるようにカメラを移動
-                  if (_savedRoutePoints != null &&
-                      _savedRoutePoints!.isNotEmpty) {
-                    final bounds = _boundsFromPoints(_savedRoutePoints!);
-                    if (bounds != null) {
-                      await controller.animateCamera(
-                        CameraUpdate.newLatLngBounds(bounds, 80),
-                      );
-                      // カメラ移動後にアニメーション開始
-                      if (mounted) {
-                        _startRouteAnimation(_savedRoutePoints!);
-                      }
-                    }
-                  }
-                },
-              ),
-              // ルート全体表示・現在地ボタン（右上に縦並び）
-              Positioned(
-                right: 16,
-                top: 24,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
+              Expanded(
+                child: Stack(
                   children: [
-                    Tooltip(
-                      message: 'ルート全体を表示',
-                      child: Material(
-                        color: Colors.white,
-                        elevation: 5,
-                        shadowColor: Colors.black26,
-                        shape: const CircleBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: _animateToRouteBounds,
-                          customBorder: const CircleBorder(),
-                          child: const SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Icon(
-                              Icons.zoom_out_map,
-                              color: Colors.black87,
-                              size: 24,
-                            ),
-                          ),
+                    GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: LatLng(
+                          position.latitude,
+                          position.longitude,
                         ),
+                        zoom: 14.0,
                       ),
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: false,
+                      zoomControlsEnabled: false,
+                      polylines: _routePolylines,
+                      markers: _routeMarkers,
+                      onMapCreated: (controller) async {
+                        mapController = controller;
+                        if (_savedRoutePoints != null &&
+                            _savedRoutePoints!.isNotEmpty) {
+                          final bounds = _boundsFromPoints(_savedRoutePoints!);
+                          if (bounds != null) {
+                            await controller.animateCamera(
+                              CameraUpdate.newLatLngBounds(bounds, 80),
+                            );
+                            if (mounted) {
+                              _startRouteAnimation(_savedRoutePoints!);
+                            }
+                          }
+                        }
+                      },
                     ),
-                    const SizedBox(height: 12),
-                    Tooltip(
-                      message: '現在地を表示',
-                      child: Material(
-                        color: Colors.white,
-                        elevation: 5,
-                        shadowColor: Colors.black26,
-                        shape: const CircleBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: _moveCameraToCurrentPosition,
-                          customBorder: const CircleBorder(),
-                          child: const SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Icon(
-                              Icons.my_location,
-                              color: Colors.black87,
-                              size: 24,
+                    Positioned(
+                      right: 16,
+                      top: 24,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Tooltip(
+                            message: 'ルート全体を表示',
+                            child: Material(
+                              color: Colors.white,
+                              elevation: 5,
+                              shadowColor: Colors.black26,
+                              shape: const CircleBorder(),
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onTap: _animateToRouteBounds,
+                                customBorder: const CircleBorder(),
+                                child: const SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Icon(
+                                    Icons.zoom_out_map,
+                                    color: Colors.black87,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 12),
+                          Tooltip(
+                            message: '現在地を表示',
+                            child: Material(
+                              color: Colors.white,
+                              elevation: 5,
+                              shadowColor: Colors.black26,
+                              shape: const CircleBorder(),
+                              clipBehavior: Clip.antiAlias,
+                              child: InkWell(
+                                onTap: _moveCameraToCurrentPosition,
+                                customBorder: const CircleBorder(),
+                                child: const SizedBox(
+                                  width: 44,
+                                  height: 44,
+                                  child: Icon(
+                                    Icons.my_location,
+                                    color: Colors.black87,
+                                    size: 24,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
+              ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Material(
+                    color: _positionStreamSubscription == null
+                        ? Colors.green // スタートマーカーと同じ
+                        : Colors.red, // ゴールマーカーと同じ
+                    child: InkWell(
+                      onTap: _toggleLocationStream,
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 67,
+                        child: Center(
+                          child: Icon(
+                            _positionStreamSubscription == null
+                                ? Icons.play_arrow
+                                : Icons.stop,
+                            color: Colors.white,
+                            size: 48,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_positionStreamSubscription != null &&
+                      _progressBarController != null)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      height: 5,
+                      child: Container(
+                        width: double.infinity,
+                        color: Colors.red.shade900,
+                        child: ClipRect(
+                          child: AnimatedBuilder(
+                            animation: _progressBarController!,
+                            builder: (context, child) {
+                              return LayoutBuilder(
+                                builder: (context, constraints) {
+                                  const barWidth = 80.0;
+                                  final left = (_progressBarController!.value *
+                                          (constraints.maxWidth + barWidth)) -
+                                      barWidth;
+                                  return Stack(
+                                    children: [
+                                      Positioned(
+                                        left: left,
+                                        top: 0,
+                                        child: Container(
+                                          width: barWidth,
+                                          height: 5,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
           );
