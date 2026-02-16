@@ -16,6 +16,13 @@ import 'api_config.dart';
 import 'directions_repository.dart';
 import 'first_launch_repository.dart';
 
+/// 地図をモノクロ表示するためのスタイル JSON（saturation -100 で全要素をグレースケール化）
+const String _mapStyleGrayscale = '''
+[
+  {"featureType": "all", "elementType": "all", "stylers": [{"saturation": -100}]}
+]
+''';
+
 void main() {
   runApp(const MyApp());
 }
@@ -50,6 +57,8 @@ class _MyHomePageState extends State<MyHomePage>
   Future<Position?>? _positionFuture;
   Set<Polyline> _routePolylines = {};
   Set<Marker> _routeMarkers = {};
+  /// true = モノクロ表示、false = 通常カラー
+  bool _mapGrayscale = false;
   bool _hasStartedInitialRouteFetch = false;
   List<LatLng>? _savedRoutePoints;
   Timer? _routeAnimationTimer;
@@ -748,6 +757,8 @@ class _MyHomePageState extends State<MyHomePage>
                       markers: _routeMarkers,
                       onMapCreated: (controller) async {
                         mapController = controller;
+                        await controller.setMapStyle(
+                            _mapGrayscale ? _mapStyleGrayscale : null);
                         if (_savedRoutePoints != null &&
                             _savedRoutePoints!.isNotEmpty) {
                           final bounds = _boundsFromPoints(_savedRoutePoints!);
@@ -761,6 +772,39 @@ class _MyHomePageState extends State<MyHomePage>
                           }
                         }
                       },
+                    ),
+                    Positioned(
+                      left: 16,
+                      top: 24,
+                      child: Tooltip(
+                        message: _mapGrayscale ? '地図をカラー表示' : '地図をモノクロ表示',
+                        child: Material(
+                          color: Colors.white,
+                          elevation: 5,
+                          shadowColor: Colors.black26,
+                          shape: const CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () async {
+                              setState(() => _mapGrayscale = !_mapGrayscale);
+                              await mapController?.setMapStyle(
+                                  _mapGrayscale ? _mapStyleGrayscale : null);
+                            },
+                            customBorder: const CircleBorder(),
+                            child: SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: Icon(
+                                _mapGrayscale
+                                    ? Icons.color_lens
+                                    : Icons.filter_b_and_w,
+                                color: Colors.black87,
+                                size: 24,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                     Positioned(
                       right: 16,
