@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _keyInitialRouteShown = 'initial_route_shown';
 const _keySavedRoutePolyline = 'saved_route_polyline';
 const _keyMapStyleMode = 'map_style_mode';
+const _keyLocationStreamActive = 'location_stream_active';
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -38,4 +39,16 @@ Future<void> saveMapStyleMode(int mode) async {
 Future<int> loadMapStyleMode() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getInt(_keyMapStyleMode) ?? 0;
+}
+
+/// 位置情報ストリームをONにしたいか（ボタンでONにしたとき true、OFFにしたとき false を保存）
+Future<void> saveLocationStreamActive(bool active) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_keyLocationStreamActive, active);
+}
+
+/// 保存済みの位置情報ストリームON/OFFを返す。未保存なら false（OFF）
+Future<bool> loadLocationStreamActive() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool(_keyLocationStreamActive) ?? false;
 }

@@ -276,6 +276,7 @@ class _MyHomePageState extends State<MyHomePage>
       _progressBarTimer?.cancel();
       _progressBarTimer = null;
       _progressBarValue = null;
+      saveLocationStreamActive(false);
       setState(() {});
       return;
     }
@@ -325,6 +326,7 @@ class _MyHomePageState extends State<MyHomePage>
         if (mounted) setState(() {});
       },
     );
+    saveLocationStreamActive(true);
     setState(() {});
   }
 
@@ -357,8 +359,15 @@ class _MyHomePageState extends State<MyHomePage>
       return;
     }
 
-    // 通常のフォアグラウンド復帰: 現在地を取得してカメラのみ移動（地図は再描画しない）
-    _moveCameraToCurrentPosition();
+    // 通常のフォアグラウンド復帰: 保存した設定で位置情報ストリームを復元（trueならON、falseならOFFのまま現在地へカメラ移動）
+    loadLocationStreamActive().then((wasActive) {
+      if (!mounted) return;
+      if (wasActive) {
+        _toggleLocationStream();
+      } else {
+        _moveCameraToCurrentPosition();
+      }
+    });
   }
 
   /// 現在地を取得し、カメラをその位置に移動する。ダイアログは出さない。地図の再描画は行わない
