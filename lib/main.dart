@@ -112,6 +112,13 @@ class _MyHomePageState extends State<MyHomePage>
   static const _volumeZoomAmountUp = 1.2;
   static const _volumeZoomAmountDown = 1.2;
 
+  /// ボリュームキー連打・長押しを無視するデバウンス（この間の同一キーは1回だけズーム）
+  static const _volumeDebounce = Duration(milliseconds: 400);
+  DateTime? _volumeLastKeyTime;
+  HardwareButton? _volumeLastKeyButton;
+  DateTime? _volumeLastChangeTime;
+  bool? _volumeLastChangeUp;
+
   /// 位置情報ストリーム（開始ボタンで開始・停止）
   StreamSubscription<Position>? _positionStreamSubscription;
 
@@ -202,12 +209,20 @@ class _MyHomePageState extends State<MyHomePage>
         (1.0 - _initialBrightness) * ((slider - 0.5) / 0.5);
   }
 
-  /// ボリューム上でズームイン、下でズームアウト
+  /// ボリューム上でズームイン、下でズームアウト（長押しのリピートは無視して1回だけ）
   void _setupVolumeZoomListener() {
     if (Platform.isAndroid) {
       _volumeKeySubscription =
           FlutterAndroidVolumeKeydown.stream.listen((event) {
         if (mapController == null) return;
+        final now = DateTime.now();
+        if (_volumeLastKeyTime != null &&
+            _volumeLastKeyButton == event &&
+            now.difference(_volumeLastKeyTime!) < _volumeDebounce) {
+          return; // 長押しリピートは無視
+        }
+        _volumeLastKeyTime = now;
+        _volumeLastKeyButton = event;
         if (event == HardwareButton.volume_up) {
           mapController!
               .animateCamera(CameraUpdate.zoomBy(_volumeZoomAmountUp));
@@ -224,12 +239,31 @@ class _MyHomePageState extends State<MyHomePage>
         _previousVolume = volume;
         return;
       }
-      if (volume > _previousVolume! && mapController != null) {
+      final now = DateTime.now();
+      final isUp = volume > _previousVolume!;
+      final isDown = volume < _previousVolume!;
+      if (isUp && mapController != null) {
+        if (_volumeLastChangeTime != null &&
+            _volumeLastChangeUp == true &&
+            now.difference(_volumeLastChangeTime!) < _volumeDebounce) {
+          VolumeController.instance.setVolume(_previousVolume!);
+          return;
+        }
+        _volumeLastChangeTime = now;
+        _volumeLastChangeUp = true;
         mapController!.animateCamera(CameraUpdate.zoomBy(_volumeZoomAmountUp));
         VolumeController.instance.setVolume(_previousVolume!);
         return;
       }
-      if (volume < _previousVolume! && mapController != null) {
+      if (isDown && mapController != null) {
+        if (_volumeLastChangeTime != null &&
+            _volumeLastChangeUp == false &&
+            now.difference(_volumeLastChangeTime!) < _volumeDebounce) {
+          VolumeController.instance.setVolume(_previousVolume!);
+          return;
+        }
+        _volumeLastChangeTime = now;
+        _volumeLastChangeUp = false;
         mapController!
             .animateCamera(CameraUpdate.zoomBy(-_volumeZoomAmountDown));
         VolumeController.instance.setVolume(_previousVolume!);
