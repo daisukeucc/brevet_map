@@ -16,10 +16,34 @@ import 'api_config.dart';
 import 'directions_repository.dart';
 import 'first_launch_repository.dart';
 
-/// 地図をモノクロ表示するためのスタイル JSON（saturation -100 で全要素をグレースケール化）
+/// 地図をモノクロ表示するためのスタイル JSON
 const String _mapStyleGrayscale = '''
 [
   {"featureType": "all", "elementType": "all", "stylers": [{"saturation": -100}]}
+]
+''';
+
+/// 地図を反転表示（黒を多く）するためのスタイル JSON（ダークモード）
+const String _mapStyleDark = '''
+[
+  {"elementType": "geometry", "stylers": [{"color": "#1d2c4d"}]},
+  {"elementType": "labels.text.fill", "stylers": [{"color": "#8ec3b9"}]},
+  {"elementType": "labels.text.stroke", "stylers": [{"color": "#1a3646"}]},
+  {"featureType": "administrative.country", "elementType": "geometry.stroke", "stylers": [{"color": "#4b6878"}]},
+  {"featureType": "administrative.land_parcel", "elementType": "labels.text.fill", "stylers": [{"color": "#64779e"}]},
+  {"featureType": "administrative.province", "elementType": "geometry.stroke", "stylers": [{"color": "#4b6878"}]},
+  {"featureType": "landscape.man_made", "elementType": "geometry.stroke", "stylers": [{"color": "#334e87"}]},
+  {"featureType": "landscape.natural", "elementType": "geometry", "stylers": [{"color": "#023e58"}]},
+  {"featureType": "poi", "elementType": "geometry", "stylers": [{"color": "#283d6a"}]},
+  {"featureType": "poi", "elementType": "labels.text.fill", "stylers": [{"color": "#6f9ba5"}]},
+  {"featureType": "road", "elementType": "geometry", "stylers": [{"color": "#304a7d"}]},
+  {"featureType": "road", "elementType": "labels.text.fill", "stylers": [{"color": "#98a5be"}]},
+  {"featureType": "road", "elementType": "labels.text.stroke", "stylers": [{"color": "#1d2c4d"}]},
+  {"featureType": "road.highway", "elementType": "geometry", "stylers": [{"color": "#2c6675"}]},
+  {"featureType": "road.highway", "elementType": "geometry.stroke", "stylers": [{"color": "#255763"}]},
+  {"featureType": "transit", "elementType": "labels.text.fill", "stylers": [{"color": "#98a5be"}]},
+  {"featureType": "water", "elementType": "geometry", "stylers": [{"color": "#0e1626"}]},
+  {"featureType": "water", "elementType": "labels.text.fill", "stylers": [{"color": "#4e6d70"}]}
 ]
 ''';
 
@@ -57,9 +81,20 @@ class _MyHomePageState extends State<MyHomePage>
   Future<Position?>? _positionFuture;
   Set<Polyline> _routePolylines = {};
   Set<Marker> _routeMarkers = {};
-  /// true = モノクロ表示、false = 通常カラー
-  bool _mapGrayscale = false;
+  /// 0=通常カラー, 1=モノクロ, 2=反転（ダーク）
+  int _mapStyleMode = 0;
   bool _hasStartedInitialRouteFetch = false;
+
+  String? _mapStyleForMode(int mode) {
+    switch (mode) {
+      case 1:
+        return _mapStyleGrayscale;
+      case 2:
+        return _mapStyleDark;
+      default:
+        return null;
+    }
+  }
   List<LatLng>? _savedRoutePoints;
   Timer? _routeAnimationTimer;
   List<LatLng>? _fullRoutePoints;
@@ -757,8 +792,7 @@ class _MyHomePageState extends State<MyHomePage>
                       markers: _routeMarkers,
                       onMapCreated: (controller) async {
                         mapController = controller;
-                        await controller.setMapStyle(
-                            _mapGrayscale ? _mapStyleGrayscale : null);
+                        await controller.setMapStyle(_mapStyleForMode(_mapStyleMode));
                         if (_savedRoutePoints != null &&
                             _savedRoutePoints!.isNotEmpty) {
                           final bounds = _boundsFromPoints(_savedRoutePoints!);
@@ -775,9 +809,13 @@ class _MyHomePageState extends State<MyHomePage>
                     ),
                     Positioned(
                       left: 16,
-                      top: 24,
+                      bottom: 24,
                       child: Tooltip(
-                        message: _mapGrayscale ? '地図をカラー表示' : '地図をモノクロ表示',
+                        message: _mapStyleMode == 0
+                            ? '地図をモノクロ表示'
+                            : _mapStyleMode == 1
+                                ? '地図を反転表示（ダーク）'
+                                : '地図を通常表示',
                         child: Material(
                           color: Colors.white,
                           elevation: 5,
@@ -786,18 +824,21 @@ class _MyHomePageState extends State<MyHomePage>
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
                             onTap: () async {
-                              setState(() => _mapGrayscale = !_mapGrayscale);
-                              await mapController?.setMapStyle(
-                                  _mapGrayscale ? _mapStyleGrayscale : null);
+                              setState(() =>
+                                  _mapStyleMode = (_mapStyleMode + 1) % 3);
+                              await mapController
+                                  ?.setMapStyle(_mapStyleForMode(_mapStyleMode));
                             },
                             customBorder: const CircleBorder(),
                             child: SizedBox(
                               width: 44,
                               height: 44,
                               child: Icon(
-                                _mapGrayscale
-                                    ? Icons.color_lens
-                                    : Icons.filter_b_and_w,
+                                _mapStyleMode == 0
+                                    ? Icons.filter_b_and_w
+                                    : _mapStyleMode == 1
+                                        ? Icons.dark_mode
+                                        : Icons.color_lens,
                                 color: Colors.black87,
                                 size: 24,
                               ),
