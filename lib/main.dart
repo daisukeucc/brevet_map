@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io' show Platform;
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -70,6 +71,34 @@ class _MyHomePageState extends State<MyHomePage>
   /// 位置情報ストリーム（開始ボタンで開始・停止）
   StreamSubscription<Position>? _positionStreamSubscription;
 
+  /// 進行方向（bearing）計算用の前回位置
+  Position? _lastPositionForBearing;
+
+  /// 前回適用した bearing（移動が少ないときは再利用）
+  double _lastBearing = 0.0;
+
+  /// ストリーム中の地図ズームレベル（進行方向アップ時は固定）
+  static const double _trackingZoom = 16.0;
+
+  /// 2点間の進行方向を度（0=北、90=東）で返す（移動が短い場合は null）
+  double? _bearingFromPositions(Position from, Position to) {
+    final dist = Geolocator.distanceBetween(
+      from.latitude,
+      from.longitude,
+      to.latitude,
+      to.longitude,
+    );
+    if (dist < 3.0) return null; // 3m未満は向きを更新しない（ジッター防止）
+    final lat1 = from.latitude * math.pi / 180;
+    final lat2 = to.latitude * math.pi / 180;
+    final dLon = (to.longitude - from.longitude) * math.pi / 180;
+    final x = math.sin(dLon) * math.cos(lat2);
+    final y = math.cos(lat1) * math.sin(lat2) -
+        math.sin(lat1) * math.cos(lat2) * math.cos(dLon);
+    var bearing = math.atan2(x, y) * 180 / math.pi;
+    return (bearing + 360) % 360;
+  }
+
   /// 位置取得中に表示する左→右アニメーションバー用
   static const _progressBarUpdateInterval = Duration(milliseconds: 100);
   static const _progressBarCycleDuration = Duration(milliseconds: 1800);
@@ -78,6 +107,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   /// スライダー表示値（0.0〜1.0）。0.5＝現在の輝度（初期値）。
   double _brightnessSliderValue = 0.5;
+
   /// 起動時の輝度。スライダー中央（0.5）がこの値になる。
   double _initialBrightness = 0.5;
   bool _brightnessSupported = true;
@@ -189,12 +219,15 @@ class _MyHomePageState extends State<MyHomePage>
     if (_positionStreamSubscription != null) {
       _positionStreamSubscription?.cancel();
       _positionStreamSubscription = null;
+      _lastPositionForBearing = null;
       _progressBarTimer?.cancel();
       _progressBarTimer = null;
       _progressBarValue = null;
       setState(() {});
       return;
     }
+    _lastPositionForBearing = null;
+    _lastBearing = 0.0;
     _progressBarValue = ValueNotifier(0.0);
     final step = _progressBarUpdateInterval.inMilliseconds /
         _progressBarCycleDuration.inMilliseconds;
@@ -212,15 +245,27 @@ class _MyHomePageState extends State<MyHomePage>
     _positionStreamSubscription = stream.listen(
       (Position position) {
         if (!mounted || mapController == null) return;
+        if (_lastPositionForBearing != null) {
+          final b = _bearingFromPositions(_lastPositionForBearing!, position);
+          if (b != null) _lastBearing = b;
+        }
+        _lastPositionForBearing = position;
+        final target = LatLng(position.latitude, position.longitude);
         mapController!.animateCamera(
-          CameraUpdate.newLatLng(
-            LatLng(position.latitude, position.longitude),
+          CameraUpdate.newCameraPosition(
+            CameraPosition(
+              target: target,
+              bearing: _lastBearing,
+              zoom: _trackingZoom,
+              tilt: 0,
+            ),
           ),
         );
       },
       onError: (_) {
         _positionStreamSubscription?.cancel();
         _positionStreamSubscription = null;
+        _lastPositionForBearing = null;
         _progressBarTimer?.cancel();
         _progressBarTimer = null;
         _progressBarValue = null;
@@ -237,6 +282,7 @@ class _MyHomePageState extends State<MyHomePage>
       WakelockPlus.disable();
       _positionStreamSubscription?.cancel();
       _positionStreamSubscription = null;
+      _lastPositionForBearing = null;
       _progressBarTimer?.cancel();
       _progressBarTimer = null;
       _progressBarValue = null;
