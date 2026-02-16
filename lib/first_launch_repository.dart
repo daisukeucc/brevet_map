@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _keyInitialRouteShown = 'initial_route_shown';
 const _keySavedRoutePolyline = 'saved_route_polyline';
+const _keyMapStyleMode = 'map_style_mode';
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -25,4 +26,16 @@ Future<void> saveRouteEncoded(String encoded) async {
 Future<String?> loadRouteEncoded() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString(_keySavedRoutePolyline);
+}
+
+/// 地図表示モード（0=通常, 1=モノクロ, 2=ダーク）を保存する
+Future<void> saveMapStyleMode(int mode) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_keyMapStyleMode, mode);
+}
+
+/// 保存済みの地図表示モードを返す。未保存なら 0（通常カラー）
+Future<int> loadMapStyleMode() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getInt(_keyMapStyleMode) ?? 0;
 }

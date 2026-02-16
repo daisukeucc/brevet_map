@@ -166,6 +166,15 @@ class _MyHomePageState extends State<MyHomePage>
     _setupVolumeZoomListener();
     _loadInitialBrightness();
     WakelockPlus.enable();
+    _loadSavedMapStyleMode();
+  }
+
+  /// 保存済みの地図表示モードを読み込み、適用する（未保存なら 0=カラー）
+  Future<void> _loadSavedMapStyleMode() async {
+    final mode = await loadMapStyleMode();
+    if (!mounted) return;
+    setState(() => _mapStyleMode = mode);
+    await mapController?.setMapStyle(_mapStyleForMode(mode));
   }
 
   /// 起動時に現在の画面明るさを読み込み、スライダー中央の基準とする
@@ -323,6 +332,7 @@ class _MyHomePageState extends State<MyHomePage>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
+      saveMapStyleMode(_mapStyleMode);
       WakelockPlus.disable();
       _positionStreamSubscription?.cancel();
       _positionStreamSubscription = null;
@@ -828,6 +838,7 @@ class _MyHomePageState extends State<MyHomePage>
                                   _mapStyleMode = (_mapStyleMode + 1) % 3);
                               await mapController
                                   ?.setMapStyle(_mapStyleForMode(_mapStyleMode));
+                              await saveMapStyleMode(_mapStyleMode);
                             },
                             customBorder: const CircleBorder(),
                             child: SizedBox(
