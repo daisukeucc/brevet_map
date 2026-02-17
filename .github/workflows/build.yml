@@ -1,0 +1,106 @@
+# サンプル: API キーを GitHub Secrets から注入してビルド
+# リポジトリの Settings → Secrets and variables → Actions に
+# GOOGLE_MAPS_API_KEY を登録してください
+#
+# 注意: このリポジトリの Flutter プロジェクトルートが brevet_map/ 直下の場合は
+# 下記の working-directory を削除し、パスをリポジトリ構成に合わせてください
+
+name: Build
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          cache: true
+
+      - name: Set project directory
+        id: project
+        run: |
+          if [ -f pubspec.yaml ]; then
+            echo "dir=." >> $GITHUB_OUTPUT
+          elif [ -f brevet_map/pubspec.yaml ]; then
+            echo "dir=brevet_map" >> $GITHUB_OUTPUT
+          else
+            echo "Flutter project not found" && exit 1
+          fi
+
+      - name: Create .env from Secrets
+        run: |
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > ${{ steps.project.outputs.dir }}/.env
+
+      - name: Inject Android API key
+        run: |
+          PROJ="${{ steps.project.outputs.dir }}"
+          mkdir -p "$PROJ/android"
+          if [ -f "$PROJ/android/local.properties" ]; then
+            echo "google.maps.api.key=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> "$PROJ/android/local.properties"
+          else
+            echo "sdk.dir=$ANDROID_HOME" >> "$PROJ/android/local.properties"
+            echo "flutter.sdk=$FLUTTER_ROOT" >> "$PROJ/android/local.properties"
+            echo "google.maps.api.key=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> "$PROJ/android/local.properties"
+          fi
+
+      - name: Build APK
+        run: |
+          cd ${{ steps.project.outputs.dir }}
+          flutter pub get
+          flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: ${{ steps.project.outputs.dir }}/build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.x'
+          cache: true
+
+      - name: Set project directory
+        id: project
+        run: |
+          if [ -f pubspec.yaml ]; then
+            echo "dir=." >> $GITHUB_OUTPUT
+          elif [ -f brevet_map/pubspec.yaml ]; then
+            echo "dir=brevet_map" >> $GITHUB_OUTPUT
+          else
+            echo "Flutter project not found" && exit 1
+          fi
+
+      - name: Create .env from Secrets
+        run: |
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > ${{ steps.project.outputs.dir }}/.env
+
+      - name: Create iOS Secrets.xcconfig
+        run: |
+          PROJ="${{ steps.project.outputs.dir }}"
+          mkdir -p "$PROJ/ios/Runner"
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > "$PROJ/ios/Runner/Secrets.xcconfig"
+
+      - name: Build iOS
+        run: |
+          cd ${{ steps.project.outputs.dir }}
+          flutter pub get
+          flutter build ios --release --no-codesign
+
+      - name: Upload iOS build
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release
+          path: ${{ steps.project.outputs.dir }}/build/ios/iphoneos/Runner.app

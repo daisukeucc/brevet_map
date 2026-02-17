@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -47,7 +48,11 @@ const String _mapStyleDark = '''
 ]
 ''';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (_) {}
   runApp(const MyApp());
 }
 
