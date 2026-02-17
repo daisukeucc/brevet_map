@@ -81,6 +81,7 @@ class _MyHomePageState extends State<MyHomePage>
   Future<Position?>? _positionFuture;
   Set<Polyline> _routePolylines = {};
   Set<Marker> _routeMarkers = {};
+
   /// 0=通常カラー, 1=モノクロ, 2=反転（ダーク）
   int _mapStyleMode = 0;
   bool _hasStartedInitialRouteFetch = false;
@@ -95,6 +96,7 @@ class _MyHomePageState extends State<MyHomePage>
         return null;
     }
   }
+
   List<LatLng>? _savedRoutePoints;
   Timer? _routeAnimationTimer;
   List<LatLng>? _fullRoutePoints;
@@ -845,7 +847,8 @@ class _MyHomePageState extends State<MyHomePage>
                       markers: _routeMarkers,
                       onMapCreated: (controller) async {
                         mapController = controller;
-                        await controller.setMapStyle(_mapStyleForMode(_mapStyleMode));
+                        await controller
+                            .setMapStyle(_mapStyleForMode(_mapStyleMode));
                         if (_savedRoutePoints != null &&
                             _savedRoutePoints!.isNotEmpty) {
                           final bounds = _boundsFromPoints(_savedRoutePoints!);
@@ -879,8 +882,8 @@ class _MyHomePageState extends State<MyHomePage>
                             onTap: () async {
                               setState(() =>
                                   _mapStyleMode = (_mapStyleMode + 1) % 3);
-                              await mapController
-                                  ?.setMapStyle(_mapStyleForMode(_mapStyleMode));
+                              await mapController?.setMapStyle(
+                                  _mapStyleForMode(_mapStyleMode));
                               await saveMapStyleMode(_mapStyleMode);
                             },
                             customBorder: const CircleBorder(),
@@ -974,26 +977,26 @@ class _MyHomePageState extends State<MyHomePage>
                             child: SizedBox(
                               height: 120,
                               child: RotatedBox(
-                                    quarterTurns: 3,
-                                    child: Slider(
-                                      value: _brightnessSliderValue,
-                                      onChanged: (value) async {
-                                        setState(() =>
-                                            _brightnessSliderValue = value);
-                                        final brightness =
-                                            _sliderValueToBrightness(value);
-                                        try {
-                                          await ScreenBrightness()
-                                              .setApplicationScreenBrightness(
-                                                  brightness);
-                                        } catch (_) {}
-                                      },
-                                    ),
-                                  ),
+                                quarterTurns: 3,
+                                child: Slider(
+                                  value: _brightnessSliderValue,
+                                  onChanged: (value) async {
+                                    setState(
+                                        () => _brightnessSliderValue = value);
+                                    final brightness =
+                                        _sliderValueToBrightness(value);
+                                    try {
+                                      await ScreenBrightness()
+                                          .setApplicationScreenBrightness(
+                                              brightness);
+                                    } catch (_) {}
+                                  },
                                 ),
+                              ),
                             ),
                           ),
                         ),
+                      ),
                   ],
                 ),
               ),
@@ -1008,7 +1011,7 @@ class _MyHomePageState extends State<MyHomePage>
                       onTap: _toggleLocationStream,
                       child: SizedBox(
                         width: double.infinity,
-                        height: 67,
+                        height: 80,
                         child: Center(
                           child: Icon(
                             _positionStreamSubscription == null
@@ -1027,7 +1030,7 @@ class _MyHomePageState extends State<MyHomePage>
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      height: 5,
+                      height: 3,
                       child: Container(
                         width: double.infinity,
                         color: Colors.red.shade900,
@@ -1048,7 +1051,7 @@ class _MyHomePageState extends State<MyHomePage>
                                         top: 0,
                                         child: Container(
                                           width: barWidth,
-                                          height: 5,
+                                          height: 3,
                                           color: Colors.white,
                                         ),
                                       ),
