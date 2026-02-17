@@ -971,17 +971,9 @@ class _MyHomePageState extends State<MyHomePage>
                               horizontal: 4,
                               vertical: 4,
                             ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.brightness_6,
-                                  color: Colors.black87,
-                                  size: 22,
-                                ),
-                                SizedBox(
-                                  height: 120,
-                                  child: RotatedBox(
+                            child: SizedBox(
+                              height: 120,
+                              child: RotatedBox(
                                     quarterTurns: 3,
                                     child: Slider(
                                       value: _brightnessSliderValue,
@@ -999,11 +991,9 @@ class _MyHomePageState extends State<MyHomePage>
                                     ),
                                   ),
                                 ),
-                              ],
                             ),
                           ),
                         ),
-                      ),
                   ],
                 ),
               ),
