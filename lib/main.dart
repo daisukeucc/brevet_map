@@ -57,6 +57,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Brevet Map',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -131,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage>
   double _lastBearing = 0.0;
 
   /// ストリーム中の地図ズームレベル（進行方向アップ時は固定）
-  static const double _trackingZoom = 16.0;
+  static const double _trackingZoom = 15.0;
 
   /// 2点間の進行方向を度（0=北、90=東）で返す（移動が短い場合は null）
   double? _bearingFromPositions(Position from, Position to) {
@@ -834,240 +835,241 @@ class _MyHomePageState extends State<MyHomePage>
                   child: Stack(
                     children: [
                       GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: LatLng(
-                          position.latitude,
-                          position.longitude,
+                        initialCameraPosition: CameraPosition(
+                          target: LatLng(
+                            position.latitude,
+                            position.longitude,
+                          ),
+                          zoom: 14.0,
                         ),
-                        zoom: 14.0,
-                      ),
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      zoomControlsEnabled: false,
-                      polylines: _routePolylines,
-                      markers: _routeMarkers,
-                      onMapCreated: (controller) async {
-                        mapController = controller;
-                        await controller
-                            .setMapStyle(_mapStyleForMode(_mapStyleMode));
-                        if (_savedRoutePoints != null &&
-                            _savedRoutePoints!.isNotEmpty) {
-                          final bounds = _boundsFromPoints(_savedRoutePoints!);
-                          if (bounds != null) {
-                            await controller.animateCamera(
-                              CameraUpdate.newLatLngBounds(bounds, 80),
-                            );
-                            if (mounted) {
-                              _startRouteAnimation(_savedRoutePoints!);
+                        myLocationEnabled: true,
+                        myLocationButtonEnabled: false,
+                        zoomControlsEnabled: false,
+                        polylines: _routePolylines,
+                        markers: _routeMarkers,
+                        onMapCreated: (controller) async {
+                          mapController = controller;
+                          await controller
+                              .setMapStyle(_mapStyleForMode(_mapStyleMode));
+                          if (_savedRoutePoints != null &&
+                              _savedRoutePoints!.isNotEmpty) {
+                            final bounds =
+                                _boundsFromPoints(_savedRoutePoints!);
+                            if (bounds != null) {
+                              await controller.animateCamera(
+                                CameraUpdate.newLatLngBounds(bounds, 80),
+                              );
+                              if (mounted) {
+                                _startRouteAnimation(_savedRoutePoints!);
+                              }
                             }
                           }
-                        }
-                      },
-                    ),
-                    Positioned(
-                      left: 16,
-                      bottom: 24,
-                      child: Tooltip(
-                        message: _mapStyleMode == 0
-                            ? '地図をモノクロ表示'
-                            : _mapStyleMode == 1
-                                ? '地図を反転表示（ダーク）'
-                                : '地図を通常表示',
-                        child: Material(
-                          color: Colors.white,
-                          elevation: 5,
-                          shadowColor: Colors.black26,
-                          shape: const CircleBorder(),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            onTap: () async {
-                              setState(() =>
-                                  _mapStyleMode = (_mapStyleMode + 1) % 3);
-                              await mapController?.setMapStyle(
-                                  _mapStyleForMode(_mapStyleMode));
-                              await saveMapStyleMode(_mapStyleMode);
-                            },
-                            customBorder: const CircleBorder(),
-                            child: SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: Icon(
-                                _mapStyleMode == 0
-                                    ? Icons.filter_b_and_w
-                                    : _mapStyleMode == 1
-                                        ? Icons.dark_mode
-                                        : Icons.color_lens,
-                                color: Colors.black87,
-                                size: 24,
+                        },
+                      ),
+                      Positioned(
+                        left: 16,
+                        bottom: 24,
+                        child: Tooltip(
+                          message: _mapStyleMode == 0
+                              ? '地図をモノクロ表示'
+                              : _mapStyleMode == 1
+                                  ? '地図を反転表示（ダーク）'
+                                  : '地図を通常表示',
+                          child: Material(
+                            color: Colors.white,
+                            elevation: 5,
+                            shadowColor: Colors.black26,
+                            shape: const CircleBorder(),
+                            clipBehavior: Clip.antiAlias,
+                            child: InkWell(
+                              onTap: () async {
+                                setState(() =>
+                                    _mapStyleMode = (_mapStyleMode + 1) % 3);
+                                await mapController?.setMapStyle(
+                                    _mapStyleForMode(_mapStyleMode));
+                                await saveMapStyleMode(_mapStyleMode);
+                              },
+                              customBorder: const CircleBorder(),
+                              child: SizedBox(
+                                width: 44,
+                                height: 44,
+                                child: Icon(
+                                  _mapStyleMode == 0
+                                      ? Icons.filter_b_and_w
+                                      : _mapStyleMode == 1
+                                          ? Icons.dark_mode
+                                          : Icons.color_lens,
+                                  color: Colors.black87,
+                                  size: 24,
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    Positioned(
-                      right: 16,
-                      top: 24,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Tooltip(
-                            message: 'ルート全体を表示',
-                            child: Material(
-                              color: Colors.white,
-                              elevation: 5,
-                              shadowColor: Colors.black26,
-                              shape: const CircleBorder(),
-                              clipBehavior: Clip.antiAlias,
-                              child: InkWell(
-                                onTap: _animateToRouteBounds,
-                                customBorder: const CircleBorder(),
-                                child: const SizedBox(
-                                  width: 44,
-                                  height: 44,
-                                  child: Icon(
-                                    Icons.zoom_out_map,
-                                    color: Colors.black87,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Tooltip(
-                            message: '現在地を表示',
-                            child: Material(
-                              color: Colors.white,
-                              elevation: 5,
-                              shadowColor: Colors.black26,
-                              shape: const CircleBorder(),
-                              clipBehavior: Clip.antiAlias,
-                              child: InkWell(
-                                onTap: _moveCameraToCurrentPosition,
-                                customBorder: const CircleBorder(),
-                                child: const SizedBox(
-                                  width: 44,
-                                  height: 44,
-                                  child: Icon(
-                                    Icons.my_location,
-                                    color: Colors.black87,
-                                    size: 24,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (_brightnessSupported)
                       Positioned(
                         right: 16,
-                        bottom: 24,
-                        child: Material(
-                          color: Colors.white,
-                          elevation: 5,
-                          shadowColor: Colors.black26,
-                          borderRadius: BorderRadius.circular(24),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 4,
-                            ),
-                            child: SizedBox(
-                              height: 120,
-                              child: RotatedBox(
-                                quarterTurns: 3,
-                                child: Slider(
-                                  value: _brightnessSliderValue,
-                                  onChanged: (value) async {
-                                    setState(
-                                        () => _brightnessSliderValue = value);
-                                    final brightness =
-                                        _sliderValueToBrightness(value);
-                                    try {
-                                      await ScreenBrightness()
-                                          .setApplicationScreenBrightness(
-                                              brightness);
-                                    } catch (_) {}
-                                  },
+                        top: 24,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Tooltip(
+                              message: 'ルート全体を表示',
+                              child: Material(
+                                color: Colors.white,
+                                elevation: 5,
+                                shadowColor: Colors.black26,
+                                shape: const CircleBorder(),
+                                clipBehavior: Clip.antiAlias,
+                                child: InkWell(
+                                  onTap: _animateToRouteBounds,
+                                  customBorder: const CircleBorder(),
+                                  child: const SizedBox(
+                                    width: 44,
+                                    height: 44,
+                                    child: Icon(
+                                      Icons.zoom_out_map,
+                                      color: Colors.black87,
+                                      size: 24,
+                                    ),
+                                  ),
                                 ),
                               ),
+                            ),
+                            const SizedBox(height: 12),
+                            Tooltip(
+                              message: '現在地を表示',
+                              child: Material(
+                                color: Colors.white,
+                                elevation: 5,
+                                shadowColor: Colors.black26,
+                                shape: const CircleBorder(),
+                                clipBehavior: Clip.antiAlias,
+                                child: InkWell(
+                                  onTap: _moveCameraToCurrentPosition,
+                                  customBorder: const CircleBorder(),
+                                  child: const SizedBox(
+                                    width: 44,
+                                    height: 44,
+                                    child: Icon(
+                                      Icons.my_location,
+                                      color: Colors.black87,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (_brightnessSupported)
+                        Positioned(
+                          right: 16,
+                          bottom: 24,
+                          child: Material(
+                            color: Colors.white,
+                            elevation: 5,
+                            shadowColor: Colors.black26,
+                            borderRadius: BorderRadius.circular(24),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 4,
+                              ),
+                              child: SizedBox(
+                                height: 120,
+                                child: RotatedBox(
+                                  quarterTurns: 3,
+                                  child: Slider(
+                                    value: _brightnessSliderValue,
+                                    onChanged: (value) async {
+                                      setState(
+                                          () => _brightnessSliderValue = value);
+                                      final brightness =
+                                          _sliderValueToBrightness(value);
+                                      try {
+                                        await ScreenBrightness()
+                                            .setApplicationScreenBrightness(
+                                                brightness);
+                                      } catch (_) {}
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Material(
+                      color: _positionStreamSubscription == null
+                          ? Colors.green // スタートマーカーと同じ
+                          : Colors.red, // ゴールマーカーと同じ
+                      child: InkWell(
+                        onTap: _toggleLocationStream,
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: 80,
+                          child: Center(
+                            child: Icon(
+                              _positionStreamSubscription == null
+                                  ? Icons.play_arrow
+                                  : Icons.stop,
+                              color: Colors.white,
+                              size: 48,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_positionStreamSubscription != null &&
+                        _progressBarValue != null)
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        height: 3,
+                        child: Container(
+                          width: double.infinity,
+                          color: Colors.red.shade900,
+                          child: ClipRect(
+                            child: ValueListenableBuilder<double>(
+                              valueListenable: _progressBarValue!,
+                              builder: (context, value, child) {
+                                return LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    const barWidth = 80.0;
+                                    final left = (value *
+                                            (constraints.maxWidth + barWidth)) -
+                                        barWidth;
+                                    return Stack(
+                                      children: [
+                                        Positioned(
+                                          left: left,
+                                          top: 0,
+                                          child: Container(
+                                            width: barWidth,
+                                            height: 3,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
                             ),
                           ),
                         ),
                       ),
                   ],
                 ),
-              ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Material(
-                    color: _positionStreamSubscription == null
-                        ? Colors.green // スタートマーカーと同じ
-                        : Colors.red, // ゴールマーカーと同じ
-                    child: InkWell(
-                      onTap: _toggleLocationStream,
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 80,
-                        child: Center(
-                          child: Icon(
-                            _positionStreamSubscription == null
-                                ? Icons.play_arrow
-                                : Icons.stop,
-                            color: Colors.white,
-                            size: 48,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  if (_positionStreamSubscription != null &&
-                      _progressBarValue != null)
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      height: 3,
-                      child: Container(
-                        width: double.infinity,
-                        color: Colors.red.shade900,
-                        child: ClipRect(
-                          child: ValueListenableBuilder<double>(
-                            valueListenable: _progressBarValue!,
-                            builder: (context, value, child) {
-                              return LayoutBuilder(
-                                builder: (context, constraints) {
-                                  const barWidth = 80.0;
-                                  final left = (value *
-                                          (constraints.maxWidth + barWidth)) -
-                                      barWidth;
-                                  return Stack(
-                                    children: [
-                                      Positioned(
-                                        left: left,
-                                        top: 0,
-                                        child: Container(
-                                          width: barWidth,
-                                          height: 3,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ],
+              ],
             ),
           );
         },
