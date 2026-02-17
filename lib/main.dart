@@ -131,8 +131,23 @@ class _MyHomePageState extends State<MyHomePage>
   /// 前回適用した bearing（移動が少ないときは再利用）
   double _lastBearing = 0.0;
 
-  /// ストリーム中の地図ズームレベル（進行方向アップ時は固定）
+  /// ストリーム中の地図ズームレベル（保存値が無いときのデフォルト）
   static const double _trackingZoom = 15.0;
+
+  /// 起動時・ズーム未保存時の初期ズーム
+  static const double _defaultZoom = 14.0;
+
+  /// ユーザーが変更したズームレベル（null＝未保存＝デフォルト使用）。アプリ終了時にクリア
+  double? _savedZoomLevel;
+
+  /// このセッションで位置情報ストリームを一度でも開始したか（初回ON時のみ15にするため）
+  bool _hasStartedLocationStreamThisSession = false;
+
+  /// カメラ移動終了時に現在のズームを保存する（ピンチ・ボリュームボタン等）
+  Future<void> _onCameraIdle() async {
+    final z = await mapController?.getZoomLevel();
+    if (z != null && mounted) setState(() => _savedZoomLevel = z);
+  }
 
   /// 2点間の進行方向を度（0=北、90=東）で返す（移動が短い場合は null）
   double? _bearingFromPositions(Position from, Position to) {
@@ -292,6 +307,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
+    _savedZoomLevel = null;
     WakelockPlus.disable();
     _progressBarTimer?.cancel();
     _progressBarTimer = null;
@@ -319,6 +335,12 @@ class _MyHomePageState extends State<MyHomePage>
     }
     _lastPositionForBearing = null;
     _lastBearing = 0.0;
+    if (!_hasStartedLocationStreamThisSession) {
+      setState(() {
+        _savedZoomLevel = 15;
+        _hasStartedLocationStreamThisSession = true;
+      });
+    }
     _progressBarValue = ValueNotifier(0.0);
     final step = _progressBarUpdateInterval.inMilliseconds /
         _progressBarCycleDuration.inMilliseconds;
@@ -347,7 +369,7 @@ class _MyHomePageState extends State<MyHomePage>
             CameraPosition(
               target: target,
               bearing: _lastBearing,
-              zoom: _trackingZoom,
+              zoom: _savedZoomLevel ?? _trackingZoom,
               tilt: 0,
             ),
           ),
@@ -840,13 +862,14 @@ class _MyHomePageState extends State<MyHomePage>
                             position.latitude,
                             position.longitude,
                           ),
-                          zoom: 14.0,
+                          zoom: _savedZoomLevel ?? _defaultZoom,
                         ),
                         myLocationEnabled: true,
                         myLocationButtonEnabled: false,
                         zoomControlsEnabled: false,
                         polylines: _routePolylines,
                         markers: _routeMarkers,
+                        onCameraIdle: _onCameraIdle,
                         onMapCreated: (controller) async {
                           mapController = controller;
                           await controller
