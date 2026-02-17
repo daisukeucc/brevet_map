@@ -150,6 +150,7 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				A1B2C3D41E2F3A4B5C6D7E8F /* Inject Secrets */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
@@ -252,6 +253,20 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+		};
+		A1B2C3D41E2F3A4B5C6D7E8F /* Inject Secrets */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Inject Secrets";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ -f \"${SRCROOT}/Runner/Secrets.xcconfig\" ]; then\n  . \"${SRCROOT}/Runner/Secrets.xcconfig\"\n  /usr/libexec/PlistBuddy -c \"Set :GoogleMapsApiKey $GOOGLE_MAPS_API_KEY\" \"${TARGET_BUILD_DIR}/Runner.app/Info.plist\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

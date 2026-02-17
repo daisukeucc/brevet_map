@@ -106,6 +106,9 @@ app.*.symbols
 .env.*
 *.env
 
+# API Keys
+**/ios/Runner/Secrets.xcconfig
+
 # Firebase
 google-services.json
 GoogleService-Info.plist

@@ -27,6 +27,8 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+def googleMapsApiKey = localProperties.getProperty('google.maps.api.key') ?: ''
+
 android {
     namespace "com.example.brevet_map"
     compileSdkVersion flutter.compileSdkVersion
@@ -46,6 +48,8 @@ android {
     }
 
     defaultConfig {
+        // Google Maps API Key（local.properties の google.maps.api.key から注入する）
+        manifestPlaceholders += [googleMapsApiKey: googleMapsApiKey]
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.example.brevet_map"
         // You can update the following values to match your application needs.
