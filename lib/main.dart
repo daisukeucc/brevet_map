@@ -827,12 +827,13 @@ class _MyHomePageState extends State<MyHomePage>
             _fetchOrLoadRouteIfNeeded(position);
           });
 
-          return Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    GoogleMap(
+          return SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Stack(
+                    children: [
+                      GoogleMap(
                       initialCameraPosition: CameraPosition(
                         target: LatLng(
                           position.latitude,
@@ -1067,6 +1068,7 @@ class _MyHomePageState extends State<MyHomePage>
                 ],
               ),
             ],
+            ),
           );
         },
       ),
