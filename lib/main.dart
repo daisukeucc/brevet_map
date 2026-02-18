@@ -279,7 +279,7 @@ class _MyHomePageState extends State<MyHomePage>
       );
       if (bounds != null && mapController != null) {
         await mapController!.animateCamera(
-          CameraUpdate.newLatLngBounds(bounds, 80),
+          CameraUpdate.newLatLngBounds(bounds, 30),
         );
       }
     } else if (result.waypoints.isNotEmpty) {
@@ -289,7 +289,7 @@ class _MyHomePageState extends State<MyHomePage>
             _boundsFromPoints(result.waypoints.map((p) => p.position).toList());
         if (bounds != null) {
           await mapController!.animateCamera(
-            CameraUpdate.newLatLngBounds(bounds, 80),
+            CameraUpdate.newLatLngBounds(bounds, 30),
           );
         }
       }
@@ -715,7 +715,7 @@ class _MyHomePageState extends State<MyHomePage>
       final bounds = _boundsFromPoints(pts);
       if (bounds != null) {
         await mapController!.animateCamera(
-          CameraUpdate.newLatLngBounds(bounds, 80),
+          CameraUpdate.newLatLngBounds(bounds, 30),
         );
       }
     }
@@ -1028,7 +1028,7 @@ class _MyHomePageState extends State<MyHomePage>
     final bounds = _boundsFromPoints(points);
     if (bounds == null) return;
     await mapController!.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 80),
+      CameraUpdate.newLatLngBounds(bounds, 30),
     );
   }
 
@@ -1107,7 +1107,7 @@ class _MyHomePageState extends State<MyHomePage>
                                 _boundsFromPoints(_savedRoutePoints!);
                             if (bounds != null) {
                               await controller.animateCamera(
-                                CameraUpdate.newLatLngBounds(bounds, 80),
+                                CameraUpdate.newLatLngBounds(bounds, 30),
                               );
                               if (mounted) {
                                 _startRouteAnimation(_savedRoutePoints!);
