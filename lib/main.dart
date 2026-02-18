@@ -843,8 +843,22 @@ class _MyHomePageState extends State<MyHomePage>
           }
 
           if (!snapshot.hasData || snapshot.data == null) {
-            return const Center(
-              child: Text('位置情報を取得できません'),
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text('位置情報を取得できません'),
+                    const SizedBox(height: 16),
+                    TextButton.icon(
+                      onPressed: () => Geolocator.openAppSettings(),
+                      icon: const Icon(Icons.settings),
+                      label: const Text('設定を開く'),
+                    ),
+                  ],
+                ),
+              ),
             );
           }
 
