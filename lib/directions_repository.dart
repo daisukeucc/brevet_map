@@ -90,3 +90,29 @@ List<LatLng> decodePolyline(String encoded) {
   }
   return points;
 }
+
+/// [LatLng] のリストを Google のエンコード済みポリライン文字列に変換する（GPX保存用）
+String encodePolyline(List<LatLng> points) {
+  if (points.isEmpty) return '';
+  final sb = StringBuffer();
+  int lat = 0, lng = 0;
+  for (final p in points) {
+    final plat = (p.latitude * 1e5).round();
+    final plng = (p.longitude * 1e5).round();
+    _encodeValue(sb, plat - lat);
+    _encodeValue(sb, plng - lng);
+    lat = plat;
+    lng = plng;
+  }
+  return sb.toString();
+}
+
+void _encodeValue(StringBuffer sb, int value) {
+  int v = value << 1;
+  if (value < 0) v = ~v;
+  while (v >= 0x20) {
+    sb.writeCharCode((0x20 | (v & 0x1f)) + 63);
+    v >>= 5;
+  }
+  sb.writeCharCode(v + 63);
+}

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:volume_controller/volume_controller.dart';
@@ -16,6 +18,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'api_config.dart';
 import 'directions_repository.dart';
 import 'first_launch_repository.dart';
+import 'gpx_parser.dart';
 
 /// 地図をモノクロ表示するためのスタイル JSON
 const String _mapStyleGrayscale = '''
@@ -104,9 +107,12 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   List<LatLng>? _savedRoutePoints;
+  List<GpxPoi> _gpxPois = [];
   Timer? _routeAnimationTimer;
   List<LatLng>? _fullRoutePoints;
   int _animatedRoutePointCount = 0;
+
+  static const _gpxChannel = MethodChannel('com.example.brevet_map/gpx');
 
   /// 「設定を開く」で設定アプリへ送った場合に true。フォア復帰時に位置情報を再取得するため
   bool _expectingReturnFromSettings = false;
@@ -190,13 +196,104 @@ class _MyHomePageState extends State<MyHomePage>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // アプリ起動時の地図表示・ルート表示: 位置取得と保存済みルートの事前読み込み
     _positionFuture = _getPositionWithPermission();
     _preloadSavedRoute();
+    _setupGpxChannel();
+    _requestInitialGpxContent();
     _setupVolumeZoomListener();
     _loadInitialBrightness();
     WakelockPlus.enable();
     _loadSavedMapStyleMode();
+  }
+
+  void _setupGpxChannel() {
+    _gpxChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onGpxFileReceived' && call.arguments != null) {
+        final content = call.arguments as String?;
+        if (content != null && content.isNotEmpty && mounted) {
+          _applyImportedGpx(content);
+        }
+      }
+    });
+  }
+
+  Future<void> _requestInitialGpxContent() async {
+    try {
+      final content =
+          await _gpxChannel.invokeMethod<String?>('getInitialGpxContent');
+      if (content != null && content.isNotEmpty && mounted) {
+        _applyImportedGpx(content);
+      }
+    } on PlatformException catch (_) {}
+  }
+
+  /// GPXインポート時: 既存ルートを削除し、パース結果を保存して地図に反映
+  Future<void> _applyImportedGpx(String gpxContent) async {
+    final result = parseGpx(gpxContent);
+    if (result == null) {
+      if (gpxContent.trim().isNotEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('このファイルはGPX形式ではありません')),
+        );
+      }
+      return;
+    }
+    if (result.trackPoints.isEmpty && result.waypoints.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('GPXにルートまたはウェイポイントが含まれていません')),
+        );
+      }
+      return;
+    }
+
+    await clearSavedRoute();
+
+    if (result.trackPoints.isNotEmpty) {
+      final encoded = encodePolyline(result.trackPoints);
+      await saveRouteEncoded(encoded);
+      await markInitialRouteShown();
+    }
+
+    if (result.waypoints.isNotEmpty) {
+      final poisJson = jsonEncode(
+        result.waypoints.map((p) => p.toJson()).toList(),
+      );
+      await saveGpxPois(poisJson);
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _savedRoutePoints =
+          result.trackPoints.isNotEmpty ? result.trackPoints : null;
+      _gpxPois = result.waypoints;
+      _hasStartedInitialRouteFetch = true;
+    });
+
+    if (result.trackPoints.isNotEmpty) {
+      _routeAnimationTimer?.cancel();
+      _startRouteAnimation(result.trackPoints, animate: false);
+      final bounds = _boundsFromPointsWithPois(
+        result.trackPoints,
+        result.waypoints.map((p) => p.position).toList(),
+      );
+      if (bounds != null && mapController != null) {
+        await mapController!.animateCamera(
+          CameraUpdate.newLatLngBounds(bounds, 80),
+        );
+      }
+    } else if (result.waypoints.isNotEmpty) {
+      await _updateStartGoalMarkers([]);
+      if (mapController != null) {
+        final bounds =
+            _boundsFromPoints(result.waypoints.map((p) => p.position).toList());
+        if (bounds != null) {
+          await mapController!.animateCamera(
+            CameraUpdate.newLatLngBounds(bounds, 80),
+          );
+        }
+      }
+    }
   }
 
   /// 保存済みの地図表示モードを読み込み、適用する（未保存なら 0=カラー）
@@ -296,15 +393,25 @@ class _MyHomePageState extends State<MyHomePage>
     }, fetchInitialVolume: true);
   }
 
-  /// 保存済みルートを事前に読み込む（地図の初期カメラ位置を設定するため）
+  /// 保存済みルートとPOIを事前に読み込む（地図の初期カメラ位置を設定するため）
   Future<void> _preloadSavedRoute() async {
     final isFirst = await isFirstLaunch();
     if (!isFirst) {
       final points = await _loadSavedRoute();
-      if (points != null && points.isNotEmpty && mounted) {
+      final poisJson = await loadGpxPois();
+      List<GpxPoi> pois = [];
+      if (poisJson != null && poisJson.isNotEmpty) {
+        try {
+          final list = jsonDecode(poisJson) as List<dynamic>;
+          pois = list
+              .map((e) => GpxPoi.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } catch (_) {}
+      }
+      if (mounted) {
         setState(() {
-          _savedRoutePoints = points;
-          // 事前読み込み時は表示せず、後でアニメーション表示する
+          if (points != null && points.isNotEmpty) _savedRoutePoints = points;
+          _gpxPois = pois;
         });
       }
     }
@@ -615,16 +722,35 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   /// ルートを徐々に描画するアニメーションを開始
-  void _startRouteAnimation(List<LatLng> fullPoints) {
+  /// [animate] が false の場合はアニメーションせずに一括表示（GPXインポート用）
+  void _startRouteAnimation(List<LatLng> fullPoints, {bool animate = true}) {
     _routeAnimationTimer?.cancel();
     _fullRoutePoints = fullPoints;
     _animatedRoutePointCount = 0;
 
+    // スタート・ゴール・POIのマーカーを表示
+    _updateStartGoalMarkers(fullPoints);
+
+    // ポイント数が多い（GPX想定）または animate: false の場合は即時表示
+    if (!animate || fullPoints.length <= 10 || fullPoints.length > 500) {
+      // アニメーションなし：全ポイントを即時表示
+      setState(() {
+        _routePolylines = {
+          Polyline(
+            polylineId: const PolylineId('initial_route'),
+            points: fullPoints,
+            color: Colors.red,
+            width: 5,
+          ),
+        };
+      });
+      _animatedRoutePointCount = fullPoints.length;
+      return;
+    }
+
     // 最初の数ポイントをすぐに表示（アニメーションの開始点）
     const initialPoints = 10;
-    final startPoints = fullPoints.length > initialPoints
-        ? fullPoints.sublist(0, initialPoints)
-        : fullPoints;
+    final startPoints = fullPoints.sublist(0, initialPoints);
 
     setState(() {
       _routePolylines = {
@@ -638,55 +764,47 @@ class _MyHomePageState extends State<MyHomePage>
     });
     _animatedRoutePointCount = startPoints.length;
 
-    // スタート・ゴールのマーカーを表示
-    _updateStartGoalMarkers(fullPoints);
-
     // 残りのポイントを段階的に追加
-    if (fullPoints.length > initialPoints) {
-      _routeAnimationTimer = Timer.periodic(
-        const Duration(milliseconds: 20), // 20msごとに更新（約50fps）
-        (timer) {
-          if (!mounted || _fullRoutePoints == null) {
-            timer.cancel();
-            return;
-          }
+    _routeAnimationTimer = Timer.periodic(
+      const Duration(milliseconds: 20), // 20msごとに更新（約50fps）
+      (timer) {
+        if (!mounted || _fullRoutePoints == null) {
+          timer.cancel();
+          return;
+        }
 
-          // 一度に追加するポイント数（アニメーション速度の調整）
-          const pointsPerFrame = 5;
-          final nextCount = (_animatedRoutePointCount + pointsPerFrame)
-              .clamp(0, _fullRoutePoints!.length);
+        const pointsPerFrame = 5;
+        final nextCount = (_animatedRoutePointCount + pointsPerFrame)
+            .clamp(0, _fullRoutePoints!.length);
 
-          if (nextCount >= _fullRoutePoints!.length) {
-            // アニメーション完了
-            setState(() {
-              _routePolylines = {
-                Polyline(
-                  polylineId: const PolylineId('initial_route'),
-                  points: _fullRoutePoints!,
-                  color: Colors.red,
-                  width: 5,
-                ),
-              };
-            });
-            timer.cancel();
-            _routeAnimationTimer = null;
-          } else {
-            // 次のポイントを追加
-            setState(() {
-              _routePolylines = {
-                Polyline(
-                  polylineId: const PolylineId('initial_route'),
-                  points: _fullRoutePoints!.sublist(0, nextCount),
-                  color: Colors.red,
-                  width: 5,
-                ),
-              };
-            });
-            _animatedRoutePointCount = nextCount;
-          }
-        },
-      );
-    }
+        if (nextCount >= _fullRoutePoints!.length) {
+          setState(() {
+            _routePolylines = {
+              Polyline(
+                polylineId: const PolylineId('initial_route'),
+                points: _fullRoutePoints!,
+                color: Colors.red,
+                width: 5,
+              ),
+            };
+          });
+          timer.cancel();
+          _routeAnimationTimer = null;
+        } else {
+          setState(() {
+            _routePolylines = {
+              Polyline(
+                polylineId: const PolylineId('initial_route'),
+                points: _fullRoutePoints!.sublist(0, nextCount),
+                color: Colors.red,
+                width: 5,
+              ),
+            };
+          });
+          _animatedRoutePointCount = nextCount;
+        }
+      },
+    );
   }
 
   /// 角丸の正方形マーカーを生成（右下が座標に来るよう anchor 1, 1 で配置する想定）
@@ -745,54 +863,138 @@ class _MyHomePageState extends State<MyHomePage>
     return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
   }
 
-  /// スタート・ゴールのマーカーを更新
-  /// 角丸正方形の中心がスタート・ゴール座標に来るよう anchor (0.5, 0.5) で配置
-  Future<void> _updateStartGoalMarkers(List<LatLng> points) async {
-    if (points.isEmpty) return;
-    final start = points.first;
-    final goal = points.length > 1 ? points.last : start;
+  /// POI用の丸いマーカーアイコンを生成
+  Future<BitmapDescriptor> _createPoiCircleMarkerIcon({
+    required Color color,
+  }) async {
+    const size = 92.0;
+    const radius = 36.0;
+    const pixelRatio = 2.0;
+    final cx = size / 2;
+    final cy = size / 2;
 
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+
+    final circlePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8;
+    canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+
+    final picture = recorder.endRecording();
+    final w = (size * pixelRatio).round();
+    final h = (size * pixelRatio).round();
+    final image = await picture.toImage(w, h);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  }
+
+  /// スタート・ゴール・POIのマーカーを更新
+  Future<void> _updateStartGoalMarkers(List<LatLng> points) async {
+    final markers = <Marker>{};
     BitmapDescriptor? startIcon;
     BitmapDescriptor? goalIcon;
+    BitmapDescriptor? poiIconOrange;
+    BitmapDescriptor? poiIconBlue;
     try {
-      startIcon = await _createRoundedSquareMarkerIcon(
-        backgroundColor: Colors.green,
-        isPlayIcon: true,
-      );
-      goalIcon = await _createRoundedSquareMarkerIcon(
-        backgroundColor: Colors.red,
-        isPlayIcon: false,
-      );
+      if (points.isNotEmpty) {
+        startIcon = await _createRoundedSquareMarkerIcon(
+          backgroundColor: Colors.green,
+          isPlayIcon: true,
+        );
+        goalIcon = await _createRoundedSquareMarkerIcon(
+          backgroundColor: Colors.red,
+          isPlayIcon: false,
+        );
+      }
+      if (_gpxPois.isNotEmpty) {
+        poiIconOrange = await _createPoiCircleMarkerIcon(color: Colors.orange);
+        poiIconBlue = await _createPoiCircleMarkerIcon(color: Colors.lightBlue);
+      }
     } catch (e) {
       return;
     }
     if (!mounted) return;
-
-    // スタートとゴールが同じ座標のときはゴールを anchor (0,0) で表示（左上が座標に）
-    final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
-        (start.longitude - goal.longitude).abs() < 1e-6;
-    final startAnchor =
-        isSamePoint ? const Offset(0, 0) : const Offset(0.5, 0.5);
-
-    final markers = <Marker>{
-      Marker(
+    if (points.isNotEmpty && startIcon != null && goalIcon != null) {
+      final start = points.first;
+      final goal = points.length > 1 ? points.last : start;
+      final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
+          (start.longitude - goal.longitude).abs() < 1e-6;
+      final startAnchor =
+          isSamePoint ? const Offset(0, 0) : const Offset(0.5, 0.5);
+      markers.add(Marker(
         markerId: const MarkerId('start'),
         position: start,
         icon: startIcon,
         anchor: startAnchor,
-        zIndex: 1,
-      ),
-      Marker(
+        zIndex: 2,
+      ));
+      markers.add(Marker(
         markerId: const MarkerId('goal'),
         position: goal,
         icon: goalIcon,
         anchor: const Offset(0.5, 0.5),
-        zIndex: 0,
-      ),
-    };
+        zIndex: 1,
+      ));
+    }
+    if (_gpxPois.isNotEmpty && poiIconOrange != null && poiIconBlue != null) {
+      for (var i = 0; i < _gpxPois.length; i++) {
+        final poi = _gpxPois[i];
+        final icon = poi.isControl ? poiIconBlue : poiIconOrange;
+        markers.add(Marker(
+          markerId: MarkerId('poi_$i'),
+          position: poi.position,
+          icon: icon,
+          anchor: const Offset(0.25, 0.25),
+          zIndex: 0,
+          onTap: () => _showPoiDetailSheet(poi),
+        ));
+      }
+    }
+    if (!mounted) return;
     setState(() {
       _routeMarkers = markers;
     });
+  }
+
+  void _showPoiDetailSheet(GpxPoi poi) {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.zero,
+      ),
+      builder: (context) {
+        return SizedBox(
+          width: double.infinity,
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (poi.name != null && poi.name!.isNotEmpty) ...[
+                    Text(
+                      poi.name!,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (poi.description != null && poi.description!.isNotEmpty)
+                    Text(poi.description!),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   LatLngBounds? _boundsFromPoints(List<LatLng> points) {
@@ -811,6 +1013,12 @@ class _MyHomePageState extends State<MyHomePage>
       southwest: LatLng(minLat, minLng),
       northeast: LatLng(maxLat, maxLng),
     );
+  }
+
+  LatLngBounds? _boundsFromPointsWithPois(
+      List<LatLng> points, List<LatLng> poiPoints) {
+    final all = [...points, ...poiPoints];
+    return _boundsFromPoints(all);
   }
 
   /// ルート全体表示
