@@ -111,6 +111,103 @@ Future<BitmapDescriptor> createPoiInfoMarkerIcon() async {
   return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
 }
 
+/// 距離マーカー（50km 等）用の円アイコン（タップしやすいサイズ）
+Future<BitmapDescriptor> createSmallCircleMarkerIcon({
+  Color color = Colors.blueGrey,
+  double size = 32.0,
+}) async {
+  const pixelRatio = 2.0;
+  final cx = size / 2;
+  final cy = size / 2;
+  final radius = size / 2 - 2;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+
+  final circlePaint = Paint()
+    ..color = color
+    ..style = PaintingStyle.fill;
+  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+
+  final borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 6;
+  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+
+  final picture = recorder.endRecording();
+  final w = (size * pixelRatio).round();
+  final h = (size * pixelRatio).round();
+  final image = await picture.toImage(w, h);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+}
+
+/// 距離マーカー用アイコン。ラベル（例: "50km", "100km"）をアイコン上に描画する。
+Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
+  const pixelRatio = 2.0;
+  const width = 192.0;
+  const height = 78.0;
+  const radius = 39.0;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)
+    ..clipRRect(RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, width, height),
+      const Radius.circular(radius),
+    ));
+
+  final bgPaint = Paint()
+    ..color = Colors.blueGrey
+    ..style = PaintingStyle.fill;
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, width, height),
+      const Radius.circular(radius),
+    ),
+    bgPaint,
+  );
+
+  final borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 8;
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, width, height),
+      const Radius.circular(radius),
+    ),
+    borderPaint,
+  );
+
+  final textPainter = TextPainter(
+    text: TextSpan(
+      text: label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 40,
+        fontWeight: FontWeight.w600,
+        fontFamily: 'sans-serif',
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  textPainter.paint(
+    canvas,
+    Offset(
+      (width - textPainter.width) / 2,
+      (height - textPainter.height) / 2,
+    ),
+  );
+
+  final picture = recorder.endRecording();
+  final w = (width * pixelRatio).round();
+  final h = (height * pixelRatio).round();
+  final image = await picture.toImage(w, h);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+}
+
 /// チェックポイントPOI用
 Future<BitmapDescriptor> createPoiCheckpointMarkerIcon() async {
   const size = 102.0;

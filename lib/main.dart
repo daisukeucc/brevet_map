@@ -101,10 +101,13 @@ class _MyHomePageState extends State<MyHomePage>
 
   late final LowModeService _lowModeService;
 
-  /// カメラ移動終了時に現在のズームを保存する（ピンチ・ボリュームボタン等）
+  /// カメラ移動終了時に現在のズームを保存し、ズームに応じてマーカー表示を更新する
   Future<void> _onCameraIdle() async {
     final z = await mapController?.getZoomLevel();
-    if (z != null && mounted) setState(() => _savedZoomLevel = z);
+    if (z != null && mounted) {
+      setState(() => _savedZoomLevel = z);
+      await _refreshRouteMarkers(_savedRoutePoints ?? []);
+    }
   }
 
   late final LocationTrackingService _locationTrackingService;
@@ -201,6 +204,7 @@ class _MyHomePageState extends State<MyHomePage>
         name: poi.name,
         description: poi.description,
       ),
+      zoomLevel: _savedZoomLevel,
     );
     if (!mounted) return;
     setState(() => _routeMarkers = markers);
