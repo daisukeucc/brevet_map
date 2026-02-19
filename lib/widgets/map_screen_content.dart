@@ -23,6 +23,8 @@ class MapScreenContent extends StatelessWidget {
     required this.isStreamActive,
     required this.onToggleLocationStream,
     this.progressBarValue,
+    this.streamAccuracyLabel,
+    this.onGpsLevelTap,
   });
 
   final LatLng initialPosition;
@@ -39,6 +41,9 @@ class MapScreenContent extends StatelessWidget {
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
+  /// ストリームON時のみ使用。表示用ラベル（NML / LOW）
+  final String? streamAccuracyLabel;
+  final VoidCallback? onGpsLevelTap;
 
   @override
   Widget build(BuildContext context) {
@@ -96,6 +101,41 @@ class MapScreenContent extends StatelessWidget {
                               Icons.my_location,
                               color: Colors.black87,
                               size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (isStreamActive &&
+                    streamAccuracyLabel != null &&
+                    onGpsLevelTap != null)
+                  Positioned(
+                    right: 16,
+                    bottom: 24,
+                    child: Tooltip(
+                      message: '位置情報レベルを切り替え',
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        shadowColor: Colors.black26,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: onGpsLevelTap,
+                          customBorder: const CircleBorder(),
+                          child: SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Center(
+                              child: Text(
+                                streamAccuracyLabel!,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
                             ),
                           ),
                         ),

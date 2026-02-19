@@ -92,6 +92,12 @@ class _MyHomePageState extends State<MyHomePage>
   /// このセッションで位置情報ストリームを一度でも開始したか（初回ON時のみ15にするため）
   bool _hasStartedLocationStreamThisSession = false;
 
+  /// 位置ストリーム中のGPS精度（デフォルト medium、low に切り替え可能）
+  LocationAccuracy _streamAccuracy = LocationAccuracy.medium;
+
+  String get _streamAccuracyLabel =>
+      _streamAccuracy == LocationAccuracy.low ? 'LOW' : 'NML';
+
   /// カメラ移動終了時に現在のズームを保存する（ピンチ・ボリュームボタン等）
   Future<void> _onCameraIdle() async {
     final z = await mapController?.getZoomLevel();
@@ -266,9 +272,21 @@ class _MyHomePageState extends State<MyHomePage>
         if (mounted) setState(() {});
       },
       isActive: () => mounted,
+      accuracy: _streamAccuracy,
     );
     saveLocationStreamActive(true);
     setState(() {});
+  }
+
+  /// 位置ストリームON時: GPS精度を medium ⇔ low で切り替え、ストリームを再開する
+  void _onGpsLevelTap() {
+    if (!_locationTrackingService.isActive) return;
+    _streamAccuracy = _streamAccuracy == LocationAccuracy.medium
+        ? LocationAccuracy.low
+        : LocationAccuracy.medium;
+    _locationTrackingService.stop();
+    setState(() {});
+    _toggleLocationStream();
   }
 
   @override
@@ -447,6 +465,8 @@ class _MyHomePageState extends State<MyHomePage>
             isStreamActive: _locationTrackingService.isActive,
             onToggleLocationStream: _toggleLocationStream,
             progressBarValue: _locationTrackingService.progressBarValue,
+            streamAccuracyLabel: _streamAccuracyLabel,
+            onGpsLevelTap: _onGpsLevelTap,
           );
         },
       ),

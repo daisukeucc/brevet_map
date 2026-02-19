@@ -21,12 +21,12 @@ class LocationTrackingService {
   ValueNotifier<double>? get progressBarValue => _progressBarValue;
 
   /// 位置ストリームを開始する。
-  /// [onPosition] に (現在位置, 前回位置) を渡す。前回が無い場合は null。
-  /// [onError] はストリームエラー時（サービス側で停止済み）。
+  /// [accuracy] で精度（medium / low）を指定。省略時は medium。
   void start({
     required void Function(Position position, Position? previous) onPosition,
     required void Function() onError,
     required bool Function() isActive,
+    LocationAccuracy accuracy = LocationAccuracy.medium,
   }) {
     _lastPosition = null;
     _progressBarValue = ValueNotifier(0.0);
@@ -41,9 +41,7 @@ class LocationTrackingService {
     });
 
     final stream = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.medium,
-      ),
+      locationSettings: LocationSettings(accuracy: accuracy),
     );
 
     _subscription = stream.listen(
