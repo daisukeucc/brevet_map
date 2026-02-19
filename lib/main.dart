@@ -19,6 +19,7 @@ import 'services/route_fetch_service.dart';
 import 'services/route_animation_runner.dart';
 import 'services/gpx_channel_service.dart';
 import 'services/location_tracking_service.dart';
+import 'services/low_mode_service.dart';
 import 'widgets/location_error_view.dart';
 import 'widgets/map_screen_content.dart';
 import 'widgets/poi_detail_sheet.dart';
@@ -96,7 +97,9 @@ class _MyHomePageState extends State<MyHomePage>
   LocationAccuracy _streamAccuracy = LocationAccuracy.medium;
 
   String get _streamAccuracyLabel =>
-      _streamAccuracy == LocationAccuracy.low ? 'LOW' : 'NML';
+      _streamAccuracy == LocationAccuracy.low ? 'LOW' : 'GPS';
+
+  late final LowModeService _lowModeService;
 
   /// カメラ移動終了時に現在のズームを保存する（ピンチ・ボリュームボタン等）
   Future<void> _onCameraIdle() async {
@@ -114,6 +117,7 @@ class _MyHomePageState extends State<MyHomePage>
     _volumeZoomHandler.start();
     _routeAnimationRunner = RouteAnimationRunner();
     _locationTrackingService = LocationTrackingService();
+    _lowModeService = LowModeService();
     _positionFuture = getPositionWithPermission(
       context,
       onOpenSettings: () {
@@ -236,11 +240,21 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   /// ストリームで位置情報取得を開始または停止する
-  void _toggleLocationStream() {
+  Future<void> _toggleLocationStream() async {
     if (_locationTrackingService.isActive) {
+      if (_streamAccuracy == LocationAccuracy.low) {
+        await _lowModeService.leaveLowMode(
+          mapController,
+          (mode) {
+            if (mounted) setState(() => _mapStyleMode = mode);
+          },
+          saveMapStyleMode,
+        );
+        _streamAccuracy = LocationAccuracy.medium;
+      }
       _locationTrackingService.stop();
       saveLocationStreamActive(false);
-      setState(() {});
+      if (mounted) setState(() {});
       return;
     }
     _lastBearing = 0.0;
@@ -279,12 +293,30 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   /// 位置ストリームON時: GPS精度を medium ⇔ low で切り替え、ストリームを再開する
-  void _onGpsLevelTap() {
+  Future<void> _onGpsLevelTap() async {
     if (!_locationTrackingService.isActive) return;
-    _streamAccuracy = _streamAccuracy == LocationAccuracy.medium
-        ? LocationAccuracy.low
-        : LocationAccuracy.medium;
+    final enteringLow = _streamAccuracy == LocationAccuracy.medium;
+    _streamAccuracy =
+        enteringLow ? LocationAccuracy.low : LocationAccuracy.medium;
     _locationTrackingService.stop();
+    if (enteringLow) {
+      await _lowModeService.enterLowMode(
+        mapController,
+        _mapStyleMode,
+        (mode) {
+          if (mounted) setState(() => _mapStyleMode = mode);
+        },
+      );
+    } else {
+      await _lowModeService.leaveLowMode(
+        mapController,
+        (mode) {
+          if (mounted) setState(() => _mapStyleMode = mode);
+        },
+        saveMapStyleMode,
+      );
+    }
+    if (!mounted) return;
     setState(() {});
     _toggleLocationStream();
   }
@@ -438,10 +470,8 @@ class _MyHomePageState extends State<MyHomePage>
             onCameraIdle: _onCameraIdle,
             onMapCreated: (controller) async {
               mapController = controller;
-              await controller
-                  .setMapStyle(mapStyleForMode(_mapStyleMode));
-              if (_savedRoutePoints != null &&
-                  _savedRoutePoints!.isNotEmpty) {
+              await controller.setMapStyle(mapStyleForMode(_mapStyleMode));
+              if (_savedRoutePoints != null && _savedRoutePoints!.isNotEmpty) {
                 final bounds = boundsFromPoints(_savedRoutePoints!);
                 if (bounds != null) {
                   await controller.animateCamera(
@@ -455,8 +485,7 @@ class _MyHomePageState extends State<MyHomePage>
             },
             onMapStyleTap: () async {
               setState(() => _mapStyleMode = (_mapStyleMode + 1) % 3);
-              await mapController?.setMapStyle(
-                  mapStyleForMode(_mapStyleMode));
+              await mapController?.setMapStyle(mapStyleForMode(_mapStyleMode));
               await saveMapStyleMode(_mapStyleMode);
             },
             onRouteBoundsTap: _animateToRouteBounds,
@@ -466,6 +495,7 @@ class _MyHomePageState extends State<MyHomePage>
             onToggleLocationStream: _toggleLocationStream,
             progressBarValue: _locationTrackingService.progressBarValue,
             streamAccuracyLabel: _streamAccuracyLabel,
+            isStreamAccuracyLow: _streamAccuracy == LocationAccuracy.low,
             onGpsLevelTap: _onGpsLevelTap,
           );
         },

@@ -24,6 +24,7 @@ class MapScreenContent extends StatelessWidget {
     required this.onToggleLocationStream,
     this.progressBarValue,
     this.streamAccuracyLabel,
+    this.isStreamAccuracyLow,
     this.onGpsLevelTap,
   });
 
@@ -41,8 +42,12 @@ class MapScreenContent extends StatelessWidget {
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
-  /// ストリームON時のみ使用。表示用ラベル（NML / LOW）
+
+  /// ストリームON時のみ使用するラベル（表示用。変更してもアイコン色に影響しない）
   final String? streamAccuracyLabel;
+
+  /// ストリームON時のみ使用。true=LOW→白背景・濃い文字、false=medium→青背景・白文字
+  final bool? isStreamAccuracyLow;
   final VoidCallback? onGpsLevelTap;
 
   @override
@@ -109,37 +114,15 @@ class MapScreenContent extends StatelessWidget {
                   ),
                 if (isStreamActive &&
                     streamAccuracyLabel != null &&
+                    isStreamAccuracyLow != null &&
                     onGpsLevelTap != null)
                   Positioned(
                     right: 16,
                     bottom: 24,
-                    child: Tooltip(
-                      message: '位置情報レベルを切り替え',
-                      child: Material(
-                        color: Colors.white,
-                        elevation: 5,
-                        shadowColor: Colors.black26,
-                        shape: const CircleBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: onGpsLevelTap,
-                          customBorder: const CircleBorder(),
-                          child: SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Center(
-                              child: Text(
-                                streamAccuracyLabel!,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                    child: _GpsLevelButton(
+                      label: streamAccuracyLabel!,
+                      isLow: isStreamAccuracyLow!,
+                      onTap: onGpsLevelTap!,
                     ),
                   ),
               ],
@@ -151,6 +134,54 @@ class MapScreenContent extends StatelessWidget {
             progressBarValue: progressBarValue,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 位置情報レベル切り替えボタン。色は [isLow] で決め、ラベル文字列に依存しない。
+class _GpsLevelButton extends StatelessWidget {
+  const _GpsLevelButton({
+    required this.label,
+    required this.isLow,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isLow;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = isLow ? Colors.white : Colors.blueGrey;
+    final textColor = isLow ? Colors.blueGrey : Colors.white;
+
+    return Tooltip(
+      message: '位置情報レベルを切り替え',
+      child: Material(
+        color: backgroundColor,
+        elevation: 5,
+        shadowColor: Colors.black26,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
