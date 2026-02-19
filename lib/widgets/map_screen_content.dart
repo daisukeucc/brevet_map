@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'brightness_slider_overlay.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
@@ -21,9 +20,6 @@ class MapScreenContent extends StatelessWidget {
     required this.onRouteBoundsTap,
     required this.onMyLocationTap,
     required this.showMyLocationButton,
-    required this.brightnessSupported,
-    required this.brightnessSliderValue,
-    required this.onBrightnessChanged,
     required this.isStreamActive,
     required this.onToggleLocationStream,
     this.progressBarValue,
@@ -40,9 +36,6 @@ class MapScreenContent extends StatelessWidget {
   final VoidCallback onRouteBoundsTap;
   final VoidCallback onMyLocationTap;
   final bool showMyLocationButton;
-  final bool brightnessSupported;
-  final double brightnessSliderValue;
-  final void Function(double value) onBrightnessChanged;
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
@@ -85,15 +78,6 @@ class MapScreenContent extends StatelessWidget {
                     showMyLocationButton: showMyLocationButton,
                   ),
                 ),
-                if (brightnessSupported)
-                  Positioned(
-                    right: 16,
-                    bottom: 24,
-                    child: BrightnessSliderOverlay(
-                      sliderValue: brightnessSliderValue,
-                      onChanged: onBrightnessChanged,
-                    ),
-                  ),
               ],
             ),
           ),

@@ -5,7 +5,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'constants/map_styles.dart';
@@ -16,7 +15,6 @@ import 'services/volume_zoom_handler.dart';
 import 'services/gpx_import_service.dart';
 import 'services/route_marker_service.dart';
 import 'services/location_service.dart';
-import 'services/brightness_service.dart';
 import 'services/route_fetch_service.dart';
 import 'services/route_animation_runner.dart';
 import 'services/gpx_channel_service.dart';
@@ -102,13 +100,6 @@ class _MyHomePageState extends State<MyHomePage>
 
   late final LocationTrackingService _locationTrackingService;
 
-  /// スライダー表示値（0.0〜1.0）。0.5＝現在の輝度（初期値）。
-  double _brightnessSliderValue = 0.5;
-
-  /// 起動時の輝度。スライダー中央（0.5）がこの値になる。
-  double _initialBrightness = 0.5;
-  bool _brightnessSupported = true;
-
   @override
   void initState() {
     super.initState();
@@ -130,15 +121,6 @@ class _MyHomePageState extends State<MyHomePage>
     GpxChannelService.getInitialGpxContent().then((content) {
       if (content != null && content.isNotEmpty && mounted) {
         _applyImportedGpx(content);
-      }
-    });
-    loadInitialBrightness().then((r) {
-      if (mounted) {
-        setState(() {
-          _initialBrightness = r.initialBrightness;
-          _brightnessSupported = r.supported;
-          _brightnessSliderValue = 0.5;
-        });
       }
     });
     WakelockPlus.enable();
@@ -462,17 +444,6 @@ class _MyHomePageState extends State<MyHomePage>
             onRouteBoundsTap: _animateToRouteBounds,
             onMyLocationTap: _moveCameraToCurrentPosition,
             showMyLocationButton: !_locationTrackingService.isActive,
-            brightnessSupported: _brightnessSupported,
-            brightnessSliderValue: _brightnessSliderValue,
-            onBrightnessChanged: (value) async {
-              setState(() => _brightnessSliderValue = value);
-              final brightness =
-                  sliderValueToBrightness(_initialBrightness, value);
-              try {
-                await ScreenBrightness()
-                    .setApplicationScreenBrightness(brightness);
-              } catch (_) {}
-            },
             isStreamActive: _locationTrackingService.isActive,
             onToggleLocationStream: _toggleLocationStream,
             progressBarValue: _locationTrackingService.progressBarValue,
