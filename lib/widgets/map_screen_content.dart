@@ -72,12 +72,36 @@ class MapScreenContent extends StatelessWidget {
                 Positioned(
                   right: 16,
                   top: 24,
-                  child: MapToolButtons(
-                    onRouteBoundsTap: onRouteBoundsTap,
-                    onMyLocationTap: onMyLocationTap,
-                    showMyLocationButton: showMyLocationButton,
-                  ),
+                  child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
                 ),
+                if (showMyLocationButton)
+                  Positioned(
+                    right: 16,
+                    bottom: 24,
+                    child: Tooltip(
+                      message: '現在地を表示',
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        shadowColor: Colors.black26,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: onMyLocationTap,
+                          customBorder: const CircleBorder(),
+                          child: const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Icon(
+                              Icons.my_location,
+                              color: Colors.black87,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),
