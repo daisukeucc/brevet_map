@@ -12,6 +12,13 @@ import GoogleMaps
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // コールドスタートで GPX ファイルをタップして起動した場合、URL が launchOptions で渡される
+    if let url = launchOptions?[.url] as? URL, isGpxUrl(url) {
+      if let content = try? String(contentsOf: url, encoding: .utf8) {
+        pendingGpxContent = content
+      }
+    }
+
     let controller = window?.rootViewController as! FlutterViewController
     gpxChannel = FlutterMethodChannel(
       name: channelName,
@@ -40,15 +47,17 @@ import GoogleMaps
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
-    if url.pathExtension.lowercased() == "gpx" || url.absoluteString.contains("gpx") {
-      if let content = try? String(contentsOf: url, encoding: .utf8) {
-        pendingGpxContent = content
-        if gpxChannel != nil {
-          gpxChannel?.invokeMethod("onGpxFileReceived", arguments: content)
-        }
-        return true
-      }
+    guard isGpxUrl(url), let content = try? String(contentsOf: url, encoding: .utf8) else {
+      return false
     }
-    return false
+    pendingGpxContent = content
+    if gpxChannel != nil {
+      gpxChannel?.invokeMethod("onGpxFileReceived", arguments: content)
+    }
+    return true
+  }
+
+  private func isGpxUrl(_ url: URL) -> Bool {
+    url.pathExtension.lowercased() == "gpx" || url.absoluteString.lowercased().contains("gpx")
   }
 }
