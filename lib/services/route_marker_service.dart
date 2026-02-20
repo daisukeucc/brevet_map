@@ -5,8 +5,8 @@ import '../parsers/gpx_parser.dart';
 import '../utils/map_utils.dart';
 import 'marker_icon_service.dart';
 
-/// 距離マーカー（50km 等）を表示するズームレベルの閾値。この値以上で拡大しているときに表示する。
-const double distanceMarkerZoomThreshold = 10.0;
+/// 距離マーカーを表示するズームレベルの閾値。この値以上で拡大しているときに表示する。
+const double distanceMarkerZoomThreshold = 9.0;
 
 /// スタート・ゴール・POI の [Marker] セットを組み立てる。
 /// [zoomLevel] を渡すと、[distanceMarkerZoomThreshold] 以上の場合のみ距離マーカーを表示する。
