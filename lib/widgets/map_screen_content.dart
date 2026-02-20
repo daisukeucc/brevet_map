@@ -71,6 +71,7 @@ class MapScreenContent extends StatelessWidget {
                   ),
                   myLocationEnabled: true,
                   myLocationButtonEnabled: false,
+                  mapToolbarEnabled: false,
                   zoomControlsEnabled: false,
                   polylines: polylines,
                   markers: markers,
