@@ -111,7 +111,7 @@ Future<BitmapDescriptor> createPoiInfoMarkerIcon() async {
   return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
 }
 
-/// 距離マーカー（50km 等）用の円アイコン（タップしやすいサイズ）
+/// 距離マーカー用の円アイコン
 Future<BitmapDescriptor> createSmallCircleMarkerIcon({
   Color color = Colors.blueGrey,
   double size = 32.0,
@@ -143,61 +143,46 @@ Future<BitmapDescriptor> createSmallCircleMarkerIcon({
   return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
 }
 
-/// 距離マーカー用アイコン。ラベル（例: "50km", "100km"）をアイコン上に描画する。
+/// 距離マーカー用アイコン
 Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
   const pixelRatio = 2.0;
-  const width = 192.0;
-  const height = 78.0;
-  const radius = 39.0;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)
-    ..clipRRect(RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, width, height),
-      const Radius.circular(radius),
-    ));
-
-  final bgPaint = Paint()
-    ..color = Colors.blueGrey
-    ..style = PaintingStyle.fill;
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, width, height),
-      const Radius.circular(radius),
-    ),
-    bgPaint,
-  );
-
-  final borderPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 8;
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(
-      Rect.fromLTWH(0, 0, width, height),
-      const Radius.circular(radius),
-    ),
-    borderPaint,
-  );
+  const horizontalPadding = 8.0; // 左右の余白
+  const verticalPadding = 4.0; // 上下の余白
 
   final textPainter = TextPainter(
     text: TextSpan(
       text: label,
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 40,
-        fontWeight: FontWeight.w600,
+        fontSize: 35,
+        fontWeight: FontWeight.w500,
         fontFamily: 'sans-serif',
       ),
     ),
     textDirection: TextDirection.ltr,
   )..layout();
+
+  final width = textPainter.width + horizontalPadding * 2;
+  final height = textPainter.height + verticalPadding * 2;
+
+  final rect = Rect.fromLTWH(0, 0, width, height);
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)..clipRect(rect);
+
+  final bgPaint = Paint()
+    ..color = Colors.blueGrey
+    ..style = PaintingStyle.fill;
+  canvas.drawRect(rect, bgPaint);
+
+  final borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 0;
+  canvas.drawRect(rect, borderPaint);
+
   textPainter.paint(
     canvas,
-    Offset(
-      (width - textPainter.width) / 2,
-      (height - textPainter.height) / 2,
-    ),
+    Offset(horizontalPadding, verticalPadding),
   );
 
   final picture = recorder.endRecording();
