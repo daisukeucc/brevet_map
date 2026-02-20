@@ -50,6 +50,9 @@ class LowModeService {
   int? _savedMapStyle;
   double? _savedBrightness;
 
+  /// 現在LOWモード中か（突入済みで未解除）。
+  bool get isInLowMode => _savedMapStyle != null;
+
   /// LOWモード突入: 現在の地図スタイルと輝度を保存し、輝度を最小・地図をダークにする。
   /// [onMapStyleChanged] に新しい地図スタイル（2）を渡して呼び出す。
   Future<void> enterLowMode(

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -19,6 +17,7 @@ import 'services/route_fetch_service.dart';
 import 'services/route_animation_runner.dart';
 import 'services/gpx_channel_service.dart';
 import 'services/location_tracking_service.dart';
+import 'services/idle_low_mode_handler.dart';
 import 'services/low_mode_service.dart';
 import 'widgets/location_error_view.dart';
 import 'widgets/map_screen_content.dart';
@@ -100,6 +99,9 @@ class _MyHomePageState extends State<MyHomePage>
       _streamAccuracy == LocationAccuracy.low ? 'LOW' : 'GPS';
 
   late final LowModeService _lowModeService;
+  late final IdleLowModeHandler _idleLowModeHandler;
+
+  void _onUserInteraction() => _idleLowModeHandler.onUserInteraction();
 
   /// カメラ移動終了時に現在のズームを保存し、ズームに応じてマーカー表示を更新する
   Future<void> _onCameraIdle() async {
@@ -138,6 +140,19 @@ class _MyHomePageState extends State<MyHomePage>
     });
     WakelockPlus.enable();
     _loadSavedMapStyleMode();
+    _idleLowModeHandler = IdleLowModeHandler(
+      getController: () => mapController,
+      getMapStyleMode: () => _mapStyleMode,
+      onMapStyleChanged: (mode) {
+        if (mounted) setState(() => _mapStyleMode = mode);
+      },
+      saveMapStyleMode: saveMapStyleMode,
+      lowModeService: _lowModeService,
+      isLocationStreamActive: () => _locationTrackingService.isActive,
+      mounted: () => mounted,
+      idleDuration: const Duration(seconds: 300),
+    );
+    _idleLowModeHandler.startTimer();
   }
 
   /// GPXインポート時: パース・保存はサービスに委譲し、UI 更新とカメラのみ行う
@@ -234,6 +249,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
+    _idleLowModeHandler.dispose();
     _savedZoomLevel = null;
     WakelockPlus.disable();
     _locationTrackingService.stop();
@@ -261,6 +277,8 @@ class _MyHomePageState extends State<MyHomePage>
       if (mounted) setState(() {});
       return;
     }
+    // 無操作で入ったLOWモードなら解除してからストリーム開始
+    await _idleLowModeHandler.onUserInteraction();
     _lastBearing = 0.0;
     if (!_hasStartedLocationStreamThisSession) {
       setState(() {
@@ -501,6 +519,7 @@ class _MyHomePageState extends State<MyHomePage>
             streamAccuracyLabel: _streamAccuracyLabel,
             isStreamAccuracyLow: _streamAccuracy == LocationAccuracy.low,
             onGpsLevelTap: _onGpsLevelTap,
+            onUserInteraction: _onUserInteraction,
           );
         },
       ),

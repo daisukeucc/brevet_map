@@ -26,6 +26,7 @@ class MapScreenContent extends StatelessWidget {
     this.streamAccuracyLabel,
     this.isStreamAccuracyLow,
     this.onGpsLevelTap,
+    this.onUserInteraction,
   });
 
   final LatLng initialPosition;
@@ -50,13 +51,18 @@ class MapScreenContent extends StatelessWidget {
   final bool? isStreamAccuracyLow;
   final VoidCallback? onGpsLevelTap;
 
+  /// 画面タッチ時（5分無操作LOWモード解除用）
+  final VoidCallback? onUserInteraction;
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Column(
         children: [
           Expanded(
-            child: Stack(
+            child: Listener(
+              onPointerDown: (_) => onUserInteraction?.call(),
+              child: Stack(
               children: [
                 GoogleMap(
                   initialCameraPosition: CameraPosition(
@@ -127,6 +133,7 @@ class MapScreenContent extends StatelessWidget {
                     ),
                   ),
               ],
+            ),
             ),
           ),
           LocationBottomBar(
