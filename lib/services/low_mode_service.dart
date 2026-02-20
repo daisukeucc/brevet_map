@@ -18,7 +18,7 @@ class LowModeService {
   ) async {
     _savedMapStyle = currentMapStyle;
     _savedBrightness = await getCurrentBrightness();
-    await setApplicationBrightness(0.0);
+    await setApplicationBrightness(getMinimumBrightness());
     if (controller != null) {
       await controller.setMapStyle(mapStyleForMode(2));
     }

@@ -53,7 +53,8 @@ double distanceAlongTrackFromStart(List<LatLng> trackPoints, int toIndex) {
 
 /// トラック上で [point] に最も近いポイントを探し、スタートからそのポイントまでのルート沿い距離（メートル）を返す。
 /// スタートから「そのポイントに最も近いトラック上の位置」までの走行距離の目安として使える。
-double distanceFromStartToPointAlongTrack(List<LatLng> trackPoints, LatLng point) {
+double distanceFromStartToPointAlongTrack(
+    List<LatLng> trackPoints, LatLng point) {
   if (trackPoints.isEmpty) return 0;
   var bestIndex = 0;
   var bestDist = distanceBetweenLatLng(trackPoints[0], point);

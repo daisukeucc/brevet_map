@@ -1,9 +1,31 @@
 import 'package:screen_brightness/screen_brightness.dart';
 
-/// 現在の画面輝度を取得（0.0〜1.0）。失敗時は 0.5 を返す。
+/// 昼間と判定する開始時刻
+const int daytimeStartHour = 6;
+
+/// 昼間と判定する終了時刻
+const int daytimeEndHour = 18;
+
+/// 昼間のときの最低輝度
+const double minBrightnessDay = 0.01;
+
+/// 夜間のときの最低輝度
+const double minBrightnessNight = 0.0;
+
+/// 現在時刻が昼間かどうか（[daytimeStartHour]〜[daytimeEndHour] の範囲内なら true）。
+bool isDaytime([DateTime? now]) {
+  final t = now ?? DateTime.now();
+  return t.hour >= daytimeStartHour && t.hour < daytimeEndHour;
+}
+
+/// 昼/夜に応じた画面最低輝度を返す（0.0〜1.0）。LOWモードやスライダー最小値に使う。
+double getMinimumBrightness() =>
+    isDaytime() ? minBrightnessDay : minBrightnessNight;
+
+/// 現在のアプリ画面輝度を取得（0.0〜1.0）。失敗時は 0.5 を返す。
 Future<double> getCurrentBrightness() async {
   try {
-    final value = await ScreenBrightness().current;
+    final value = await ScreenBrightness().system;
     return value.clamp(0.0, 1.0);
   } catch (_) {
     return 0.5;
@@ -17,24 +39,4 @@ Future<void> setApplicationBrightness(double brightness) async {
       brightness.clamp(0.0, 1.0),
     );
   } catch (_) {}
-}
-
-/// 起動時の画面輝度を取得。失敗時は supported: false。
-Future<({double initialBrightness, bool supported})> loadInitialBrightness() async {
-  try {
-    final value = await ScreenBrightness().current;
-    final brightness = value.clamp(0.0, 1.0);
-    return (initialBrightness: brightness, supported: true);
-  } catch (_) {
-    return (initialBrightness: 0.5, supported: false);
-  }
-}
-
-/// スライダー値（0〜1、0.5＝初期輝度）を実際の輝度（0〜1）に変換する。
-double sliderValueToBrightness(double initialBrightness, double sliderValue) {
-  if (sliderValue <= 0.5) {
-    return initialBrightness * (sliderValue / 0.5);
-  }
-  return initialBrightness +
-      (1.0 - initialBrightness) * ((sliderValue - 0.5) / 0.5);
 }
