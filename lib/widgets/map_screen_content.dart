@@ -24,6 +24,7 @@ class MapScreenContent extends StatelessWidget {
     required this.onToggleLocationStream,
     this.progressBarValue,
     this.isLowMode = false,
+    this.isStreamAccuracyLow = false,
     this.onGpsLevelTap,
     this.onUserInteraction,
   });
@@ -45,6 +46,9 @@ class MapScreenContent extends StatelessWidget {
 
   /// true のとき位置情報ストリームボタンをグレー表示する（LOWモード時）
   final bool isLowMode;
+
+  /// 位置ストリームの精度が low のとき true（GPSボタンのラベルを「LOW」にする）
+  final bool isStreamAccuracyLow;
 
   final VoidCallback? onGpsLevelTap;
 
@@ -122,6 +126,7 @@ class MapScreenContent extends StatelessWidget {
                       bottom: 24,
                       child: _GpsLevelButton(
                         isLowMode: isLowMode,
+                        isStreamAccuracyLow: isStreamAccuracyLow,
                         onTap: onGpsLevelTap!,
                       ),
                     ),
@@ -145,16 +150,19 @@ class MapScreenContent extends StatelessWidget {
 class _GpsLevelButton extends StatelessWidget {
   const _GpsLevelButton({
     required this.isLowMode,
+    required this.isStreamAccuracyLow,
     required this.onTap,
   });
 
   final bool isLowMode;
+  final bool isStreamAccuracyLow;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final backgroundColor = isLowMode ? Colors.blueGrey : Colors.white;
     final textColor = isLowMode ? Colors.white : Colors.blueGrey;
+    final label = isStreamAccuracyLow ? 'LOW' : 'GPS';
 
     return Tooltip(
       message: '位置情報レベルを切り替え',
@@ -172,7 +180,7 @@ class _GpsLevelButton extends StatelessWidget {
             height: 60,
             child: Center(
               child: Text(
-                'LOW',
+                label,
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
