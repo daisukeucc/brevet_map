@@ -18,8 +18,6 @@ import 'services/route_fetch_service.dart';
 import 'services/route_animation_runner.dart';
 import 'services/gpx_channel_service.dart';
 import 'services/location_tracking_service.dart';
-import 'services/idle_low_mode_handler.dart';
-import 'services/low_mode_service.dart';
 import 'widgets/location_error_view.dart';
 import 'widgets/map_screen_content.dart';
 import 'widgets/poi_detail_sheet.dart';
@@ -105,10 +103,8 @@ class _MyHomePageState extends State<MyHomePage>
   /// 位置ストリーム中のGPS精度（デフォルト medium、low に切り替え可能）
   LocationAccuracy _streamAccuracy = LocationAccuracy.medium;
 
-  late final LowModeService _lowModeService;
-  late final IdleLowModeHandler _idleLowModeHandler;
-
-  void _onUserInteraction() => _idleLowModeHandler.onUserInteraction();
+  /// LOWモード中か（GPSボタンで入る。地図表示は変えずUIのみ影響）
+  bool _isInLowMode = false;
 
   /// カメラ移動終了時に現在のズームを保存し、ルート変更 or 距離マーカー表示閾値通過時のみマーカーを再構築する
   Future<void> _onCameraIdle() async {
@@ -138,7 +134,6 @@ class _MyHomePageState extends State<MyHomePage>
     _volumeZoomHandler.start();
     _routeAnimationRunner = RouteAnimationRunner();
     _locationTrackingService = LocationTrackingService();
-    _lowModeService = LowModeService();
     _positionFuture = getPositionWithPermission(
       context,
       onOpenSettings: () {
@@ -156,19 +151,6 @@ class _MyHomePageState extends State<MyHomePage>
     });
     WakelockPlus.enable();
     _loadSavedMapStyleMode();
-    _idleLowModeHandler = IdleLowModeHandler(
-      getController: () => mapController,
-      getMapStyleMode: () => _mapStyleMode,
-      onMapStyleChanged: (mode) {
-        if (mounted) setState(() => _mapStyleMode = mode);
-      },
-      saveMapStyleMode: saveMapStyleMode,
-      lowModeService: _lowModeService,
-      isLocationStreamActive: () => _locationTrackingService.isActive,
-      mounted: () => mounted,
-      idleDuration: const Duration(seconds: 300),
-    );
-    _idleLowModeHandler.startTimer();
   }
 
   /// GPXインポート時: パース・保存はサービスに委譲し、UI 更新とカメラのみ行う
@@ -270,7 +252,6 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
-    _idleLowModeHandler.dispose();
     _savedZoomLevel = null;
     WakelockPlus.disable();
     _locationTrackingService.stop();
@@ -284,13 +265,7 @@ class _MyHomePageState extends State<MyHomePage>
   Future<void> _toggleLocationStream() async {
     if (_locationTrackingService.isActive) {
       if (_streamAccuracy == LocationAccuracy.low) {
-        await _lowModeService.leaveLowMode(
-          mapController,
-          (mode) {
-            if (mounted) setState(() => _mapStyleMode = mode);
-          },
-          saveMapStyleMode,
-        );
+        if (mounted) setState(() => _isInLowMode = false);
         _streamAccuracy = LocationAccuracy.medium;
       }
       _locationTrackingService.stop();
@@ -298,8 +273,6 @@ class _MyHomePageState extends State<MyHomePage>
       if (mounted) setState(() {});
       return;
     }
-    // 無操作で入ったLOWモードなら解除してからストリーム開始
-    await _idleLowModeHandler.onUserInteraction();
     _lastBearing = 0.0;
     if (!_hasStartedLocationStreamThisSession) {
       setState(() {
@@ -330,7 +303,7 @@ class _MyHomePageState extends State<MyHomePage>
       },
       isActive: () => mounted,
       accuracy: _streamAccuracy,
-      isLowMode: () => _lowModeService.isInLowMode,
+      isLowMode: () => _isInLowMode,
     );
     saveLocationStreamActive(true);
     setState(() {});
@@ -344,21 +317,9 @@ class _MyHomePageState extends State<MyHomePage>
         enteringLow ? LocationAccuracy.low : LocationAccuracy.medium;
     _locationTrackingService.stop();
     if (enteringLow) {
-      await _lowModeService.enterLowMode(
-        mapController,
-        _mapStyleMode,
-        (mode) {
-          if (mounted) setState(() => _mapStyleMode = mode);
-        },
-      );
+      setState(() => _isInLowMode = true);
     } else {
-      await _lowModeService.leaveLowMode(
-        mapController,
-        (mode) {
-          if (mounted) setState(() => _mapStyleMode = mode);
-        },
-        saveMapStyleMode,
-      );
+      setState(() => _isInLowMode = false);
     }
     if (!mounted) return;
     setState(() {});
@@ -546,9 +507,8 @@ class _MyHomePageState extends State<MyHomePage>
             isStreamActive: _locationTrackingService.isActive,
             onToggleLocationStream: _toggleLocationStream,
             progressBarValue: _locationTrackingService.progressBarValue,
-            isLowMode: _lowModeService.isInLowMode,
+            isLowMode: _isInLowMode,
             onGpsLevelTap: _onGpsLevelTap,
-            onUserInteraction: _onUserInteraction,
           );
         },
       ),

@@ -75,15 +75,14 @@ class MapScreenContent extends StatelessWidget {
                     onCameraIdle: onCameraIdle,
                     onMapCreated: onMapCreated,
                   ),
-                  if (!isLowMode)
-                    Positioned(
-                      left: 16,
-                      bottom: 24,
-                      child: MapStyleButton(
-                        mapStyleMode: mapStyleMode,
-                        onTap: onMapStyleTap,
-                      ),
+                  Positioned(
+                    left: 16,
+                    bottom: 24,
+                    child: MapStyleButton(
+                      mapStyleMode: mapStyleMode,
+                      onTap: onMapStyleTap,
                     ),
+                  ),
                   Positioned(
                     right: 16,
                     top: 24,
