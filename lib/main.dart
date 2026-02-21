@@ -330,6 +330,7 @@ class _MyHomePageState extends State<MyHomePage>
       },
       isActive: () => mounted,
       accuracy: _streamAccuracy,
+      isLowMode: () => _lowModeService.isInLowMode,
     );
     saveLocationStreamActive(true);
     setState(() {});

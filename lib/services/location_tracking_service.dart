@@ -13,6 +13,8 @@ class LocationTrackingService {
 
   static const _progressBarUpdateInterval = Duration(milliseconds: 100);
   static const _progressBarCycleDuration = Duration(milliseconds: 1800);
+  /// LOWモード時の1周期（ゆっくり移動）
+  static const _progressBarCycleDurationLowMode = Duration(milliseconds: 3600);
 
   /// ストリームが動作中かどうか
   bool get isActive => _subscription != null;
@@ -22,19 +24,24 @@ class LocationTrackingService {
 
   /// 位置ストリームを開始する。
   /// [accuracy] で精度（medium / low）を指定。省略時は medium。
+  /// [isLowMode] を渡すと、true のときプログレスバーアニメーションがゆっくりになる。
   void start({
     required void Function(Position position, Position? previous) onPosition,
     required void Function() onError,
     required bool Function() isActive,
     LocationAccuracy accuracy = LocationAccuracy.medium,
+    bool Function()? isLowMode,
   }) {
     _lastPosition = null;
     _progressBarValue = ValueNotifier(0.0);
-    final step = _progressBarUpdateInterval.inMilliseconds /
-        _progressBarCycleDuration.inMilliseconds;
 
     _timer = Timer.periodic(_progressBarUpdateInterval, (_) {
       if (!isActive() || _subscription == null) return;
+      final cycleMs = (isLowMode != null && isLowMode())
+          ? _progressBarCycleDurationLowMode.inMilliseconds
+          : _progressBarCycleDuration.inMilliseconds;
+      final step =
+          _progressBarUpdateInterval.inMilliseconds / cycleMs;
       double v = _progressBarValue!.value + step;
       if (v >= 1.0) v = 0.0;
       _progressBarValue!.value = v;
