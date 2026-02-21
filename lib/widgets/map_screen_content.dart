@@ -105,12 +105,12 @@ class MapScreenContent extends StatelessWidget {
                             onTap: onMyLocationTap,
                             customBorder: const CircleBorder(),
                             child: const SizedBox(
-                              width: 44,
-                              height: 44,
+                              width: 60,
+                              height: 60,
                               child: Icon(
                                 Icons.my_location,
                                 color: Colors.black87,
-                                size: 24,
+                                size: 32,
                               ),
                             ),
                           ),
@@ -169,14 +169,14 @@ class _GpsLevelButton extends StatelessWidget {
           onTap: onTap,
           customBorder: const CircleBorder(),
           child: SizedBox(
-            width: 44,
-            height: 44,
+            width: 60,
+            height: 60,
             child: Center(
               child: Text(
                 'LOW',
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
                   color: textColor,
                 ),
               ),

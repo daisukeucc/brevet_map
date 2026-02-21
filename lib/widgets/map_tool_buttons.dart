@@ -44,9 +44,9 @@ class _CircleIconButton extends StatelessWidget {
           onTap: onTap,
           customBorder: const CircleBorder(),
           child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Icon(icon, color: Colors.black87, size: 24),
+            width: 60,
+            height: 60,
+            child: Icon(icon, color: Colors.black87, size: 32),
           ),
         ),
       ),
