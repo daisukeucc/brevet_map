@@ -23,6 +23,7 @@ class MapScreenContent extends StatelessWidget {
     required this.isStreamActive,
     required this.onToggleLocationStream,
     this.progressBarValue,
+    this.isLowMode = false,
     this.streamAccuracyLabel,
     this.isStreamAccuracyLow,
     this.onGpsLevelTap,
@@ -43,6 +44,9 @@ class MapScreenContent extends StatelessWidget {
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
+
+  /// true のとき位置情報ストリームボタンをグレー表示する（LOWモード時）
+  final bool isLowMode;
 
   /// ストリームON時のみ使用するラベル（表示用。変更してもアイコン色に影響しない）
   final String? streamAccuracyLabel;
@@ -141,6 +145,7 @@ class MapScreenContent extends StatelessWidget {
             isStreamActive: isStreamActive,
             onTap: onToggleLocationStream,
             progressBarValue: progressBarValue,
+            isLowMode: isLowMode,
           ),
         ],
       ),

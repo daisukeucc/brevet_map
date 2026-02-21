@@ -543,6 +543,7 @@ class _MyHomePageState extends State<MyHomePage>
             isStreamActive: _locationTrackingService.isActive,
             onToggleLocationStream: _toggleLocationStream,
             progressBarValue: _locationTrackingService.progressBarValue,
+            isLowMode: _lowModeService.isInLowMode,
             streamAccuracyLabel: _streamAccuracyLabel,
             isStreamAccuracyLow: _streamAccuracy == LocationAccuracy.low,
             onGpsLevelTap: _onGpsLevelTap,
