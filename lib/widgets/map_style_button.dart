@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// 地図モード切替ボタン（左上の丸ボタン）。0=通常, 1=モノクロ, 2=ダーク
+/// 地図モード切替ボタン（左上の丸ボタン）。0=通常, 2=ダーク
 class MapStyleButton extends StatelessWidget {
   const MapStyleButton({
     super.key,
@@ -13,16 +13,9 @@ class MapStyleButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final message = mapStyleMode == 0
-        ? '地図をモノクロ表示'
-        : mapStyleMode == 1
-            ? '地図を反転表示（ダーク）'
-            : '地図を通常表示';
-    final icon = mapStyleMode == 0
-        ? Icons.filter_b_and_w
-        : mapStyleMode == 1
-            ? Icons.dark_mode
-            : Icons.color_lens;
+    final isDark = mapStyleMode == 2;
+    final message = isDark ? '地図を通常表示' : '地図をダーク表示';
+    final icon = isDark ? Icons.color_lens : Icons.dark_mode;
 
     return Tooltip(
       message: message,
