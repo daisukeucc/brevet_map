@@ -11,7 +11,8 @@ import 'utils/map_utils.dart';
 import 'parsers/gpx_parser.dart';
 import 'services/volume_zoom_handler.dart';
 import 'services/gpx_import_service.dart';
-import 'services/route_marker_service.dart' show buildRouteMarkers, distanceMarkerZoomThreshold;
+import 'services/route_marker_service.dart'
+    show buildRouteMarkers, distanceMarkerZoomThreshold;
 import 'services/location_service.dart';
 import 'services/route_fetch_service.dart';
 import 'services/route_animation_runner.dart';
@@ -104,9 +105,6 @@ class _MyHomePageState extends State<MyHomePage>
   /// 位置ストリーム中のGPS精度（デフォルト medium、low に切り替え可能）
   LocationAccuracy _streamAccuracy = LocationAccuracy.medium;
 
-  String get _streamAccuracyLabel =>
-      _streamAccuracy == LocationAccuracy.low ? 'LOW' : 'GPS';
-
   late final LowModeService _lowModeService;
   late final IdleLowModeHandler _idleLowModeHandler;
 
@@ -120,9 +118,12 @@ class _MyHomePageState extends State<MyHomePage>
     final routePoints = _savedRoutePoints ?? _emptyRouteForMarkers;
     final showDistance = z >= distanceMarkerZoomThreshold;
     final routeChanged = _lastRoutePointsForMarkers != routePoints;
-    final zoomThresholdCrossed = (_lastShowDistanceMarkers ?? false) != showDistance;
+    final zoomThresholdCrossed =
+        (_lastShowDistanceMarkers ?? false) != showDistance;
     // 初回（_lastRoutePointsForMarkers が null）は必ず構築する（地図が確実に表示されるように）
-    if (_lastRoutePointsForMarkers == null || routeChanged || zoomThresholdCrossed) {
+    if (_lastRoutePointsForMarkers == null ||
+        routeChanged ||
+        zoomThresholdCrossed) {
       await _refreshRouteMarkers(routePoints);
     }
   }
@@ -444,7 +445,8 @@ class _MyHomePageState extends State<MyHomePage>
 
   /// ルートを徐々に描画するアニメーションを開始
   /// [animate] が false の場合はアニメーションせずに一括表示（GPXインポート用）
-  Future<void> _startRouteAnimation(List<LatLng> fullPoints, {bool animate = true}) async {
+  Future<void> _startRouteAnimation(List<LatLng> fullPoints,
+      {bool animate = true}) async {
     _fullRoutePoints = fullPoints;
     await _refreshRouteMarkers(fullPoints);
     if (!mounted) return;
@@ -544,8 +546,6 @@ class _MyHomePageState extends State<MyHomePage>
             onToggleLocationStream: _toggleLocationStream,
             progressBarValue: _locationTrackingService.progressBarValue,
             isLowMode: _lowModeService.isInLowMode,
-            streamAccuracyLabel: _streamAccuracyLabel,
-            isStreamAccuracyLow: _streamAccuracy == LocationAccuracy.low,
             onGpsLevelTap: _onGpsLevelTap,
             onUserInteraction: _onUserInteraction,
           );
