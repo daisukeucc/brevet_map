@@ -1,11 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'constants/map_styles.dart';
@@ -14,13 +11,14 @@ import 'utils/map_utils.dart';
 import 'parsers/gpx_parser.dart';
 import 'services/volume_zoom_handler.dart';
 import 'services/gpx_import_service.dart';
-import 'services/route_marker_service.dart';
+import 'services/route_marker_service.dart' show buildRouteMarkers, distanceMarkerZoomThreshold;
 import 'services/location_service.dart';
-import 'services/brightness_service.dart';
 import 'services/route_fetch_service.dart';
 import 'services/route_animation_runner.dart';
 import 'services/gpx_channel_service.dart';
 import 'services/location_tracking_service.dart';
+import 'services/idle_low_mode_handler.dart';
+import 'services/low_mode_service.dart';
 import 'widgets/location_error_view.dart';
 import 'widgets/map_screen_content.dart';
 import 'widgets/poi_detail_sheet.dart';
@@ -91,23 +89,45 @@ class _MyHomePageState extends State<MyHomePage>
   /// ユーザーが変更したズームレベル（null＝未保存＝デフォルト使用）。アプリ終了時にクリア
   double? _savedZoomLevel;
 
+  /// マーカー再構築の要不要判定用。ルート未設定時に渡す共通の空リスト（参照一致で比較するため）
+  static final List<LatLng> _emptyRouteForMarkers = [];
+
+  /// 前回マーカーを構築したときのルート（参照比較用）
+  List<LatLng>? _lastRoutePointsForMarkers;
+
+  /// 前回マーカー構築時に距離マーカー（50km等）を表示していたか
+  bool? _lastShowDistanceMarkers;
+
   /// このセッションで位置情報ストリームを一度でも開始したか（初回ON時のみ15にするため）
   bool _hasStartedLocationStreamThisSession = false;
 
-  /// カメラ移動終了時に現在のズームを保存する（ピンチ・ボリュームボタン等）
+  /// 位置ストリーム中のGPS精度（デフォルト medium、low に切り替え可能）
+  LocationAccuracy _streamAccuracy = LocationAccuracy.medium;
+
+  String get _streamAccuracyLabel =>
+      _streamAccuracy == LocationAccuracy.low ? 'LOW' : 'GPS';
+
+  late final LowModeService _lowModeService;
+  late final IdleLowModeHandler _idleLowModeHandler;
+
+  void _onUserInteraction() => _idleLowModeHandler.onUserInteraction();
+
+  /// カメラ移動終了時に現在のズームを保存し、ルート変更 or 距離マーカー表示閾値通過時のみマーカーを再構築する
   Future<void> _onCameraIdle() async {
     final z = await mapController?.getZoomLevel();
-    if (z != null && mounted) setState(() => _savedZoomLevel = z);
+    if (z == null || !mounted) return;
+    setState(() => _savedZoomLevel = z);
+    final routePoints = _savedRoutePoints ?? _emptyRouteForMarkers;
+    final showDistance = z >= distanceMarkerZoomThreshold;
+    final routeChanged = _lastRoutePointsForMarkers != routePoints;
+    final zoomThresholdCrossed = (_lastShowDistanceMarkers ?? false) != showDistance;
+    // 初回（_lastRoutePointsForMarkers が null）は必ず構築する（地図が確実に表示されるように）
+    if (_lastRoutePointsForMarkers == null || routeChanged || zoomThresholdCrossed) {
+      await _refreshRouteMarkers(routePoints);
+    }
   }
 
   late final LocationTrackingService _locationTrackingService;
-
-  /// スライダー表示値（0.0〜1.0）。0.5＝現在の輝度（初期値）。
-  double _brightnessSliderValue = 0.5;
-
-  /// 起動時の輝度。スライダー中央（0.5）がこの値になる。
-  double _initialBrightness = 0.5;
-  bool _brightnessSupported = true;
 
   @override
   void initState() {
@@ -117,6 +137,7 @@ class _MyHomePageState extends State<MyHomePage>
     _volumeZoomHandler.start();
     _routeAnimationRunner = RouteAnimationRunner();
     _locationTrackingService = LocationTrackingService();
+    _lowModeService = LowModeService();
     _positionFuture = getPositionWithPermission(
       context,
       onOpenSettings: () {
@@ -132,17 +153,21 @@ class _MyHomePageState extends State<MyHomePage>
         _applyImportedGpx(content);
       }
     });
-    loadInitialBrightness().then((r) {
-      if (mounted) {
-        setState(() {
-          _initialBrightness = r.initialBrightness;
-          _brightnessSupported = r.supported;
-          _brightnessSliderValue = 0.5;
-        });
-      }
-    });
     WakelockPlus.enable();
     _loadSavedMapStyleMode();
+    _idleLowModeHandler = IdleLowModeHandler(
+      getController: () => mapController,
+      getMapStyleMode: () => _mapStyleMode,
+      onMapStyleChanged: (mode) {
+        if (mounted) setState(() => _mapStyleMode = mode);
+      },
+      saveMapStyleMode: saveMapStyleMode,
+      lowModeService: _lowModeService,
+      isLocationStreamActive: () => _locationTrackingService.isActive,
+      mounted: () => mounted,
+      idleDuration: const Duration(seconds: 300),
+    );
+    _idleLowModeHandler.startTimer();
   }
 
   /// GPXインポート時: パース・保存はサービスに委譲し、UI 更新とカメラのみ行う
@@ -186,7 +211,7 @@ class _MyHomePageState extends State<MyHomePage>
         );
       }
     } else if (result.waypoints.isNotEmpty) {
-      await _refreshRouteMarkers([]);
+      await _refreshRouteMarkers(_emptyRouteForMarkers);
       if (mapController != null) {
         final bounds =
             boundsFromPoints(result.waypoints.map((p) => p.position).toList());
@@ -209,9 +234,15 @@ class _MyHomePageState extends State<MyHomePage>
         name: poi.name,
         description: poi.description,
       ),
+      zoomLevel: _savedZoomLevel,
     );
     if (!mounted) return;
-    setState(() => _routeMarkers = markers);
+    setState(() {
+      _routeMarkers = markers;
+      _lastRoutePointsForMarkers = routePoints;
+      _lastShowDistanceMarkers = _savedZoomLevel != null &&
+          _savedZoomLevel! >= distanceMarkerZoomThreshold;
+    });
   }
 
   /// 保存済みの地図表示モードを読み込み、適用する（未保存なら 0=カラー）
@@ -238,6 +269,7 @@ class _MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
+    _idleLowModeHandler.dispose();
     _savedZoomLevel = null;
     WakelockPlus.disable();
     _locationTrackingService.stop();
@@ -248,13 +280,25 @@ class _MyHomePageState extends State<MyHomePage>
   }
 
   /// ストリームで位置情報取得を開始または停止する
-  void _toggleLocationStream() {
+  Future<void> _toggleLocationStream() async {
     if (_locationTrackingService.isActive) {
+      if (_streamAccuracy == LocationAccuracy.low) {
+        await _lowModeService.leaveLowMode(
+          mapController,
+          (mode) {
+            if (mounted) setState(() => _mapStyleMode = mode);
+          },
+          saveMapStyleMode,
+        );
+        _streamAccuracy = LocationAccuracy.medium;
+      }
       _locationTrackingService.stop();
       saveLocationStreamActive(false);
-      setState(() {});
+      if (mounted) setState(() {});
       return;
     }
+    // 無操作で入ったLOWモードなら解除してからストリーム開始
+    await _idleLowModeHandler.onUserInteraction();
     _lastBearing = 0.0;
     if (!_hasStartedLocationStreamThisSession) {
       setState(() {
@@ -284,9 +328,39 @@ class _MyHomePageState extends State<MyHomePage>
         if (mounted) setState(() {});
       },
       isActive: () => mounted,
+      accuracy: _streamAccuracy,
     );
     saveLocationStreamActive(true);
     setState(() {});
+  }
+
+  /// 位置ストリームON時: GPS精度を medium ⇔ low で切り替え、ストリームを再開する
+  Future<void> _onGpsLevelTap() async {
+    if (!_locationTrackingService.isActive) return;
+    final enteringLow = _streamAccuracy == LocationAccuracy.medium;
+    _streamAccuracy =
+        enteringLow ? LocationAccuracy.low : LocationAccuracy.medium;
+    _locationTrackingService.stop();
+    if (enteringLow) {
+      await _lowModeService.enterLowMode(
+        mapController,
+        _mapStyleMode,
+        (mode) {
+          if (mounted) setState(() => _mapStyleMode = mode);
+        },
+      );
+    } else {
+      await _lowModeService.leaveLowMode(
+        mapController,
+        (mode) {
+          if (mounted) setState(() => _mapStyleMode = mode);
+        },
+        saveMapStyleMode,
+      );
+    }
+    if (!mounted) return;
+    setState(() {});
+    _toggleLocationStream();
   }
 
   @override
@@ -354,6 +428,7 @@ class _MyHomePageState extends State<MyHomePage>
     if (!mounted || points == null || points.isEmpty) return;
 
     final pts = points;
+    setState(() => _savedRoutePoints = pts);
     if (_routePolylines.isEmpty) {
       _startRouteAnimation(pts);
     }
@@ -369,9 +444,10 @@ class _MyHomePageState extends State<MyHomePage>
 
   /// ルートを徐々に描画するアニメーションを開始
   /// [animate] が false の場合はアニメーションせずに一括表示（GPXインポート用）
-  void _startRouteAnimation(List<LatLng> fullPoints, {bool animate = true}) {
+  Future<void> _startRouteAnimation(List<LatLng> fullPoints, {bool animate = true}) async {
     _fullRoutePoints = fullPoints;
-    _refreshRouteMarkers(fullPoints);
+    await _refreshRouteMarkers(fullPoints);
+    if (!mounted) return;
     _routeAnimationRunner.start(
       fullPoints,
       buildMarkers: false,
@@ -438,44 +514,39 @@ class _MyHomePageState extends State<MyHomePage>
             onCameraIdle: _onCameraIdle,
             onMapCreated: (controller) async {
               mapController = controller;
-              await controller
-                  .setMapStyle(mapStyleForMode(_mapStyleMode));
-              if (_savedRoutePoints != null &&
-                  _savedRoutePoints!.isNotEmpty) {
+              await controller.setMapStyle(mapStyleForMode(_mapStyleMode));
+              // 初回インストール時は _savedRoutePoints が null のためここで一度もマーカー構築されないことがある。
+              // 必ず1回は実行して地図が正しく描画されるようにする。
+              final initialRoute = _savedRoutePoints ?? _emptyRouteForMarkers;
+              await _refreshRouteMarkers(initialRoute);
+              if (!mounted) return;
+              if (_savedRoutePoints != null && _savedRoutePoints!.isNotEmpty) {
                 final bounds = boundsFromPoints(_savedRoutePoints!);
                 if (bounds != null) {
                   await controller.animateCamera(
                     CameraUpdate.newLatLngBounds(bounds, 30),
                   );
                   if (mounted) {
-                    _startRouteAnimation(_savedRoutePoints!);
+                    await _startRouteAnimation(_savedRoutePoints!);
                   }
                 }
               }
             },
             onMapStyleTap: () async {
               setState(() => _mapStyleMode = (_mapStyleMode + 1) % 3);
-              await mapController?.setMapStyle(
-                  mapStyleForMode(_mapStyleMode));
+              await mapController?.setMapStyle(mapStyleForMode(_mapStyleMode));
               await saveMapStyleMode(_mapStyleMode);
             },
             onRouteBoundsTap: _animateToRouteBounds,
             onMyLocationTap: _moveCameraToCurrentPosition,
             showMyLocationButton: !_locationTrackingService.isActive,
-            brightnessSupported: _brightnessSupported,
-            brightnessSliderValue: _brightnessSliderValue,
-            onBrightnessChanged: (value) async {
-              setState(() => _brightnessSliderValue = value);
-              final brightness =
-                  sliderValueToBrightness(_initialBrightness, value);
-              try {
-                await ScreenBrightness()
-                    .setApplicationScreenBrightness(brightness);
-              } catch (_) {}
-            },
             isStreamActive: _locationTrackingService.isActive,
             onToggleLocationStream: _toggleLocationStream,
             progressBarValue: _locationTrackingService.progressBarValue,
+            streamAccuracyLabel: _streamAccuracyLabel,
+            isStreamAccuracyLow: _streamAccuracy == LocationAccuracy.low,
+            onGpsLevelTap: _onGpsLevelTap,
+            onUserInteraction: _onUserInteraction,
           );
         },
       ),

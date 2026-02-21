@@ -1,5 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+
+/// 現在地取得のタイムアウト（起動時・その他で待ちすぎないようにする）
+const Duration _locationTimeout = Duration(seconds: 15);
 
 /// 現在地を取得する。許可なし・無効の場合は null。ダイアログは出さない。
 Future<Position?> getCurrentPositionSilent() async {
@@ -14,7 +19,10 @@ Future<Position?> getCurrentPositionSilent() async {
     if (lastPosition != null) return lastPosition;
     return await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.medium,
+      timeLimit: _locationTimeout,
     );
+  } on TimeoutException {
+    return await Geolocator.getLastKnownPosition();
   } catch (_) {
     return null;
   }
@@ -77,9 +85,15 @@ Future<Position?> getPositionWithPermission(
     return null;
   }
 
-  return Geolocator.getCurrentPosition(
-    desiredAccuracy: LocationAccuracy.high,
-  );
+  try {
+    return await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+      timeLimit: _locationTimeout,
+    );
+  } on TimeoutException {
+    // タイムアウト時はキャッシュ位置があれば返す（スプラッシュで止まらないようにする）
+    return await Geolocator.getLastKnownPosition();
+  }
 }
 
 Future<void> _showMessageDialog(

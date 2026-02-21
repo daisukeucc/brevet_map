@@ -111,6 +111,88 @@ Future<BitmapDescriptor> createPoiInfoMarkerIcon() async {
   return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
 }
 
+/// 距離マーカー用の円アイコン
+Future<BitmapDescriptor> createSmallCircleMarkerIcon({
+  Color color = Colors.blueGrey,
+  double size = 32.0,
+}) async {
+  const pixelRatio = 2.0;
+  final cx = size / 2;
+  final cy = size / 2;
+  final radius = size / 2 - 2;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+
+  final circlePaint = Paint()
+    ..color = color
+    ..style = PaintingStyle.fill;
+  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+
+  final borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 6;
+  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+
+  final picture = recorder.endRecording();
+  final w = (size * pixelRatio).round();
+  final h = (size * pixelRatio).round();
+  final image = await picture.toImage(w, h);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+}
+
+/// 距離マーカー用アイコン
+Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
+  const pixelRatio = 2.0;
+  const horizontalPadding = 8.0; // 左右の余白
+  const verticalPadding = 4.0; // 上下の余白
+
+  final textPainter = TextPainter(
+    text: TextSpan(
+      text: label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 35,
+        fontWeight: FontWeight.w500,
+        fontFamily: 'sans-serif',
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+
+  final width = textPainter.width + horizontalPadding * 2;
+  final height = textPainter.height + verticalPadding * 2;
+
+  final rect = Rect.fromLTWH(0, 0, width, height);
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)..clipRect(rect);
+
+  final bgPaint = Paint()
+    ..color = Colors.blueGrey
+    ..style = PaintingStyle.fill;
+  canvas.drawRect(rect, bgPaint);
+
+  final borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 0;
+  canvas.drawRect(rect, borderPaint);
+
+  textPainter.paint(
+    canvas,
+    Offset(horizontalPadding, verticalPadding),
+  );
+
+  final picture = recorder.endRecording();
+  final w = (width * pixelRatio).round();
+  final h = (height * pixelRatio).round();
+  final image = await picture.toImage(w, h);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+}
+
 /// チェックポイントPOI用
 Future<BitmapDescriptor> createPoiCheckpointMarkerIcon() async {
   const size = 102.0;

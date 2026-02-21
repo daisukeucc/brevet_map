@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'brightness_slider_overlay.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
@@ -21,12 +20,13 @@ class MapScreenContent extends StatelessWidget {
     required this.onRouteBoundsTap,
     required this.onMyLocationTap,
     required this.showMyLocationButton,
-    required this.brightnessSupported,
-    required this.brightnessSliderValue,
-    required this.onBrightnessChanged,
     required this.isStreamActive,
     required this.onToggleLocationStream,
     this.progressBarValue,
+    this.streamAccuracyLabel,
+    this.isStreamAccuracyLow,
+    this.onGpsLevelTap,
+    this.onUserInteraction,
   });
 
   final LatLng initialPosition;
@@ -40,12 +40,19 @@ class MapScreenContent extends StatelessWidget {
   final VoidCallback onRouteBoundsTap;
   final VoidCallback onMyLocationTap;
   final bool showMyLocationButton;
-  final bool brightnessSupported;
-  final double brightnessSliderValue;
-  final void Function(double value) onBrightnessChanged;
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
+
+  /// ストリームON時のみ使用するラベル（表示用。変更してもアイコン色に影響しない）
+  final String? streamAccuracyLabel;
+
+  /// ストリームON時のみ使用。true=LOW→白背景・濃い文字、false=medium→青背景・白文字
+  final bool? isStreamAccuracyLow;
+  final VoidCallback? onGpsLevelTap;
+
+  /// 画面タッチ時（5分無操作LOWモード解除用）
+  final VoidCallback? onUserInteraction;
 
   @override
   Widget build(BuildContext context) {
@@ -53,7 +60,9 @@ class MapScreenContent extends StatelessWidget {
       child: Column(
         children: [
           Expanded(
-            child: Stack(
+            child: Listener(
+              onPointerDown: (_) => onUserInteraction?.call(),
+              child: Stack(
               children: [
                 GoogleMap(
                   initialCameraPosition: CameraPosition(
@@ -62,39 +71,70 @@ class MapScreenContent extends StatelessWidget {
                   ),
                   myLocationEnabled: true,
                   myLocationButtonEnabled: false,
+                  mapToolbarEnabled: false,
                   zoomControlsEnabled: false,
                   polylines: polylines,
                   markers: markers,
                   onCameraIdle: onCameraIdle,
                   onMapCreated: onMapCreated,
                 ),
-                Positioned(
-                  left: 16,
-                  bottom: 24,
-                  child: MapStyleButton(
-                    mapStyleMode: mapStyleMode,
-                    onTap: onMapStyleTap,
+                if (isStreamAccuracyLow != true)
+                  Positioned(
+                    left: 16,
+                    bottom: 24,
+                    child: MapStyleButton(
+                      mapStyleMode: mapStyleMode,
+                      onTap: onMapStyleTap,
+                    ),
                   ),
-                ),
                 Positioned(
                   right: 16,
                   top: 24,
-                  child: MapToolButtons(
-                    onRouteBoundsTap: onRouteBoundsTap,
-                    onMyLocationTap: onMyLocationTap,
-                    showMyLocationButton: showMyLocationButton,
-                  ),
+                  child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
                 ),
-                if (brightnessSupported)
+                if (showMyLocationButton)
                   Positioned(
                     right: 16,
                     bottom: 24,
-                    child: BrightnessSliderOverlay(
-                      sliderValue: brightnessSliderValue,
-                      onChanged: onBrightnessChanged,
+                    child: Tooltip(
+                      message: '現在地を表示',
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        shadowColor: Colors.black26,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: onMyLocationTap,
+                          customBorder: const CircleBorder(),
+                          child: const SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: Icon(
+                              Icons.my_location,
+                              color: Colors.black87,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (isStreamActive &&
+                    streamAccuracyLabel != null &&
+                    isStreamAccuracyLow != null &&
+                    onGpsLevelTap != null)
+                  Positioned(
+                    right: 16,
+                    bottom: 24,
+                    child: _GpsLevelButton(
+                      label: streamAccuracyLabel!,
+                      isLow: isStreamAccuracyLow!,
+                      onTap: onGpsLevelTap!,
                     ),
                   ),
               ],
+            ),
             ),
           ),
           LocationBottomBar(
@@ -103,6 +143,54 @@ class MapScreenContent extends StatelessWidget {
             progressBarValue: progressBarValue,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// 位置情報レベル切り替えボタン。色は [isLow] で決め、ラベル文字列に依存しない。
+class _GpsLevelButton extends StatelessWidget {
+  const _GpsLevelButton({
+    required this.label,
+    required this.isLow,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isLow;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final backgroundColor = isLow ? Colors.white : Colors.blueGrey;
+    final textColor = isLow ? Colors.blueGrey : Colors.white;
+
+    return Tooltip(
+      message: '位置情報レベルを切り替え',
+      child: Material(
+        color: backgroundColor,
+        elevation: 5,
+        shadowColor: Colors.black26,
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const CircleBorder(),
+          child: SizedBox(
+            width: 44,
+            height: 44,
+            child: Center(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
