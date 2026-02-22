@@ -134,11 +134,15 @@ class _MyHomePageState extends State<MyHomePage>
     _volumeZoomHandler.start();
     _routeAnimationRunner = RouteAnimationRunner();
     _locationTrackingService = LocationTrackingService();
+    // 位置取得が遅い・ハングするとスプラッシュから進まないため、全体にタイムアウトを設ける
     _positionFuture = getPositionWithPermission(
       context,
       onOpenSettings: () {
         _expectingReturnFromSettings = true;
       },
+    ).timeout(
+      const Duration(seconds: 20),
+      onTimeout: () => null,
     );
     _preloadSavedRoute();
     GpxChannelService.setMethodCallHandler((content) {
@@ -350,6 +354,9 @@ class _MyHomePageState extends State<MyHomePage>
           onOpenSettings: () {
             _expectingReturnFromSettings = true;
           },
+        ).timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => null,
         );
       });
       return;
