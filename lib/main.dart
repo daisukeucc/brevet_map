@@ -62,8 +62,8 @@ class _MyHomePageState extends State<MyHomePage>
   Set<Polyline> _routePolylines = {};
   Set<Marker> _routeMarkers = {};
 
-  /// 0=通常カラー, 2=反転（ダーク）。デフォルトは 2（ナイトモード）
-  int _mapStyleMode = 2;
+  /// 0=通常カラー, 2=反転（ダーク）。デフォルトは 0（通常モード）
+  int _mapStyleMode = 0;
   bool _hasStartedInitialRouteFetch = false;
 
   List<LatLng>? _savedRoutePoints;
@@ -228,7 +228,7 @@ class _MyHomePageState extends State<MyHomePage>
     });
   }
 
-  /// 保存済みの地図表示モードを読み込み、適用する（未保存なら 2=ナイトモード）
+  /// 保存済みの地図表示モードを読み込み、適用する（未保存なら 0=通常モード）
   Future<void> _loadSavedMapStyleMode() async {
     final mode = await loadMapStyleMode();
     if (!mounted) return;

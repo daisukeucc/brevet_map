@@ -55,10 +55,10 @@ Future<void> saveMapStyleMode(int mode) async {
   await prefs.setInt(_keyMapStyleMode, mode == 1 ? 2 : mode);
 }
 
-/// 保存済みの地図表示モードを返す。未保存なら 2（ナイトモード）。1（旧モノクロ）は 2 に読み替える。
+/// 保存済みの地図表示モードを返す
 Future<int> loadMapStyleMode() async {
   final prefs = await SharedPreferences.getInstance();
-  final mode = prefs.getInt(_keyMapStyleMode) ?? 2;
+  final mode = prefs.getInt(_keyMapStyleMode) ?? 0;
   return mode == 1 ? 2 : mode;
 }
 
