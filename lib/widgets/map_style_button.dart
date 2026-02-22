@@ -16,15 +16,16 @@ class MapStyleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = mapStyleMode == 2;
     final message = isDark ? '地図を通常表示' : '地図をダーク表示';
-    final backgroundColor = isDark ? Colors.black : Colors.white;
-    final iconColor = isDark ? Colors.white : Colors.black;
+    final backgroundColor = isDark ? Colors.blueGrey : Colors.white;
+    final iconColor = isDark ? Colors.white : Colors.blueGrey;
+    final shadowColor = Colors.black26;
 
     return Tooltip(
       message: message,
       child: Material(
         color: backgroundColor,
         elevation: 5,
-        shadowColor: Colors.black26,
+        shadowColor: shadowColor,
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(

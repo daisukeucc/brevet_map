@@ -107,12 +107,12 @@ class MapScreenContent extends StatelessWidget {
                           child: InkWell(
                             onTap: onMyLocationTap,
                             customBorder: const CircleBorder(),
-                            child: const SizedBox(
+                            child: SizedBox(
                               width: 60,
                               height: 60,
                               child: Icon(
                                 Icons.my_location,
-                                color: Colors.black87,
+                                color: Colors.blueGrey,
                                 size: 32,
                               ),
                             ),

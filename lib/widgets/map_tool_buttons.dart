@@ -46,7 +46,7 @@ class _CircleIconButton extends StatelessWidget {
           child: SizedBox(
             width: 60,
             height: 60,
-            child: Icon(icon, color: Colors.black87, size: 32),
+            child: Icon(icon, color: Colors.blueGrey, size: 32),
           ),
         ),
       ),
