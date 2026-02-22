@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 /// 地図モード切替ボタン（左上の丸ボタン）。0=通常, 2=ダーク
 class MapStyleButton extends StatelessWidget {
@@ -15,12 +16,13 @@ class MapStyleButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = mapStyleMode == 2;
     final message = isDark ? '地図を通常表示' : '地図をダーク表示';
-    final icon = isDark ? Icons.color_lens : Icons.dark_mode;
+    final backgroundColor = isDark ? Colors.black : Colors.white;
+    final iconColor = isDark ? Colors.white : Colors.black;
 
     return Tooltip(
       message: message,
       child: Material(
-        color: Colors.white,
+        color: backgroundColor,
         elevation: 5,
         shadowColor: Colors.black26,
         shape: const CircleBorder(),
@@ -31,7 +33,16 @@ class MapStyleButton extends StatelessWidget {
           child: SizedBox(
             width: 60,
             height: 60,
-            child: Icon(icon, color: Colors.black87, size: 32),
+            child: Center(
+              child: Transform.translate(
+                offset: const Offset(0, -2),
+                child: FaIcon(
+                  FontAwesomeIcons.mapMarkedAlt,
+                  color: iconColor,
+                  size: 28,
+                ),
+              ),
+            ),
           ),
         ),
       ),
