@@ -49,16 +49,17 @@ Future<String?> loadGpxPois() async {
   return prefs.getString(_keyGpxPois);
 }
 
-/// 地図表示モード（0=通常, 1=モノクロ, 2=ダーク）を保存する
+/// 地図表示モード（0=通常, 2=ダーク）を保存する
 Future<void> saveMapStyleMode(int mode) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setInt(_keyMapStyleMode, mode);
+  await prefs.setInt(_keyMapStyleMode, mode == 1 ? 2 : mode);
 }
 
-/// 保存済みの地図表示モードを返す。未保存なら 0（通常カラー）
+/// 保存済みの地図表示モードを返す
 Future<int> loadMapStyleMode() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getInt(_keyMapStyleMode) ?? 0;
+  final mode = prefs.getInt(_keyMapStyleMode) ?? 0;
+  return mode == 1 ? 2 : mode;
 }
 
 /// 位置情報ストリームをONにしたいか（ボタンでONにしたとき true、OFFにしたとき false を保存）

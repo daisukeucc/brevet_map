@@ -1,10 +1,3 @@
-/// 地図をモノクロ表示するためのスタイル JSON
-const String mapStyleGrayscale = '''
-[
-  {"featureType": "all", "elementType": "all", "stylers": [{"saturation": -100}]}
-]
-''';
-
 /// 地図を反転表示（黒を多く）するためのスタイル JSON（ダークモード）
 const String mapStyleDark = '''
 [
@@ -29,11 +22,9 @@ const String mapStyleDark = '''
 ]
 ''';
 
-/// 0=通常カラー, 1=モノクロ, 2=反転（ダーク）。モードに対応する地図スタイル JSON を返す。0 のときは null。
+/// 0=通常カラー, 2=反転（ダーク）。モードに対応する地図スタイル JSON を返す。0 のときは null。
 String? mapStyleForMode(int mode) {
   switch (mode) {
-    case 1:
-      return mapStyleGrayscale;
     case 2:
       return mapStyleDark;
     default:

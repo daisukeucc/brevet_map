@@ -7,19 +7,26 @@ class LocationBottomBar extends StatelessWidget {
     required this.isStreamActive,
     required this.onTap,
     this.progressBarValue,
+    this.isLowMode = false,
   });
 
   final bool isStreamActive;
   final VoidCallback onTap;
   final ValueNotifier<double>? progressBarValue;
 
+  /// true のときボタンをグレー表示する（LOWモード時）
+  final bool isLowMode;
+
   @override
   Widget build(BuildContext context) {
+    final barColor = isLowMode
+        ? Colors.blueGrey
+        : (isStreamActive ? Colors.red : Colors.green);
     return Stack(
       clipBehavior: Clip.none,
       children: [
         Material(
-          color: isStreamActive ? Colors.red : Colors.green,
+          color: barColor,
           child: InkWell(
             onTap: onTap,
             child: SizedBox(
@@ -43,7 +50,7 @@ class LocationBottomBar extends StatelessWidget {
             height: 3,
             child: Container(
               width: double.infinity,
-              color: Colors.red.shade900,
+              color: isLowMode ? Colors.blueGrey.shade900 : Colors.red.shade900,
               child: ClipRect(
                 child: ValueListenableBuilder<double>(
                   valueListenable: progressBarValue!,
@@ -51,9 +58,9 @@ class LocationBottomBar extends StatelessWidget {
                     return LayoutBuilder(
                       builder: (context, constraints) {
                         const barWidth = 80.0;
-                        final left = (value *
-                                (constraints.maxWidth + barWidth)) -
-                            barWidth;
+                        final left =
+                            (value * (constraints.maxWidth + barWidth)) -
+                                barWidth;
                         return Stack(
                           children: [
                             Positioned(

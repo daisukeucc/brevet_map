@@ -23,8 +23,8 @@ class MapScreenContent extends StatelessWidget {
     required this.isStreamActive,
     required this.onToggleLocationStream,
     this.progressBarValue,
-    this.streamAccuracyLabel,
-    this.isStreamAccuracyLow,
+    this.isLowMode = false,
+    this.isStreamAccuracyLow = false,
     this.onGpsLevelTap,
     this.onUserInteraction,
   });
@@ -44,11 +44,12 @@ class MapScreenContent extends StatelessWidget {
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
 
-  /// ストリームON時のみ使用するラベル（表示用。変更してもアイコン色に影響しない）
-  final String? streamAccuracyLabel;
+  /// true のとき位置情報ストリームボタンをグレー表示する（LOWモード時）
+  final bool isLowMode;
 
-  /// ストリームON時のみ使用。true=LOW→白背景・濃い文字、false=medium→青背景・白文字
-  final bool? isStreamAccuracyLow;
+  /// 位置ストリームの精度が low のとき true（GPSボタンのラベルを「LOW」にする）
+  final bool isStreamAccuracyLow;
+
   final VoidCallback? onGpsLevelTap;
 
   /// 画面タッチ時（5分無操作LOWモード解除用）
@@ -63,22 +64,21 @@ class MapScreenContent extends StatelessWidget {
             child: Listener(
               onPointerDown: (_) => onUserInteraction?.call(),
               child: Stack(
-              children: [
-                GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: initialPosition,
-                    zoom: initialZoom,
+                children: [
+                  GoogleMap(
+                    initialCameraPosition: CameraPosition(
+                      target: initialPosition,
+                      zoom: initialZoom,
+                    ),
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
+                    mapToolbarEnabled: false,
+                    zoomControlsEnabled: false,
+                    polylines: polylines,
+                    markers: markers,
+                    onCameraIdle: onCameraIdle,
+                    onMapCreated: onMapCreated,
                   ),
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: false,
-                  mapToolbarEnabled: false,
-                  zoomControlsEnabled: false,
-                  polylines: polylines,
-                  markers: markers,
-                  onCameraIdle: onCameraIdle,
-                  onMapCreated: onMapCreated,
-                ),
-                if (isStreamAccuracyLow != true)
                   Positioned(
                     left: 16,
                     bottom: 24,
@@ -87,60 +87,58 @@ class MapScreenContent extends StatelessWidget {
                       onTap: onMapStyleTap,
                     ),
                   ),
-                Positioned(
-                  right: 16,
-                  top: 24,
-                  child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
-                ),
-                if (showMyLocationButton)
                   Positioned(
                     right: 16,
-                    bottom: 24,
-                    child: Tooltip(
-                      message: '現在地を表示',
-                      child: Material(
-                        color: Colors.white,
-                        elevation: 5,
-                        shadowColor: Colors.black26,
-                        shape: const CircleBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: onMyLocationTap,
-                          customBorder: const CircleBorder(),
-                          child: const SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Icon(
-                              Icons.my_location,
-                              color: Colors.black87,
-                              size: 24,
+                    top: 24,
+                    child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
+                  ),
+                  if (showMyLocationButton)
+                    Positioned(
+                      right: 16,
+                      bottom: 24,
+                      child: Tooltip(
+                        message: '現在地を表示',
+                        child: Material(
+                          color: Colors.white,
+                          elevation: 5,
+                          shadowColor: Colors.black26,
+                          shape: const CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: onMyLocationTap,
+                            customBorder: const CircleBorder(),
+                            child: SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: Icon(
+                                Icons.my_location,
+                                color: Colors.blueGrey,
+                                size: 32,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                if (isStreamActive &&
-                    streamAccuracyLabel != null &&
-                    isStreamAccuracyLow != null &&
-                    onGpsLevelTap != null)
-                  Positioned(
-                    right: 16,
-                    bottom: 24,
-                    child: _GpsLevelButton(
-                      label: streamAccuracyLabel!,
-                      isLow: isStreamAccuracyLow!,
-                      onTap: onGpsLevelTap!,
+                  if (isStreamActive && onGpsLevelTap != null)
+                    Positioned(
+                      right: 16,
+                      bottom: 24,
+                      child: _GpsLevelButton(
+                        isLowMode: isLowMode,
+                        isStreamAccuracyLow: isStreamAccuracyLow,
+                        onTap: onGpsLevelTap!,
+                      ),
                     ),
-                  ),
-              ],
-            ),
+                ],
+              ),
             ),
           ),
           LocationBottomBar(
             isStreamActive: isStreamActive,
             onTap: onToggleLocationStream,
             progressBarValue: progressBarValue,
+            isLowMode: isLowMode,
           ),
         ],
       ),
@@ -148,22 +146,23 @@ class MapScreenContent extends StatelessWidget {
   }
 }
 
-/// 位置情報レベル切り替えボタン。色は [isLow] で決め、ラベル文字列に依存しない。
+/// 位置情報レベル切り替えボタン
 class _GpsLevelButton extends StatelessWidget {
   const _GpsLevelButton({
-    required this.label,
-    required this.isLow,
+    required this.isLowMode,
+    required this.isStreamAccuracyLow,
     required this.onTap,
   });
 
-  final String label;
-  final bool isLow;
+  final bool isLowMode;
+  final bool isStreamAccuracyLow;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = isLow ? Colors.white : Colors.blueGrey;
-    final textColor = isLow ? Colors.blueGrey : Colors.white;
+    final backgroundColor = isLowMode ? Colors.blueGrey : Colors.white;
+    final textColor = isLowMode ? Colors.white : Colors.blueGrey;
+    final label = isStreamAccuracyLow ? 'LOW' : 'GPS';
 
     return Tooltip(
       message: '位置情報レベルを切り替え',
@@ -177,14 +176,14 @@ class _GpsLevelButton extends StatelessWidget {
           onTap: onTap,
           customBorder: const CircleBorder(),
           child: SizedBox(
-            width: 44,
-            height: 44,
+            width: 60,
+            height: 60,
             child: Center(
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
                   color: textColor,
                 ),
               ),
