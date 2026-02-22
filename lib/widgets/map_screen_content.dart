@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
@@ -85,6 +86,14 @@ class MapScreenContent extends StatelessWidget {
                     child: MapStyleButton(
                       mapStyleMode: mapStyleMode,
                       onTap: onMapStyleTap,
+                    ),
+                  ),
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    top: 24,
+                    child: Center(
+                      child: BatteryIndicator(),
                     ),
                   ),
                   Positioned(
