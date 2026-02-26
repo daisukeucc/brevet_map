@@ -19,9 +19,9 @@ class _BatteryIndicatorState extends State<BatteryIndicator> {
   Timer? _timer;
 
   static IconData _iconForLevel(int level) {
-    if (level >= 75) return FontAwesomeIcons.batteryFull;
-    if (level >= 50) return FontAwesomeIcons.batteryThreeQuarters;
-    if (level >= 25) return FontAwesomeIcons.batteryHalf;
+    if (level >= 90) return FontAwesomeIcons.batteryFull;
+    if (level >= 75) return FontAwesomeIcons.batteryThreeQuarters;
+    if (level >= 40) return FontAwesomeIcons.batteryHalf;
     if (level >= 10) return FontAwesomeIcons.batteryQuarter;
     return FontAwesomeIcons.batteryEmpty;
   }
