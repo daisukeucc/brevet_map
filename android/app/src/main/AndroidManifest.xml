@@ -22,16 +22,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <!-- GPX の VIEW 専用。ランチャーには出さず、ここで MainActivity に転送してすぐ finish するためタスクが1つにまとまる -->
-        <activity
-            android:name=".GpxReceiverActivity"
-            android:exported="true"
-            android:launchMode="singleTask"
-            android:theme="@style/LaunchTheme"
-            android:excludeFromRecents="true"
-            android:taskAffinity="">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
