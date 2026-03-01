@@ -73,3 +73,17 @@ Future<bool> loadLocationStreamActive() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keyLocationStreamActive) ?? false;
 }
+
+const _keyActiveRouteId = 'active_route_id';
+
+/// 現在アクティブなルートのIDを保存する
+Future<void> saveActiveRouteId(String id) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_keyActiveRouteId, id);
+}
+
+/// 保存済みのアクティブルートIDを返す。未保存なら null
+Future<String?> loadActiveRouteId() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_keyActiveRouteId);
+}

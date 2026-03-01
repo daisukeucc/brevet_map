@@ -1,28 +1,31 @@
-import 'dart:convert';
-
 import 'package:latlong2/latlong.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/directions_repository.dart';
 import '../../data/repositories/first_launch_repository.dart';
+import '../../data/repositories/route_repository.dart';
 
 /// GPX をパースして永続化した結果。UI 側で setState やカメラに使う。
 class GpxImportResult {
   const GpxImportResult({
     required this.trackPoints,
     required this.waypoints,
+    this.routeId,
   });
 
   final List<LatLng> trackPoints;
   final List<GpxPoi> waypoints;
 
+  /// 保存されたルートID（空・parseError 時は null）
+  final String? routeId;
+
   bool get isEmpty => trackPoints.isEmpty && waypoints.isEmpty;
 }
 
-/// GPX 文字列をパースし、ルート・POI を保存する。
+/// GPX 文字列をパースし、ルートIDフォルダ構造で保存する。
 /// - パース失敗時は null
-/// - トラックもウェイポイントも無い場合は [GpxImportResult] を返す（isEmpty == true）。保存は行わない
-/// - それ以外は clear → save して [GpxImportResult] を返す
+/// - トラックもウェイポイントも無い場合は isEmpty == true の結果を返す（保存なし）
+/// - それ以外は routes/{routeId}/ に保存してアクティブルートIDを更新する
 Future<GpxImportResult?> parseAndSaveGpx(String gpxContent) async {
   final result = parseGpx(gpxContent);
   if (result == null) return null;
@@ -31,23 +34,32 @@ Future<GpxImportResult?> parseAndSaveGpx(String gpxContent) async {
     return const GpxImportResult(trackPoints: [], waypoints: []);
   }
 
-  await clearSavedRoute();
+  final routeId = generateRouteId();
 
   if (result.trackPoints.isNotEmpty) {
     final encoded = encodePolyline(result.trackPoints);
-    await saveRouteEncoded(encoded);
-    await markInitialRouteShown();
+    await saveRouteToFile(
+      routeId: routeId,
+      name: 'imported',
+      encodedPolyline: encoded,
+      pois: result.waypoints,
+    );
+  } else {
+    // ウェイポイントのみの場合もフォルダを作成して保存する
+    await saveRouteToFile(
+      routeId: routeId,
+      name: 'imported',
+      encodedPolyline: '',
+      pois: result.waypoints,
+    );
   }
 
-  if (result.waypoints.isNotEmpty) {
-    final poisJson = jsonEncode(
-      result.waypoints.map((p) => p.toJson()).toList(),
-    );
-    await saveGpxPois(poisJson);
-  }
+  await saveActiveRouteId(routeId);
+  await markInitialRouteShown();
 
   return GpxImportResult(
     trackPoints: result.trackPoints,
     waypoints: result.waypoints,
+    routeId: routeId,
   );
 }

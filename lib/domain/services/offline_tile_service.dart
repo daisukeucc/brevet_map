@@ -1,21 +1,14 @@
 import 'dart:io';
 import 'dart:math';
+
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
-import 'package:path_provider/path_provider.dart';
+
+import '../../data/repositories/route_repository.dart';
 
 const int _minZoom = 8;
 const int _maxZoom = 15;
-const String _storeDirName = 'offline_tiles';
-
-/// オフラインタイルの保存ディレクトリを返す
-Future<Directory> getOfflineTileDir() async {
-  final base = await getApplicationDocumentsDirectory();
-  final dir = Directory('${base.path}/$_storeDirName');
-  if (!dir.existsSync()) await dir.create(recursive: true);
-  return dir;
-}
 
 int _lngToX(double lng, int zoom) =>
     ((lng + 180) / 360 * (1 << zoom)).floor();
@@ -45,9 +38,18 @@ int countTiles(LatLngBounds bounds) {
   return count;
 }
 
-/// bounds のタイルをダウンロードして保存する。進捗 0.0〜1.0 を Stream で返す。
-Stream<double> downloadTiles(LatLngBounds bounds, String urlTemplate) async* {
-  final dir = await getOfflineTileDir();
+/// ルート専用のタイルディレクトリを返す（存在しなければ作成）
+Future<Directory> getOfflineTileDirForRoute(String routeId) async {
+  final tilesPath = await routeTilesDirPath(routeId);
+  final dir = Directory(tilesPath);
+  if (!dir.existsSync()) await dir.create(recursive: true);
+  return dir;
+}
+
+/// bounds のタイルを routeId フォルダにダウンロードして保存する。進捗 0.0〜1.0 を Stream で返す。
+Stream<double> downloadTiles(
+    LatLngBounds bounds, String urlTemplate, String routeId) async* {
+  final dir = await getOfflineTileDirForRoute(routeId);
   final total = countTiles(bounds);
   if (total == 0) return;
   var done = 0;
@@ -73,11 +75,4 @@ Stream<double> downloadTiles(LatLngBounds bounds, String urlTemplate) async* {
       yield done / total;
     }
   }
-}
-
-/// 保存済みオフラインタイルが存在するか確認する
-Future<bool> hasOfflineTiles() async {
-  final base = await getApplicationDocumentsDirectory();
-  final dir = Directory('${base.path}/$_storeDirName');
-  return dir.existsSync() && dir.listSync().isNotEmpty;
 }

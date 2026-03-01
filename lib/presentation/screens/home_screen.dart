@@ -54,6 +54,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
+    // activeRouteId が変わったらそのルートのタイル有無を確認する
+    ref.listenManual(mapStateProvider, (prev, next) {
+      if (next.activeRouteId != null &&
+          next.activeRouteId != prev?.activeRouteId) {
+        ref
+            .read(offlineMapProvider.notifier)
+            .checkTilesForRoute(next.activeRouteId!);
+      }
+    });
+
     GpxChannelService.setMethodCallHandler(_onGpxReceived);
     GpxChannelService.getInitialGpxContent().then((content) {
       if (content != null && content.isNotEmpty && mounted) {
@@ -192,8 +202,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Future<void> _onOfflineMapDownloadTap() async {
+    final mapState = ref.read(mapStateProvider);
     final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
-    if (bounds == null) {
+    final routeId = mapState.activeRouteId;
+    if (bounds == null || routeId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('ルートが読み込まれていません')),
@@ -203,6 +215,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final status = await ref.read(offlineMapProvider.notifier).download(
       bounds,
       'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+      routeId,
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(

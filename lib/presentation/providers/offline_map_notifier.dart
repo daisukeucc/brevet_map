@@ -1,8 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:path_provider/path_provider.dart';
 
+import '../../data/repositories/route_repository.dart';
 import '../../domain/services/offline_tile_service.dart';
 
 enum OfflineDownloadStatus { success, error }
@@ -43,35 +43,46 @@ class OfflineMapState {
 
 class OfflineMapNotifier extends Notifier<OfflineMapState> {
   @override
-  OfflineMapState build() {
-    _checkExisting();
-    return const OfflineMapState();
-  }
+  OfflineMapState build() => const OfflineMapState();
 
-  /// 起動時に保存済みタイルの有無を確認して state を更新する
-  Future<void> _checkExisting() async {
-    if (!await hasOfflineTiles()) return;
-    final base = await getApplicationDocumentsDirectory();
+  /// 指定ルートのタイル有無を確認して state を更新する。
+  /// ルートがロードされた後（home_screen から）呼び出す。
+  Future<void> checkTilesForRoute(String routeId) async {
+    if (!await routeHasTiles(routeId)) {
+      // タイルが存在しない場合は isAvailable を false に戻す
+      if (state.isAvailable) {
+        state = state.copyWith(
+          isAvailable: false,
+          offlineDirPath: null,
+        );
+      }
+      return;
+    }
+    final tilesPath = await routeTilesDirPath(routeId);
     state = state.copyWith(
       isAvailable: true,
-      offlineDirPath: '${base.path}/offline_tiles',
+      offlineDirPath: tilesPath,
     );
   }
 
-  /// ルート範囲のタイルをダウンロードする
+  /// ルート範囲のタイルを routeId フォルダにダウンロードする
   Future<OfflineDownloadStatus> download(
-      LatLngBounds bounds, String urlTemplate) async {
+    LatLngBounds bounds,
+    String urlTemplate,
+    String routeId,
+  ) async {
     state = state.copyWith(isDownloading: true, downloadProgress: 0.0);
     try {
-      await for (final progress in downloadTiles(bounds, urlTemplate)) {
+      await for (final progress in downloadTiles(bounds, urlTemplate, routeId)) {
         state = state.copyWith(downloadProgress: progress);
       }
-      final base = await getApplicationDocumentsDirectory();
+      await updateRouteHasTiles(routeId);
+      final tilesPath = await routeTilesDirPath(routeId);
       state = state.copyWith(
         isDownloading: false,
         isAvailable: true,
         downloadProgress: 1.0,
-        offlineDirPath: '${base.path}/offline_tiles',
+        offlineDirPath: tilesPath,
       );
       return OfflineDownloadStatus.success;
     } catch (_) {

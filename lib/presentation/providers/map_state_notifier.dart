@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/first_launch_repository.dart';
+import '../../data/repositories/route_repository.dart';
 import '../../domain/services/gpx_import_service.dart';
 import '../../domain/services/route_animation_runner.dart';
 import '../../domain/services/route_fetch_service.dart';
@@ -28,6 +29,7 @@ class MapState {
     this.hasStartedInitialRouteFetch = false,
     this.lastRoutePointsForMarkers,
     this.lastShowDistanceMarkers,
+    this.activeRouteId,
   });
 
   final List<Polyline> routePolylines;
@@ -52,6 +54,9 @@ class MapState {
   final List<LatLng>? lastRoutePointsForMarkers;
   final bool? lastShowDistanceMarkers;
 
+  /// 現在表示中のルートID（routes/{id}/ フォルダと対応）
+  final String? activeRouteId;
+
   MapState copyWith({
     List<Polyline>? routePolylines,
     List<Marker>? routeMarkers,
@@ -63,6 +68,7 @@ class MapState {
     bool? hasStartedInitialRouteFetch,
     List<LatLng>? lastRoutePointsForMarkers,
     bool? lastShowDistanceMarkers,
+    String? activeRouteId,
     bool clearSavedRoutePoints = false,
     bool clearFullRoutePoints = false,
     bool clearSavedZoomLevel = false,
@@ -86,6 +92,7 @@ class MapState {
           lastRoutePointsForMarkers ?? this.lastRoutePointsForMarkers,
       lastShowDistanceMarkers:
           lastShowDistanceMarkers ?? this.lastShowDistanceMarkers,
+      activeRouteId: activeRouteId ?? this.activeRouteId,
     );
   }
 }
@@ -116,6 +123,7 @@ class MapStateNotifier extends Notifier<MapState> {
       savedRoutePoints:
           (result.points != null && result.points!.isNotEmpty) ? result.points : null,
       gpxPois: result.pois,
+      activeRouteId: result.routeId,
     );
   }
 
@@ -166,6 +174,9 @@ class MapStateNotifier extends Notifier<MapState> {
     String gpxContent, {
     required Future<void> Function(LatLngBounds) animateCamera,
   }) async {
+    // 新ルート保存前に現在のルートIDを保持しておく
+    final previousRouteId = state.activeRouteId;
+
     final result = await parseAndSaveGpx(gpxContent);
     if (result == null) {
       if (gpxContent.trim().isNotEmpty) return GpxApplyStatus.parseError;
@@ -173,12 +184,18 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     if (result.isEmpty) return GpxApplyStatus.empty;
 
+    // 旧ルートフォルダをタイルごと削除する（新ルートと別IDの場合のみ）
+    if (previousRouteId != null && previousRouteId != result.routeId) {
+      await deleteRoute(previousRouteId);
+    }
+
     state = state.copyWith(
       savedRoutePoints:
           result.trackPoints.isNotEmpty ? result.trackPoints : null,
       clearSavedRoutePoints: result.trackPoints.isEmpty,
       gpxPois: result.waypoints,
       hasStartedInitialRouteFetch: true,
+      activeRouteId: result.routeId,
     );
 
     if (result.trackPoints.isNotEmpty) {
@@ -216,17 +233,21 @@ class MapStateNotifier extends Notifier<MapState> {
 
     await Future.delayed(const Duration(milliseconds: 300));
 
-    final points = await fetchOrLoadRoute(
+    final result = await fetchOrLoadRoute(
       position,
       savedRoutePoints: state.savedRoutePoints,
+      activeRouteId: state.activeRouteId,
     );
-    if (points == null || points.isEmpty) return;
+    if (result == null || result.points.isEmpty) return;
 
-    state = state.copyWith(savedRoutePoints: points);
+    state = state.copyWith(
+      savedRoutePoints: result.points,
+      activeRouteId: result.routeId,
+    );
     if (state.routePolylines.isEmpty) {
-      await _startRouteAnimation(points);
+      await _startRouteAnimation(result.points);
     }
-    final bounds = boundsFromPoints(points);
+    final bounds = boundsFromPoints(result.points);
     await animateCamera(bounds);
   }
 
