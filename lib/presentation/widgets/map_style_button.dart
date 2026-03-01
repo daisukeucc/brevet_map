@@ -18,7 +18,7 @@ class MapStyleButton extends StatelessWidget {
     final message = isDark ? '地図を通常表示' : '地図をダーク表示';
     final backgroundColor = isDark ? Colors.blueGrey : Colors.white;
     final iconColor = isDark ? Colors.white : Colors.blueGrey;
-    final shadowColor = Colors.black26;
+    const shadowColor = Colors.black26;
 
     return Tooltip(
       message: message,

@@ -191,6 +191,43 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
+  Future<void> _onOfflineMapDownloadTap() async {
+    final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
+    if (bounds == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ルートが読み込まれていません')),
+      );
+      return;
+    }
+    final status = await ref.read(offlineMapProvider.notifier).download(
+      bounds,
+      'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png',
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        status == OfflineDownloadStatus.success
+            ? 'オフラインマップのダウンロードが完了しました'
+            : 'ダウンロードに失敗しました',
+      ),
+    ));
+  }
+
+  void _onUseOfflineMapTap() {
+    ref.read(offlineMapProvider.notifier).useOfflineMap();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('オフラインマップに変更しました')),
+    );
+  }
+
+  void _onUseOnlineMapTap() {
+    ref.read(offlineMapProvider.notifier).useOnlineMap();
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('オンラインマップに変更しました')),
+    );
+  }
+
   Marker? get _locationMarker {
     final pos = _currentPosition;
     if (pos == null) return null;
@@ -212,6 +249,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
+    final offlineState = ref.watch(offlineMapProvider);
     final mapController = ref.read(cameraControllerProvider);
 
     return Scaffold(
@@ -265,6 +303,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             isLowMode: locationState.isInLowMode,
             isStreamAccuracyLow: locationState.isAccuracyLow,
             onGpsLevelTap: _onGpsLevelTap,
+            onOfflineMapDownloadTap: _onOfflineMapDownloadTap,
+            offlineMapState: offlineState,
+            onUseOfflineMapTap: _onUseOfflineMapTap,
+            onUseOnlineMapTap: _onUseOnlineMapTap,
           );
         },
       ),

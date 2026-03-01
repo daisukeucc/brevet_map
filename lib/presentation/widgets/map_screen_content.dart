@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../providers/offline_map_notifier.dart';
 import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
+import 'offline_tile_provider.dart';
 
 /// 地図画面の本体。地図・オーバーレイ・下部バーをまとめる。
 class MapScreenContent extends StatelessWidget {
@@ -25,6 +27,10 @@ class MapScreenContent extends StatelessWidget {
     required this.showMyLocationButton,
     required this.isStreamActive,
     required this.onToggleLocationStream,
+    required this.onOfflineMapDownloadTap,
+    required this.offlineMapState,
+    required this.onUseOfflineMapTap,
+    required this.onUseOnlineMapTap,
     this.locationMarker,
     this.progressBarValue,
     this.isLowMode = false,
@@ -47,6 +53,10 @@ class MapScreenContent extends StatelessWidget {
   final bool showMyLocationButton;
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
+  final VoidCallback onOfflineMapDownloadTap;
+  final OfflineMapState offlineMapState;
+  final VoidCallback onUseOfflineMapTap;
+  final VoidCallback onUseOnlineMapTap;
 
   /// 現在地ドット（位置ストリーム中のみ表示）
   final Marker? locationMarker;
@@ -68,6 +78,11 @@ class MapScreenContent extends StatelessWidget {
       'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png';
 
   String get _attribution => '© Carto, © OpenStreetMap contributors';
+
+  TileProvider get _tileProvider =>
+      offlineMapState.isUsing && offlineMapState.offlineDirPath != null
+          ? OfflineTileProvider(offlineMapState.offlineDirPath!)
+          : NetworkTileProvider();
 
   @override
   Widget build(BuildContext context) {
@@ -117,12 +132,14 @@ class MapScreenContent extends StatelessWidget {
                           child: TileLayer(
                             urlTemplate: _tileUrl,
                             userAgentPackageName: 'com.example.brevet_map',
+                            tileProvider: _tileProvider,
                           ),
                         )
                       else
                         TileLayer(
                           urlTemplate: _tileUrl,
                           userAgentPackageName: 'com.example.brevet_map',
+                          tileProvider: _tileProvider,
                         ),
                       PolylineLayer(polylines: polylines),
                       MarkerLayer(
@@ -160,6 +177,52 @@ class MapScreenContent extends StatelessWidget {
                     ),
                   ),
                   Positioned(
+                    left: 16,
+                    top: 24,
+                    child: Tooltip(
+                      message: '設定',
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        shadowColor: Colors.black26,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () => showModalBottomSheet<void>(
+                            context: context,
+                            shape: const RoundedRectangleBorder(),
+                            builder: (_) => _SettingsBottomSheet(
+                              onOfflineMapDownloadTap: () {
+                                Navigator.pop(context);
+                                onOfflineMapDownloadTap();
+                              },
+                              isOfflineMapAvailable: offlineMapState.isAvailable,
+                              isOfflineMapUsing: offlineMapState.isUsing,
+                              onUseOfflineMapTap: () {
+                                Navigator.pop(context);
+                                onUseOfflineMapTap();
+                              },
+                              onUseOnlineMapTap: () {
+                                Navigator.pop(context);
+                                onUseOnlineMapTap();
+                              },
+                            ),
+                          ),
+                          customBorder: const CircleBorder(),
+                          child: const SizedBox(
+                            width: 60,
+                            height: 60,
+                            child: Icon(
+                              Icons.more_vert,
+                              color: Colors.blueGrey,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const Positioned(
                     left: 0,
                     right: 0,
                     top: 24,
@@ -187,7 +250,7 @@ class MapScreenContent extends StatelessWidget {
                           child: InkWell(
                             onTap: onMyLocationTap,
                             customBorder: const CircleBorder(),
-                            child: SizedBox(
+                            child: const SizedBox(
                               width: 60,
                               height: 60,
                               child: Icon(
@@ -210,6 +273,40 @@ class MapScreenContent extends StatelessWidget {
                         onTap: onGpsLevelTap!,
                       ),
                     ),
+                  if (offlineMapState.isDownloading)
+                    Positioned.fill(
+                      child: ColoredBox(
+                        color: Colors.black54,
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'ダウンロード中...',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
+                              ),
+                              const SizedBox(height: 12),
+                              SizedBox(
+                                width: 240,
+                                child: LinearProgressIndicator(
+                                  value: offlineMapState.downloadProgress,
+                                  backgroundColor: Colors.white38,
+                                  valueColor: const AlwaysStoppedAnimation(
+                                      Colors.white),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${(offlineMapState.downloadProgress * 100).toInt()}%',
+                                style:
+                                    const TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -220,6 +317,51 @@ class MapScreenContent extends StatelessWidget {
             progressBarValue: progressBarValue,
             isLowMode: isLowMode,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 設定ボトムシート
+class _SettingsBottomSheet extends StatelessWidget {
+  const _SettingsBottomSheet({
+    required this.onOfflineMapDownloadTap,
+    required this.isOfflineMapAvailable,
+    required this.isOfflineMapUsing,
+    required this.onUseOfflineMapTap,
+    required this.onUseOnlineMapTap,
+  });
+
+  final VoidCallback onOfflineMapDownloadTap;
+  final bool isOfflineMapAvailable;
+  final bool isOfflineMapUsing;
+  final VoidCallback onUseOfflineMapTap;
+  final VoidCallback onUseOnlineMapTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: const Icon(Icons.download_for_offline_outlined),
+            title: const Text('オフラインマップをダウンロード'),
+            onTap: onOfflineMapDownloadTap,
+          ),
+          if (isOfflineMapUsing)
+            ListTile(
+              leading: const Icon(Icons.wifi),
+              title: const Text('オンラインマップを使用'),
+              onTap: onUseOnlineMapTap,
+            )
+          else if (isOfflineMapAvailable)
+            ListTile(
+              leading: const Icon(Icons.wifi_off),
+              title: const Text('オフラインマップを使用'),
+              onTap: onUseOfflineMapTap,
+            ),
         ],
       ),
     );

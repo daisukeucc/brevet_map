@@ -28,7 +28,7 @@ Future<GpxImportResult?> parseAndSaveGpx(String gpxContent) async {
   if (result == null) return null;
 
   if (result.trackPoints.isEmpty && result.waypoints.isEmpty) {
-    return GpxImportResult(trackPoints: [], waypoints: []);
+    return const GpxImportResult(trackPoints: [], waypoints: []);
   }
 
   await clearSavedRoute();
