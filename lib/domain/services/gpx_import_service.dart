@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../parsers/gpx_parser.dart';
-import '../repositories/directions_repository.dart';
-import '../repositories/first_launch_repository.dart';
+import '../../data/parsers/gpx_parser.dart';
+import '../../data/repositories/directions_repository.dart';
+import '../../data/repositories/first_launch_repository.dart';
 
 /// GPX をパースして永続化した結果。UI 側で setState やカメラに使う。
 class GpxImportResult {

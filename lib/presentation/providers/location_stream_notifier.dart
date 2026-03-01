@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 
-import '../repositories/first_launch_repository.dart';
-import '../services/location_tracking_service.dart';
+import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/services/location_tracking_service.dart';
 
 @immutable
 class LocationStreamState {
