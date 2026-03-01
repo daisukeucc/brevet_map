@@ -64,12 +64,10 @@ class MapScreenContent extends StatelessWidget {
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
 
-  String get _tileUrl => mapStyleMode == 2
-      ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
-      : 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
+  String get _tileUrl =>
+      'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png';
 
-  String get _attribution =>
-      mapStyleMode == 2 ? '© CartoDB' : '© 国土地理院';
+  String get _attribution => '© Carto, © OpenStreetMap contributors';
 
   @override
   Widget build(BuildContext context) {
@@ -92,10 +90,40 @@ class MapScreenContent extends StatelessWidget {
                       },
                     ),
                     children: [
-                      TileLayer(
-                        urlTemplate: _tileUrl,
-                        userAgentPackageName: 'com.example.brevet_map',
-                      ),
+                      if (mapStyleMode == 2)
+                        ColorFiltered(
+                          colorFilter: const ColorFilter.matrix(<double>[
+                            -0.2126,
+                            -0.7152,
+                            -0.0722,
+                            0,
+                            290,
+                            -0.2126,
+                            -0.7152,
+                            -0.0722,
+                            0,
+                            290,
+                            -0.2126,
+                            -0.7152,
+                            -0.0722,
+                            0,
+                            290,
+                            0,
+                            0,
+                            0,
+                            1,
+                            0,
+                          ]),
+                          child: TileLayer(
+                            urlTemplate: _tileUrl,
+                            userAgentPackageName: 'com.example.brevet_map',
+                          ),
+                        )
+                      else
+                        TileLayer(
+                          urlTemplate: _tileUrl,
+                          userAgentPackageName: 'com.example.brevet_map',
+                        ),
                       PolylineLayer(polylines: polylines),
                       MarkerLayer(
                         markers: [
@@ -103,8 +131,23 @@ class MapScreenContent extends StatelessWidget {
                           if (locationMarker != null) locationMarker!,
                         ],
                       ),
-                      SimpleAttributionWidget(
-                        source: Text(_attribution),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          child: Text(
+                            _attribution,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: mapStyleMode == 2
+                                  ? Colors.white
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
