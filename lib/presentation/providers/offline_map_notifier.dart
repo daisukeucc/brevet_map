@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 
 import '../../data/repositories/route_repository.dart';
 import '../../domain/services/offline_tile_service.dart';
 
-enum OfflineDownloadStatus { success, error }
+enum OfflineDownloadStatus { success, error, noInternet }
 
 @immutable
 class OfflineMapState {
@@ -65,12 +66,27 @@ class OfflineMapNotifier extends Notifier<OfflineMapState> {
     );
   }
 
+  /// インターネット接続を確認する（5秒タイムアウト）
+  Future<bool> _hasInternetConnection() async {
+    try {
+      final res = await http
+          .head(Uri.parse('https://www.google.com'))
+          .timeout(const Duration(seconds: 5));
+      return res.statusCode < 500;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// ルート範囲のタイルを routeId フォルダにダウンロードする
   Future<OfflineDownloadStatus> download(
     LatLngBounds bounds,
     String urlTemplate,
     String routeId,
   ) async {
+    if (!await _hasInternetConnection()) {
+      return OfflineDownloadStatus.noInternet;
+    }
     state = state.copyWith(isDownloading: true, downloadProgress: 0.0);
     try {
       await for (final progress in downloadTiles(bounds, urlTemplate, routeId)) {

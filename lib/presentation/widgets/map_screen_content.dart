@@ -313,7 +313,7 @@ class MapScreenContent extends StatelessWidget {
           ),
           LocationBottomBar(
             isStreamActive: isStreamActive,
-            onTap: onToggleLocationStream,
+            onTap: offlineMapState.isDownloading ? null : onToggleLocationStream,
             progressBarValue: progressBarValue,
             isLowMode: isLowMode,
           ),

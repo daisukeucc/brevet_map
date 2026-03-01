@@ -218,13 +218,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       routeId,
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-      content: Text(
-        status == OfflineDownloadStatus.success
-            ? 'オフラインマップのダウンロードが完了しました'
-            : 'ダウンロードに失敗しました',
-      ),
-    ));
+    final message = switch (status) {
+      OfflineDownloadStatus.success => 'オフラインマップのダウンロードが完了しました',
+      OfflineDownloadStatus.noInternet => 'インターネットに接続されていません',
+      OfflineDownloadStatus.error => 'ダウンロードに失敗しました',
+    };
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _onUseOfflineMapTap() {

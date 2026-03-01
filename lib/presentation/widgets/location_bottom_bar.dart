@@ -11,7 +11,7 @@ class LocationBottomBar extends StatelessWidget {
   });
 
   final bool isStreamActive;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final ValueNotifier<double>? progressBarValue;
 
   /// true のときボタンをグレー表示する（LOWモード時）
@@ -19,9 +19,12 @@ class LocationBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final barColor = isLowMode
-        ? Colors.blueGrey
-        : (isStreamActive ? Colors.red : Colors.green);
+    final disabled = onTap == null;
+    final barColor = disabled
+        ? Colors.grey
+        : (isLowMode
+            ? Colors.blueGrey
+            : (isStreamActive ? Colors.red : Colors.green));
     return Stack(
       clipBehavior: Clip.none,
       children: [
