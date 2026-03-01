@@ -23,6 +23,8 @@ class MapScreenContent extends StatelessWidget {
     required this.showMyLocationButton,
     required this.isStreamActive,
     required this.onToggleLocationStream,
+    required this.sleepDuration,
+    required this.onSleepDurationChanged,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -52,6 +54,12 @@ class MapScreenContent extends StatelessWidget {
   final bool isStreamAccuracyLow;
 
   final VoidCallback? onGpsLevelTap;
+
+  /// 画面スリープまでの時間（分）。0=OFF
+  final int sleepDuration;
+
+  /// スリープ時間変更コールバック
+  final void Function(int) onSleepDurationChanged;
 
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
@@ -86,6 +94,40 @@ class MapScreenContent extends StatelessWidget {
                     child: MapStyleButton(
                       mapStyleMode: mapStyleMode,
                       onTap: onMapStyleTap,
+                    ),
+                  ),
+                  Positioned(
+                    left: 16,
+                    top: 24,
+                    child: Tooltip(
+                      message: '設定',
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 5,
+                        shadowColor: Colors.black26,
+                        shape: const CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          onTap: () => showModalBottomSheet<void>(
+                            context: context,
+                            shape: const RoundedRectangleBorder(),
+                            builder: (_) => _SettingsBottomSheet(
+                              sleepDuration: sleepDuration,
+                              onSleepDurationChanged: onSleepDurationChanged,
+                            ),
+                          ),
+                          customBorder: const CircleBorder(),
+                          child: const SizedBox(
+                            width: 60,
+                            height: 60,
+                            child: Icon(
+                              Icons.more_vert,
+                              color: Colors.blueGrey,
+                              size: 32,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   Positioned(
@@ -149,6 +191,103 @@ class MapScreenContent extends StatelessWidget {
             progressBarValue: progressBarValue,
             isLowMode: isLowMode,
           ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 設定ボトムシート
+class _SettingsBottomSheet extends StatefulWidget {
+  const _SettingsBottomSheet({
+    required this.sleepDuration,
+    required this.onSleepDurationChanged,
+  });
+
+  final int sleepDuration;
+  final void Function(int) onSleepDurationChanged;
+
+  @override
+  State<_SettingsBottomSheet> createState() => _SettingsBottomSheetState();
+}
+
+class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
+  late int _sleepDuration;
+
+  @override
+  void initState() {
+    super.initState();
+    _sleepDuration = widget.sleepDuration;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                const Icon(Icons.bedtime, color: Colors.blueGrey),
+                const SizedBox(width: 8),
+                const Text('画面スリープ設定', style: TextStyle(fontSize: 17)),
+              ],
+            ),
+          ),
+          _SleepDurationSelector(
+            value: _sleepDuration,
+            onChanged: (v) {
+              setState(() => _sleepDuration = v);
+              widget.onSleepDurationChanged(v);
+              Future.delayed(const Duration(milliseconds: 200), () {
+                if (context.mounted) Navigator.pop(context);
+              });
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+/// スリープ時間ラジオボタン行
+class _SleepDurationSelector extends StatelessWidget {
+  const _SleepDurationSelector({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final int value;
+  final void Function(int) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    const options = [(0, 'OFF'), (1, '1分'), (5, '5分'), (10, '10分')];
+    return Padding(
+      padding: const EdgeInsets.only(left: 38),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          for (int i = 0; i < options.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Radio<int>(
+                  value: options[i].$1,
+                  groupValue: value,
+                  onChanged: (v) => onChanged(v!),
+                  visualDensity: VisualDensity.compact,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                Text(options[i].$2, style: const TextStyle(fontSize: 17)),
+              ],
+            ),
+          ],
         ],
       ),
     );
