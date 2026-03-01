@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
@@ -27,6 +28,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Future<Position?>? _positionFuture;
   bool _expectingReturnFromSettings = false;
   double _lastBearing = 0.0;
+  Position? _currentPosition;
 
   late final VolumeZoomHandler _volumeZoomHandler;
 
@@ -127,6 +129,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   void _onPositionUpdate(Position position, Position? previous) {
     if (!mounted) return;
+    setState(() => _currentPosition = position);
     if (previous != null) {
       final b = bearingFromPositions(previous, position);
       if (b != null) _lastBearing = b;
@@ -139,26 +142,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Future<void> _onCameraIdle() async {
-    final controller = ref.read(cameraControllerProvider);
-    if (controller == null) return;
-    await ref.read(mapStateProvider.notifier).onCameraIdle(controller);
+    final zoom = ref.read(cameraControllerProvider).camera.zoom;
+    await ref.read(mapStateProvider.notifier).onCameraIdle(zoom);
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
-    ref.read(cameraControllerProvider.notifier).setController(controller);
+  Future<void> _onMapReady() async {
     ref.read(mapStateProvider.notifier).setPoiTapHandler((poi) {
       showPoiDetailSheet(context, name: poi.name, description: poi.description);
     });
     await ref.read(mapStateProvider.notifier).onMapCreated(
-      controller,
       animateCamera: (bounds) =>
           ref.read(cameraControllerProvider.notifier).animateToBounds(bounds),
     );
   }
 
   Future<void> _onMapStyleTap() async {
-    final controller = ref.read(cameraControllerProvider);
-    await ref.read(mapStateProvider.notifier).toggleMapStyle(controller);
+    await ref.read(mapStateProvider.notifier).toggleMapStyle();
   }
 
   Future<void> _onRouteBoundsTap() async {
@@ -192,10 +191,28 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
+  Marker? get _locationMarker {
+    final pos = _currentPosition;
+    if (pos == null) return null;
+    return Marker(
+      point: LatLng(pos.latitude, pos.longitude),
+      width: 16,
+      height: 16,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white, width: 2),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
+    final mapController = ref.read(cameraControllerProvider);
 
     return Scaffold(
       body: FutureBuilder<Position?>(
@@ -229,19 +246,21 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           });
 
           return MapScreenContent(
+            mapController: mapController,
             initialPosition: LatLng(position.latitude, position.longitude),
             initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
             polylines: mapState.routePolylines,
             markers: mapState.routeMarkers,
             mapStyleMode: mapState.mapStyleMode,
             onCameraIdle: _onCameraIdle,
-            onMapCreated: _onMapCreated,
+            onMapReady: _onMapReady,
             onMapStyleTap: _onMapStyleTap,
             onRouteBoundsTap: _onRouteBoundsTap,
             onMyLocationTap: _moveCameraToCurrentPosition,
             showMyLocationButton: !locationState.isActive,
             isStreamActive: locationState.isActive,
             onToggleLocationStream: _toggleLocationStream,
+            locationMarker: _locationMarker,
             progressBarValue: locationState.progressBarValue,
             isLowMode: locationState.isInLowMode,
             isStreamAccuracyLow: locationState.isAccuracyLow,

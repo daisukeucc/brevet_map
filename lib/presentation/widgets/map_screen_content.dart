@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
@@ -10,19 +11,21 @@ import 'map_tool_buttons.dart';
 class MapScreenContent extends StatelessWidget {
   const MapScreenContent({
     super.key,
+    required this.mapController,
     required this.initialPosition,
     required this.initialZoom,
     required this.polylines,
     required this.markers,
     required this.mapStyleMode,
     required this.onCameraIdle,
-    required this.onMapCreated,
+    required this.onMapReady,
     required this.onMapStyleTap,
     required this.onRouteBoundsTap,
     required this.onMyLocationTap,
     required this.showMyLocationButton,
     required this.isStreamActive,
     required this.onToggleLocationStream,
+    this.locationMarker,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -30,19 +33,24 @@ class MapScreenContent extends StatelessWidget {
     this.onUserInteraction,
   });
 
+  final MapController mapController;
   final LatLng initialPosition;
   final double initialZoom;
-  final Set<Polyline> polylines;
-  final Set<Marker> markers;
+  final List<Polyline> polylines;
+  final List<Marker> markers;
   final int mapStyleMode;
   final VoidCallback onCameraIdle;
-  final void Function(GoogleMapController controller) onMapCreated;
+  final VoidCallback onMapReady;
   final VoidCallback onMapStyleTap;
   final VoidCallback onRouteBoundsTap;
   final VoidCallback onMyLocationTap;
   final bool showMyLocationButton;
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
+
+  /// 現在地ドット（位置ストリーム中のみ表示）
+  final Marker? locationMarker;
+
   final ValueNotifier<double>? progressBarValue;
 
   /// true のとき位置情報ストリームボタンをグレー表示する（LOWモード時）
@@ -56,6 +64,13 @@ class MapScreenContent extends StatelessWidget {
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
 
+  String get _tileUrl => mapStyleMode == 2
+      ? 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png'
+      : 'https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png';
+
+  String get _attribution =>
+      mapStyleMode == 2 ? '© CartoDB' : '© 国土地理院';
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -66,19 +81,32 @@ class MapScreenContent extends StatelessWidget {
               onPointerDown: (_) => onUserInteraction?.call(),
               child: Stack(
                 children: [
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: initialPosition,
-                      zoom: initialZoom,
+                  FlutterMap(
+                    mapController: mapController,
+                    options: MapOptions(
+                      initialCenter: initialPosition,
+                      initialZoom: initialZoom,
+                      onMapReady: onMapReady,
+                      onMapEvent: (event) {
+                        if (event is MapEventMoveEnd) onCameraIdle();
+                      },
                     ),
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: false,
-                    mapToolbarEnabled: false,
-                    zoomControlsEnabled: false,
-                    polylines: polylines,
-                    markers: markers,
-                    onCameraIdle: onCameraIdle,
-                    onMapCreated: onMapCreated,
+                    children: [
+                      TileLayer(
+                        urlTemplate: _tileUrl,
+                        userAgentPackageName: 'com.example.brevet_map',
+                      ),
+                      PolylineLayer(polylines: polylines),
+                      MarkerLayer(
+                        markers: [
+                          ...markers,
+                          if (locationMarker != null) locationMarker!,
+                        ],
+                      ),
+                      SimpleAttributionWidget(
+                        source: Text(_attribution),
+                      ),
+                    ],
                   ),
                   Positioned(
                     left: 16,

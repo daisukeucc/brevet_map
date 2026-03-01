@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 
 /// 緯度1度あたりの距離（km）。北方向の概算に使用

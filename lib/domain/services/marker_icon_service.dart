@@ -1,236 +1,78 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// 角丸の正方形マーカー（スタート・ゴール用）
-Future<BitmapDescriptor> createRoundedSquareMarkerIcon({
+Widget createRoundedSquareMarkerIcon({
   required Color backgroundColor,
   required bool isPlayIcon,
-}) async {
-  const size = 106.0;
-  const radius = 31.0;
-  const borderWidth = 6.0;
-  const pixelRatio = 2.0;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
-
-  final outerRrect = RRect.fromRectAndRadius(
-    Rect.fromLTWH(0, 0, size, size),
-    const Radius.circular(radius),
+}) {
+  return Container(
+    width: 44,
+    height: 44,
+    decoration: BoxDecoration(
+      color: backgroundColor,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.white, width: 3),
+    ),
+    child: Icon(
+      isPlayIcon ? Icons.play_arrow : Icons.stop,
+      color: Colors.white,
+      size: 22,
+    ),
   );
-  final innerRadius = (radius - borderWidth).clamp(0.0, double.infinity);
-  final innerRrect = RRect.fromRectAndRadius(
-    Rect.fromLTWH(borderWidth, borderWidth, size - borderWidth * 2,
-        size - borderWidth * 2),
-    Radius.circular(innerRadius),
-  );
-  canvas.drawRRect(outerRrect, Paint()..color = Colors.white);
-  canvas.drawRRect(innerRrect, Paint()..color = backgroundColor);
-
-  final iconPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.fill;
-  final cx = size / 2;
-  final cy = size / 2;
-
-  if (isPlayIcon) {
-    const halfH = 20.0;
-    const rightExtent = 18.0;
-    final path = Path()
-      ..moveTo(cx - rightExtent, cy - halfH)
-      ..lineTo(cx - rightExtent, cy + halfH)
-      ..lineTo(cx + rightExtent, cy)
-      ..close();
-    canvas.drawPath(path, iconPaint);
-  } else {
-    const iconSize = 35.0;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - iconSize / 2, cy - iconSize / 2, iconSize, iconSize),
-        const Radius.circular(0),
-      ),
-      iconPaint,
-    );
-  }
-
-  final picture = recorder.endRecording();
-  final w = (size * pixelRatio).round();
-  final h = (size * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
 }
 
 /// インフォメーションPOI用
-Future<BitmapDescriptor> createPoiInfoMarkerIcon() async {
-  const size = 102.0;
-  const radius = 40.0;
-  const pixelRatio = 2.0;
-  final cx = size / 2;
-  final cy = size / 2;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
-
-  final circlePaint = Paint()
-    ..color = Colors.orange
-    ..style = PaintingStyle.fill;
-  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
-
-  final borderPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 6;
-  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
-
-  const text = 'i';
-  final textPainter = TextPainter(
-    text: const TextSpan(
-      text: text,
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 48,
-        fontWeight: FontWeight.w600,
-        fontFamily: 'sans-serif',
+Widget createPoiInfoMarkerIcon() {
+  return Container(
+    width: 36,
+    height: 36,
+    decoration: BoxDecoration(
+      color: Colors.orange,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 3),
+    ),
+    child: const Center(
+      child: Text(
+        'i',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-  textPainter.paint(
-    canvas,
-    Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
   );
-
-  final picture = recorder.endRecording();
-  final w = (size * pixelRatio).round();
-  final h = (size * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
-}
-
-/// 距離マーカー用の円アイコン
-Future<BitmapDescriptor> createSmallCircleMarkerIcon({
-  Color color = Colors.blueGrey,
-  double size = 32.0,
-}) async {
-  const pixelRatio = 2.0;
-  final cx = size / 2;
-  final cy = size / 2;
-  final radius = size / 2 - 2;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
-
-  final circlePaint = Paint()
-    ..color = color
-    ..style = PaintingStyle.fill;
-  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
-
-  final borderPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 6;
-  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
-
-  final picture = recorder.endRecording();
-  final w = (size * pixelRatio).round();
-  final h = (size * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
-}
-
-/// 距離マーカー用アイコン
-Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
-  const pixelRatio = 2.0;
-  const horizontalPadding = 8.0; // 左右の余白
-  const verticalPadding = 4.0; // 上下の余白
-
-  final textPainter = TextPainter(
-    text: TextSpan(
-      text: label,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 35,
-        fontWeight: FontWeight.w500,
-        fontFamily: 'sans-serif',
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-
-  final width = textPainter.width + horizontalPadding * 2;
-  final height = textPainter.height + verticalPadding * 2;
-
-  final rect = Rect.fromLTWH(0, 0, width, height);
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(rect);
-
-  final bgPaint = Paint()
-    ..color = Colors.blueGrey
-    ..style = PaintingStyle.fill;
-  canvas.drawRect(rect, bgPaint);
-
-  final borderPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 0;
-  canvas.drawRect(rect, borderPaint);
-
-  textPainter.paint(
-    canvas,
-    Offset(horizontalPadding, verticalPadding),
-  );
-
-  final picture = recorder.endRecording();
-  final w = (width * pixelRatio).round();
-  final h = (height * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
 }
 
 /// チェックポイントPOI用
-Future<BitmapDescriptor> createPoiCheckpointMarkerIcon() async {
-  const size = 102.0;
-  const radius = 40.0;
-  const pixelRatio = 2.0;
-  final cx = size / 2;
-  final cy = size / 2;
+Widget createPoiCheckpointMarkerIcon() {
+  return Container(
+    width: 36,
+    height: 36,
+    decoration: BoxDecoration(
+      color: Colors.lightBlue,
+      shape: BoxShape.circle,
+      border: Border.all(color: Colors.white, width: 3),
+    ),
+    child: const Icon(Icons.check, color: Colors.white, size: 18),
+  );
+}
 
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
-
-  final circlePaint = Paint()
-    ..color = Colors.lightBlue
-    ..style = PaintingStyle.fill;
-  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
-
-  final borderPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 6;
-  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
-
-  final checkPath = Path()
-    ..moveTo(cx - 13, cy)
-    ..lineTo(cx - 2, cy + 11)
-    ..lineTo(cx + 15, cy - 13);
-  final checkPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 6
-    ..strokeCap = StrokeCap.round
-    ..strokeJoin = StrokeJoin.round;
-  canvas.drawPath(checkPath, checkPaint);
-
-  final picture = recorder.endRecording();
-  final w = (size * pixelRatio).round();
-  final h = (size * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+/// 距離マーカー用アイコン（「50km」「100km」等のラベル）
+Widget createDistanceMarkerIcon(String label) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+    decoration: BoxDecoration(
+      color: Colors.blueGrey,
+      borderRadius: BorderRadius.circular(3),
+    ),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Colors.white,
+        fontSize: 12,
+        fontWeight: FontWeight.w500,
+      ),
+    ),
+  );
 }

@@ -1,5 +1,5 @@
+import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'camera_controller_notifier.dart';
 import 'location_stream_notifier.dart';
@@ -9,9 +9,9 @@ export 'camera_controller_notifier.dart';
 export 'location_stream_notifier.dart';
 export 'map_state_notifier.dart';
 
-/// GoogleMapController への参照を保持し、カメラ操作APIを提供する
+/// MapController への参照を保持し、カメラ操作APIを提供する
 final cameraControllerProvider =
-    NotifierProvider<CameraControllerNotifier, GoogleMapController?>(
+    NotifierProvider<CameraControllerNotifier, MapController>(
         CameraControllerNotifier.new);
 
 /// 位置ストリームの状態を管理する（ON/OFF、精度、LOWモード）

@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 /// 複数の座標を囲む [LatLngBounds] を返す。空のときは null。
 LatLngBounds? boundsFromPoints(List<LatLng> points) {
@@ -17,8 +18,8 @@ LatLngBounds? boundsFromPoints(List<LatLng> points) {
     if (p.longitude > maxLng) maxLng = p.longitude;
   }
   return LatLngBounds(
-    southwest: LatLng(minLat, minLng),
-    northeast: LatLng(maxLat, maxLng),
+    LatLng(minLat, minLng),
+    LatLng(maxLat, maxLng),
   );
 }
 

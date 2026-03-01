@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'marker_icon_service.dart';
 
@@ -15,8 +16,8 @@ class RouteAnimationRunner {
 
   Future<void> start(
     List<LatLng> fullPoints, {
-    required void Function(Set<Polyline>) onPolyline,
-    required void Function(Set<Marker>) onMarkers,
+    required void Function(List<Polyline>) onPolyline,
+    required void Function(List<Marker>) onMarkers,
     required bool Function() mounted,
     bool animate = true,
     bool buildMarkers = true,
@@ -25,7 +26,7 @@ class RouteAnimationRunner {
     if (fullPoints.isEmpty) return;
 
     if (buildMarkers) {
-      final markers = await _buildStartGoalMarkers(fullPoints, mounted);
+      final markers = _buildStartGoalMarkers(fullPoints);
       if (markers != null) onMarkers(markers);
     }
 
@@ -34,26 +35,24 @@ class RouteAnimationRunner {
         fullPoints.length <= 500;
 
     if (!useAnimation) {
-      onPolyline({
+      onPolyline([
         Polyline(
-          polylineId: const PolylineId('initial_route'),
           points: fullPoints,
           color: Colors.red,
-          width: 5,
+          strokeWidth: 5,
         ),
-      });
+      ]);
       return;
     }
 
     final startPoints = fullPoints.sublist(0, _initialPoints);
-    onPolyline({
+    onPolyline([
       Polyline(
-        polylineId: const PolylineId('initial_route'),
         points: startPoints,
         color: Colors.red,
-        width: 5,
+        strokeWidth: 5,
       ),
-    });
+    ]);
 
     var animatedCount = startPoints.length;
     _timer = Timer.periodic(_interval, (t) {
@@ -63,14 +62,13 @@ class RouteAnimationRunner {
       }
       final nextCount =
           (animatedCount + _pointsPerFrame).clamp(0, fullPoints.length);
-      onPolyline({
+      onPolyline([
         Polyline(
-          polylineId: const PolylineId('initial_route'),
           points: fullPoints.sublist(0, nextCount),
           color: Colors.red,
-          width: 5,
+          strokeWidth: 5,
         ),
-      });
+      ]);
       animatedCount = nextCount;
       if (nextCount >= fullPoints.length) {
         t.cancel();
@@ -79,48 +77,36 @@ class RouteAnimationRunner {
     });
   }
 
-  Future<Set<Marker>?> _buildStartGoalMarkers(
-    List<LatLng> points,
-    bool Function() mounted,
-  ) async {
+  List<Marker>? _buildStartGoalMarkers(List<LatLng> points) {
     if (points.isEmpty) return null;
     final start = points.first;
     final goal = points.length > 1 ? points.last : start;
-    BitmapDescriptor? startIcon;
-    BitmapDescriptor? goalIcon;
-    try {
-      startIcon = await createRoundedSquareMarkerIcon(
-        backgroundColor: Colors.green,
-        isPlayIcon: true,
-      );
-      goalIcon = await createRoundedSquareMarkerIcon(
-        backgroundColor: Colors.red,
-        isPlayIcon: false,
-      );
-    } catch (_) {
-      return null;
-    }
-    if (!mounted()) return null;
     final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
         (start.longitude - goal.longitude).abs() < 1e-6;
-    final startAnchor =
-        isSamePoint ? const Offset(0, 0) : const Offset(0.5, 0.5);
-    return {
+    final startAlignment =
+        isSamePoint ? Alignment.topLeft : Alignment.center;
+    return [
       Marker(
-        markerId: const MarkerId('start'),
-        position: start,
-        icon: startIcon,
-        anchor: startAnchor,
-        zIndex: 1,
+        point: start,
+        width: 44,
+        height: 44,
+        alignment: startAlignment,
+        child: createRoundedSquareMarkerIcon(
+          backgroundColor: Colors.green,
+          isPlayIcon: true,
+        ),
       ),
       Marker(
-        markerId: const MarkerId('goal'),
-        position: goal,
-        icon: goalIcon,
-        anchor: const Offset(0.5, 0.5),
-        zIndex: 0,
+        point: goal,
+        width: 44,
+        height: 44,
+        alignment: Alignment.center,
+        child: createRoundedSquareMarkerIcon(
+          backgroundColor: Colors.red,
+          isPlayIcon: false,
+        ),
       ),
-    };
+    ];
   }
 
   void cancel() {

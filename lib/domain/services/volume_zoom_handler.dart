@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.dart';
 
@@ -9,7 +9,7 @@ import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.da
 class VolumeZoomHandler {
   VolumeZoomHandler({required this.getController});
 
-  final GoogleMapController? Function() getController;
+  final MapController? Function() getController;
 
   static const _zoomAmountUp = 1.2;
   static const _zoomAmountDown = 1.2;
@@ -38,9 +38,15 @@ class VolumeZoomHandler {
         _lastKeyTime = now;
         _lastKeyButton = event;
         if (event == HardwareButton.volume_up) {
-          controller.animateCamera(CameraUpdate.zoomBy(_zoomAmountUp));
+          controller.move(
+            controller.camera.center,
+            controller.camera.zoom + _zoomAmountUp,
+          );
         } else if (event == HardwareButton.volume_down) {
-          controller.animateCamera(CameraUpdate.zoomBy(-_zoomAmountDown));
+          controller.move(
+            controller.camera.center,
+            controller.camera.zoom - _zoomAmountDown,
+          );
         }
       });
       return;
@@ -64,7 +70,10 @@ class VolumeZoomHandler {
         }
         _lastChangeTime = now;
         _lastChangeUp = true;
-        controller.animateCamera(CameraUpdate.zoomBy(_zoomAmountUp));
+        controller.move(
+          controller.camera.center,
+          controller.camera.zoom + _zoomAmountUp,
+        );
         VolumeController.instance.setVolume(_previousVolume!);
         return;
       }
@@ -77,7 +86,10 @@ class VolumeZoomHandler {
         }
         _lastChangeTime = now;
         _lastChangeUp = false;
-        controller.animateCamera(CameraUpdate.zoomBy(-_zoomAmountDown));
+        controller.move(
+          controller.camera.center,
+          controller.camera.zoom - _zoomAmountDown,
+        );
         VolumeController.instance.setVolume(_previousVolume!);
         return;
       }
