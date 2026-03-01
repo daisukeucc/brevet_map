@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../parsers/gpx_parser.dart';
-import '../utils/map_utils.dart';
+import '../../data/parsers/gpx_parser.dart';
+import '../../utils/map_utils.dart';
 import 'marker_icon_service.dart';
 
 /// 距離マーカーを表示するズームレベルの閾値。この値以上で拡大しているときに表示する。

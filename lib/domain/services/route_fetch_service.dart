@@ -3,10 +3,10 @@ import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import '../config/api_config.dart';
-import '../parsers/gpx_parser.dart';
-import '../repositories/directions_repository.dart';
-import '../repositories/first_launch_repository.dart';
+import '../../config/api_config.dart';
+import '../../data/parsers/gpx_parser.dart';
+import '../../data/repositories/directions_repository.dart';
+import '../../data/repositories/first_launch_repository.dart';
 
 /// 保存済みルートとPOIをまとめて読み込む。初回起動判定は呼び出し側で行う。
 Future<({List<LatLng>? points, List<GpxPoi> pois})> loadSavedRouteWithPois() async {
