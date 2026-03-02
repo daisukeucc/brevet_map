@@ -38,8 +38,8 @@ class UserPoi {
   static UserPoi fromJson(Map<String, dynamic> json) => UserPoi(
         type: json['type'] as int,
         km: (json['km'] as num).toDouble(),
-        title: json['title'] as String,
-        body: json['body'] as String,
+        title: json['title'] as String? ?? '',
+        body: json['body'] as String? ?? '',
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
       );

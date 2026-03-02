@@ -303,6 +303,19 @@ class MapStateNotifier extends Notifier<MapState> {
     await _refreshRouteMarkers(routePoints);
   }
 
+  /// ユーザー POI を削除して保存し、マーカーを再構築する
+  Future<void> deleteUserPoi(UserPoi poi) async {
+    final index = state.userPois.indexWhere(
+      (p) => p.lat == poi.lat && p.lng == poi.lng && p.km == poi.km,
+    );
+    if (index < 0) return;
+    final updated = List<UserPoi>.from(state.userPois)..removeAt(index);
+    await saveUserPois(updated);
+    state = state.copyWith(userPois: updated);
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
   /// 既存のユーザー POI を新しい内容で上書きして保存する
   Future<void> updateUserPoi(UserPoi oldPoi, UserPoi newPoi) async {
     final index = state.userPois.indexWhere(

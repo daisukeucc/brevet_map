@@ -344,11 +344,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onAddPoiTap() async {
     if (!mounted) return;
-    final userPois = ref.read(mapStateProvider).userPois;
     final result = await showDialog<Object>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) => _AddPoiDialog(userPois: userPois),
+      builder: (context) => const _AddPoiDialog(),
     );
     if (result == null || !mounted) return;
 
@@ -647,16 +646,14 @@ class _PoiEditPositionRequest {
   final UserPoi poi;
 }
 
-class _AddPoiDialog extends StatefulWidget {
-  const _AddPoiDialog({required this.userPois});
-
-  final List<UserPoi> userPois;
+class _AddPoiDialog extends ConsumerStatefulWidget {
+  const _AddPoiDialog();
 
   @override
-  State<_AddPoiDialog> createState() => _AddPoiDialogState();
+  ConsumerState<_AddPoiDialog> createState() => _AddPoiDialogState();
 }
 
-class _AddPoiDialogState extends State<_AddPoiDialog>
+class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
     with SingleTickerProviderStateMixin {
   int _poiType = 0;
   final _kmController = TextEditingController();
@@ -665,12 +662,13 @@ class _AddPoiDialogState extends State<_AddPoiDialog>
   String? _kmError;
   TabController? _tabController;
 
-  bool get _hasPois => widget.userPois.isNotEmpty;
+  bool get _hasPois =>
+      ref.watch(mapStateProvider).userPois.isNotEmpty;
 
   @override
   void initState() {
     super.initState();
-    if (_hasPois) {
+    if (ref.read(mapStateProvider).userPois.isNotEmpty) {
       _tabController = TabController(length: 2, vsync: this);
     }
   }
@@ -852,8 +850,46 @@ class _AddPoiDialogState extends State<_AddPoiDialog>
     }
   }
 
+  Future<void> _onDeleteTap(UserPoi poi) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+        content: const Text(
+          'このPOIを削除しますか？',
+          style: TextStyle(fontSize: 17),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('削除', style: TextStyle(fontSize: 17)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await ref.read(mapStateProvider.notifier).deleteUserPoi(poi);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('POIを削除しました')),
+    );
+
+    if (ref.read(mapStateProvider).userPois.isEmpty) {
+      Navigator.pop(context);
+    }
+  }
+
   Widget _buildEditTab() {
-    final sorted = [...widget.userPois]..sort((a, b) => a.km.compareTo(b.km));
+    final userPois = ref.watch(mapStateProvider).userPois;
+    final sorted = [...userPois]..sort((a, b) => a.km.compareTo(b.km));
     return ListView.builder(
       itemCount: sorted.length,
       itemBuilder: (context, i) {
@@ -884,7 +920,7 @@ class _AddPoiDialogState extends State<_AddPoiDialog>
                 ),
                 const SizedBox(width: 8),
                 TextButton(
-                  onPressed: null,
+                  onPressed: () => _onDeleteTap(poi),
                   style: TextButton.styleFrom(
                     minimumSize: Size.zero,
                     padding: const EdgeInsets.symmetric(horizontal: 6),
