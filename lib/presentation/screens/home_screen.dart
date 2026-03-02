@@ -253,7 +253,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       showPoiDetailSheet(context, name: poi.name, description: poi.description);
     });
     ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
-      showPoiDetailSheet(context, name: poi.title, description: poi.body);
+      final kmStr =
+          poi.km % 1 == 0 ? '${poi.km.toInt()}' : '${poi.km}';
+      final title = poi.title.isEmpty ? '(タイトルなし)' : poi.title;
+      showPoiDetailSheet(
+        context,
+        name: '${kmStr}km：$title',
+        description: poi.body,
+      );
     });
     await ref.read(mapStateProvider.notifier).onMapCreated(
           controller,
@@ -387,20 +394,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       lat: coord.latitude,
       lng: coord.longitude,
     );
-    try {
-      await ref.read(mapStateProvider.notifier).addUserPoi(poi);
-    } catch (e, st) {
-      debugPrint('POI追加エラー: $e\n$st');
-      if (!mounted) return;
-      // TODO: リリース時には削除する
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('POIの追加に失敗しました: ${e.toString().split('\n').first}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
+    await ref.read(mapStateProvider.notifier).addUserPoi(poi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('POIを追加しました')),
@@ -686,6 +680,15 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_hasPois && _tabController == null && mounted) {
+      _tabController = TabController(length: 2, vsync: this);
+      setState(() {});
+    }
+  }
+
+  @override
   void dispose() {
     _tabController?.dispose();
     _kmController.dispose();
@@ -950,7 +953,7 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
 
   @override
   Widget build(BuildContext context) {
-    if (!_hasPois) {
+    if (!_hasPois || _tabController == null) {
       return Dialog(
         backgroundColor: Colors.white,
         shape: const RoundedRectangleBorder(),

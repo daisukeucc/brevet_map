@@ -43,19 +43,8 @@ Future<Set<Marker>> buildRouteMarkers({
       );
     }
     if (pois.isNotEmpty || userPois.isNotEmpty) {
-      try {
-        poiIconOrange = await createPoiInfoMarkerIcon();
-        poiIconCheckpoint = await createPoiCheckpointMarkerIcon();
-      } catch (_) {
-        poiIconOrange = await createSmallCircleMarkerIcon(
-          color: Colors.orange,
-          size: 32.0,
-        );
-        poiIconCheckpoint = await createSmallCircleMarkerIcon(
-          color: Colors.lightBlue,
-          size: 32.0,
-        );
-      }
+      poiIconOrange = await createPoiInfoMarkerIcon();
+      poiIconCheckpoint = await createPoiCheckpointMarkerIcon();
     }
   } catch (_) {
     return markers;
