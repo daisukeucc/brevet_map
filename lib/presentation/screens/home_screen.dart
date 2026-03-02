@@ -10,6 +10,7 @@ import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/models/user_poi.dart';
 import '../../domain/services/gpx_channel_service.dart';
 import '../../domain/services/location_service.dart';
 import '../../domain/services/volume_zoom_handler.dart';
@@ -250,6 +251,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     ref.read(mapStateProvider.notifier).setPoiTapHandler((poi) {
       showPoiDetailSheet(context, name: poi.name, description: poi.description);
     });
+    ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
+      showPoiDetailSheet(context, name: poi.title, description: poi.body);
+    });
     await ref.read(mapStateProvider.notifier).onMapCreated(
       controller,
       animateCamera: (bounds) =>
@@ -338,10 +342,42 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onAddPoiTap() async {
     if (!mounted) return;
-    await showDialog<void>(
+    final data = await showDialog<_AddPoiFormData>(
       context: context,
       barrierColor: Colors.black54,
       builder: (context) => const _AddPoiDialog(),
+    );
+    if (data == null || !mounted) return;
+
+    final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+    if (routePoints == null || routePoints.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ルートが読み込まれていません')),
+      );
+      return;
+    }
+
+    final coord = coordAtKm(routePoints, data.km);
+    if (coord == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('指定したkm地点が見つかりません')),
+      );
+      return;
+    }
+
+    final poi = UserPoi(
+      type: data.type,
+      km: data.km,
+      title: data.title,
+      body: data.body,
+      lat: coord.latitude,
+      lng: coord.longitude,
+    );
+    await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('POIを追加しました')),
     );
   }
 
@@ -427,6 +463,19 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 // POI追加ダイアログ
 // ---------------------------------------------------------------------------
 
+class _AddPoiFormData {
+  const _AddPoiFormData({
+    required this.km,
+    required this.type,
+    required this.title,
+    required this.body,
+  });
+  final double km;
+  final int type;
+  final String title;
+  final String body;
+}
+
 class _AddPoiDialog extends StatefulWidget {
   const _AddPoiDialog();
 
@@ -439,6 +488,7 @@ class _AddPoiDialogState extends State<_AddPoiDialog> {
   final _kmController = TextEditingController();
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
+  String? _kmError;
 
   @override
   void dispose() {
@@ -446,6 +496,24 @@ class _AddPoiDialogState extends State<_AddPoiDialog> {
     _titleController.dispose();
     _bodyController.dispose();
     super.dispose();
+  }
+
+  void _onSubmit() {
+    final km = double.tryParse(_kmController.text.trim());
+    if (km == null || km < 0) {
+      setState(() => _kmError = '有効なkm値を入力してください');
+      return;
+    }
+    setState(() => _kmError = null);
+    Navigator.pop(
+      context,
+      _AddPoiFormData(
+        km: km,
+        type: _poiType,
+        title: _titleController.text.trim(),
+        body: _bodyController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -475,7 +543,11 @@ class _AddPoiDialogState extends State<_AddPoiDialog> {
                     controller: _kmController,
                     keyboardType: const TextInputType.numberWithOptions(
                         decimal: true),
-                    decoration: const InputDecoration(isDense: true),
+                    decoration: InputDecoration(
+                      isDense: true,
+                      errorText: _kmError,
+                      errorMaxLines: 2,
+                    ),
                     textAlign: TextAlign.end,
                     style: const TextStyle(fontSize: 17),
                   ),
@@ -545,7 +617,7 @@ class _AddPoiDialogState extends State<_AddPoiDialog> {
                   child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
                 ),
                 TextButton(
-                  onPressed: () => Navigator.pop(context),
+                  onPressed: _onSubmit,
                   child: const Text('追加', style: TextStyle(fontSize: 17)),
                 ),
               ],

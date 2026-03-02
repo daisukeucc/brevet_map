@@ -101,6 +101,30 @@ List<({double distanceKm, LatLng position})> distanceMarkersAlongTrack(
   return result;
 }
 
+/// ルート上の [targetKm] km 地点の座標を線形補間で返す。
+/// ルートが空・負値のときは null。[targetKm] がルート全長を超えた場合は末端を返す。
+LatLng? coordAtKm(List<LatLng> trackPoints, double targetKm) {
+  if (trackPoints.isEmpty || targetKm < 0) return null;
+  if (trackPoints.length == 1) return trackPoints.first;
+  final targetM = targetKm * 1000;
+  var accumulated = 0.0;
+  for (var i = 0; i < trackPoints.length - 1; i++) {
+    final a = trackPoints[i];
+    final b = trackPoints[i + 1];
+    final segmentM = distanceBetweenLatLng(a, b);
+    if (accumulated + segmentM >= targetM) {
+      if (segmentM == 0) return a;
+      final t = (targetM - accumulated) / segmentM;
+      return LatLng(
+        a.latitude + t * (b.latitude - a.latitude),
+        a.longitude + t * (b.longitude - a.longitude),
+      );
+    }
+    accumulated += segmentM;
+  }
+  return trackPoints.last;
+}
+
 /// 2点間の進行方向を度（0=北、90=東）で返す。移動が短い（3m未満）場合は null。
 double? bearingFromPositions(Position from, Position to) {
   final dist = Geolocator.distanceBetween(
