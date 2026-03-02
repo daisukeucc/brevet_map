@@ -387,7 +387,20 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       lat: coord.latitude,
       lng: coord.longitude,
     );
-    await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+    try {
+      await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+    } catch (e, st) {
+      debugPrint('POI追加エラー: $e\n$st');
+      if (!mounted) return;
+      // TODO: リリース時には削除する
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('POIの追加に失敗しました: ${e.toString().split('\n').first}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('POIを追加しました')),
@@ -662,8 +675,7 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
   String? _kmError;
   TabController? _tabController;
 
-  bool get _hasPois =>
-      ref.watch(mapStateProvider).userPois.isNotEmpty;
+  bool get _hasPois => ref.watch(mapStateProvider).userPois.isNotEmpty;
 
   @override
   void initState() {

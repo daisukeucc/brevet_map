@@ -211,13 +211,18 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     if (result.isEmpty) return GpxApplyStatus.empty;
 
+    await saveUserPois([]);
+
     state = state.copyWith(
       savedRoutePoints:
           result.trackPoints.isNotEmpty ? result.trackPoints : null,
       clearSavedRoutePoints: result.trackPoints.isEmpty,
       gpxPois: result.waypoints,
+      userPois: const [],
       hasStartedInitialRouteFetch: true,
     );
+
+    await stopPoiDrag();
 
     if (result.trackPoints.isNotEmpty) {
       _routeAnimationRunner.cancel();
