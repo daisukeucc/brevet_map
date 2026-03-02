@@ -927,19 +927,17 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
                 TextButton(
                   onPressed: () => _onEditTap(poi),
                   style: TextButton.styleFrom(
-                    minimumSize: Size.zero,
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   child: const Text('編集'),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 4),
                 TextButton(
                   onPressed: () => _onDeleteTap(poi),
                   style: TextButton.styleFrom(
-                    minimumSize: Size.zero,
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    minimumSize: const Size(48, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   child: const Text('削除'),
                 ),
