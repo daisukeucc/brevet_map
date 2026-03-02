@@ -5,6 +5,7 @@ const _keySavedRoutePolyline = 'saved_route_polyline';
 const _keyGpxPois = 'gpx_pois';
 const _keyMapStyleMode = 'map_style_mode';
 const _keyLocationStreamActive = 'location_stream_active';
+const _keySleepDuration = 'sleep_duration';
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -72,4 +73,16 @@ Future<void> saveLocationStreamActive(bool active) async {
 Future<bool> loadLocationStreamActive() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keyLocationStreamActive) ?? false;
+}
+
+/// 画面スリープ設定（分）を保存する。0=OFF
+Future<void> saveSleepDuration(int minutes) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_keySleepDuration, minutes);
+}
+
+/// 保存済みの画面スリープ設定を返す。未保存なら 0（OFF）
+Future<int> loadSleepDuration() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getInt(_keySleepDuration) ?? 0;
 }

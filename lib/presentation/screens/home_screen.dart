@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
@@ -28,6 +31,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool _expectingReturnFromSettings = false;
   double _lastBearing = 0.0;
 
+  Timer? _sleepTimer;
+  bool _isScreenDimmed = false;
+  bool _wasStreamActiveBeforeDim = false;
+
   late final VolumeZoomHandler _volumeZoomHandler;
 
   static const double _trackingZoom = 15.0;
@@ -50,6 +57,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     WakelockPlus.enable();
 
+    loadSleepDuration().then((minutes) {
+      if (!mounted) return;
+      ref.read(sleepDurationProvider.notifier).state = minutes;
+      _restartSleepTimer(minutes);
+    });
+
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
     GpxChannelService.setMethodCallHandler(_onGpxReceived);
@@ -62,12 +75,65 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   void dispose() {
+    _sleepTimer?.cancel();
+    _restoreBrightness();
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable();
     _volumeZoomHandler.dispose();
     ref.read(locationStreamProvider.notifier).stop();
     ref.read(mapStateProvider.notifier).cancelAnimation();
     super.dispose();
+  }
+
+  // --- スリープタイマー ---
+
+  void _dimScreen() {
+    _wasStreamActiveBeforeDim = ref.read(locationStreamProvider).isActive;
+    setState(() => _isScreenDimmed = true);
+    ScreenBrightness().setApplicationScreenBrightness(0.0);
+    if (_wasStreamActiveBeforeDim) {
+      ref.read(locationStreamProvider.notifier).stop();
+    }
+  }
+
+  void _restoreBrightness() {
+    if (!_isScreenDimmed) return;
+    setState(() => _isScreenDimmed = false);
+    ScreenBrightness().resetApplicationScreenBrightness();
+    if (_wasStreamActiveBeforeDim) {
+      _wasStreamActiveBeforeDim = false;
+      ref.read(locationStreamProvider.notifier).toggle(
+        onPosition: _onPositionUpdate,
+      );
+    }
+  }
+
+  void _restartSleepTimer(int minutes) {
+    _sleepTimer?.cancel();
+    if (minutes > 0) {
+      _sleepTimer = Timer(Duration(minutes: minutes), _dimScreen);
+    }
+  }
+
+  void _onUserInteraction() {
+    _restoreBrightness();
+    _restartSleepTimer(ref.read(sleepDurationProvider));
+  }
+
+  void _onSleepDurationChanged(int minutes) {
+    ref.read(sleepDurationProvider.notifier).state = minutes;
+    saveSleepDuration(minutes);
+    _restoreBrightness();
+    _restartSleepTimer(minutes);
+    final message = minutes == 0
+        ? '画面スリープをOFFにしました'
+        : '画面スリープを$minutes分に設定しました';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.black.withValues(alpha: 0.6),
+      ),
+    );
   }
 
   @override
@@ -77,12 +143,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
       WakelockPlus.disable();
       ref.read(locationStreamProvider.notifier).stop();
+      _sleepTimer?.cancel();
+      _restoreBrightness();
       if (state == AppLifecycleState.paused) return;
     }
 
     if (state != AppLifecycleState.resumed) return;
 
     WakelockPlus.enable();
+    _restartSleepTimer(ref.read(sleepDurationProvider));
 
     if (_expectingReturnFromSettings) {
       _expectingReturnFromSettings = false;
@@ -196,8 +265,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
+    final sleepDuration = ref.watch(sleepDurationProvider);
 
-    return Scaffold(
+    return Stack(
+      children: [
+        Scaffold(
       body: FutureBuilder<Position?>(
         future: _positionFuture,
         builder: (context, snapshot) {
@@ -246,9 +318,21 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             isLowMode: locationState.isInLowMode,
             isStreamAccuracyLow: locationState.isAccuracyLow,
             onGpsLevelTap: _onGpsLevelTap,
+            sleepDuration: sleepDuration,
+            onSleepDurationChanged: _onSleepDurationChanged,
+            onUserInteraction: _onUserInteraction,
           );
         },
       ),
+        ),
+        if (_isScreenDimmed)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _onUserInteraction,
+              child: const ColoredBox(color: Colors.black),
+            ),
+          ),
+      ],
     );
   }
 }
