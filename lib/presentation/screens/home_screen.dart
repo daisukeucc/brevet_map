@@ -264,6 +264,30 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Future<void> _onGpxImportTap() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+        content: const Text(
+          '現在のルートを上書きします',
+          style: TextStyle(fontSize: 17),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('NG', style: TextStyle(fontSize: 17)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('OK', style: TextStyle(fontSize: 17)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
     final result = await FilePicker.platform.pickFiles(type: FileType.any);
     if (result == null || result.files.single.path == null) return;
     final path = result.files.single.path!;
