@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -261,6 +263,25 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
+  Future<void> _onGpxImportTap() async {
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result == null || result.files.single.path == null) return;
+    final path = result.files.single.path!;
+    if (!path.toLowerCase().endsWith('.gpx')) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('GPXファイルを選択してください'),
+          backgroundColor: Colors.black.withValues(alpha: 0.6),
+        ),
+      );
+      return;
+    }
+    final content = await File(path).readAsString();
+    if (!mounted) return;
+    _onGpxReceived(content);
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
@@ -320,6 +341,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             onGpsLevelTap: _onGpsLevelTap,
             sleepDuration: sleepDuration,
             onSleepDurationChanged: _onSleepDurationChanged,
+            onGpxImportTap: _onGpxImportTap,
             onUserInteraction: _onUserInteraction,
           );
         },

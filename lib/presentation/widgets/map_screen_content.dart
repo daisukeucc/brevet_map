@@ -25,6 +25,7 @@ class MapScreenContent extends StatelessWidget {
     required this.onToggleLocationStream,
     required this.sleepDuration,
     required this.onSleepDurationChanged,
+    required this.onGpxImportTap,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -60,6 +61,9 @@ class MapScreenContent extends StatelessWidget {
 
   /// スリープ時間変更コールバック
   final void Function(int) onSleepDurationChanged;
+
+  /// GPXファイルインポートコールバック
+  final VoidCallback onGpxImportTap;
 
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
@@ -114,6 +118,16 @@ class MapScreenContent extends StatelessWidget {
                             builder: (_) => _SettingsBottomSheet(
                               sleepDuration: sleepDuration,
                               onSleepDurationChanged: onSleepDurationChanged,
+                              onGpxImportTap: () {
+                                final navigator = Navigator.of(context);
+                                Future.delayed(
+                                  const Duration(milliseconds: 200),
+                                  () {
+                                    navigator.pop();
+                                    onGpxImportTap();
+                                  },
+                                );
+                              },
                             ),
                           ),
                           customBorder: const CircleBorder(),
@@ -202,10 +216,12 @@ class _SettingsBottomSheet extends StatefulWidget {
   const _SettingsBottomSheet({
     required this.sleepDuration,
     required this.onSleepDurationChanged,
+    required this.onGpxImportTap,
   });
 
   final int sleepDuration;
   final void Function(int) onSleepDurationChanged;
+  final VoidCallback onGpxImportTap;
 
   @override
   State<_SettingsBottomSheet> createState() => _SettingsBottomSheetState();
@@ -227,6 +243,16 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 16),
+          ListTile(
+            leading: const Icon(Icons.download, color: Colors.blueGrey),
+            title: const Text(
+              'GPXファイルをインポート',
+              style: TextStyle(fontSize: 17),
+            ),
+            onTap: widget.onGpxImportTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            horizontalTitleGap: 8,
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
