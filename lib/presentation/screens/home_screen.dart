@@ -336,6 +336,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     _onGpxReceived(content);
   }
 
+  Future<void> _onAddPoiTap() async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => const _AddPoiDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
@@ -396,6 +405,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             sleepDuration: sleepDuration,
             onSleepDurationChanged: _onSleepDurationChanged,
             onGpxImportTap: _onGpxImportTap,
+            onAddPoiTap: _onAddPoiTap,
             onUserInteraction: _onUserInteraction,
           );
         },
@@ -409,6 +419,140 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             ),
           ),
       ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POI追加ダイアログ
+// ---------------------------------------------------------------------------
+
+class _AddPoiDialog extends StatefulWidget {
+  const _AddPoiDialog();
+
+  @override
+  State<_AddPoiDialog> createState() => _AddPoiDialogState();
+}
+
+class _AddPoiDialogState extends State<_AddPoiDialog> {
+  int _poiType = 0; // 0=チェックポイント, 1=インフォメーション
+  final _kmController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _bodyController = TextEditingController();
+
+  @override
+  void dispose() {
+    _kmController.dispose();
+    _titleController.dispose();
+    _bodyController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // タイトル
+            const Text(
+              'POIを追加',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            // km 入力
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 72,
+                  child: TextField(
+                    controller: _kmController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true),
+                    decoration: const InputDecoration(isDense: true),
+                    textAlign: TextAlign.end,
+                    style: const TextStyle(fontSize: 17),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Text('km地点にPOIを追加', style: TextStyle(fontSize: 17)),
+              ],
+            ),
+            const SizedBox(height: 28),
+            // POIタイプ
+            const Text('POIタイプ', style: TextStyle(fontSize: 15)),
+            const SizedBox(height: 4),
+            for (final (value, label) in [
+              (0, 'チェックポイント'),
+              (1, 'インフォメーション'),
+            ])
+              GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _poiType = value);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<int>(
+                      value: value,
+                      groupValue: _poiType,
+                      onChanged: (v) {
+                        FocusScope.of(context).unfocus();
+                        setState(() => _poiType = v!);
+                      },
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    Text(label, style: const TextStyle(fontSize: 17)),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 16),
+            // タイトル
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: 'タイトル',
+                isDense: true,
+              ),
+              style: const TextStyle(fontSize: 17),
+            ),
+            const SizedBox(height: 12),
+            // 本文
+            TextField(
+              controller: _bodyController,
+              decoration: const InputDecoration(
+                labelText: '本文',
+                isDense: true,
+              ),
+              style: const TextStyle(fontSize: 17),
+              maxLines: 3,
+              minLines: 3,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('追加', style: TextStyle(fontSize: 17)),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

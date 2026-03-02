@@ -26,6 +26,7 @@ class MapScreenContent extends StatelessWidget {
     required this.sleepDuration,
     required this.onSleepDurationChanged,
     required this.onGpxImportTap,
+    required this.onAddPoiTap,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -64,6 +65,9 @@ class MapScreenContent extends StatelessWidget {
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
+
+  /// POI追加コールバック
+  final VoidCallback onAddPoiTap;
 
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
@@ -126,6 +130,16 @@ class MapScreenContent extends StatelessWidget {
                                   () {
                                     navigator.pop();
                                     onGpxImportTap();
+                                  },
+                                );
+                              },
+                              onAddPoiTap: () {
+                                final navigator = Navigator.of(context);
+                                Future.delayed(
+                                  const Duration(milliseconds: 200),
+                                  () {
+                                    navigator.pop();
+                                    onAddPoiTap();
                                   },
                                 );
                               },
@@ -218,11 +232,13 @@ class _SettingsBottomSheet extends StatefulWidget {
     required this.sleepDuration,
     required this.onSleepDurationChanged,
     required this.onGpxImportTap,
+    required this.onAddPoiTap,
   });
 
   final int sleepDuration;
   final void Function(int) onSleepDurationChanged;
   final VoidCallback onGpxImportTap;
+  final VoidCallback onAddPoiTap;
 
   @override
   State<_SettingsBottomSheet> createState() => _SettingsBottomSheetState();
@@ -274,7 +290,17 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
               });
             },
           ),
-          const SizedBox(height: 28),
+          ListTile(
+            leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
+            title: const Text(
+              'POIを追加',
+              style: TextStyle(fontSize: 17),
+            ),
+            onTap: widget.onAddPoiTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            horizontalTitleGap: 8,
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );
