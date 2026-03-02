@@ -27,6 +27,7 @@ class MapScreenContent extends StatelessWidget {
     required this.onSleepDurationChanged,
     required this.onGpxImportTap,
     required this.onAddPoiTap,
+    this.isDragMode = false,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -69,6 +70,9 @@ class MapScreenContent extends StatelessWidget {
   /// POI追加コールバック
   final VoidCallback onAddPoiTap;
 
+  /// true のときマーカードラッグ編集モード（全ボタンを非表示にする）
+  final bool isDragMode;
+
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
 
@@ -96,83 +100,86 @@ class MapScreenContent extends StatelessWidget {
                     onCameraIdle: onCameraIdle,
                     onMapCreated: onMapCreated,
                   ),
-                  Positioned(
-                    left: 16,
-                    bottom: 24,
-                    child: MapStyleButton(
-                      mapStyleMode: mapStyleMode,
-                      onTap: onMapStyleTap,
+                  if (!isDragMode)
+                    Positioned(
+                      left: 16,
+                      bottom: 24,
+                      child: MapStyleButton(
+                        mapStyleMode: mapStyleMode,
+                        onTap: onMapStyleTap,
+                      ),
                     ),
-                  ),
-                  if (!isStreamActive)
-                  Positioned(
-                    left: 16,
-                    top: 24,
-                    child: Tooltip(
-                      message: '設定',
-                      child: Material(
-                        color: Colors.white,
-                        elevation: 5,
-                        shadowColor: Colors.black26,
-                        shape: const CircleBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => showModalBottomSheet<void>(
-                            context: context,
-                            shape: const RoundedRectangleBorder(),
-                            builder: (_) => _SettingsBottomSheet(
-                              sleepDuration: sleepDuration,
-                              onSleepDurationChanged: onSleepDurationChanged,
-                              onGpxImportTap: () {
-                                final navigator = Navigator.of(context);
-                                Future.delayed(
-                                  const Duration(milliseconds: 200),
-                                  () {
-                                    navigator.pop();
-                                    onGpxImportTap();
-                                  },
-                                );
-                              },
-                              onAddPoiTap: () {
-                                final navigator = Navigator.of(context);
-                                Future.delayed(
-                                  const Duration(milliseconds: 200),
-                                  () {
-                                    navigator.pop();
-                                    onAddPoiTap();
-                                  },
-                                );
-                              },
+                  if (!isStreamActive && !isDragMode)
+                    Positioned(
+                      left: 16,
+                      top: 24,
+                      child: Tooltip(
+                        message: '設定',
+                        child: Material(
+                          color: Colors.white,
+                          elevation: 5,
+                          shadowColor: Colors.black26,
+                          shape: const CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => showModalBottomSheet<void>(
+                              context: context,
+                              shape: const RoundedRectangleBorder(),
+                              builder: (_) => _SettingsBottomSheet(
+                                sleepDuration: sleepDuration,
+                                onSleepDurationChanged: onSleepDurationChanged,
+                                onGpxImportTap: () {
+                                  final navigator = Navigator.of(context);
+                                  Future.delayed(
+                                    const Duration(milliseconds: 200),
+                                    () {
+                                      navigator.pop();
+                                      onGpxImportTap();
+                                    },
+                                  );
+                                },
+                                onAddPoiTap: () {
+                                  final navigator = Navigator.of(context);
+                                  Future.delayed(
+                                    const Duration(milliseconds: 200),
+                                    () {
+                                      navigator.pop();
+                                      onAddPoiTap();
+                                    },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                          customBorder: const CircleBorder(),
-                          child: const SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: Icon(
-                              Icons.more_vert,
-                              color: Colors.blueGrey,
-                              size: 32,
+                            customBorder: const CircleBorder(),
+                            child: const SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: Icon(
+                                Icons.more_vert,
+                                color: Colors.blueGrey,
+                                size: 32,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: 24,
-                    child: Center(
-                      child: BatteryIndicator(),
+                  if (!isDragMode)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 24,
+                      child: Center(
+                        child: BatteryIndicator(),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    right: 16,
-                    top: 24,
-                    child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
-                  ),
-                  if (showMyLocationButton)
+                  if (!isDragMode)
+                    Positioned(
+                      right: 16,
+                      top: 24,
+                      child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
+                    ),
+                  if (showMyLocationButton && !isDragMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
@@ -200,7 +207,7 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isStreamActive && onGpsLevelTap != null)
+                  if (isStreamActive && onGpsLevelTap != null && !isDragMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
@@ -214,11 +221,17 @@ class MapScreenContent extends StatelessWidget {
               ),
             ),
           ),
-          LocationBottomBar(
-            isStreamActive: isStreamActive,
-            onTap: onToggleLocationStream,
-            progressBarValue: progressBarValue,
-            isLowMode: isLowMode,
+          AbsorbPointer(
+            absorbing: isDragMode,
+            child: Opacity(
+              opacity: isDragMode ? 0.0 : 1.0,
+              child: LocationBottomBar(
+                isStreamActive: isStreamActive,
+                onTap: onToggleLocationStream,
+                progressBarValue: progressBarValue,
+                isLowMode: isLowMode,
+              ),
+            ),
           ),
         ],
       ),

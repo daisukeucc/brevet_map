@@ -20,6 +20,8 @@ Future<Set<Marker>> buildRouteMarkers({
   List<UserPoi> userPois = const [],
   void Function(UserPoi poi)? onUserPoiTap,
   double? zoomLevel,
+  UserPoi? draggingPoi,
+  void Function(LatLng)? onPoiDragEnd,
 }) async {
   final showDistanceMarkers =
       zoomLevel == null || zoomLevel >= distanceMarkerZoomThreshold;
@@ -112,13 +114,18 @@ Future<Set<Marker>> buildRouteMarkers({
     for (var i = 0; i < userPois.length; i++) {
       final poi = userPois[i];
       final icon = poi.isCheckpoint ? poiIconCheckpoint : poiIconOrange;
+      final isDragging = draggingPoi != null &&
+          poi.lat == draggingPoi.lat &&
+          poi.lng == draggingPoi.lng;
       markers.add(Marker(
         markerId: MarkerId('user_poi_$i'),
         position: poi.position,
         icon: icon,
         anchor: const Offset(0.25, 0.25),
-        zIndex: 0,
-        onTap: () => onUserPoiTap?.call(poi),
+        zIndex: isDragging ? 10 : 0,
+        draggable: isDragging,
+        onDragEnd: isDragging ? (newPos) => onPoiDragEnd?.call(newPos) : null,
+        onTap: isDragging ? null : () => onUserPoiTap?.call(poi),
       ));
     }
   }

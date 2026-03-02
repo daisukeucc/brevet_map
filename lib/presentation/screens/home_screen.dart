@@ -33,6 +33,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Future<Position?>? _positionFuture;
   bool _expectingReturnFromSettings = false;
   double _lastBearing = 0.0;
+  bool _isDragMode = false;
 
   Timer? _sleepTimer;
   bool _isScreenDimmed = false;
@@ -108,8 +109,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (_wasStreamActiveBeforeDim) {
       _wasStreamActiveBeforeDim = false;
       ref.read(locationStreamProvider.notifier).toggle(
-        onPosition: _onPositionUpdate,
-      );
+            onPosition: _onPositionUpdate,
+          );
     }
   }
 
@@ -130,9 +131,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     saveSleepDuration(minutes);
     _restoreBrightness();
     _restartSleepTimer(minutes);
-    final message = minutes == 0
-        ? '画面スリープをOFFにしました'
-        : '画面スリープを$minutes分に設定しました';
+    final message =
+        minutes == 0 ? '画面スリープをOFFにしました' : '画面スリープを$minutes分に設定しました';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -171,8 +171,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     }
 
     ref.read(locationStreamProvider.notifier).restoreFromSaved(
-      onPosition: _onPositionUpdate,
-    );
+          onPosition: _onPositionUpdate,
+        );
   }
 
   // --- コールバック ---
@@ -182,8 +182,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         .read(mapStateProvider.notifier)
         .applyImportedGpx(
           content,
-          animateCamera: (bounds) =>
-              ref.read(cameraControllerProvider.notifier).animateToBounds(bounds),
+          animateCamera: (bounds) => ref
+              .read(cameraControllerProvider.notifier)
+              .animateToBounds(bounds),
         )
         .then((status) {
       if (!mounted) return;
@@ -234,10 +235,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (b != null) _lastBearing = b;
     }
     ref.read(cameraControllerProvider.notifier).animateTo(
-      LatLng(position.latitude, position.longitude),
-      zoom: ref.read(mapStateProvider).savedZoomLevel ?? _trackingZoom,
-      bearing: _lastBearing,
-    );
+          LatLng(position.latitude, position.longitude),
+          zoom: ref.read(mapStateProvider).savedZoomLevel ?? _trackingZoom,
+          bearing: _lastBearing,
+        );
   }
 
   Future<void> _onCameraIdle() async {
@@ -255,10 +256,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       showPoiDetailSheet(context, name: poi.title, description: poi.body);
     });
     await ref.read(mapStateProvider.notifier).onMapCreated(
-      controller,
-      animateCamera: (bounds) =>
-          ref.read(cameraControllerProvider.notifier).animateToBounds(bounds),
-    );
+          controller,
+          animateCamera: (bounds) => ref
+              .read(cameraControllerProvider.notifier)
+              .animateToBounds(bounds),
+        );
   }
 
   Future<void> _onMapStyleTap() async {
@@ -277,15 +279,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final position = await getCurrentPositionSilent();
     if (!mounted || position == null) return;
     await ref.read(cameraControllerProvider.notifier).animateTo(
-      LatLng(position.latitude, position.longitude),
-    );
+          LatLng(position.latitude, position.longitude),
+        );
   }
 
   Future<void> _toggleLocationStream() async {
     final wasActive = ref.read(locationStreamProvider).isActive;
     await ref.read(locationStreamProvider.notifier).toggle(
-      onPosition: _onPositionUpdate,
-    );
+          onPosition: _onPositionUpdate,
+        );
     if (!wasActive) {
       ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
     }
@@ -293,8 +295,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onGpsLevelTap() async {
     await ref.read(locationStreamProvider.notifier).switchGpsLevel(
-      onPosition: _onPositionUpdate,
-    );
+          onPosition: _onPositionUpdate,
+        );
   }
 
   Future<void> _onGpxImportTap() async {
@@ -343,13 +345,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Future<void> _onAddPoiTap() async {
     if (!mounted) return;
     final userPois = ref.read(mapStateProvider).userPois;
-    final data = await showDialog<_AddPoiFormData>(
+    final result = await showDialog<Object>(
       context: context,
       barrierColor: Colors.black54,
       builder: (context) => _AddPoiDialog(userPois: userPois),
     );
-    if (data == null || !mounted) return;
+    if (result == null || !mounted) return;
 
+    if (result is _PoiEditTextRequest) {
+      await _onEditPoiText(result.poi);
+      return;
+    }
+    if (result is _PoiEditPositionRequest) {
+      await _onEditPoiPosition(result.poi);
+      return;
+    }
+    if (result is! _AddPoiFormData) return;
+
+    final data = result;
     final routePoints = ref.read(mapStateProvider).savedRoutePoints;
     if (routePoints == null || routePoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -382,6 +395,99 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
+  Future<void> _onEditPoiText(UserPoi poi) async {
+    if (!mounted) return;
+    final data = await showDialog<_AddPoiFormData>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => _EditPoiTextDialog(poi: poi),
+    );
+    if (data == null || !mounted) return;
+
+    LatLng? coord;
+    if (data.km != poi.km) {
+      final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+      if (routePoints != null && routePoints.isNotEmpty) {
+        coord = coordAtKm(routePoints, data.km);
+      }
+    }
+
+    final updatedPoi = UserPoi(
+      type: data.type,
+      km: data.km,
+      title: data.title,
+      body: data.body,
+      lat: coord?.latitude ?? poi.lat,
+      lng: coord?.longitude ?? poi.lng,
+    );
+    await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('POIを変更しました')),
+    );
+  }
+
+  Future<void> _onEditPoiPosition(UserPoi poi) async {
+    if (!mounted) return;
+    setState(() => _isDragMode = true);
+    await ref.read(cameraControllerProvider.notifier).animateTo(
+          poi.position,
+          zoom: 16.0,
+        );
+    if (!mounted) return;
+    await ref.read(mapStateProvider.notifier).startPoiDrag(poi, (newLatLng) {
+      _onPoiDragEnd(poi, newLatLng);
+    });
+  }
+
+  Future<void> _onCancelDragMode() async {
+    await ref.read(mapStateProvider.notifier).stopPoiDrag();
+    if (!mounted) return;
+    setState(() => _isDragMode = false);
+  }
+
+  Future<void> _onPoiDragEnd(UserPoi poi, LatLng newLatLng) async {
+    if (!mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+        content: const Text('この位置に変更する', style: TextStyle(fontSize: 17)),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('変更', style: TextStyle(fontSize: 17)),
+          ),
+        ],
+      ),
+    );
+
+    await ref.read(mapStateProvider.notifier).stopPoiDrag();
+    if (!mounted) return;
+    setState(() => _isDragMode = false);
+    if (confirmed != true) return;
+
+    final updatedPoi = UserPoi(
+      type: poi.type,
+      km: poi.km,
+      title: poi.title,
+      body: poi.body,
+      lat: newLatLng.latitude,
+      lng: newLatLng.longitude,
+    );
+    await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('マーカーの位置を変更しました')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
@@ -391,63 +497,117 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     return Stack(
       children: [
         Scaffold(
-      body: FutureBuilder<Position?>(
-        future: _positionFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          body: FutureBuilder<Position?>(
+            future: _positionFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (snapshot.hasError) {
-            return const Center(child: Text('位置情報の取得に失敗しました'));
-          }
+              if (snapshot.hasError) {
+                return const Center(child: Text('位置情報の取得に失敗しました'));
+              }
 
-          if (!snapshot.hasData || snapshot.data == null) {
-            return const Scaffold(body: LocationErrorView());
-          }
+              if (!snapshot.hasData || snapshot.data == null) {
+                return const Scaffold(body: LocationErrorView());
+              }
 
-          final position = snapshot.data!;
+              final position = snapshot.data!;
 
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
-              position,
-              animateCamera: (bounds) async {
-                if (bounds != null) {
-                  await ref
-                      .read(cameraControllerProvider.notifier)
-                      .animateToBounds(bounds);
-                }
-              },
-            );
-          });
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
+                  position,
+                  animateCamera: (bounds) async {
+                    if (bounds != null) {
+                      await ref
+                          .read(cameraControllerProvider.notifier)
+                          .animateToBounds(bounds);
+                    }
+                  },
+                );
+              });
 
-          return MapScreenContent(
-            initialPosition: LatLng(position.latitude, position.longitude),
-            initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
-            polylines: mapState.routePolylines,
-            markers: mapState.routeMarkers,
-            mapStyleMode: mapState.mapStyleMode,
-            onCameraIdle: _onCameraIdle,
-            onMapCreated: _onMapCreated,
-            onMapStyleTap: _onMapStyleTap,
-            onRouteBoundsTap: _onRouteBoundsTap,
-            onMyLocationTap: _moveCameraToCurrentPosition,
-            showMyLocationButton: !locationState.isActive,
-            isStreamActive: locationState.isActive,
-            onToggleLocationStream: _toggleLocationStream,
-            progressBarValue: locationState.progressBarValue,
-            isLowMode: locationState.isInLowMode,
-            isStreamAccuracyLow: locationState.isAccuracyLow,
-            onGpsLevelTap: _onGpsLevelTap,
-            sleepDuration: sleepDuration,
-            onSleepDurationChanged: _onSleepDurationChanged,
-            onGpxImportTap: _onGpxImportTap,
-            onAddPoiTap: _onAddPoiTap,
-            onUserInteraction: _onUserInteraction,
-          );
-        },
-      ),
+              return MapScreenContent(
+                initialPosition: LatLng(position.latitude, position.longitude),
+                initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
+                polylines: mapState.routePolylines,
+                markers: mapState.routeMarkers,
+                mapStyleMode: mapState.mapStyleMode,
+                onCameraIdle: _onCameraIdle,
+                onMapCreated: _onMapCreated,
+                onMapStyleTap: _onMapStyleTap,
+                onRouteBoundsTap: _onRouteBoundsTap,
+                onMyLocationTap: _moveCameraToCurrentPosition,
+                showMyLocationButton: !locationState.isActive,
+                isStreamActive: locationState.isActive,
+                onToggleLocationStream: _toggleLocationStream,
+                progressBarValue: locationState.progressBarValue,
+                isLowMode: locationState.isInLowMode,
+                isStreamAccuracyLow: locationState.isAccuracyLow,
+                onGpsLevelTap: _onGpsLevelTap,
+                sleepDuration: sleepDuration,
+                onSleepDurationChanged: _onSleepDurationChanged,
+                onGpxImportTap: _onGpxImportTap,
+                onAddPoiTap: _onAddPoiTap,
+                onUserInteraction: _onUserInteraction,
+                isDragMode: _isDragMode,
+              );
+            },
+          ),
         ),
+        if (_isDragMode) ...[
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: ColoredBox(color: Color(0x66000000)),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: ColoredBox(
+              color: Colors.black.withValues(alpha: 0.6),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 80,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'マーカーをドラッグして位置を変更して下さい',
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.5,
+                              color: Colors.white60,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _onCancelDragMode,
+                          child: const Text(
+                            'キャンセル',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
         if (_isScreenDimmed)
           Positioned.fill(
             child: GestureDetector(
@@ -475,6 +635,16 @@ class _AddPoiFormData {
   final int type;
   final String title;
   final String body;
+}
+
+class _PoiEditTextRequest {
+  const _PoiEditTextRequest(this.poi);
+  final UserPoi poi;
+}
+
+class _PoiEditPositionRequest {
+  const _PoiEditPositionRequest(this.poi);
+  final UserPoi poi;
 }
 
 class _AddPoiDialog extends StatefulWidget {
@@ -653,15 +823,42 @@ class _AddPoiDialogState extends State<_AddPoiDialog>
     );
   }
 
+  Future<void> _onEditTap(UserPoi poi) async {
+    final action = await showDialog<int>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('テキストを変更'),
+              onTap: () => Navigator.pop(context, 0),
+            ),
+            ListTile(
+              title: const Text('マーカーの位置を変更'),
+              onTap: () => Navigator.pop(context, 1),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (action == null || !mounted) return;
+    if (action == 0) {
+      Navigator.pop(context, _PoiEditTextRequest(poi));
+    } else {
+      Navigator.pop(context, _PoiEditPositionRequest(poi));
+    }
+  }
+
   Widget _buildEditTab() {
     final sorted = [...widget.userPois]..sort((a, b) => a.km.compareTo(b.km));
     return ListView.builder(
       itemCount: sorted.length,
       itemBuilder: (context, i) {
         final poi = sorted[i];
-        final kmStr = poi.km % 1 == 0
-            ? '${poi.km.toInt()}'
-            : '${poi.km}';
+        final kmStr = poi.km % 1 == 0 ? '${poi.km.toInt()}' : '${poi.km}';
         return DecoratedBox(
           decoration: const BoxDecoration(
             border: Border(
@@ -677,7 +874,7 @@ class _AddPoiDialogState extends State<_AddPoiDialog>
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextButton(
-                  onPressed: null,
+                  onPressed: () => _onEditTap(poi),
                   style: TextButton.styleFrom(
                     minimumSize: Size.zero,
                     padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -754,6 +951,191 @@ class _AddPoiDialogState extends State<_AddPoiDialog>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// POIテキスト編集ダイアログ
+// ---------------------------------------------------------------------------
+
+class _EditPoiTextDialog extends StatefulWidget {
+  const _EditPoiTextDialog({required this.poi});
+
+  final UserPoi poi;
+
+  @override
+  State<_EditPoiTextDialog> createState() => _EditPoiTextDialogState();
+}
+
+class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
+  late int _poiType;
+  late final TextEditingController _kmController;
+  late final TextEditingController _titleController;
+  late final TextEditingController _bodyController;
+  String? _kmError;
+
+  @override
+  void initState() {
+    super.initState();
+    _poiType = widget.poi.type;
+    final km = widget.poi.km;
+    final kmStr = km % 1 == 0 ? '${km.toInt()}' : '$km';
+    _kmController = TextEditingController(text: kmStr);
+    _titleController = TextEditingController(text: widget.poi.title);
+    _bodyController = TextEditingController(text: widget.poi.body);
+  }
+
+  @override
+  void dispose() {
+    _kmController.dispose();
+    _titleController.dispose();
+    _bodyController.dispose();
+    super.dispose();
+  }
+
+  void _onSubmit() {
+    final km = double.tryParse(_kmController.text.trim());
+    if (km == null || km < 0) {
+      setState(() => _kmError = '有効なkm値を入力してください');
+      return;
+    }
+    setState(() => _kmError = null);
+    Navigator.pop(
+      context,
+      _AddPoiFormData(
+        km: km,
+        type: _poiType,
+        title: _titleController.text.trim(),
+        body: _bodyController.text.trim(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'テキストを変更',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  SizedBox(
+                    width: 72,
+                    child: TextField(
+                      controller: _kmController,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        isDense: true,
+                        errorText: _kmError,
+                        errorMaxLines: 2,
+                      ),
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(fontSize: 17),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  const Text('km地点', style: TextStyle(fontSize: 17)),
+                ],
+              ),
+              const SizedBox(height: 28),
+              const Text('POIタイプ', style: TextStyle(fontSize: 15)),
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _poiType = 0);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<int>(
+                      value: 0,
+                      groupValue: _poiType,
+                      onChanged: (v) {
+                        FocusScope.of(context).unfocus();
+                        setState(() => _poiType = v!);
+                      },
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    const Text('チェックポイント', style: TextStyle(fontSize: 17)),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _poiType = 1);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<int>(
+                      value: 1,
+                      groupValue: _poiType,
+                      onChanged: (v) {
+                        FocusScope.of(context).unfocus();
+                        setState(() => _poiType = v!);
+                      },
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    const Text('インフォメーション', style: TextStyle(fontSize: 17)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'タイトル',
+                  isDense: true,
+                ),
+                style: const TextStyle(fontSize: 17),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _bodyController,
+                decoration: const InputDecoration(
+                  labelText: '本文',
+                  isDense: true,
+                ),
+                style: const TextStyle(fontSize: 17),
+                maxLines: 3,
+                minLines: 3,
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+                  ),
+                  TextButton(
+                    onPressed: _onSubmit,
+                    child: const Text('変更', style: TextStyle(fontSize: 17)),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

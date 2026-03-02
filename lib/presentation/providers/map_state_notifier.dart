@@ -108,6 +108,10 @@ class MapStateNotifier extends Notifier<MapState> {
   void Function(GpxPoi)? _onPoiTap;
   void Function(UserPoi)? _onUserPoiTap;
 
+  // ドラッグ編集中のユーザー POI
+  UserPoi? _draggingPoi;
+  void Function(LatLng)? _onPoiDragEnd;
+
   @override
   MapState build() => const MapState();
 
@@ -283,6 +287,35 @@ class MapStateNotifier extends Notifier<MapState> {
     _routeAnimationRunner.cancel();
   }
 
+  /// 指定した POI をドラッグ可能にする（位置編集モード開始）
+  Future<void> startPoiDrag(UserPoi poi, void Function(LatLng) onDragEnd) async {
+    _draggingPoi = poi;
+    _onPoiDragEnd = onDragEnd;
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
+  /// ドラッグ編集モードを終了し、マーカーを通常に戻す
+  Future<void> stopPoiDrag() async {
+    _draggingPoi = null;
+    _onPoiDragEnd = null;
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
+  /// 既存のユーザー POI を新しい内容で上書きして保存する
+  Future<void> updateUserPoi(UserPoi oldPoi, UserPoi newPoi) async {
+    final index = state.userPois.indexWhere(
+      (p) => p.lat == oldPoi.lat && p.lng == oldPoi.lng && p.km == oldPoi.km,
+    );
+    if (index < 0) return;
+    final updated = List<UserPoi>.from(state.userPois)..[index] = newPoi;
+    await saveUserPois(updated);
+    state = state.copyWith(userPois: updated);
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
   // --- 内部メソッド ---
 
   /// スタート・ゴール・POI マーカーを再構築して state を更新する
@@ -296,6 +329,8 @@ class MapStateNotifier extends Notifier<MapState> {
       userPois: state.userPois,
       onUserPoiTap: onUserPoiTap,
       zoomLevel: state.savedZoomLevel,
+      draggingPoi: _draggingPoi,
+      onPoiDragEnd: _onPoiDragEnd,
     );
     state = state.copyWith(
       routeMarkers: markers,
