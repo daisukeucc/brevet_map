@@ -273,7 +273,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
               });
             },
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 28),
         ],
       ),
     );
