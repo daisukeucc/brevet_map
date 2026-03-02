@@ -100,6 +100,7 @@ class MapScreenContent extends StatelessWidget {
                       onTap: onMapStyleTap,
                     ),
                   ),
+                  if (!isStreamActive)
                   Positioned(
                     left: 16,
                     top: 24,
