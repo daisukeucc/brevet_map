@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -65,10 +67,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
-    GpxChannelService.setMethodCallHandler(_onGpxReceived);
+    GpxChannelService.setMethodCallHandler(_confirmAndApplyGpx);
     GpxChannelService.getInitialGpxContent().then((content) {
       if (content != null && content.isNotEmpty && mounted) {
-        _onGpxReceived(content);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _confirmAndApplyGpx(content);
+        });
       }
     });
   }
@@ -194,6 +198,34 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     });
   }
 
+  Future<void> _confirmAndApplyGpx(String content) async {
+    if (!mounted) return;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+        content: const Text(
+          '現在のルートを上書きします',
+          style: TextStyle(fontSize: 17),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('NG', style: TextStyle(fontSize: 17)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('OK', style: TextStyle(fontSize: 17)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    _onGpxReceived(content);
+  }
+
   void _onPositionUpdate(Position position, Position? previous) {
     if (!mounted) return;
     if (previous != null) {
@@ -261,6 +293,49 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
+  Future<void> _onGpxImportTap() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
+        content: const Text(
+          '現在のルートを上書きします',
+          style: TextStyle(fontSize: 17),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('NG', style: TextStyle(fontSize: 17)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('OK', style: TextStyle(fontSize: 17)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final result = await FilePicker.platform.pickFiles(type: FileType.any);
+    if (result == null || result.files.single.path == null) return;
+    final path = result.files.single.path!;
+    if (!path.toLowerCase().endsWith('.gpx')) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('GPXファイルを選択してください'),
+          backgroundColor: Colors.black.withValues(alpha: 0.6),
+        ),
+      );
+      return;
+    }
+    final content = await File(path).readAsString();
+    if (!mounted) return;
+    _onGpxReceived(content);
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
@@ -320,6 +395,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             onGpsLevelTap: _onGpsLevelTap,
             sleepDuration: sleepDuration,
             onSleepDurationChanged: _onSleepDurationChanged,
+            onGpxImportTap: _onGpxImportTap,
             onUserInteraction: _onUserInteraction,
           );
         },
