@@ -342,10 +342,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onAddPoiTap() async {
     if (!mounted) return;
+    final userPois = ref.read(mapStateProvider).userPois;
     final data = await showDialog<_AddPoiFormData>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) => const _AddPoiDialog(),
+      builder: (context) => _AddPoiDialog(userPois: userPois),
     );
     if (data == null || !mounted) return;
 
@@ -477,21 +478,36 @@ class _AddPoiFormData {
 }
 
 class _AddPoiDialog extends StatefulWidget {
-  const _AddPoiDialog();
+  const _AddPoiDialog({required this.userPois});
+
+  final List<UserPoi> userPois;
 
   @override
   State<_AddPoiDialog> createState() => _AddPoiDialogState();
 }
 
-class _AddPoiDialogState extends State<_AddPoiDialog> {
-  int _poiType = 0; // 0=チェックポイント, 1=インフォメーション
+class _AddPoiDialogState extends State<_AddPoiDialog>
+    with SingleTickerProviderStateMixin {
+  int _poiType = 0;
   final _kmController = TextEditingController();
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
   String? _kmError;
+  TabController? _tabController;
+
+  bool get _hasPois => widget.userPois.isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_hasPois) {
+      _tabController = TabController(length: 2, vsync: this);
+    }
+  }
 
   @override
   void dispose() {
+    _tabController?.dispose();
     _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
@@ -516,111 +532,226 @@ class _AddPoiDialogState extends State<_AddPoiDialog> {
     );
   }
 
+  List<Widget> _buildFormFields() {
+    return [
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 72,
+            child: TextField(
+              controller: _kmController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                isDense: true,
+                errorText: _kmError,
+                errorMaxLines: 2,
+              ),
+              textAlign: TextAlign.end,
+              style: const TextStyle(fontSize: 17),
+            ),
+          ),
+          const SizedBox(width: 8),
+          const Text('km地点にPOIを追加', style: TextStyle(fontSize: 17)),
+        ],
+      ),
+      const SizedBox(height: 28),
+      const Text('POIタイプ', style: TextStyle(fontSize: 15)),
+      const SizedBox(height: 4),
+      GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          setState(() => _poiType = 0);
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Radio<int>(
+              value: 0,
+              groupValue: _poiType,
+              onChanged: (v) {
+                FocusScope.of(context).unfocus();
+                setState(() => _poiType = v!);
+              },
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const Text('チェックポイント', style: TextStyle(fontSize: 17)),
+          ],
+        ),
+      ),
+      GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+          setState(() => _poiType = 1);
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Radio<int>(
+              value: 1,
+              groupValue: _poiType,
+              onChanged: (v) {
+                FocusScope.of(context).unfocus();
+                setState(() => _poiType = v!);
+              },
+              visualDensity: VisualDensity.compact,
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const Text('インフォメーション', style: TextStyle(fontSize: 17)),
+          ],
+        ),
+      ),
+      const SizedBox(height: 16),
+      TextField(
+        controller: _titleController,
+        decoration: const InputDecoration(
+          labelText: 'タイトル',
+          isDense: true,
+        ),
+        style: const TextStyle(fontSize: 17),
+      ),
+      const SizedBox(height: 12),
+      TextField(
+        controller: _bodyController,
+        decoration: const InputDecoration(
+          labelText: '本文',
+          isDense: true,
+        ),
+        style: const TextStyle(fontSize: 17),
+        maxLines: 3,
+        minLines: 3,
+      ),
+      const SizedBox(height: 8),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+          ),
+          TextButton(
+            onPressed: _onSubmit,
+            child: const Text('追加', style: TextStyle(fontSize: 17)),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _buildAddTab() {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: _buildFormFields(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEditTab() {
+    final sorted = [...widget.userPois]..sort((a, b) => a.km.compareTo(b.km));
+    return ListView.builder(
+      itemCount: sorted.length,
+      itemBuilder: (context, i) {
+        final poi = sorted[i];
+        final kmStr = poi.km % 1 == 0
+            ? '${poi.km.toInt()}'
+            : '${poi.km}';
+        return DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+            ),
+          ),
+          child: ListTile(
+            title: Text(
+              '$kmStr km：${poi.title.isEmpty ? '(タイトルなし)' : poi.title}',
+              style: const TextStyle(fontSize: 15),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextButton(
+                  onPressed: null,
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text('編集'),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  onPressed: null,
+                  style: TextButton.styleFrom(
+                    minimumSize: Size.zero,
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text('削除'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (!_hasPois) {
+      return Dialog(
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'POIを追加',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              ..._buildFormFields(),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Dialog(
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 540),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // タイトル
-            const Text(
-              'POIを追加',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            // km 入力
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  width: 72,
-                  child: TextField(
-                    controller: _kmController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
-                    decoration: InputDecoration(
-                      isDense: true,
-                      errorText: _kmError,
-                      errorMaxLines: 2,
-                    ),
-                    textAlign: TextAlign.end,
-                    style: const TextStyle(fontSize: 17),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text('km地点にPOIを追加', style: TextStyle(fontSize: 17)),
+            TabBar(
+              controller: _tabController,
+              indicatorSize: TabBarIndicatorSize.tab,
+              tabs: const [
+                Tab(text: 'POIを追加'),
+                Tab(text: 'POIを編集・削除'),
               ],
             ),
-            const SizedBox(height: 28),
-            // POIタイプ
-            const Text('POIタイプ', style: TextStyle(fontSize: 15)),
-            const SizedBox(height: 4),
-            for (final (value, label) in [
-              (0, 'チェックポイント'),
-              (1, 'インフォメーション'),
-            ])
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = value);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: value,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(label, style: const TextStyle(fontSize: 17)),
-                  ],
-                ),
+            Flexible(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildAddTab(),
+                  _buildEditTab(),
+                ],
               ),
-            const SizedBox(height: 16),
-            // タイトル
-            TextField(
-              controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'タイトル',
-                isDense: true,
-              ),
-              style: const TextStyle(fontSize: 17),
-            ),
-            const SizedBox(height: 12),
-            // 本文
-            TextField(
-              controller: _bodyController,
-              decoration: const InputDecoration(
-                labelText: '本文',
-                isDense: true,
-              ),
-              style: const TextStyle(fontSize: 17),
-              maxLines: 3,
-              minLines: 3,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
-                ),
-                TextButton(
-                  onPressed: _onSubmit,
-                  child: const Text('追加', style: TextStyle(fontSize: 17)),
-                ),
-              ],
             ),
           ],
         ),
