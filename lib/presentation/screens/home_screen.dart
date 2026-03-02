@@ -57,6 +57,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     WakelockPlus.enable();
 
+    loadSleepDuration().then((minutes) {
+      if (!mounted) return;
+      ref.read(sleepDurationProvider.notifier).state = minutes;
+      _restartSleepTimer(minutes);
+    });
+
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
     GpxChannelService.setMethodCallHandler(_onGpxReceived);
@@ -116,6 +122,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   void _onSleepDurationChanged(int minutes) {
     ref.read(sleepDurationProvider.notifier).state = minutes;
+    saveSleepDuration(minutes);
     _restoreBrightness();
     _restartSleepTimer(minutes);
     final message = minutes == 0
