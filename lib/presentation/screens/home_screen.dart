@@ -33,6 +33,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Timer? _sleepTimer;
   bool _isScreenDimmed = false;
+  bool _wasStreamActiveBeforeDim = false;
 
   late final VolumeZoomHandler _volumeZoomHandler;
 
@@ -81,14 +82,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   // --- スリープタイマー ---
 
   void _dimScreen() {
+    _wasStreamActiveBeforeDim = ref.read(locationStreamProvider).isActive;
     setState(() => _isScreenDimmed = true);
     ScreenBrightness().setApplicationScreenBrightness(0.0);
+    if (_wasStreamActiveBeforeDim) {
+      ref.read(locationStreamProvider.notifier).stop();
+    }
   }
 
   void _restoreBrightness() {
     if (!_isScreenDimmed) return;
     setState(() => _isScreenDimmed = false);
     ScreenBrightness().resetApplicationScreenBrightness();
+    if (_wasStreamActiveBeforeDim) {
+      _wasStreamActiveBeforeDim = false;
+      ref.read(locationStreamProvider.notifier).toggle(
+        onPosition: _onPositionUpdate,
+      );
+    }
   }
 
   void _restartSleepTimer(int minutes) {
@@ -107,6 +118,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     ref.read(sleepDurationProvider.notifier).state = minutes;
     _restoreBrightness();
     _restartSleepTimer(minutes);
+    final message = minutes == 0
+        ? '画面スリープをOFFにしました'
+        : '画面スリープを$minutes分に設定しました';
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.black.withValues(alpha: 0.6),
+      ),
+    );
   }
 
   @override

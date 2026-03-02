@@ -242,7 +242,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
             onChanged: (v) {
               setState(() => _sleepDuration = v);
               widget.onSleepDurationChanged(v);
-              Future.delayed(const Duration(milliseconds: 200), () {
+              Future.delayed(const Duration(milliseconds: 400), () {
                 if (context.mounted) Navigator.pop(context);
               });
             },
@@ -274,18 +274,21 @@ class _SleepDurationSelector extends StatelessWidget {
         children: [
           for (int i = 0; i < options.length; i++) ...[
             if (i > 0) const SizedBox(width: 8),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Radio<int>(
-                  value: options[i].$1,
-                  groupValue: value,
-                  onChanged: (v) => onChanged(v!),
-                  visualDensity: VisualDensity.compact,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                Text(options[i].$2, style: const TextStyle(fontSize: 17)),
-              ],
+            GestureDetector(
+              onTap: () => onChanged(options[i].$1),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Radio<int>(
+                    value: options[i].$1,
+                    groupValue: value,
+                    onChanged: (v) => onChanged(v!),
+                    visualDensity: VisualDensity.compact,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  Text(options[i].$2, style: const TextStyle(fontSize: 17)),
+                ],
+              ),
             ),
           ],
         ],
