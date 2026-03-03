@@ -671,12 +671,15 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
   final _bodyController = TextEditingController();
   String? _kmError;
   TabController? _tabController;
+  late final FocusNode _kmFocusNode;
 
   bool get _hasPois => ref.watch(mapStateProvider).userPois.isNotEmpty;
 
   @override
   void initState() {
     super.initState();
+    _kmFocusNode = FocusNode();
+    _kmFocusNode.addListener(_onKmFocusChange);
     if (ref.read(mapStateProvider).userPois.isNotEmpty) {
       _tabController = TabController(length: 2, vsync: this);
     }
@@ -691,8 +694,16 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
     }
   }
 
+  void _onKmFocusChange() {
+    if (_kmFocusNode.hasFocus && _kmError != null && mounted) {
+      setState(() => _kmError = null);
+    }
+  }
+
   @override
   void dispose() {
+    _kmFocusNode.removeListener(_onKmFocusChange);
+    _kmFocusNode.dispose();
     _tabController?.dispose();
     _kmController.dispose();
     _titleController.dispose();
@@ -703,7 +714,7 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
   void _onSubmit() {
     final km = double.tryParse(_kmController.text.trim());
     if (km == null || km < 0) {
-      setState(() => _kmError = '有効なkm値を入力してください');
+      setState(() => _kmError = '距離の入力は必須です');
       return;
     }
     setState(() => _kmError = null);
@@ -721,25 +732,42 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
   List<Widget> _buildFormFields() {
     return [
       Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
             width: 72,
             child: TextField(
               controller: _kmController,
+              focusNode: _kmFocusNode,
               keyboardType:
                   const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 isDense: true,
-                errorText: _kmError,
-                errorMaxLines: 2,
+                errorText: _kmError != null ? ' ' : null,
+                errorStyle: const TextStyle(height: 0, fontSize: 0),
               ),
               textAlign: TextAlign.end,
               style: const TextStyle(fontSize: 17),
             ),
           ),
           const SizedBox(width: 8),
-          const Text('km地点にPOIを追加', style: TextStyle(fontSize: 17)),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: _kmError != null
+                  ? Text(
+                      _kmError!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                        fontSize: 12,
+                      ),
+                    )
+                  : const Text(
+                      'km地点にPOIを追加',
+                      style: TextStyle(fontSize: 17),
+                    ),
+            ),
+          ),
         ],
       ),
       const SizedBox(height: 28),
