@@ -39,6 +39,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Timer? _sleepTimer;
   bool _isScreenDimmed = false;
   bool _wasStreamActiveBeforeDim = false;
+  OverlayEntry? _dimOverlayEntry;
 
   late final VolumeZoomHandler _volumeZoomHandler;
 
@@ -95,16 +96,29 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   // --- スリープタイマー ---
 
   void _dimScreen() {
+    if (!mounted) return;
     _wasStreamActiveBeforeDim = ref.read(locationStreamProvider).isActive;
     setState(() => _isScreenDimmed = true);
     ScreenBrightness().setApplicationScreenBrightness(0.0);
     if (_wasStreamActiveBeforeDim) {
       ref.read(locationStreamProvider.notifier).stop();
     }
+    _dimOverlayEntry = OverlayEntry(
+      builder: (context) => Positioned.fill(
+        child: GestureDetector(
+          onTap: _onUserInteraction,
+          behavior: HitTestBehavior.opaque,
+          child: const ColoredBox(color: Colors.black),
+        ),
+      ),
+    );
+    Overlay.of(context).insert(_dimOverlayEntry!);
   }
 
   void _restoreBrightness() {
     if (!_isScreenDimmed) return;
+    _dimOverlayEntry?.remove();
+    _dimOverlayEntry = null;
     setState(() => _isScreenDimmed = false);
     ScreenBrightness().resetApplicationScreenBrightness();
     if (_wasStreamActiveBeforeDim) {
@@ -721,13 +735,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             ),
           ),
         ],
-        if (_isScreenDimmed)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _onUserInteraction,
-              child: const ColoredBox(color: Colors.black),
-            ),
-          ),
       ],
     );
   }
