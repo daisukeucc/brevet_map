@@ -42,7 +42,7 @@ class MapState {
   final List<LatLng>? savedRoutePoints;
   final List<GpxPoi> gpxPois;
 
-  /// ユーザーが手動で追加した POI
+  /// ユーザーが手動で登録した POI
   final List<UserPoi> userPois;
 
   /// アニメーション用フルルート（animateToRouteBounds にも使う）
@@ -137,14 +137,15 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     final result = await loadSavedRouteWithPois();
     state = state.copyWith(
-      savedRoutePoints:
-          (result.points != null && result.points!.isNotEmpty) ? result.points : null,
+      savedRoutePoints: (result.points != null && result.points!.isNotEmpty)
+          ? result.points
+          : null,
       gpxPois: result.pois,
       userPois: savedUserPois,
     );
   }
 
-  /// ユーザー POI を追加して保存し、マーカーを再構築する
+  /// ユーザー POI を登録して保存し、マーカーを再構築する
   Future<void> addUserPoi(UserPoi poi) async {
     final updated = [...state.userPois, poi];
     await saveUserPois(updated);
@@ -293,7 +294,8 @@ class MapStateNotifier extends Notifier<MapState> {
   }
 
   /// 指定した POI をドラッグ可能にする（位置編集モード開始）
-  Future<void> startPoiDrag(UserPoi poi, void Function(LatLng) onDragEnd) async {
+  Future<void> startPoiDrag(
+      UserPoi poi, void Function(LatLng) onDragEnd) async {
     _draggingPoi = poi;
     _onPoiDragEnd = onDragEnd;
     final routePoints = state.savedRoutePoints ?? _emptyRoute;

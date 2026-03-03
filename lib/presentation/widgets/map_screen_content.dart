@@ -27,6 +27,7 @@ class MapScreenContent extends StatelessWidget {
     required this.onSleepDurationChanged,
     required this.onGpxImportTap,
     required this.onAddPoiTap,
+    this.hasUserPois = false,
     this.isDragMode = false,
     this.isMapTapAddMode = false,
     this.onMapLongPress,
@@ -69,16 +70,19 @@ class MapScreenContent extends StatelessWidget {
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
 
-  /// POI追加コールバック
+  /// POI登録コールバック
   final VoidCallback onAddPoiTap;
+
+  /// ユーザーPOIが1件以上登録されている場合 true
+  final bool hasUserPois;
 
   /// true のときマーカードラッグ編集モード（全ボタンを非表示にする）
   final bool isDragMode;
 
-  /// true のとき地図タップでPOI追加モード（全ボタンを非表示にする）
+  /// true のとき地図タップでPOI登録モード（全ボタンを非表示にする）
   final bool isMapTapAddMode;
 
-  /// 地図長押し時コールバック（地図タップ追加モード時）
+  /// 地図長押し時コールバック（地図タップ登録モード時）
   final void Function(LatLng)? onMapLongPress;
 
   /// 画面タッチ時（5分無操作LOWモード解除用）
@@ -147,6 +151,7 @@ class MapScreenContent extends StatelessWidget {
                                     },
                                   );
                                 },
+                                hasUserPois: hasUserPois,
                                 onAddPoiTap: () {
                                   final navigator = Navigator.of(context);
                                   Future.delayed(
@@ -216,7 +221,10 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isStreamActive && onGpsLevelTap != null && !isDragMode && !isMapTapAddMode)
+                  if (isStreamActive &&
+                      onGpsLevelTap != null &&
+                      !isDragMode &&
+                      !isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
@@ -254,12 +262,14 @@ class _SettingsBottomSheet extends StatefulWidget {
     required this.sleepDuration,
     required this.onSleepDurationChanged,
     required this.onGpxImportTap,
+    required this.hasUserPois,
     required this.onAddPoiTap,
   });
 
   final int sleepDuration;
   final void Function(int) onSleepDurationChanged;
   final VoidCallback onGpxImportTap;
+  final bool hasUserPois;
   final VoidCallback onAddPoiTap;
 
   @override
@@ -314,9 +324,9 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
           ),
           ListTile(
             leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
-            title: const Text(
-              'POIを追加',
-              style: TextStyle(fontSize: 17),
+            title: Text(
+              widget.hasUserPois ? 'POIの登録・編集' : 'POIの登録',
+              style: const TextStyle(fontSize: 17),
             ),
             onTap: widget.onAddPoiTap,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),

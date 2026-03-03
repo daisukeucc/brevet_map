@@ -6,14 +6,14 @@ import '../../domain/models/user_poi.dart';
 
 const _keyUserPois = 'user_pois';
 
-/// ユーザー追加 POI リストを SharedPreferences に保存する
+/// ユーザー登録 POI リストを SharedPreferences に保存する
 Future<void> saveUserPois(List<UserPoi> pois) async {
   final prefs = await SharedPreferences.getInstance();
   final json = jsonEncode(pois.map((p) => p.toJson()).toList());
   await prefs.setString(_keyUserPois, json);
 }
 
-/// SharedPreferences からユーザー追加 POI リストを読み込む。未保存なら空リスト。
+/// SharedPreferences からユーザー登録 POI リストを読み込む。未保存なら空リスト。
 Future<List<UserPoi>> loadUserPois() async {
   final prefs = await SharedPreferences.getInstance();
   final raw = prefs.getString(_keyUserPois);

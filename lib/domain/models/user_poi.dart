@@ -1,6 +1,6 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-/// ユーザーが手動で追加した POI。SharedPreferences に JSON で保存する。
+/// ユーザーが手動で登録した POI。SharedPreferences に JSON で保存する。
 class UserPoi {
   const UserPoi({
     required this.type,
@@ -14,7 +14,6 @@ class UserPoi {
   /// 0=チェックポイント, 1=インフォメーション
   final int type;
 
-  /// 追加時に入力した km 値。地図タップ追加時は null。
   final double? km;
 
   final String title;
