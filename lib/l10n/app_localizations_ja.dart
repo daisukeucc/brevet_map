@@ -201,4 +201,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get sleep10min => '10分';
+
+  @override
+  String get distanceUnit => '距離の単位';
+
+  @override
+  String get unitKm => 'km';
+
+  @override
+  String get unitMile => 'mile';
+
+  @override
+  String get distanceUnitSetToKm => '距離の単位をkmに設定しました';
+
+  @override
+  String get distanceUnitSetToMile => '距離の単位をmileに設定しました';
 }

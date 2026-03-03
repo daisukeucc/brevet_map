@@ -74,7 +74,12 @@
     }
   },
   "sleepOff": "OFF",
-  "sleep1min": "1 min",
-  "sleep5min": "5 min",
-  "sleep10min": "10 min"
+  "sleep1min": "1min",
+  "sleep5min": "5min",
+  "sleep10min": "10min",
+  "distanceUnit": "Distance unit",
+  "unitKm": "km",
+  "unitMile": "mile",
+  "distanceUnitSetToKm": "Distance unit set to km",
+  "distanceUnitSetToMile": "Distance unit set to mile"
 }

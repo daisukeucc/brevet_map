@@ -461,20 +461,50 @@ abstract class AppLocalizations {
   /// No description provided for @sleep1min.
   ///
   /// In en, this message translates to:
-  /// **'1 min'**
+  /// **'1min'**
   String get sleep1min;
 
   /// No description provided for @sleep5min.
   ///
   /// In en, this message translates to:
-  /// **'5 min'**
+  /// **'5min'**
   String get sleep5min;
 
   /// No description provided for @sleep10min.
   ///
   /// In en, this message translates to:
-  /// **'10 min'**
+  /// **'10min'**
   String get sleep10min;
+
+  /// No description provided for @distanceUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit'**
+  String get distanceUnit;
+
+  /// No description provided for @unitKm.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get unitKm;
+
+  /// No description provided for @unitMile.
+  ///
+  /// In en, this message translates to:
+  /// **'mile'**
+  String get unitMile;
+
+  /// No description provided for @distanceUnitSetToKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit set to km'**
+  String get distanceUnitSetToKm;
+
+  /// No description provided for @distanceUnitSetToMile.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance unit set to mile'**
+  String get distanceUnitSetToMile;
 }
 
 class _AppLocalizationsDelegate

@@ -21,6 +21,16 @@ import '../widgets/location_error_view.dart';
 import '../widgets/map_screen_content.dart';
 import '../widgets/poi_detail_sheet.dart';
 
+const double _kmPerMile = 1.609344;
+
+String _formatDistance(double km, int unit) {
+  if (unit == 1) {
+    final mi = km / _kmPerMile;
+    return '${mi % 1 == 0 ? mi.toInt() : mi.toStringAsFixed(1)}mi';
+  }
+  return '${km % 1 == 0 ? km.toInt() : km}km';
+}
+
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key, required this.title});
   final String title;
@@ -68,6 +78,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (!mounted) return;
       ref.read(sleepDurationProvider.notifier).state = minutes;
       _restartSleepTimer(minutes);
+    });
+
+    loadDistanceUnit().then((unit) {
+      if (!mounted) return;
+      ref.read(distanceUnitProvider.notifier).state = unit;
     });
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
@@ -280,8 +295,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     });
     ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
       final l10n = AppLocalizations.of(context)!;
+      final unit = ref.read(distanceUnitProvider);
       final prefix = poi.km != null
-          ? '${poi.km! % 1 == 0 ? poi.km!.toInt() : poi.km}km：'
+          ? '${_formatDistance(poi.km!, unit)}：'
           : '';
       final title = poi.title.isEmpty ? l10n.titleNone : poi.title;
       showPoiDetailSheet(
@@ -410,10 +426,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onEditPoiText(UserPoi poi) async {
     if (!mounted) return;
+    final distanceUnit = ref.read(distanceUnitProvider);
     final data = await showDialog<_AddPoiFormData>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) => _EditPoiTextDialog(poi: poi),
+      builder: (context) => _EditPoiTextDialog(poi: poi, distanceUnit: distanceUnit),
     );
     if (data == null || !mounted) return;
 
@@ -466,10 +483,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _showDistanceInputDialog() async {
     if (!mounted) return;
+    final distanceUnit = ref.read(distanceUnitProvider);
     final data = await showDialog<_AddPoiFormData>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) => const _DistanceInputPoiDialog(),
+      builder: (context) => _DistanceInputPoiDialog(distanceUnit: distanceUnit),
     );
     if (data == null || !mounted) return;
     if (data.km == null) return;
@@ -581,11 +599,26 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
+  void _onDistanceUnitChanged(int unit) {
+    ref.read(distanceUnitProvider.notifier).state = unit;
+    saveDistanceUnit(unit);
+    final l10n = AppLocalizations.of(context)!;
+    final message =
+        unit == 0 ? l10n.distanceUnitSetToKm : l10n.distanceUnitSetToMile;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.black.withValues(alpha: 0.6),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
     final sleepDuration = ref.watch(sleepDurationProvider);
+    final distanceUnit = ref.watch(distanceUnitProvider);
 
     return Stack(
       children: [
@@ -642,6 +675,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                 onGpsLevelTap: _onGpsLevelTap,
                 sleepDuration: sleepDuration,
                 onSleepDurationChanged: _onSleepDurationChanged,
+                distanceUnit: distanceUnit,
+                onDistanceUnitChanged: _onDistanceUnitChanged,
                 onGpxImportTap: _onGpxImportTap,
                 onAddPoiTap: _onAddPoiTap,
                 hasUserPois: mapState.userPois.isNotEmpty,
@@ -781,7 +816,8 @@ class _DistanceInputRequest {
 // ---------------------------------------------------------------------------
 
 class _DistanceInputPoiDialog extends StatefulWidget {
-  const _DistanceInputPoiDialog();
+  const _DistanceInputPoiDialog({required this.distanceUnit});
+  final int distanceUnit;
 
   @override
   State<_DistanceInputPoiDialog> createState() =>
@@ -820,11 +856,13 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
   }
 
   void _onSubmit() {
-    final km = double.tryParse(_kmController.text.trim());
-    if (km == null || km < 0) {
+    final value = double.tryParse(_kmController.text.trim());
+    if (value == null || value < 0) {
       setState(() => _kmError = AppLocalizations.of(context)!.kmRequired);
       return;
     }
+    // 入力値を内部保存用の km に変換（mile の場合は miles → km）
+    final km = widget.distanceUnit == 1 ? value * _kmPerMile : value;
     setState(() => _kmError = null);
     Navigator.pop(
       context,
@@ -880,9 +918,9 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                                 fontSize: 12,
                               ),
                             )
-                          : const Text(
-                              'km',
-                              style: TextStyle(fontSize: 17),
+                          : Text(
+                              widget.distanceUnit == 1 ? 'mi' : 'km',
+                              style: const TextStyle(fontSize: 17),
                             ),
                     ),
                   ),
@@ -1118,6 +1156,7 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
 
   Widget _buildEditTab() {
     final userPois = ref.watch(mapStateProvider).userPois;
+    final distanceUnit = ref.watch(distanceUnitProvider);
     if (userPois.isEmpty) {
       return Align(
         alignment: const Alignment(0, -0.2),
@@ -1136,9 +1175,7 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
       itemCount: sorted.length,
       itemBuilder: (context, i) {
         final poi = sorted[i];
-        final kmStr = poi.km != null
-            ? (poi.km! % 1 == 0 ? '${poi.km!.toInt()}' : '${poi.km}')
-            : null;
+        final distStr = poi.km != null ? _formatDistance(poi.km!, distanceUnit) : null;
         return DecoratedBox(
           decoration: const BoxDecoration(
             border: Border(
@@ -1147,8 +1184,8 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
           ),
           child: ListTile(
             title: Text(
-              kmStr != null
-                  ? '${kmStr}km：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
+              distStr != null
+                  ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
                   : (poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title),
               style: const TextStyle(fontSize: 15),
             ),
@@ -1362,9 +1399,10 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
 // ---------------------------------------------------------------------------
 
 class _EditPoiTextDialog extends StatefulWidget {
-  const _EditPoiTextDialog({required this.poi});
+  const _EditPoiTextDialog({required this.poi, required this.distanceUnit});
 
   final UserPoi poi;
+  final int distanceUnit;
 
   @override
   State<_EditPoiTextDialog> createState() => _EditPoiTextDialogState();
@@ -1406,10 +1444,7 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final kmLabel = widget.poi.km != null
-        ? l10n.kmPoint(
-            widget.poi.km! % 1 == 0
-                ? '${widget.poi.km!.toInt()}'
-                : '${widget.poi.km}')
+        ? _formatDistance(widget.poi.km!, widget.distanceUnit)
         : l10n.offRoute;
     return Dialog(
       backgroundColor: Colors.white,

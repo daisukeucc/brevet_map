@@ -26,6 +26,8 @@ class MapScreenContent extends StatelessWidget {
     required this.onToggleLocationStream,
     required this.sleepDuration,
     required this.onSleepDurationChanged,
+    required this.distanceUnit,
+    required this.onDistanceUnitChanged,
     required this.onGpxImportTap,
     required this.onAddPoiTap,
     this.hasUserPois = false,
@@ -67,6 +69,12 @@ class MapScreenContent extends StatelessWidget {
 
   /// スリープ時間変更コールバック
   final void Function(int) onSleepDurationChanged;
+
+  /// 距離単位。0=km, 1=mile
+  final int distanceUnit;
+
+  /// 距離単位変更コールバック
+  final void Function(int) onDistanceUnitChanged;
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
@@ -142,6 +150,8 @@ class MapScreenContent extends StatelessWidget {
                               builder: (_) => _SettingsBottomSheet(
                                 sleepDuration: sleepDuration,
                                 onSleepDurationChanged: onSleepDurationChanged,
+                                distanceUnit: distanceUnit,
+                                onDistanceUnitChanged: onDistanceUnitChanged,
                                 onGpxImportTap: () {
                                   final navigator = Navigator.of(context);
                                   Future.delayed(
@@ -262,6 +272,8 @@ class _SettingsBottomSheet extends StatefulWidget {
   const _SettingsBottomSheet({
     required this.sleepDuration,
     required this.onSleepDurationChanged,
+    required this.distanceUnit,
+    required this.onDistanceUnitChanged,
     required this.onGpxImportTap,
     required this.hasUserPois,
     required this.onAddPoiTap,
@@ -269,6 +281,8 @@ class _SettingsBottomSheet extends StatefulWidget {
 
   final int sleepDuration;
   final void Function(int) onSleepDurationChanged;
+  final int distanceUnit;
+  final void Function(int) onDistanceUnitChanged;
   final VoidCallback onGpxImportTap;
   final bool hasUserPois;
   final VoidCallback onAddPoiTap;
@@ -279,11 +293,13 @@ class _SettingsBottomSheet extends StatefulWidget {
 
 class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
   late int _sleepDuration;
+  late int _distanceUnit;
 
   @override
   void initState() {
     super.initState();
     _sleepDuration = widget.sleepDuration;
+    _distanceUnit = widget.distanceUnit;
   }
 
   @override
@@ -315,8 +331,9 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             horizontalTitleGap: 8,
           ),
+          const SizedBox(height: 8),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
               children: [
                 const Icon(Icons.bedtime, color: Colors.blueGrey),
@@ -338,7 +355,79 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
               });
             },
           ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            child: Row(
+              children: [
+                const Icon(Icons.straighten, color: Colors.blueGrey),
+                const SizedBox(width: 8),
+                Text(
+                  AppLocalizations.of(context)!.distanceUnit,
+                  style: const TextStyle(fontSize: 17),
+                ),
+              ],
+            ),
+          ),
+          _DistanceUnitSelector(
+            value: _distanceUnit,
+            onChanged: (v) {
+              setState(() => _distanceUnit = v);
+              widget.onDistanceUnitChanged(v);
+              Future.delayed(const Duration(milliseconds: 400), () {
+                if (context.mounted) Navigator.pop(context);
+              });
+            },
+          ),
           const SizedBox(height: 23),
+        ],
+      ),
+    );
+  }
+}
+
+/// 距離単位ラジオボタン行
+class _DistanceUnitSelector extends StatelessWidget {
+  const _DistanceUnitSelector({
+    required this.value,
+    required this.onChanged,
+  });
+
+  final int value;
+  final void Function(int) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final options = [(0, l10n.unitKm), (1, l10n.unitMile)];
+    return Padding(
+      padding: const EdgeInsets.only(left: 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          for (int i = 0; i < options.length; i++) ...[
+            if (i > 0) const SizedBox(width: 8),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => onChanged(options[i].$1),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<int>(
+                      value: options[i].$1,
+                      groupValue: value,
+                      onChanged: (v) => onChanged(v!),
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    Text(options[i].$2, style: const TextStyle(fontSize: 17)),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

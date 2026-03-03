@@ -197,11 +197,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1 min';
+  String get sleep1min => '1min';
 
   @override
-  String get sleep5min => '5 min';
+  String get sleep5min => '5min';
 
   @override
-  String get sleep10min => '10 min';
+  String get sleep10min => '10min';
+
+  @override
+  String get distanceUnit => 'Distance unit';
+
+  @override
+  String get unitKm => 'km';
+
+  @override
+  String get unitMile => 'mile';
+
+  @override
+  String get distanceUnitSetToKm => 'Distance unit set to km';
+
+  @override
+  String get distanceUnitSetToMile => 'Distance unit set to mile';
 }

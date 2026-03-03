@@ -6,6 +6,7 @@ const _keyGpxPois = 'gpx_pois';
 const _keyMapStyleMode = 'map_style_mode';
 const _keyLocationStreamActive = 'location_stream_active';
 const _keySleepDuration = 'sleep_duration';
+const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -85,4 +86,16 @@ Future<void> saveSleepDuration(int minutes) async {
 Future<int> loadSleepDuration() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getInt(_keySleepDuration) ?? 0;
+}
+
+/// 距離単位を保存。0=km, 1=mile
+Future<void> saveDistanceUnit(int unit) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setInt(_keyDistanceUnit, unit);
+}
+
+/// 保存済みの距離単位を返す。未保存なら 0（km）
+Future<int> loadDistanceUnit() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getInt(_keyDistanceUnit) ?? 0;
 }
