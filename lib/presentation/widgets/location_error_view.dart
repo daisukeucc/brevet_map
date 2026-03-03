@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// 位置情報を取得できないときに表示する画面（設定を開くボタン付き）
 class LocationErrorView extends StatelessWidget {
   const LocationErrorView({super.key});
@@ -13,12 +15,12 @@ class LocationErrorView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('位置情報を取得できません'),
+            Text(AppLocalizations.of(context)!.locationUnavailable),
             const SizedBox(height: 16),
             TextButton.icon(
               onPressed: () => Geolocator.openAppSettings(),
               icon: const Icon(Icons.settings),
-              label: const Text('設定を開く'),
+              label: Text(AppLocalizations.of(context)!.openSettings),
             ),
           ],
         ),

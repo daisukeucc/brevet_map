@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// 現在地取得のタイムアウト（起動時・その他で待ちすぎないようにする）
 const Duration _locationTimeout = Duration(seconds: 15);
 
@@ -39,11 +41,13 @@ Future<Position?> getPositionWithPermission(
 
   if (!await Geolocator.isLocationServiceEnabled()) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l10n = AppLocalizations.of(context);
+      if (l10n == null || !context.mounted) return;
       showDialog(
         context,
-        '位置情報が無効です',
-        '位置情報サービスがオフになっています。端末の設定でオンにしてください。',
-        okText: '設定を開く',
+        l10n.locationInvalid,
+        l10n.locationServiceOff,
+        okText: l10n.openSettings,
         onOk: () {
           onOpenSettings();
           Geolocator.openLocationSettings();
@@ -60,10 +64,12 @@ Future<Position?> getPositionWithPermission(
 
   if (permission == LocationPermission.denied) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l10n = AppLocalizations.of(context);
+      if (l10n == null || !context.mounted) return;
       showDialog(
         context,
-        '位置情報の許可が必要です',
-        '位置情報の許可が拒否されました。許可しない場合は現在地を表示できません。',
+        l10n.locationPermissionRequired,
+        l10n.locationPermissionDenied,
       );
     });
     return null;
@@ -71,11 +77,13 @@ Future<Position?> getPositionWithPermission(
 
   if (permission == LocationPermission.deniedForever) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l10n = AppLocalizations.of(context);
+      if (l10n == null || !context.mounted) return;
       showDialog(
         context,
-        '位置情報の許可が必要です',
-        '位置情報の許可が「今後表示しない」になっています。アプリ設定から許可をオンにしてください。',
-        okText: '設定を開く',
+        l10n.locationPermissionRequired,
+        l10n.locationPermissionDeniedForever,
+        okText: l10n.openSettings,
         onOk: () {
           onOpenSettings();
           Geolocator.openAppSettings();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'l10n/app_localizations.dart';
 import 'presentation/screens/home_screen.dart';
 
 Future<void> main() async {
@@ -20,11 +21,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Brevet Map',
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Brevet Map'),
+      home: Builder(
+        builder: (context) => MyHomePage(
+          title: AppLocalizations.of(context)!.appTitle,
+        ),
+      ),
     );
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
@@ -127,7 +128,7 @@ class MapScreenContent extends StatelessWidget {
                       left: 16,
                       top: 24,
                       child: Tooltip(
-                        message: '設定',
+                        message: AppLocalizations.of(context)!.settings,
                         child: Material(
                           color: Colors.white,
                           elevation: 5,
@@ -198,7 +199,7 @@ class MapScreenContent extends StatelessWidget {
                       right: 16,
                       bottom: 24,
                       child: Tooltip(
-                        message: '現在地を表示',
+                        message: AppLocalizations.of(context)!.showMyLocation,
                         child: Material(
                           color: Colors.white,
                           elevation: 5,
@@ -294,9 +295,9 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
           const SizedBox(height: 13),
           ListTile(
             leading: const Icon(Icons.download, color: Colors.blueGrey),
-            title: const Text(
-              'GPXファイルをインポート',
-              style: TextStyle(fontSize: 17),
+            title: Text(
+              AppLocalizations.of(context)!.gpxImport,
+              style: const TextStyle(fontSize: 17),
             ),
             onTap: widget.onGpxImportTap,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -305,20 +306,25 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
           ListTile(
             leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
             title: Text(
-              widget.hasUserPois ? 'POIの登録・編集' : 'POIの登録',
+              widget.hasUserPois
+                  ? AppLocalizations.of(context)!.poiAddEdit
+                  : AppLocalizations.of(context)!.poiAdd,
               style: const TextStyle(fontSize: 17),
             ),
             onTap: widget.onAddPoiTap,
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             horizontalTitleGap: 8,
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [
-                Icon(Icons.bedtime, color: Colors.blueGrey),
-                SizedBox(width: 8),
-                Text('画面スリープ設定', style: TextStyle(fontSize: 17)),
+                const Icon(Icons.bedtime, color: Colors.blueGrey),
+                const SizedBox(width: 8),
+                Text(
+                  AppLocalizations.of(context)!.sleepSettings,
+                  style: const TextStyle(fontSize: 17),
+                ),
               ],
             ),
           ),
@@ -351,7 +357,13 @@ class _SleepDurationSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const options = [(0, 'OFF'), (1, '1分'), (5, '5分'), (10, '10分')];
+    final l10n = AppLocalizations.of(context)!;
+    final options = [
+      (0, l10n.sleepOff),
+      (1, l10n.sleep1min),
+      (5, l10n.sleep5min),
+      (10, l10n.sleep10min),
+    ];
     return Padding(
       padding: const EdgeInsets.only(left: 38),
       child: Row(
@@ -401,7 +413,7 @@ class _GpsLevelButton extends StatelessWidget {
     final label = isStreamAccuracyLow ? 'LOW' : 'GPS';
 
     return Tooltip(
-      message: '位置情報レベルを切り替え',
+      message: AppLocalizations.of(context)!.switchGpsLevel,
       child: Material(
         color: backgroundColor,
         elevation: 5,

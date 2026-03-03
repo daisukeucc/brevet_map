@@ -15,6 +15,7 @@ import '../../domain/services/gpx_channel_service.dart';
 import '../../domain/services/location_service.dart';
 import '../../domain/services/volume_zoom_handler.dart';
 import '../../utils/map_utils.dart';
+import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
 import '../widgets/location_error_view.dart';
 import '../widgets/map_screen_content.dart';
@@ -146,8 +147,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     saveSleepDuration(minutes);
     _restoreBrightness();
     _restartSleepTimer(minutes);
+    final l10n = AppLocalizations.of(context)!;
     final message =
-        minutes == 0 ? '画面スリープをOFFにしました' : '画面スリープを$minutes分に設定しました';
+        minutes == 0 ? l10n.sleepOffMessage : l10n.sleepSetMessage(minutes);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -205,11 +207,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (!mounted) return;
       if (status == GpxApplyStatus.parseError) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('このファイルはGPX形式ではありません')),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.gpxInvalidFormat),
+          ),
         );
       } else if (status == GpxApplyStatus.empty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('GPXにルートまたはウェイポイントが含まれていません')),
+          SnackBar(
+            content:
+                Text(AppLocalizations.of(context)!.gpxNoRouteOrWaypoint),
+          ),
         );
       }
     });
@@ -222,19 +229,23 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       builder: (context) => AlertDialog(
         shape: const RoundedRectangleBorder(),
         contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: const Text(
-          '現在のルートを上書きします',
-          style: TextStyle(fontSize: 17),
+        content: Text(
+          AppLocalizations.of(context)!.routeOverwrite,
+          style: const TextStyle(fontSize: 17),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('NG', style: TextStyle(fontSize: 17)),
+            child: Text(
+                AppLocalizations.of(context)!.ng,
+                style: const TextStyle(fontSize: 17)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('OK', style: TextStyle(fontSize: 17)),
+            child: Text(
+                AppLocalizations.of(context)!.ok,
+                style: const TextStyle(fontSize: 17)),
           ),
         ],
       ),
@@ -268,10 +279,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       showPoiDetailSheet(context, name: poi.name, description: poi.description);
     });
     ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
+      final l10n = AppLocalizations.of(context)!;
       final prefix = poi.km != null
           ? '${poi.km! % 1 == 0 ? poi.km!.toInt() : poi.km}km：'
           : '';
-      final title = poi.title.isEmpty ? '(タイトルなし)' : poi.title;
+      final title = poi.title.isEmpty ? l10n.titleNone : poi.title;
       showPoiDetailSheet(
         context,
         name: '$prefix$title',
@@ -325,22 +337,26 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Future<void> _onGpxImportTap() async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         shape: const RoundedRectangleBorder(),
         contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: const Text(
-          '現在のルートを上書きします',
-          style: TextStyle(fontSize: 17),
+        content: Text(
+          AppLocalizations.of(ctx)!.routeOverwrite,
+          style: const TextStyle(fontSize: 17),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('NG', style: TextStyle(fontSize: 17)),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(
+                AppLocalizations.of(ctx)!.ng,
+                style: const TextStyle(fontSize: 17)),
           ),
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('OK', style: TextStyle(fontSize: 17)),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+                AppLocalizations.of(ctx)!.ok,
+                style: const TextStyle(fontSize: 17)),
           ),
         ],
       ),
@@ -354,7 +370,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('GPXファイルを選択してください'),
+          content: Text(AppLocalizations.of(context)!.selectGpxFile),
           backgroundColor: Colors.black.withValues(alpha: 0.6),
         ),
       );
@@ -421,7 +437,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('POIを変更しました')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.poiUpdated)),
     );
   }
 
@@ -460,7 +476,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final routePoints = ref.read(mapStateProvider).savedRoutePoints;
     if (routePoints == null || routePoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('ルートが読み込まれていません')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.routeNotLoaded)),
       );
       return;
     }
@@ -468,7 +484,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (coord == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('指定したkm地点が見つかりません')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.kmPointNotFound)),
       );
       return;
     }
@@ -483,7 +499,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).addUserPoi(poi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('POIを登録しました')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.poiRegistered)),
     );
   }
 
@@ -513,7 +529,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).addUserPoi(poi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('POIを登録しました')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.poiRegistered)),
     );
   }
 
@@ -524,16 +540,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       builder: (context) => AlertDialog(
         shape: const RoundedRectangleBorder(),
         contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: const Text('この位置に変更する', style: TextStyle(fontSize: 17)),
+        content: Text(
+            AppLocalizations.of(context)!.changePoiPosition,
+            style: const TextStyle(fontSize: 17)),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+            child: Text(
+                AppLocalizations.of(context)!.cancel,
+                style: const TextStyle(fontSize: 17)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('変更', style: TextStyle(fontSize: 17)),
+            child: Text(
+                AppLocalizations.of(context)!.change,
+                style: const TextStyle(fontSize: 17)),
           ),
         ],
       ),
@@ -555,7 +577,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('POIの位置を変更しました')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.poiPositionChanged)),
     );
   }
 
@@ -576,7 +598,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               }
 
               if (snapshot.hasError) {
-                return const Center(child: Text('位置情報の取得に失敗しました'));
+                return Center(
+                    child: Text(
+                        AppLocalizations.of(context)!.locationFailed));
               }
 
               if (!snapshot.hasData || snapshot.data == null) {
@@ -652,10 +676,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                     ),
                     child: Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'マーカーをドラッグして位置を変更して下さい',
-                            style: TextStyle(
+                            AppLocalizations.of(context)!.dragMarkerHint,
+                            style: const TextStyle(
                               fontSize: 15,
                               height: 1.5,
                               color: Colors.white60,
@@ -665,8 +689,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                         ),
                         TextButton(
                           onPressed: _onCancelDragMode,
-                          child: const Text(
-                            'キャンセル',
+                            child: Text(
+                            AppLocalizations.of(context)!.cancel,
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.white,
@@ -705,10 +729,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                     ),
                     child: Row(
                       children: [
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'POIを登録したいポイントを長押しして下さい',
-                            style: TextStyle(
+                            AppLocalizations.of(context)!.longPressPoiHint,
+                            style: const TextStyle(
                               fontSize: 15,
                               height: 1.5,
                               color: Colors.white60,
@@ -718,8 +742,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                         ),
                         TextButton(
                           onPressed: _onCancelMapTapAddMode,
-                          child: const Text(
-                            'キャンセル',
+                            child: Text(
+                            AppLocalizations.of(context)!.cancel,
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.white,
@@ -798,7 +822,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
   void _onSubmit() {
     final km = double.tryParse(_kmController.text.trim());
     if (km == null || km < 0) {
-      setState(() => _kmError = '距離の入力は必須です');
+      setState(() => _kmError = AppLocalizations.of(context)!.kmRequired);
       return;
     }
     setState(() => _kmError = null);
@@ -857,7 +881,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                               ),
                             )
                           : const Text(
-                              'km地点にPOIを登録',
+                              'km',
                               style: TextStyle(fontSize: 17),
                             ),
                     ),
@@ -865,7 +889,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                 ],
               ),
               const SizedBox(height: 28),
-              const Text('POIタイプ', style: TextStyle(fontSize: 15)),
+              Text(AppLocalizations.of(context)!.poiType, style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -885,7 +909,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const Text('チェックポイント', style: TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.checkpoint, style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -907,15 +931,15 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const Text('インフォメーション', style: TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.information, style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'タイトル',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.title,
                   isDense: true,
                 ),
                 style: const TextStyle(fontSize: 17),
@@ -923,8 +947,8 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _bodyController,
-                decoration: const InputDecoration(
-                  labelText: '本文',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.body,
                   isDense: true,
                 ),
                 style: const TextStyle(fontSize: 17),
@@ -937,11 +961,15 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+                    child: Text(
+                        AppLocalizations.of(context)!.cancel,
+                        style: const TextStyle(fontSize: 17)),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: const Text('登録', style: TextStyle(fontSize: 17)),
+                    child: Text(
+                        AppLocalizations.of(context)!.register,
+                        style: const TextStyle(fontSize: 17)),
                   ),
                 ],
               ),
@@ -1008,12 +1036,12 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ListTile(
-            title: const Text('距離入力でPOIを登録'),
+            title: Text(AppLocalizations.of(context)!.poiAddByDistance),
             contentPadding: EdgeInsets.zero,
             onTap: () => Navigator.pop(context, const _DistanceInputRequest()),
           ),
           ListTile(
-            title: const Text('地図タップでPOIを登録'),
+            title: Text(AppLocalizations.of(context)!.poiAddByMapTap),
             contentPadding: EdgeInsets.zero,
             onTap: () => Navigator.pop(context, const _MapTapAddRequest()),
           ),
@@ -1032,11 +1060,11 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: const Text('POIのタイトル・本文を変更'),
+              title: Text(AppLocalizations.of(context)!.changePoiTextTitle),
               onTap: () => Navigator.pop(context, 0),
             ),
             ListTile(
-              title: const Text('POIの位置を変更'),
+              title: Text(AppLocalizations.of(context)!.changePoiPositionTitle),
               onTap: () => Navigator.pop(context, 1),
             ),
           ],
@@ -1057,19 +1085,19 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
       builder: (context) => AlertDialog(
         shape: const RoundedRectangleBorder(),
         contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: const Text(
-          'このPOIを削除しますか？',
-          style: TextStyle(fontSize: 17),
+        content: Text(
+          AppLocalizations.of(context)!.deletePoiConfirm,
+          style: const TextStyle(fontSize: 17),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+            child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(fontSize: 17)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('削除', style: TextStyle(fontSize: 17)),
+            child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(fontSize: 17)),
           ),
         ],
       ),
@@ -1080,7 +1108,7 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('POIを削除しました')),
+      SnackBar(content: Text(AppLocalizations.of(context)!.poiDeleted)),
     );
 
     if (ref.read(mapStateProvider).userPois.isEmpty) {
@@ -1094,7 +1122,7 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
       return Align(
         alignment: const Alignment(0, -0.2),
         child: Text(
-          'POIの登録はありません',
+          AppLocalizations.of(context)!.noPoiRegistered,
           style: TextStyle(
             fontSize: 15,
             color: Colors.grey.shade600,
@@ -1120,8 +1148,8 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
           child: ListTile(
             title: Text(
               kmStr != null
-                  ? '${kmStr}km：${poi.title.isEmpty ? '(タイトルなし)' : poi.title}'
-                  : (poi.title.isEmpty ? '(タイトルなし)' : poi.title),
+                  ? '${kmStr}km：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
+                  : (poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title),
               style: const TextStyle(fontSize: 15),
             ),
             trailing: Row(
@@ -1134,7 +1162,7 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                   ),
-                  child: const Text('編集'),
+                  child: Text(AppLocalizations.of(context)!.edit),
                 ),
                 const SizedBox(width: 4),
                 TextButton(
@@ -1144,7 +1172,7 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
                   ),
-                  child: const Text('削除'),
+                  child: Text(AppLocalizations.of(context)!.delete),
                 ),
               ],
             ),
@@ -1168,9 +1196,9 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
             TabBar(
               controller: _tabController,
               indicatorSize: TabBarIndicatorSize.tab,
-              tabs: const [
-                Tab(text: 'POI 登録'),
-                Tab(text: 'POI 編集 / 削除'),
+              tabs: [
+                Tab(text: AppLocalizations.of(context)!.poiTabAdd),
+                Tab(text: AppLocalizations.of(context)!.poiTabEdit),
               ],
             ),
             Flexible(
@@ -1236,12 +1264,12 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'POIを登録',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.poiAdd,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              const Text('POIタイプ', style: TextStyle(fontSize: 15)),
+              Text(AppLocalizations.of(context)!.poiType, style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -1261,7 +1289,7 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const Text('チェックポイント', style: TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.checkpoint, style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -1283,15 +1311,15 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const Text('インフォメーション', style: TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.information, style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'タイトル',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.title,
                   isDense: true,
                 ),
                 style: const TextStyle(fontSize: 17),
@@ -1299,8 +1327,8 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _bodyController,
-                decoration: const InputDecoration(
-                  labelText: '本文',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.body,
                   isDense: true,
                 ),
                 style: const TextStyle(fontSize: 17),
@@ -1313,11 +1341,11 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(fontSize: 17)),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: const Text('登録', style: TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.register, style: const TextStyle(fontSize: 17)),
                   ),
                 ],
               ),
@@ -1376,9 +1404,13 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final kmLabel = widget.poi.km != null
-        ? '${widget.poi.km! % 1 == 0 ? widget.poi.km!.toInt() : widget.poi.km}km地点'
-        : 'ルート外';
+        ? l10n.kmPoint(
+            widget.poi.km! % 1 == 0
+                ? '${widget.poi.km!.toInt()}'
+                : '${widget.poi.km}')
+        : l10n.offRoute;
     return Dialog(
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(),
@@ -1389,9 +1421,9 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'POIのタイトル・本文を変更',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                AppLocalizations.of(context)!.changePoiText,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               Row(
@@ -1404,7 +1436,7 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                 ],
               ),
               const SizedBox(height: 28),
-              const Text('POIタイプ', style: TextStyle(fontSize: 15)),
+              Text(AppLocalizations.of(context)!.poiType, style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -1424,7 +1456,7 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const Text('チェックポイント', style: TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.checkpoint, style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -1446,15 +1478,15 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    const Text('インフォメーション', style: TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.information, style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'タイトル',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.title,
                   isDense: true,
                 ),
                 style: const TextStyle(fontSize: 17),
@@ -1462,8 +1494,8 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
               const SizedBox(height: 12),
               TextField(
                 controller: _bodyController,
-                decoration: const InputDecoration(
-                  labelText: '本文',
+                decoration: InputDecoration(
+                  labelText: AppLocalizations.of(context)!.body,
                   isDense: true,
                 ),
                 style: const TextStyle(fontSize: 17),
@@ -1476,11 +1508,11 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(fontSize: 17)),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: const Text('変更', style: TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.change, style: const TextStyle(fontSize: 17)),
                   ),
                 ],
               ),

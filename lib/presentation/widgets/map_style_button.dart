@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// 地図モード切替ボタン（左上の丸ボタン）。0=通常, 2=ダーク
 class MapStyleButton extends StatelessWidget {
   const MapStyleButton({
@@ -15,7 +17,8 @@ class MapStyleButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = mapStyleMode == 2;
-    final message = isDark ? '地図を通常表示' : '地図をダーク表示';
+    final l10n = AppLocalizations.of(context)!;
+    final message = isDark ? l10n.mapStyleNormal : l10n.mapStyleDark;
     final backgroundColor = isDark ? Colors.blueGrey : Colors.white;
     final iconColor = isDark ? Colors.white : Colors.blueGrey;
     final shadowColor = Colors.black26;
