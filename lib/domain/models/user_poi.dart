@@ -4,7 +4,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 class UserPoi {
   const UserPoi({
     required this.type,
-    required this.km,
+    this.km,
     required this.title,
     required this.body,
     required this.lat,
@@ -14,8 +14,8 @@ class UserPoi {
   /// 0=チェックポイント, 1=インフォメーション
   final int type;
 
-  /// 追加時に入力した km 値
-  final double km;
+  /// 追加時に入力した km 値。地図タップ追加時は null。
+  final double? km;
 
   final String title;
   final String body;
@@ -37,7 +37,7 @@ class UserPoi {
 
   static UserPoi fromJson(Map<String, dynamic> json) => UserPoi(
         type: json['type'] as int,
-        km: (json['km'] as num).toDouble(),
+        km: json['km'] != null ? (json['km'] as num).toDouble() : null,
         title: json['title'] as String? ?? '',
         body: json['body'] as String? ?? '',
         lat: (json['lat'] as num).toDouble(),

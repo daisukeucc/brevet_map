@@ -253,11 +253,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       showPoiDetailSheet(context, name: poi.name, description: poi.description);
     });
     ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
-      final kmStr = poi.km % 1 == 0 ? '${poi.km.toInt()}' : '${poi.km}';
+      final prefix = poi.km != null
+          ? '${poi.km! % 1 == 0 ? poi.km!.toInt() : poi.km}km：'
+          : '';
       final title = poi.title.isEmpty ? '(タイトルなし)' : poi.title;
       showPoiDetailSheet(
         context,
-        name: '${kmStr}km：$title',
+        name: '$prefix$title',
         description: poi.body,
       );
     });
@@ -368,6 +370,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (result is! _AddPoiFormData) return;
 
     final data = result;
+    if (data.km == null) return;
     final routePoints = ref.read(mapStateProvider).savedRoutePoints;
     if (routePoints == null || routePoints.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -376,7 +379,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       return;
     }
 
-    final coord = coordAtKm(routePoints, data.km);
+    final coord = coordAtKm(routePoints, data.km!);
     if (coord == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -410,10 +413,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (data == null || !mounted) return;
 
     LatLng? coord;
-    if (data.km != poi.km) {
+    final kmChanged = data.km != poi.km;
+    if (kmChanged && data.km != null) {
       final routePoints = ref.read(mapStateProvider).savedRoutePoints;
       if (routePoints != null && routePoints.isNotEmpty) {
-        coord = coordAtKm(routePoints, data.km);
+        coord = coordAtKm(routePoints, data.km!);
       }
     }
 
@@ -631,12 +635,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
 class _AddPoiFormData {
   const _AddPoiFormData({
-    required this.km,
+    this.km,
     required this.type,
     required this.title,
     required this.body,
   });
-  final double km;
+  final double? km;
   final int type;
   final String title;
   final String body;
@@ -903,12 +907,16 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
 
   Widget _buildEditTab() {
     final userPois = ref.watch(mapStateProvider).userPois;
-    final sorted = [...userPois]..sort((a, b) => a.km.compareTo(b.km));
+    final sorted = [...userPois]
+      ..sort((a, b) =>
+          (a.km ?? double.infinity).compareTo(b.km ?? double.infinity));
     return ListView.builder(
       itemCount: sorted.length,
       itemBuilder: (context, i) {
         final poi = sorted[i];
-        final kmStr = poi.km % 1 == 0 ? '${poi.km.toInt()}' : '${poi.km}';
+        final kmStr = poi.km != null
+            ? (poi.km! % 1 == 0 ? '${poi.km!.toInt()}' : '${poi.km}')
+            : null;
         return DecoratedBox(
           decoration: const BoxDecoration(
             border: Border(
@@ -917,7 +925,9 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
           ),
           child: ListTile(
             title: Text(
-              '${kmStr}km：${poi.title.isEmpty ? '(タイトルなし)' : poi.title}',
+              kmStr != null
+                  ? '${kmStr}km：${poi.title.isEmpty ? '(タイトルなし)' : poi.title}'
+                  : (poi.title.isEmpty ? '(タイトルなし)' : poi.title),
               style: const TextStyle(fontSize: 15),
             ),
             trailing: Row(
@@ -1054,9 +1064,9 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final kmStr = widget.poi.km % 1 == 0
-        ? '${widget.poi.km.toInt()}'
-        : '${widget.poi.km}';
+    final kmLabel = widget.poi.km != null
+        ? '${widget.poi.km! % 1 == 0 ? widget.poi.km!.toInt() : widget.poi.km}km地点'
+        : 'ルート外';
     return Dialog(
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(),
@@ -1076,7 +1086,7 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    '${kmStr}km地点',
+                    kmLabel,
                     style: const TextStyle(fontSize: 17),
                   ),
                 ],
