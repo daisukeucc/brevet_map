@@ -13,6 +13,7 @@ import '../../domain/services/route_animation_runner.dart';
 import '../../domain/services/route_fetch_service.dart';
 import '../../domain/services/route_marker_service.dart';
 import '../../utils/map_utils.dart';
+import 'app_settings_providers.dart';
 
 /// GPXインポートの処理結果
 enum GpxApplyStatus { success, empty, parseError }
@@ -323,6 +324,12 @@ class MapStateNotifier extends Notifier<MapState> {
     await _refreshRouteMarkers(routePoints);
   }
 
+  /// 距離単位変更時にマーカーを再構築する
+  Future<void> refreshMarkersForUnitChange() async {
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
   /// 既存のユーザー POI を新しい内容で上書きして保存する
   Future<void> updateUserPoi(UserPoi oldPoi, UserPoi newPoi) async {
     final index = state.userPois.indexWhere(
@@ -342,6 +349,7 @@ class MapStateNotifier extends Notifier<MapState> {
   Future<void> _refreshRouteMarkers(List<LatLng> routePoints) async {
     final onPoiTap = _onPoiTap ?? (_) {};
     final onUserPoiTap = _onUserPoiTap;
+    final distanceUnit = ref.read(distanceUnitProvider);
     final markers = await buildRouteMarkers(
       routePoints: routePoints,
       pois: state.gpxPois,
@@ -351,6 +359,7 @@ class MapStateNotifier extends Notifier<MapState> {
       zoomLevel: state.savedZoomLevel,
       draggingPoi: _draggingPoi,
       onPoiDragEnd: _onPoiDragEnd,
+      distanceUnit: distanceUnit,
     );
     state = state.copyWith(
       routeMarkers: markers,

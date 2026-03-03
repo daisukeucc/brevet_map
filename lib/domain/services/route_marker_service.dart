@@ -9,10 +9,19 @@ import 'marker_icon_service.dart';
 /// 距離マーカーを表示するズームレベルの閾値。この値以上で拡大しているときに表示する。
 const double distanceMarkerZoomThreshold = 9.0;
 
+/// 50km をメートルに換算
+const double _interval50kmMeters = 50000.0;
+
+/// 50 mile をメートルに換算 (1 mile = 1609.344 m)
+const double _interval50mileMeters = 50 * 1609.344;
+
+const double _kmPerMile = 1.609344;
+
 /// スタート・ゴール・POI の [Marker] セットを組み立てる。
 /// [zoomLevel] を渡すと、[distanceMarkerZoomThreshold] 以上の場合のみ距離マーカーを表示する。
 /// 距離マーカーはアイコン上に「50km」「100km」等のラベルを描画する。
 /// [onPoiTap] は POI マーカータップ時に呼ばれる（例: ボトムシート表示）。
+/// [distanceUnit] 0=km（50km間隔でNkm表示）, 1=mile（50mile間隔でNmi表示）
 Future<Set<Marker>> buildRouteMarkers({
   required List<LatLng> routePoints,
   required List<GpxPoi> pois,
@@ -22,6 +31,7 @@ Future<Set<Marker>> buildRouteMarkers({
   double? zoomLevel,
   UserPoi? draggingPoi,
   void Function(LatLng)? onPoiDragEnd,
+  int distanceUnit = 0,
 }) async {
   final showDistanceMarkers =
       zoomLevel == null || zoomLevel >= distanceMarkerZoomThreshold;
@@ -73,14 +83,20 @@ Future<Set<Marker>> buildRouteMarkers({
     ));
 
     if (showDistanceMarkers) {
+      final intervalMeters =
+          distanceUnit == 1 ? _interval50mileMeters : _interval50kmMeters;
       final distanceList =
-          distanceMarkersAlongTrack(routePoints, intervalMeters: 50000);
-      for (final m in distanceList) {
-        final label = '${m.distanceKm.toInt()}km';
+          distanceMarkersAlongTrack(routePoints, intervalMeters: intervalMeters);
+      for (var i = 0; i < distanceList.length; i++) {
+        final m = distanceList[i];
+        final label = distanceUnit == 1
+            ? '${50 * (i + 1)}mi'
+            : '${m.distanceKm.toInt()}km';
+        final idSuffix = distanceUnit == 1 ? 50 * (i + 1) : m.distanceKm.toInt();
         try {
           final icon = await createDistanceMarkerIcon(label);
           markers.add(Marker(
-            markerId: MarkerId('km_${m.distanceKm.toInt()}'),
+            markerId: MarkerId('dist_${distanceUnit}_$idSuffix'),
             position: m.position,
             icon: icon,
             anchor: const Offset(0.25, 0.25),
@@ -102,7 +118,7 @@ Future<Set<Marker>> buildRouteMarkers({
         position: poi.position,
         icon: icon,
         anchor: const Offset(0.25, 0.25),
-        zIndex: 0,
+        zIndex: 1,
         onTap: () => onPoiTap(poi),
       ));
     }
@@ -122,7 +138,7 @@ Future<Set<Marker>> buildRouteMarkers({
         position: poi.position,
         icon: icon,
         anchor: const Offset(0.25, 0.25),
-        zIndex: isDragging ? 10 : 0,
+        zIndex: isDragging ? 10 : 1,
         draggable: isDragging,
         onDragEnd: isDragging ? (newPos) => onPoiDragEnd?.call(newPos) : null,
         onTap: isDragging ? null : () => onUserPoiTap?.call(poi),

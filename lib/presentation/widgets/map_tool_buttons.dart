@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// 地図上のツールボタン群
 class MapToolButtons extends StatelessWidget {
   const MapToolButtons({
@@ -12,7 +14,7 @@ class MapToolButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _CircleIconButton(
-      tooltip: 'ルート全体を表示',
+      tooltip: AppLocalizations.of(context)!.showFullRoute,
       icon: Icons.zoom_out_map,
       onTap: onRouteBoundsTap,
     );
