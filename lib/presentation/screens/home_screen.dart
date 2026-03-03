@@ -253,8 +253,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       showPoiDetailSheet(context, name: poi.name, description: poi.description);
     });
     ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
-      final kmStr =
-          poi.km % 1 == 0 ? '${poi.km.toInt()}' : '${poi.km}';
+      final kmStr = poi.km % 1 == 0 ? '${poi.km.toInt()}' : '${poi.km}';
       final title = poi.title.isEmpty ? '(タイトルなし)' : poi.title;
       showPoiDetailSheet(
         context,
@@ -918,7 +917,7 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
           ),
           child: ListTile(
             title: Text(
-              '$kmStr km：${poi.title.isEmpty ? '(タイトルなし)' : poi.title}',
+              '${kmStr}km：${poi.title.isEmpty ? '(タイトルなし)' : poi.title}',
               style: const TextStyle(fontSize: 15),
             ),
             trailing: Row(
@@ -928,7 +927,8 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
                   onPressed: () => _onEditTap(poi),
                   style: TextButton.styleFrom(
                     minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
                   child: const Text('編集'),
                 ),
@@ -937,7 +937,8 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
                   onPressed: () => _onDeleteTap(poi),
                   style: TextButton.styleFrom(
                     minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                   ),
                   child: const Text('削除'),
                 ),
@@ -977,7 +978,7 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 540),
+        constraints: const BoxConstraints(maxHeight: 470),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1021,41 +1022,29 @@ class _EditPoiTextDialog extends StatefulWidget {
 
 class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
   late int _poiType;
-  late final TextEditingController _kmController;
   late final TextEditingController _titleController;
   late final TextEditingController _bodyController;
-  String? _kmError;
 
   @override
   void initState() {
     super.initState();
     _poiType = widget.poi.type;
-    final km = widget.poi.km;
-    final kmStr = km % 1 == 0 ? '${km.toInt()}' : '$km';
-    _kmController = TextEditingController(text: kmStr);
     _titleController = TextEditingController(text: widget.poi.title);
     _bodyController = TextEditingController(text: widget.poi.body);
   }
 
   @override
   void dispose() {
-    _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
     super.dispose();
   }
 
   void _onSubmit() {
-    final km = double.tryParse(_kmController.text.trim());
-    if (km == null || km < 0) {
-      setState(() => _kmError = '有効なkm値を入力してください');
-      return;
-    }
-    setState(() => _kmError = null);
     Navigator.pop(
       context,
       _AddPoiFormData(
-        km: km,
+        km: widget.poi.km,
         type: _poiType,
         title: _titleController.text.trim(),
         body: _bodyController.text.trim(),
@@ -1065,6 +1054,9 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final kmStr = widget.poi.km % 1 == 0
+        ? '${widget.poi.km.toInt()}'
+        : '${widget.poi.km}';
     return Dialog(
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(),
@@ -1083,23 +1075,10 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(
-                    width: 72,
-                    child: TextField(
-                      controller: _kmController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        isDense: true,
-                        errorText: _kmError,
-                        errorMaxLines: 2,
-                      ),
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(fontSize: 17),
-                    ),
+                  Text(
+                    '${kmStr}km地点',
+                    style: const TextStyle(fontSize: 17),
                   ),
-                  const SizedBox(width: 8),
-                  const Text('km地点', style: TextStyle(fontSize: 17)),
                 ],
               ),
               const SizedBox(height: 28),
