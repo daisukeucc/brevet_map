@@ -28,6 +28,8 @@ class MapScreenContent extends StatelessWidget {
     required this.onGpxImportTap,
     required this.onAddPoiTap,
     this.isDragMode = false,
+    this.isMapTapAddMode = false,
+    this.onMapLongPress,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -73,6 +75,12 @@ class MapScreenContent extends StatelessWidget {
   /// true のときマーカードラッグ編集モード（全ボタンを非表示にする）
   final bool isDragMode;
 
+  /// true のとき地図タップでPOI追加モード（全ボタンを非表示にする）
+  final bool isMapTapAddMode;
+
+  /// 地図長押し時コールバック（地図タップ追加モード時）
+  final void Function(LatLng)? onMapLongPress;
+
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
 
@@ -99,8 +107,9 @@ class MapScreenContent extends StatelessWidget {
                     markers: markers,
                     onCameraIdle: onCameraIdle,
                     onMapCreated: onMapCreated,
+                    onLongPress: onMapLongPress,
                   ),
-                  if (!isDragMode)
+                  if (!isDragMode && !isMapTapAddMode)
                     Positioned(
                       left: 16,
                       bottom: 24,
@@ -109,7 +118,7 @@ class MapScreenContent extends StatelessWidget {
                         onTap: onMapStyleTap,
                       ),
                     ),
-                  if (!isStreamActive && !isDragMode)
+                  if (!isStreamActive && !isDragMode && !isMapTapAddMode)
                     Positioned(
                       left: 16,
                       top: 24,
@@ -164,7 +173,7 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (!isDragMode)
+                  if (!isDragMode && !isMapTapAddMode)
                     Positioned(
                       left: 0,
                       right: 0,
@@ -173,13 +182,13 @@ class MapScreenContent extends StatelessWidget {
                         child: BatteryIndicator(),
                       ),
                     ),
-                  if (!isDragMode)
+                  if (!isDragMode && !isMapTapAddMode)
                     Positioned(
                       right: 16,
                       top: 24,
                       child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
                     ),
-                  if (showMyLocationButton && !isDragMode)
+                  if (showMyLocationButton && !isDragMode && !isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
@@ -207,7 +216,7 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isStreamActive && onGpsLevelTap != null && !isDragMode)
+                  if (isStreamActive && onGpsLevelTap != null && !isDragMode && !isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
@@ -222,9 +231,9 @@ class MapScreenContent extends StatelessWidget {
             ),
           ),
           AbsorbPointer(
-            absorbing: isDragMode,
+            absorbing: isDragMode || isMapTapAddMode,
             child: Opacity(
-              opacity: isDragMode ? 0.0 : 1.0,
+              opacity: (isDragMode || isMapTapAddMode) ? 0.0 : 1.0,
               child: LocationBottomBar(
                 isStreamActive: isStreamActive,
                 onTap: onToggleLocationStream,

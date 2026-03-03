@@ -34,6 +34,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool _expectingReturnFromSettings = false;
   double _lastBearing = 0.0;
   bool _isDragMode = false;
+  bool _isMapTapAddMode = false;
 
   Timer? _sleepTimer;
   bool _isScreenDimmed = false;
@@ -352,6 +353,36 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onAddPoiTap() async {
     if (!mounted) return;
+    final choice = await showDialog<int>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        title: const Text('POIを追加'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text('距離を入力でPOIを追加'),
+              contentPadding: EdgeInsets.zero,
+              onTap: () => Navigator.pop(context, 0),
+            ),
+            ListTile(
+              title: const Text('地図タップでPOIを追加'),
+              contentPadding: EdgeInsets.zero,
+              onTap: () => Navigator.pop(context, 1),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (choice == null || !mounted) return;
+
+    if (choice == 1) {
+      _startMapTapAddMode();
+      return;
+    }
+
     final result = await showDialog<Object>(
       context: context,
       barrierColor: Colors.black54,
@@ -453,6 +484,40 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).stopPoiDrag();
     if (!mounted) return;
     setState(() => _isDragMode = false);
+  }
+
+  void _startMapTapAddMode() {
+    setState(() => _isMapTapAddMode = true);
+  }
+
+  Future<void> _onCancelMapTapAddMode() async {
+    if (!mounted) return;
+    setState(() => _isMapTapAddMode = false);
+  }
+
+  Future<void> _onMapLongPress(LatLng position) async {
+    if (!_isMapTapAddMode || !mounted) return;
+    final data = await showDialog<_AddPoiFormData>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => const _MapTapPoiAddDialog(),
+    );
+    if (!mounted) return;
+    setState(() => _isMapTapAddMode = false);
+    if (data == null) return;
+    final poi = UserPoi(
+      type: data.type,
+      km: null,
+      title: data.title,
+      body: data.body,
+      lat: position.latitude,
+      lng: position.longitude,
+    );
+    await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('POIを追加しました')),
+    );
   }
 
   Future<void> _onPoiDragEnd(UserPoi poi, LatLng newLatLng) async {
@@ -560,6 +625,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                 onAddPoiTap: _onAddPoiTap,
                 onUserInteraction: _onUserInteraction,
                 isDragMode: _isDragMode,
+                isMapTapAddMode: _isMapTapAddMode,
+                onMapLongPress: _isMapTapAddMode ? _onMapLongPress : null,
               );
             },
           ),
@@ -600,6 +667,59 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                         ),
                         TextButton(
                           onPressed: _onCancelDragMode,
+                          child: const Text(
+                            'キャンセル',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.white,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+        if (_isMapTapAddMode) ...[
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: ColoredBox(color: Color(0x66000000)),
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: ColoredBox(
+              color: Colors.black.withValues(alpha: 0.6),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 80,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'POIを追加したいポイントを長押しして下さい',
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.5,
+                              color: Colors.white60,
+                              decoration: TextDecoration.none,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _onCancelMapTapAddMode,
                           child: const Text(
                             'キャンセル',
                             style: TextStyle(
@@ -1039,6 +1159,146 @@ class _AddPoiDialogState extends ConsumerState<_AddPoiDialog>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 地図タップでPOI追加ダイアログ（km入力なし）
+// ---------------------------------------------------------------------------
+
+class _MapTapPoiAddDialog extends StatefulWidget {
+  const _MapTapPoiAddDialog();
+
+  @override
+  State<_MapTapPoiAddDialog> createState() => _MapTapPoiAddDialogState();
+}
+
+class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
+  int _poiType = 0;
+  final _titleController = TextEditingController();
+  final _bodyController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _bodyController.dispose();
+    super.dispose();
+  }
+
+  void _onSubmit() {
+    Navigator.pop(
+      context,
+      _AddPoiFormData(
+        km: null,
+        type: _poiType,
+        title: _titleController.text.trim(),
+        body: _bodyController.text.trim(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text(
+                'POIを追加',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 20),
+              const Text('POIタイプ', style: TextStyle(fontSize: 15)),
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _poiType = 0);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<int>(
+                      value: 0,
+                      groupValue: _poiType,
+                      onChanged: (v) {
+                        FocusScope.of(context).unfocus();
+                        setState(() => _poiType = v!);
+                      },
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    const Text('チェックポイント', style: TextStyle(fontSize: 17)),
+                  ],
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  FocusScope.of(context).unfocus();
+                  setState(() => _poiType = 1);
+                },
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<int>(
+                      value: 1,
+                      groupValue: _poiType,
+                      onChanged: (v) {
+                        FocusScope.of(context).unfocus();
+                        setState(() => _poiType = v!);
+                      },
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    const Text('インフォメーション', style: TextStyle(fontSize: 17)),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _titleController,
+                decoration: const InputDecoration(
+                  labelText: 'タイトル',
+                  isDense: true,
+                ),
+                style: const TextStyle(fontSize: 17),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _bodyController,
+                decoration: const InputDecoration(
+                  labelText: '本文',
+                  isDense: true,
+                ),
+                style: const TextStyle(fontSize: 17),
+                maxLines: 3,
+                minLines: 3,
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('キャンセル', style: TextStyle(fontSize: 17)),
+                  ),
+                  TextButton(
+                    onPressed: _onSubmit,
+                    child: const Text('追加', style: TextStyle(fontSize: 17)),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
