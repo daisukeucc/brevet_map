@@ -6,6 +6,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../constants/map_styles.dart';
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/first_launch_repository.dart';
+import '../../data/repositories/user_poi_repository.dart';
+import '../../domain/models/user_poi.dart';
 import '../../domain/services/gpx_import_service.dart';
 import '../../domain/services/route_animation_runner.dart';
 import '../../domain/services/route_fetch_service.dart';
@@ -23,6 +25,7 @@ class MapState {
     this.mapStyleMode = 0,
     this.savedRoutePoints,
     this.gpxPois = const [],
+    this.userPois = const [],
     this.fullRoutePoints,
     this.savedZoomLevel,
     this.hasStartedInitialRouteFetch = false,
@@ -38,6 +41,9 @@ class MapState {
 
   final List<LatLng>? savedRoutePoints;
   final List<GpxPoi> gpxPois;
+
+  /// ユーザーが手動で登録した POI
+  final List<UserPoi> userPois;
 
   /// アニメーション用フルルート（animateToRouteBounds にも使う）
   final List<LatLng>? fullRoutePoints;
@@ -58,6 +64,7 @@ class MapState {
     int? mapStyleMode,
     List<LatLng>? savedRoutePoints,
     List<GpxPoi>? gpxPois,
+    List<UserPoi>? userPois,
     List<LatLng>? fullRoutePoints,
     double? savedZoomLevel,
     bool? hasStartedInitialRouteFetch,
@@ -75,6 +82,7 @@ class MapState {
           ? null
           : (savedRoutePoints ?? this.savedRoutePoints),
       gpxPois: gpxPois ?? this.gpxPois,
+      userPois: userPois ?? this.userPois,
       fullRoutePoints: clearFullRoutePoints
           ? null
           : (fullRoutePoints ?? this.fullRoutePoints),
@@ -98,25 +106,52 @@ class MapStateNotifier extends Notifier<MapState> {
 
   // POIタップ時のコールバック。onMapCreated 後に Widget から設定される
   void Function(GpxPoi)? _onPoiTap;
+  void Function(UserPoi)? _onUserPoiTap;
+
+  // ドラッグ編集中のユーザー POI
+  UserPoi? _draggingPoi;
+  void Function(LatLng)? _onPoiDragEnd;
 
   @override
   MapState build() => const MapState();
 
-  /// Widget 側の POI タップハンドラを登録する（showPoiDetailSheet を呼ぶ）
+  /// Widget 側の GPX POI タップハンドラを登録する
   void setPoiTapHandler(void Function(GpxPoi) handler) {
     _onPoiTap = handler;
   }
 
+  /// Widget 側のユーザー POI タップハンドラを登録する
+  void setUserPoiTapHandler(void Function(UserPoi) handler) {
+    _onUserPoiTap = handler;
+  }
+
   /// 起動時: 保存済みルートと POI を読み込む（初回起動時はスキップ）
   Future<void> loadSavedRouteIfNeeded() async {
+    final savedUserPois = await loadUserPois();
     final isFirst = await isFirstLaunch();
-    if (isFirst) return;
+    if (isFirst) {
+      if (savedUserPois.isNotEmpty) {
+        state = state.copyWith(userPois: savedUserPois);
+      }
+      return;
+    }
     final result = await loadSavedRouteWithPois();
     state = state.copyWith(
-      savedRoutePoints:
-          (result.points != null && result.points!.isNotEmpty) ? result.points : null,
+      savedRoutePoints: (result.points != null && result.points!.isNotEmpty)
+          ? result.points
+          : null,
       gpxPois: result.pois,
+      userPois: savedUserPois,
     );
+  }
+
+  /// ユーザー POI を登録して保存し、マーカーを再構築する
+  Future<void> addUserPoi(UserPoi poi) async {
+    final updated = [...state.userPois, poi];
+    await saveUserPois(updated);
+    state = state.copyWith(userPois: updated);
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
   }
 
   /// SharedPreferences から保存済みマップスタイルを読み込み、state と controller に適用する
@@ -177,13 +212,18 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     if (result.isEmpty) return GpxApplyStatus.empty;
 
+    await saveUserPois([]);
+
     state = state.copyWith(
       savedRoutePoints:
           result.trackPoints.isNotEmpty ? result.trackPoints : null,
       clearSavedRoutePoints: result.trackPoints.isEmpty,
       gpxPois: result.waypoints,
+      userPois: const [],
       hasStartedInitialRouteFetch: true,
     );
+
+    await stopPoiDrag();
 
     if (result.trackPoints.isNotEmpty) {
       _routeAnimationRunner.cancel();
@@ -253,16 +293,64 @@ class MapStateNotifier extends Notifier<MapState> {
     _routeAnimationRunner.cancel();
   }
 
+  /// 指定した POI をドラッグ可能にする（位置編集モード開始）
+  Future<void> startPoiDrag(
+      UserPoi poi, void Function(LatLng) onDragEnd) async {
+    _draggingPoi = poi;
+    _onPoiDragEnd = onDragEnd;
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
+  /// ドラッグ編集モードを終了し、マーカーを通常に戻す
+  Future<void> stopPoiDrag() async {
+    _draggingPoi = null;
+    _onPoiDragEnd = null;
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
+  /// ユーザー POI を削除して保存し、マーカーを再構築する
+  Future<void> deleteUserPoi(UserPoi poi) async {
+    final index = state.userPois.indexWhere(
+      (p) => p.lat == poi.lat && p.lng == poi.lng && p.km == poi.km,
+    );
+    if (index < 0) return;
+    final updated = List<UserPoi>.from(state.userPois)..removeAt(index);
+    await saveUserPois(updated);
+    state = state.copyWith(userPois: updated);
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
+  /// 既存のユーザー POI を新しい内容で上書きして保存する
+  Future<void> updateUserPoi(UserPoi oldPoi, UserPoi newPoi) async {
+    final index = state.userPois.indexWhere(
+      (p) => p.lat == oldPoi.lat && p.lng == oldPoi.lng && p.km == oldPoi.km,
+    );
+    if (index < 0) return;
+    final updated = List<UserPoi>.from(state.userPois)..[index] = newPoi;
+    await saveUserPois(updated);
+    state = state.copyWith(userPois: updated);
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+  }
+
   // --- 内部メソッド ---
 
   /// スタート・ゴール・POI マーカーを再構築して state を更新する
   Future<void> _refreshRouteMarkers(List<LatLng> routePoints) async {
     final onPoiTap = _onPoiTap ?? (_) {};
+    final onUserPoiTap = _onUserPoiTap;
     final markers = await buildRouteMarkers(
       routePoints: routePoints,
       pois: state.gpxPois,
       onPoiTap: onPoiTap,
+      userPois: state.userPois,
+      onUserPoiTap: onUserPoiTap,
       zoomLevel: state.savedZoomLevel,
+      draggingPoi: _draggingPoi,
+      onPoiDragEnd: _onPoiDragEnd,
     );
     state = state.copyWith(
       routeMarkers: markers,

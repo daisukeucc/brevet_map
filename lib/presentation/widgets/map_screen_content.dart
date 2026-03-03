@@ -26,6 +26,11 @@ class MapScreenContent extends StatelessWidget {
     required this.sleepDuration,
     required this.onSleepDurationChanged,
     required this.onGpxImportTap,
+    required this.onAddPoiTap,
+    this.hasUserPois = false,
+    this.isDragMode = false,
+    this.isMapTapAddMode = false,
+    this.onMapLongPress,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -65,6 +70,21 @@ class MapScreenContent extends StatelessWidget {
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
 
+  /// POI登録コールバック
+  final VoidCallback onAddPoiTap;
+
+  /// ユーザーPOIが1件以上登録されている場合 true
+  final bool hasUserPois;
+
+  /// true のときマーカードラッグ編集モード（全ボタンを非表示にする）
+  final bool isDragMode;
+
+  /// true のとき地図タップでPOI登録モード（全ボタンを非表示にする）
+  final bool isMapTapAddMode;
+
+  /// 地図長押し時コールバック（地図タップ登録モード時）
+  final void Function(LatLng)? onMapLongPress;
+
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
 
@@ -91,74 +111,89 @@ class MapScreenContent extends StatelessWidget {
                     markers: markers,
                     onCameraIdle: onCameraIdle,
                     onMapCreated: onMapCreated,
+                    onLongPress: onMapLongPress,
                   ),
-                  Positioned(
-                    left: 16,
-                    bottom: 24,
-                    child: MapStyleButton(
-                      mapStyleMode: mapStyleMode,
-                      onTap: onMapStyleTap,
+                  if (!isDragMode && !isMapTapAddMode)
+                    Positioned(
+                      left: 16,
+                      bottom: 24,
+                      child: MapStyleButton(
+                        mapStyleMode: mapStyleMode,
+                        onTap: onMapStyleTap,
+                      ),
                     ),
-                  ),
-                  if (!isStreamActive)
-                  Positioned(
-                    left: 16,
-                    top: 24,
-                    child: Tooltip(
-                      message: '設定',
-                      child: Material(
-                        color: Colors.white,
-                        elevation: 5,
-                        shadowColor: Colors.black26,
-                        shape: const CircleBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => showModalBottomSheet<void>(
-                            context: context,
-                            shape: const RoundedRectangleBorder(),
-                            builder: (_) => _SettingsBottomSheet(
-                              sleepDuration: sleepDuration,
-                              onSleepDurationChanged: onSleepDurationChanged,
-                              onGpxImportTap: () {
-                                final navigator = Navigator.of(context);
-                                Future.delayed(
-                                  const Duration(milliseconds: 200),
-                                  () {
-                                    navigator.pop();
-                                    onGpxImportTap();
-                                  },
-                                );
-                              },
+                  if (!isStreamActive && !isDragMode && !isMapTapAddMode)
+                    Positioned(
+                      left: 16,
+                      top: 24,
+                      child: Tooltip(
+                        message: '設定',
+                        child: Material(
+                          color: Colors.white,
+                          elevation: 5,
+                          shadowColor: Colors.black26,
+                          shape: const CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () => showModalBottomSheet<void>(
+                              context: context,
+                              shape: const RoundedRectangleBorder(),
+                              builder: (_) => _SettingsBottomSheet(
+                                sleepDuration: sleepDuration,
+                                onSleepDurationChanged: onSleepDurationChanged,
+                                onGpxImportTap: () {
+                                  final navigator = Navigator.of(context);
+                                  Future.delayed(
+                                    const Duration(milliseconds: 200),
+                                    () {
+                                      navigator.pop();
+                                      onGpxImportTap();
+                                    },
+                                  );
+                                },
+                                hasUserPois: hasUserPois,
+                                onAddPoiTap: () {
+                                  final navigator = Navigator.of(context);
+                                  Future.delayed(
+                                    const Duration(milliseconds: 200),
+                                    () {
+                                      navigator.pop();
+                                      onAddPoiTap();
+                                    },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                          customBorder: const CircleBorder(),
-                          child: const SizedBox(
-                            width: 60,
-                            height: 60,
-                            child: Icon(
-                              Icons.more_vert,
-                              color: Colors.blueGrey,
-                              size: 32,
+                            customBorder: const CircleBorder(),
+                            child: const SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: Icon(
+                                Icons.more_vert,
+                                color: Colors.blueGrey,
+                                size: 32,
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    left: 0,
-                    right: 0,
-                    top: 24,
-                    child: Center(
-                      child: BatteryIndicator(),
+                  if (!isDragMode && !isMapTapAddMode)
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      top: 24,
+                      child: Center(
+                        child: BatteryIndicator(),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    right: 16,
-                    top: 24,
-                    child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
-                  ),
-                  if (showMyLocationButton)
+                  if (!isDragMode && !isMapTapAddMode)
+                    Positioned(
+                      right: 16,
+                      top: 24,
+                      child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
+                    ),
+                  if (showMyLocationButton && !isDragMode && !isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
@@ -186,7 +221,10 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isStreamActive && onGpsLevelTap != null)
+                  if (isStreamActive &&
+                      onGpsLevelTap != null &&
+                      !isDragMode &&
+                      !isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
@@ -200,11 +238,17 @@ class MapScreenContent extends StatelessWidget {
               ),
             ),
           ),
-          LocationBottomBar(
-            isStreamActive: isStreamActive,
-            onTap: onToggleLocationStream,
-            progressBarValue: progressBarValue,
-            isLowMode: isLowMode,
+          AbsorbPointer(
+            absorbing: isDragMode || isMapTapAddMode,
+            child: Opacity(
+              opacity: (isDragMode || isMapTapAddMode) ? 0.0 : 1.0,
+              child: LocationBottomBar(
+                isStreamActive: isStreamActive,
+                onTap: onToggleLocationStream,
+                progressBarValue: progressBarValue,
+                isLowMode: isLowMode,
+              ),
+            ),
           ),
         ],
       ),
@@ -218,11 +262,15 @@ class _SettingsBottomSheet extends StatefulWidget {
     required this.sleepDuration,
     required this.onSleepDurationChanged,
     required this.onGpxImportTap,
+    required this.hasUserPois,
+    required this.onAddPoiTap,
   });
 
   final int sleepDuration;
   final void Function(int) onSleepDurationChanged;
   final VoidCallback onGpxImportTap;
+  final bool hasUserPois;
+  final VoidCallback onAddPoiTap;
 
   @override
   State<_SettingsBottomSheet> createState() => _SettingsBottomSheetState();
@@ -243,7 +291,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: 13),
           ListTile(
             leading: const Icon(Icons.download, color: Colors.blueGrey),
             title: const Text(
@@ -254,13 +302,23 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             horizontalTitleGap: 8,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ListTile(
+            leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
+            title: Text(
+              widget.hasUserPois ? 'POIの登録・編集' : 'POIの登録',
+              style: const TextStyle(fontSize: 17),
+            ),
+            onTap: widget.onAddPoiTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            horizontalTitleGap: 8,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [
-                const Icon(Icons.bedtime, color: Colors.blueGrey),
-                const SizedBox(width: 8),
-                const Text('画面スリープ設定', style: TextStyle(fontSize: 17)),
+                Icon(Icons.bedtime, color: Colors.blueGrey),
+                SizedBox(width: 8),
+                Text('画面スリープ設定', style: TextStyle(fontSize: 17)),
               ],
             ),
           ),
@@ -274,7 +332,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
               });
             },
           ),
-          const SizedBox(height: 28),
+          const SizedBox(height: 23),
         ],
       ),
     );

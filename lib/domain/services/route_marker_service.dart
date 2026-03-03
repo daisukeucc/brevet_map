@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../data/parsers/gpx_parser.dart';
+import '../../domain/models/user_poi.dart';
 import '../../utils/map_utils.dart';
 import 'marker_icon_service.dart';
 
@@ -16,7 +17,11 @@ Future<Set<Marker>> buildRouteMarkers({
   required List<LatLng> routePoints,
   required List<GpxPoi> pois,
   required void Function(GpxPoi poi) onPoiTap,
+  List<UserPoi> userPois = const [],
+  void Function(UserPoi poi)? onUserPoiTap,
   double? zoomLevel,
+  UserPoi? draggingPoi,
+  void Function(LatLng)? onPoiDragEnd,
 }) async {
   final showDistanceMarkers =
       zoomLevel == null || zoomLevel >= distanceMarkerZoomThreshold;
@@ -37,7 +42,7 @@ Future<Set<Marker>> buildRouteMarkers({
         isPlayIcon: false,
       );
     }
-    if (pois.isNotEmpty) {
+    if (pois.isNotEmpty || userPois.isNotEmpty) {
       poiIconOrange = await createPoiInfoMarkerIcon();
       poiIconCheckpoint = await createPoiCheckpointMarkerIcon();
     }
@@ -99,6 +104,28 @@ Future<Set<Marker>> buildRouteMarkers({
         anchor: const Offset(0.25, 0.25),
         zIndex: 0,
         onTap: () => onPoiTap(poi),
+      ));
+    }
+  }
+
+  if (userPois.isNotEmpty &&
+      poiIconOrange != null &&
+      poiIconCheckpoint != null) {
+    for (var i = 0; i < userPois.length; i++) {
+      final poi = userPois[i];
+      final icon = poi.isCheckpoint ? poiIconCheckpoint : poiIconOrange;
+      final isDragging = draggingPoi != null &&
+          poi.lat == draggingPoi.lat &&
+          poi.lng == draggingPoi.lng;
+      markers.add(Marker(
+        markerId: MarkerId('user_poi_$i'),
+        position: poi.position,
+        icon: icon,
+        anchor: const Offset(0.25, 0.25),
+        zIndex: isDragging ? 10 : 0,
+        draggable: isDragging,
+        onDragEnd: isDragging ? (newPos) => onPoiDragEnd?.call(newPos) : null,
+        onTap: isDragging ? null : () => onUserPoiTap?.call(poi),
       ));
     }
   }

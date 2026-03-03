@@ -60,7 +60,10 @@ Future<BitmapDescriptor> createRoundedSquareMarkerIcon({
   final h = (size * pixelRatio).round();
   final image = await picture.toImage(w, h);
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
 }
 
 /// インフォメーションPOI用
@@ -108,7 +111,10 @@ Future<BitmapDescriptor> createPoiInfoMarkerIcon() async {
   final h = (size * pixelRatio).round();
   final image = await picture.toImage(w, h);
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
 }
 
 /// 距離マーカー用の円アイコン
@@ -140,7 +146,10 @@ Future<BitmapDescriptor> createSmallCircleMarkerIcon({
   final h = (size * pixelRatio).round();
   final image = await picture.toImage(w, h);
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
 }
 
 /// 距離マーカー用アイコン
@@ -190,7 +199,10 @@ Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
   final h = (height * pixelRatio).round();
   final image = await picture.toImage(w, h);
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
 }
 
 /// チェックポイントPOI用
@@ -232,5 +244,8 @@ Future<BitmapDescriptor> createPoiCheckpointMarkerIcon() async {
   final h = (size * pixelRatio).round();
   final image = await picture.toImage(w, h);
   final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
 }
