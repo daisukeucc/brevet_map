@@ -302,150 +302,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
     _distanceUnit = widget.distanceUnit;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 13),
-          ListTile(
-            leading: const Icon(Icons.download, color: Colors.blueGrey),
-            title: Text(
-              AppLocalizations.of(context)!.gpxImport,
-              style: const TextStyle(fontSize: 17),
-            ),
-            onTap: widget.onGpxImportTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            horizontalTitleGap: 8,
-          ),
-          ListTile(
-            leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
-            title: Text(
-              widget.hasUserPois
-                  ? AppLocalizations.of(context)!.poiAddEdit
-                  : AppLocalizations.of(context)!.poiAdd,
-              style: const TextStyle(fontSize: 17),
-            ),
-            onTap: widget.onAddPoiTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            horizontalTitleGap: 8,
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.bedtime, color: Colors.blueGrey),
-                const SizedBox(width: 8),
-                Text(
-                  AppLocalizations.of(context)!.sleepSettings,
-                  style: const TextStyle(fontSize: 17),
-                ),
-              ],
-            ),
-          ),
-          _SleepDurationSelector(
-            value: _sleepDuration,
-            onChanged: (v) {
-              setState(() => _sleepDuration = v);
-              widget.onSleepDurationChanged(v);
-              Future.delayed(const Duration(milliseconds: 400), () {
-                if (context.mounted) Navigator.pop(context);
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            child: Row(
-              children: [
-                const Icon(Icons.straighten, color: Colors.blueGrey),
-                const SizedBox(width: 8),
-                Text(
-                  AppLocalizations.of(context)!.distanceUnit,
-                  style: const TextStyle(fontSize: 17),
-                ),
-              ],
-            ),
-          ),
-          _DistanceUnitSelector(
-            value: _distanceUnit,
-            onChanged: (v) {
-              setState(() => _distanceUnit = v);
-              widget.onDistanceUnitChanged(v);
-              Future.delayed(const Duration(milliseconds: 400), () {
-                if (context.mounted) Navigator.pop(context);
-              });
-            },
-          ),
-          const SizedBox(height: 23),
-        ],
-      ),
-    );
-  }
-}
-
-/// 距離単位ラジオボタン行
-class _DistanceUnitSelector extends StatelessWidget {
-  const _DistanceUnitSelector({
-    required this.value,
-    required this.onChanged,
-  });
-
-  final int value;
-  final void Function(int) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final options = [(0, l10n.unitKm), (1, l10n.unitMile)];
-    return Padding(
-      padding: const EdgeInsets.only(left: 32),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          for (int i = 0; i < options.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onChanged(options[i].$1),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: options[i].$1,
-                      groupValue: value,
-                      onChanged: (v) => onChanged(v!),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(options[i].$2, style: const TextStyle(fontSize: 17)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// スリープ時間ラジオボタン行
-class _SleepDurationSelector extends StatelessWidget {
-  const _SleepDurationSelector({
-    required this.value,
-    required this.onChanged,
-  });
-
-  final int value;
-  final void Function(int) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
+  void _showSleepDurationDialog(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final options = [
       (0, l10n.sleepOff),
@@ -453,30 +310,129 @@ class _SleepDurationSelector extends StatelessWidget {
       (5, l10n.sleep5min),
       (10, l10n.sleep10min),
     ];
-    return Padding(
-      padding: const EdgeInsets.only(left: 38),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          for (int i = 0; i < options.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => onChanged(options[i].$1),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Radio<int>(
-                    value: options[i].$1,
-                    groupValue: value,
-                    onChanged: (v) => onChanged(v!),
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  Text(options[i].$2, style: const TextStyle(fontSize: 17)),
-                ],
-              ),
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        int selected = _sleepDuration;
+        return StatefulBuilder(
+          builder: (_, setDialogState) => AlertDialog(
+            shape: const RoundedRectangleBorder(),
+            title: Text(l10n.sleepSettings),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options
+                  .map((e) => RadioListTile<int>(
+                        title: Text(e.$2),
+                        value: e.$1,
+                        groupValue: selected,
+                        onChanged: (v) {
+                          if (v == null) return;
+                          setDialogState(() => selected = v);
+                          setState(() => _sleepDuration = v);
+                          widget.onSleepDurationChanged(v);
+                          Future.delayed(const Duration(milliseconds: 400), () {
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          });
+                        },
+                      ))
+                  .toList(),
             ),
-          ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDistanceUnitDialog(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final options = [(0, l10n.unitKm), (1, l10n.unitMile)];
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        int selected = _distanceUnit;
+        return StatefulBuilder(
+          builder: (_, setDialogState) => AlertDialog(
+            shape: const RoundedRectangleBorder(),
+            title: Text(l10n.distanceUnit),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: options
+                  .map((e) => RadioListTile<int>(
+                        title: Text(e.$2),
+                        value: e.$1,
+                        groupValue: selected,
+                        onChanged: (v) {
+                          if (v == null) return;
+                          setDialogState(() => selected = v);
+                          setState(() => _distanceUnit = v);
+                          widget.onDistanceUnitChanged(v);
+                          Future.delayed(const Duration(milliseconds: 400), () {
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          });
+                        },
+                      ))
+                  .toList(),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 15),
+          ListTile(
+            leading: const Icon(Icons.download, color: Colors.black54),
+            title: Text(
+              AppLocalizations.of(context)!.gpxImport,
+              style: const TextStyle(fontSize: 15),
+            ),
+            onTap: widget.onGpxImportTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            horizontalTitleGap: 22,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+          ),
+          ListTile(
+            leading: const Icon(Icons.add_location_alt, color: Colors.black54),
+            title: Text(
+              widget.hasUserPois
+                  ? AppLocalizations.of(context)!.poiAddEdit
+                  : AppLocalizations.of(context)!.poiAdd,
+              style: const TextStyle(fontSize: 15),
+            ),
+            onTap: widget.onAddPoiTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            horizontalTitleGap: 22,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+          ),
+          ListTile(
+            leading: const Icon(Icons.bedtime, color: Colors.black54),
+            title: Text(
+              AppLocalizations.of(context)!.sleepSettings,
+              style: const TextStyle(fontSize: 15),
+            ),
+            onTap: () => _showSleepDurationDialog(context),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            horizontalTitleGap: 20,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+          ),
+          ListTile(
+            leading: const Icon(Icons.straighten, color: Colors.black54),
+            title: Text(
+              AppLocalizations.of(context)!.distanceUnit,
+              style: const TextStyle(fontSize: 15),
+            ),
+            onTap: () => _showDistanceUnitDialog(context),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            horizontalTitleGap: 20,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+          ),
+          const SizedBox(height: 15),
         ],
       ),
     );

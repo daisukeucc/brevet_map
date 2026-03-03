@@ -31,6 +31,11 @@ alwaysApply: true
 - **providers.dart**: `mapStateProvider`, `locationStreamProvider` など
 - **循環参照回避**: `map_state_notifier` は `app_settings_providers` のみ import
 
+## 角丸禁止
+
+- **ダイアログ**: デフォルト表示では角丸にしない（`shape: RoundedRectangleBorder()` など角丸指定を避ける）
+- **ボトムナビゲーション**: 同様に角丸にしない
+
 ## 設定ボトムシート UI
 
 - **配置**: `map_screen_content.dart` の `_SettingsBottomSheet`
