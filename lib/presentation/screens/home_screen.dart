@@ -599,9 +599,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
-  void _onDistanceUnitChanged(int unit) {
+  void _onDistanceUnitChanged(int unit) async {
     ref.read(distanceUnitProvider.notifier).state = unit;
     saveDistanceUnit(unit);
+    await ref.read(mapStateProvider.notifier).refreshMarkersForUnitChange();
+    if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
     final message =
         unit == 0 ? l10n.distanceUnitSetToKm : l10n.distanceUnitSetToMile;
