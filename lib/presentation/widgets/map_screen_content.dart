@@ -291,7 +291,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: 13),
           ListTile(
             leading: const Icon(Icons.download, color: Colors.blueGrey),
             title: const Text(
@@ -302,13 +302,23 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
             contentPadding: const EdgeInsets.symmetric(horizontal: 16),
             horizontalTitleGap: 8,
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          ListTile(
+            leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
+            title: Text(
+              widget.hasUserPois ? 'POIの登録・編集' : 'POIの登録',
+              style: const TextStyle(fontSize: 17),
+            ),
+            onTap: widget.onAddPoiTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            horizontalTitleGap: 8,
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             child: Row(
               children: [
-                const Icon(Icons.bedtime, color: Colors.blueGrey),
-                const SizedBox(width: 8),
-                const Text('画面スリープ設定', style: TextStyle(fontSize: 17)),
+                Icon(Icons.bedtime, color: Colors.blueGrey),
+                SizedBox(width: 8),
+                Text('画面スリープ設定', style: TextStyle(fontSize: 17)),
               ],
             ),
           ),
@@ -322,17 +332,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
               });
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
-            title: Text(
-              widget.hasUserPois ? 'POIの登録・編集' : 'POIの登録',
-              style: const TextStyle(fontSize: 17),
-            ),
-            onTap: widget.onAddPoiTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            horizontalTitleGap: 8,
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 23),
         ],
       ),
     );
