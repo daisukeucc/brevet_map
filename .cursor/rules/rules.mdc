@@ -1,0 +1,60 @@
+---
+description: Brevet Map プロジェクトの開発ルールと conventions
+alwaysApply: true
+---
+
+# Brevet Map 開発ルール
+
+## ローカライズ (l10n)
+
+- **方式**: Flutter ARB + `flutter gen-l10n`
+- **文言追加**: `lib/l10n/app_en.arb` と `lib/l10n/app_ja.arb` に両方追加
+- **参照**: `AppLocalizations.of(context)!.キー名`
+- **禁止**: `initState` 内で `AppLocalizations.of(context)` を呼ばない（inherited widget 未準備のため）
+- **対策**: `addPostFrameCallback` 内で取得するか、`build` / `didChangeDependencies` で取得
+
+## 距離単位 (km / mile)
+
+- **Provider**: `distanceUnitProvider`（0=km, 1=mile）
+- **保存**: `first_launch_repository.dart` の `saveDistanceUnit` / `loadDistanceUnit`
+- **方針**: 内部データは常に km で保持。表示時のみ単位変換
+- **変換定数**: `1 mile = 1.609344 km` (`_kmPerMile`)
+- **反映箇所**:
+  - 設定メニュー（`map_screen_content.dart`）
+  - 距離入力ダイアログのラベル（km / mi）
+  - POI 一覧・詳細の距離表示
+  - ルート上の距離マーカー（50km 間隔 → 50mile 間隔、Nkm → Nmi）
+
+## 設定・Provider
+
+- **app_settings_providers.dart**: `sleepDurationProvider`, `distanceUnitProvider`（他から参照されやすいもの）
+- **providers.dart**: `mapStateProvider`, `locationStreamProvider` など
+- **循環参照回避**: `map_state_notifier` は `app_settings_providers` のみ import
+
+## 設定ボトムシート UI
+
+- **配置**: `map_screen_content.dart` の `_SettingsBottomSheet`
+- **共通パターン**:
+  1. ラジオ選択時は `setState` でローカル更新
+  2. 親のコールバックで Provider 更新・永続化
+  3. `Future.delayed(400)` 後にボトムシートを閉じる（ラジオの選択が見えてから）
+  4. 変更後は SnackBar で確認メッセージ表示
+- **ラベルタップ**: `GestureDetector` に `behavior: HitTestBehavior.opaque` を指定してラベルもタップ可能にする
+
+## ルートマーカー (route_marker_service.dart)
+
+- **距離マーカー**: 50km または 50mile 間隔で表示
+- **zIndex**: 距離マーカー=0、POI=1（重なった場合は POI を前面）
+- **単位パラメータ**: `buildRouteMarkers` に `distanceUnit` を渡す
+- **マーカー再構築**: 単位変更時は `mapStateProvider.notifier.refreshMarkersForUnitChange()` を呼ぶ
+
+## 永続化
+
+- **SharedPreferences**: `first_launch_repository.dart` に集約
+- **キー定義**: ファイル先頭の `_keyXxx` 定数
+- **新規保存**: `saveXxx` / `loadXxx` のペアで追加
+
+## 共通
+
+- **応答言語**: 日本語で応答する
+- **単位などの固定ラベル**: ローカライズ不要の場合はコード内に直接記述（例: "km", "mi"）
