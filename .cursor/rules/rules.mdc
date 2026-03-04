@@ -35,7 +35,8 @@ alwaysApply: true
 
 ## ダイアログ
 
-- **ラジオ選択**: ラジオボタンで項目を設定するダイアログは `showRadioSelectionDialog`（`map_screen_content.dart`）を使用する
+- **確認ダイアログ**: 本文とボタンのみの確認ダイアログは `showConfirmDialog`（`confirm_dialog.dart`）を使用する
+- **ラジオ選択**: ラジオボタンで項目を設定するダイアログは `showRadioSelectionDialog`（`radio_selection_dialog.dart`）を使用する
 
 ## 角丸禁止
 
@@ -44,7 +45,7 @@ alwaysApply: true
 
 ## 設定ボトムシート UI
 
-- **配置**: `map_screen_content.dart` の `_SettingsBottomSheet`
+- **配置**: `settings_bottom_sheet.dart` の `SettingsBottomSheet`
 - **項目タップ時**: ボトムシートの項目をタップしたらボトムシートを閉じる
 - **ダイアログ表示の遅延**: タップで ListTile の選択状態（ハイライト）を確認できるよう、`Future.delayed(200)` 後にボトムシートを閉じてダイアログを表示する
 - **共通パターン**:
@@ -66,6 +67,10 @@ alwaysApply: true
 - **SharedPreferences**: `first_launch_repository.dart` に集約
 - **キー定義**: ファイル先頭の `_keyXxx` 定数
 - **新規保存**: `saveXxx` / `loadXxx` のペアで追加
+
+## テキストスタイル
+
+- **AppTextStyles**: アプリ内でテキストを表示する場合は `AppTextStyles`（`app_text_styles.dart`）のスタイルを使用する（`title` / `body` / `label` / `button` を用途に合わせて選択）
 
 ## 共通
 

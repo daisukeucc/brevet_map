@@ -6,6 +6,8 @@ import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
+import 'radio_selection_dialog.dart';
+import 'settings_bottom_sheet.dart';
 
 /// 地図画面の本体。地図・オーバーレイ・下部バーをまとめる。
 class MapScreenContent extends StatelessWidget {
@@ -147,7 +149,7 @@ class MapScreenContent extends StatelessWidget {
                             onTap: () => showModalBottomSheet<void>(
                               context: context,
                               shape: const RoundedRectangleBorder(),
-                              builder: (_) => _SettingsBottomSheet(
+                              builder: (_) => SettingsBottomSheet(
                                 onGpxImportTap: () {
                                   final navigator = Navigator.of(context);
                                   Future.delayed(
@@ -295,154 +297,6 @@ class MapScreenContent extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-void showRadioSelectionDialog<T>({
-  required BuildContext context,
-  required String title,
-  required List<(T value, String label)> options,
-  required T initialValue,
-  required void Function(T) onChanged,
-}) {
-  showDialog<void>(
-    context: context,
-    builder: (ctx) {
-      T selected = initialValue;
-      return StatefulBuilder(
-        builder: (_, setDialogState) => AlertDialog(
-          shape: const RoundedRectangleBorder(),
-          title: Text(title, style: const TextStyle(fontSize: 17)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < options.length; i++) ...[
-                if (i > 0) const SizedBox(height: 5),
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () {
-                    setDialogState(() => selected = options[i].$1);
-                    onChanged(options[i].$1);
-                    Future.delayed(const Duration(milliseconds: 400), () {
-                      if (ctx.mounted) Navigator.pop(ctx);
-                    });
-                  },
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Row(
-                      children: [
-                        Radio<T>(
-                          value: options[i].$1,
-                          groupValue: selected,
-                          onChanged: (v) {
-                            if (v == null) return;
-                            setDialogState(() => selected = v);
-                            onChanged(v);
-                            Future.delayed(const Duration(milliseconds: 400),
-                                () {
-                              if (ctx.mounted) Navigator.pop(ctx);
-                            });
-                          },
-                          visualDensity: VisualDensity.compact,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(options[i].$2,
-                            style: const TextStyle(fontSize: 16)),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 5),
-            ],
-          ),
-        ),
-      );
-    },
-  );
-}
-
-/// 設定ボトムシート
-class _SettingsBottomSheet extends StatefulWidget {
-  const _SettingsBottomSheet({
-    required this.onGpxImportTap,
-    required this.hasUserPois,
-    required this.onAddPoiTap,
-    required this.onSleepSettingsTap,
-    required this.onDistanceUnitTap,
-  });
-
-  final VoidCallback onGpxImportTap;
-  final bool hasUserPois;
-  final VoidCallback onAddPoiTap;
-  final VoidCallback onSleepSettingsTap;
-  final VoidCallback onDistanceUnitTap;
-
-  @override
-  State<_SettingsBottomSheet> createState() => _SettingsBottomSheetState();
-}
-
-class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 15),
-          ListTile(
-            leading: const Icon(Icons.download, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.gpxImport,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onGpxImportTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 22,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          ListTile(
-            leading: const Icon(Icons.add_location_alt, color: Colors.black54),
-            title: Text(
-              widget.hasUserPois
-                  ? AppLocalizations.of(context)!.poiAddEdit
-                  : AppLocalizations.of(context)!.poiAdd,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onAddPoiTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 22,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          ListTile(
-            leading: const Icon(Icons.bedtime, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.sleepSettings,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onSleepSettingsTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 20,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          ListTile(
-            leading: const Icon(Icons.straighten, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.distanceUnit,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onDistanceUnitTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 20,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          const SizedBox(height: 15),
         ],
       ),
     );

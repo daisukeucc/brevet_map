@@ -17,6 +17,7 @@ import '../../domain/services/volume_zoom_handler.dart';
 import '../../utils/map_utils.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/location_error_view.dart';
 import '../widgets/map_screen_content.dart';
 import '../widgets/poi_detail_sheet.dart';
@@ -229,8 +230,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       } else if (status == GpxApplyStatus.empty) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text(AppLocalizations.of(context)!.gpxNoRouteOrWaypoint),
+            content: Text(AppLocalizations.of(context)!.gpxNoRouteOrWaypoint),
           ),
         );
       }
@@ -239,31 +239,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _confirmAndApplyGpx(String content) async {
     if (!mounted) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: const RoundedRectangleBorder(),
-        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: Text(
-          AppLocalizations.of(context)!.routeOverwrite,
-          style: const TextStyle(fontSize: 17),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-                AppLocalizations.of(context)!.ng,
-                style: const TextStyle(fontSize: 17)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-                AppLocalizations.of(context)!.ok,
-                style: const TextStyle(fontSize: 17)),
-          ),
-        ],
-      ),
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showConfirmDialog(
+      context,
+      message: l10n.routeOverwrite,
+      cancelText: l10n.ng,
+      confirmText: l10n.ok,
     );
     if (confirmed != true) return;
     _onGpxReceived(content);
@@ -296,9 +277,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
       final l10n = AppLocalizations.of(context)!;
       final unit = ref.read(distanceUnitProvider);
-      final prefix = poi.km != null
-          ? '${_formatDistance(poi.km!, unit)}：'
-          : '';
+      final prefix = poi.km != null ? '${_formatDistance(poi.km!, unit)}：' : '';
       final title = poi.title.isEmpty ? l10n.titleNone : poi.title;
       showPoiDetailSheet(
         context,
@@ -351,31 +330,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Future<void> _onGpxImportTap() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: const RoundedRectangleBorder(),
-        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: Text(
-          AppLocalizations.of(ctx)!.routeOverwrite,
-          style: const TextStyle(fontSize: 17),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(
-                AppLocalizations.of(ctx)!.ng,
-                style: const TextStyle(fontSize: 17)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-                AppLocalizations.of(ctx)!.ok,
-                style: const TextStyle(fontSize: 17)),
-          ),
-        ],
-      ),
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showConfirmDialog(
+      context,
+      message: l10n.routeOverwrite,
+      cancelText: l10n.ng,
+      confirmText: l10n.ok,
     );
     if (confirmed != true) return;
 
@@ -430,7 +390,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final data = await showDialog<_AddPoiFormData>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) => _EditPoiTextDialog(poi: poi, distanceUnit: distanceUnit),
+      builder: (context) =>
+          _EditPoiTextDialog(poi: poi, distanceUnit: distanceUnit),
     );
     if (data == null || !mounted) return;
 
@@ -454,7 +415,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.poiUpdated)),
+      SnackBar(content: Text(AppLocalizations.of(context)!.poiUpdated)),
     );
   }
 
@@ -517,7 +478,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).addUserPoi(poi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.poiRegistered)),
+      SnackBar(content: Text(AppLocalizations.of(context)!.poiRegistered)),
     );
   }
 
@@ -547,36 +508,18 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).addUserPoi(poi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.poiRegistered)),
+      SnackBar(content: Text(AppLocalizations.of(context)!.poiRegistered)),
     );
   }
 
   Future<void> _onPoiDragEnd(UserPoi poi, LatLng newLatLng) async {
     if (!mounted) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: const RoundedRectangleBorder(),
-        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: Text(
-            AppLocalizations.of(context)!.changePoiPosition,
-            style: const TextStyle(fontSize: 17)),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-                AppLocalizations.of(context)!.cancel,
-                style: const TextStyle(fontSize: 17)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(
-                AppLocalizations.of(context)!.change,
-                style: const TextStyle(fontSize: 17)),
-          ),
-        ],
-      ),
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showConfirmDialog(
+      context,
+      message: l10n.changePoiPosition,
+      cancelText: l10n.cancel,
+      confirmText: l10n.change,
     );
 
     await ref.read(mapStateProvider.notifier).stopPoiDrag();
@@ -595,7 +538,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context)!.poiPositionChanged)),
+      SnackBar(content: Text(AppLocalizations.of(context)!.poiPositionChanged)),
     );
   }
 
@@ -634,8 +577,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
               if (snapshot.hasError) {
                 return Center(
-                    child: Text(
-                        AppLocalizations.of(context)!.locationFailed));
+                    child: Text(AppLocalizations.of(context)!.locationFailed));
               }
 
               if (!snapshot.hasData || snapshot.data == null) {
@@ -726,7 +668,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                         ),
                         TextButton(
                           onPressed: _onCancelDragMode,
-                            child: Text(
+                          child: Text(
                             AppLocalizations.of(context)!.cancel,
                             style: TextStyle(
                               fontSize: 15,
@@ -779,7 +721,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                         ),
                         TextButton(
                           onPressed: _onCancelMapTapAddMode,
-                            child: Text(
+                          child: Text(
                             AppLocalizations.of(context)!.cancel,
                             style: TextStyle(
                               fontSize: 15,
@@ -929,7 +871,8 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                 ],
               ),
               const SizedBox(height: 28),
-              Text(AppLocalizations.of(context)!.poiType, style: const TextStyle(fontSize: 15)),
+              Text(AppLocalizations.of(context)!.poiType,
+                  style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -949,7 +892,8 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    Text(AppLocalizations.of(context)!.checkpoint, style: const TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.checkpoint,
+                        style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -971,7 +915,8 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    Text(AppLocalizations.of(context)!.information, style: const TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.information,
+                        style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -1001,14 +946,12 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(
-                        AppLocalizations.of(context)!.cancel,
+                    child: Text(AppLocalizations.of(context)!.cancel,
                         style: const TextStyle(fontSize: 17)),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: Text(
-                        AppLocalizations.of(context)!.register,
+                    child: Text(AppLocalizations.of(context)!.register,
                         style: const TextStyle(fontSize: 17)),
                   ),
                 ],
@@ -1120,27 +1063,12 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
   }
 
   Future<void> _onDeleteTap(UserPoi poi) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: const RoundedRectangleBorder(),
-        contentPadding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
-        content: Text(
-          AppLocalizations.of(context)!.deletePoiConfirm,
-          style: const TextStyle(fontSize: 17),
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(fontSize: 17)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(AppLocalizations.of(context)!.delete, style: const TextStyle(fontSize: 17)),
-          ),
-        ],
-      ),
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showConfirmDialog(
+      context,
+      message: l10n.deletePoiConfirm,
+      cancelText: l10n.cancel,
+      confirmText: l10n.delete,
     );
     if (confirmed != true || !mounted) return;
 
@@ -1177,7 +1105,8 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
       itemCount: sorted.length,
       itemBuilder: (context, i) {
         final poi = sorted[i];
-        final distStr = poi.km != null ? _formatDistance(poi.km!, distanceUnit) : null;
+        final distStr =
+            poi.km != null ? _formatDistance(poi.km!, distanceUnit) : null;
         return DecoratedBox(
           decoration: const BoxDecoration(
             border: Border(
@@ -1188,7 +1117,9 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
             title: Text(
               distStr != null
                   ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
-                  : (poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title),
+                  : (poi.title.isEmpty
+                      ? AppLocalizations.of(context)!.titleNone
+                      : poi.title),
               style: const TextStyle(fontSize: 15),
             ),
             trailing: Row(
@@ -1305,10 +1236,12 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
             children: [
               Text(
                 AppLocalizations.of(context)!.poiAdd,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-              Text(AppLocalizations.of(context)!.poiType, style: const TextStyle(fontSize: 15)),
+              Text(AppLocalizations.of(context)!.poiType,
+                  style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -1328,7 +1261,8 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    Text(AppLocalizations.of(context)!.checkpoint, style: const TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.checkpoint,
+                        style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -1350,7 +1284,8 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    Text(AppLocalizations.of(context)!.information, style: const TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.information,
+                        style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -1380,11 +1315,13 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.cancel,
+                        style: const TextStyle(fontSize: 17)),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: Text(AppLocalizations.of(context)!.register, style: const TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.register,
+                        style: const TextStyle(fontSize: 17)),
                   ),
                 ],
               ),
@@ -1460,7 +1397,8 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
             children: [
               Text(
                 AppLocalizations.of(context)!.changePoiText,
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               Row(
@@ -1473,7 +1411,8 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                 ],
               ),
               const SizedBox(height: 28),
-              Text(AppLocalizations.of(context)!.poiType, style: const TextStyle(fontSize: 15)),
+              Text(AppLocalizations.of(context)!.poiType,
+                  style: const TextStyle(fontSize: 15)),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -1493,7 +1432,8 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    Text(AppLocalizations.of(context)!.checkpoint, style: const TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.checkpoint,
+                        style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -1515,7 +1455,8 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                       visualDensity: VisualDensity.compact,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    Text(AppLocalizations.of(context)!.information, style: const TextStyle(fontSize: 17)),
+                    Text(AppLocalizations.of(context)!.information,
+                        style: const TextStyle(fontSize: 17)),
                   ],
                 ),
               ),
@@ -1545,11 +1486,13 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(AppLocalizations.of(context)!.cancel, style: const TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.cancel,
+                        style: const TextStyle(fontSize: 17)),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: Text(AppLocalizations.of(context)!.change, style: const TextStyle(fontSize: 17)),
+                    child: Text(AppLocalizations.of(context)!.change,
+                        style: const TextStyle(fontSize: 17)),
                   ),
                 ],
               ),
