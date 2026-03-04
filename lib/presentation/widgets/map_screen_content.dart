@@ -171,17 +171,41 @@ class MapScreenContent extends StatelessWidget {
                                 },
                                 onSleepSettingsTap: () async {
                                   final navigator = Navigator.of(context);
-                                  await Future.delayed(const Duration(milliseconds: 200));
+                                  final l10n = AppLocalizations.of(context)!;
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 200));
                                   navigator.pop();
                                   if (!context.mounted) return;
-                                  _showSleepDurationDialog(context, sleepDuration, onSleepDurationChanged);
+                                  showRadioSelectionDialog<int>(
+                                    context: context,
+                                    title: l10n.sleepSettings,
+                                    options: [
+                                      (0, l10n.sleepOff),
+                                      (1, l10n.sleep1min),
+                                      (5, l10n.sleep5min),
+                                      (10, l10n.sleep10min),
+                                    ],
+                                    initialValue: sleepDuration,
+                                    onChanged: onSleepDurationChanged,
+                                  );
                                 },
                                 onDistanceUnitTap: () async {
                                   final navigator = Navigator.of(context);
-                                  await Future.delayed(const Duration(milliseconds: 200));
+                                  final l10n = AppLocalizations.of(context)!;
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 200));
                                   navigator.pop();
                                   if (!context.mounted) return;
-                                  _showDistanceUnitDialog(context, distanceUnit, onDistanceUnitChanged);
+                                  showRadioSelectionDialog<int>(
+                                    context: context,
+                                    title: l10n.distanceUnit,
+                                    options: [
+                                      (0, l10n.unitKm),
+                                      (1, l10n.unitMile)
+                                    ],
+                                    initialValue: distanceUnit,
+                                    onChanged: onDistanceUnitChanged,
+                                  );
                                 },
                               ),
                             ),
@@ -277,82 +301,66 @@ class MapScreenContent extends StatelessWidget {
   }
 }
 
-void _showSleepDurationDialog(
-  BuildContext context,
-  int initialSleepDuration,
-  void Function(int) onSleepDurationChanged,
-) {
-  final l10n = AppLocalizations.of(context)!;
-  final options = [
-    (0, l10n.sleepOff),
-    (1, l10n.sleep1min),
-    (5, l10n.sleep5min),
-    (10, l10n.sleep10min),
-  ];
+void showRadioSelectionDialog<T>({
+  required BuildContext context,
+  required String title,
+  required List<(T value, String label)> options,
+  required T initialValue,
+  required void Function(T) onChanged,
+}) {
   showDialog<void>(
     context: context,
     builder: (ctx) {
-      int selected = initialSleepDuration;
+      T selected = initialValue;
       return StatefulBuilder(
         builder: (_, setDialogState) => AlertDialog(
           shape: const RoundedRectangleBorder(),
-          title: Text(l10n.sleepSettings),
+          title: Text(title, style: const TextStyle(fontSize: 17)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
-            children: options
-                .map((e) => RadioListTile<int>(
-                      title: Text(e.$2),
-                      value: e.$1,
-                      groupValue: selected,
-                      onChanged: (v) {
-                        if (v == null) return;
-                        setDialogState(() => selected = v);
-                        onSleepDurationChanged(v);
-                        Future.delayed(const Duration(milliseconds: 400), () {
-                          if (ctx.mounted) Navigator.pop(ctx);
-                        });
-                      },
-                    ))
-                .toList(),
-          ),
-        ),
-      );
-    },
-  );
-}
-
-void _showDistanceUnitDialog(
-  BuildContext context,
-  int initialDistanceUnit,
-  void Function(int) onDistanceUnitChanged,
-) {
-  final l10n = AppLocalizations.of(context)!;
-  final options = [(0, l10n.unitKm), (1, l10n.unitMile)];
-  showDialog<void>(
-    context: context,
-    builder: (ctx) {
-      int selected = initialDistanceUnit;
-      return StatefulBuilder(
-        builder: (_, setDialogState) => AlertDialog(
-          shape: const RoundedRectangleBorder(),
-          title: Text(l10n.distanceUnit),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: options
-                .map((e) => RadioListTile<int>(
-                      title: Text(e.$2),
-                      value: e.$1,
-                      groupValue: selected,
-                      onChanged: (v) {
-                        if (v == null) return;
-                        setDialogState(() => selected = v);
-                        onDistanceUnitChanged(v);
-                        Future.delayed(const Duration(milliseconds: 400), () {
-                          if (ctx.mounted) Navigator.pop(ctx);
-                        });
-                      },
-                    ))
-                .toList(),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < options.length; i++) ...[
+                if (i > 0) const SizedBox(height: 5),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    setDialogState(() => selected = options[i].$1);
+                    onChanged(options[i].$1);
+                    Future.delayed(const Duration(milliseconds: 400), () {
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    });
+                  },
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Row(
+                      children: [
+                        Radio<T>(
+                          value: options[i].$1,
+                          groupValue: selected,
+                          onChanged: (v) {
+                            if (v == null) return;
+                            setDialogState(() => selected = v);
+                            onChanged(v);
+                            Future.delayed(const Duration(milliseconds: 400),
+                                () {
+                              if (ctx.mounted) Navigator.pop(ctx);
+                            });
+                          },
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        const SizedBox(width: 5),
+                        Text(options[i].$2,
+                            style: const TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 5),
+            ],
           ),
         ),
       );

@@ -33,6 +33,10 @@ alwaysApply: true
 - **providers.dart**: `mapStateProvider`, `locationStreamProvider` など
 - **循環参照回避**: `map_state_notifier` は `app_settings_providers` のみ import
 
+## ダイアログ
+
+- **ラジオ選択**: ラジオボタンで項目を設定するダイアログは `showRadioSelectionDialog`（`map_screen_content.dart`）を使用する
+
 ## 角丸禁止
 
 - **ダイアログ**: デフォルト表示では角丸にしない（`shape: RoundedRectangleBorder()` など角丸指定を避ける）
@@ -67,3 +71,4 @@ alwaysApply: true
 
 - **応答言語**: 日本語で応答する
 - **単位などの固定ラベル**: ローカライズ不要の場合はコード内に直接記述（例: "km", "mi"）
+- **ラジオボタン**: ラジオボタンを追加する場合は `Radio` + `Row` + `Text` パターンで実装する（`RadioListTile` ではなく。`visualDensity: VisualDensity.compact`、`materialTapTargetSize: MaterialTapTargetSize.shrinkWrap` を指定）
