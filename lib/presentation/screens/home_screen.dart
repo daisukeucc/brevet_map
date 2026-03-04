@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -13,6 +14,9 @@ import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/models/user_poi.dart';
 import '../../domain/services/gpx_channel_service.dart';
 import '../../domain/services/location_service.dart';
+import '../../domain/services/marker_icon_service.dart';
+import '../../domain/services/share_channel_service.dart';
+import '../../utils/coordinates_from_url.dart';
 import '../../domain/services/volume_zoom_handler.dart';
 import '../../utils/map_utils.dart';
 import '../../l10n/app_localizations.dart';
@@ -50,10 +54,18 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool _isDragMode = false;
   bool _isMapTapAddMode = false;
 
+  /// 共有リンクから取得した座標。非 null のときプレビューマーカー表示・登録確認UI表示
+  LatLng? _pendingSharedPosition;
+
+  /// 共有プレビュー用の現在地風アイコン
+  BitmapDescriptor? _sharePreviewIcon;
+
   Timer? _sleepTimer;
   bool _isScreenDimmed = false;
   bool _wasStreamActiveBeforeDim = false;
   OverlayEntry? _dimOverlayEntry;
+
+  StreamSubscription? _intentDataStreamSubscription;
 
   late final VolumeZoomHandler _volumeZoomHandler;
 
@@ -90,6 +102,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
+    createSharePreviewMarkerIcon().then((icon) {
+      if (mounted) setState(() => _sharePreviewIcon = icon);
+    });
+
     GpxChannelService.setMethodCallHandler(_confirmAndApplyGpx);
     GpxChannelService.getInitialGpxContent().then((content) {
       if (content != null && content.isNotEmpty && mounted) {
@@ -98,10 +114,105 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         });
       }
     });
+
+    if (Platform.isAndroid) {
+      ShareChannelService.setMethodCallHandler(_onSharedUrlReceived);
+      ShareChannelService.getInitialSharedUrl().then((url) {
+        if (url != null && url.isNotEmpty && mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _onSharedUrlReceived(url);
+          });
+        }
+      });
+    } else if (Platform.isIOS) {
+      _intentDataStreamSubscription =
+          ReceiveSharingIntent.instance.getMediaStream().listen((list) {
+        final url = _extractUrlFromSharedMedia(list);
+        if (url != null && url.isNotEmpty && mounted) {
+          _onSharedUrlReceived(url);
+        }
+      });
+      ReceiveSharingIntent.instance.getInitialMedia().then((list) {
+        final url = _extractUrlFromSharedMedia(list);
+        if (url != null && url.isNotEmpty && mounted) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _onSharedUrlReceived(url);
+            ReceiveSharingIntent.instance.reset();
+          });
+        }
+      });
+    }
+  }
+
+  String? _extractUrlFromSharedMedia(List<SharedMediaFile> list) {
+    for (final file in list) {
+      final path = file.path;
+      if (path.isEmpty) continue;
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        return path;
+      }
+      if (file.type == SharedMediaType.text) {
+        return path;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _onSharedUrlReceived(String url) async {
+    if (!mounted) return;
+    final trimmedUrl = url.trim();
+    if (trimmedUrl.isEmpty) return;
+    final coords = extractCoordinatesFromUrlString(trimmedUrl);
+    if (!mounted) return;
+    if (coords != null) {
+      final position = LatLng(coords.lat, coords.lng);
+      setState(() => _pendingSharedPosition = position);
+      await ref.read(cameraControllerProvider.notifier).animateTo(
+            position,
+            zoom: 18.0,
+          );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context)!.shareUrlInvalid),
+        ),
+      );
+    }
+  }
+
+  void _onCancelSharePreview() {
+    setState(() => _pendingSharedPosition = null);
+  }
+
+  Future<void> _onConfirmSharePreview() async {
+    final position = _pendingSharedPosition;
+    if (position == null || !mounted) return;
+    setState(() => _pendingSharedPosition = null);
+    final data = await showDialog<_AddPoiFormData>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (context) => const _MapTapPoiAddDialog(),
+    );
+    if (!mounted) return;
+    if (data == null) return;
+    final poi = UserPoi(
+      type: data.type,
+      km: null,
+      title: data.title,
+      body: data.body,
+      lat: position.latitude,
+      lng: position.longitude,
+    );
+    await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context)!.poiRegistered)),
+    );
   }
 
   @override
   void dispose() {
+    _intentDataStreamSubscription?.cancel();
     _sleepTimer?.cancel();
     _restoreBrightness();
     WidgetsBinding.instance.removeObserver(this);
@@ -293,6 +404,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               .read(cameraControllerProvider.notifier)
               .animateToBounds(bounds),
         );
+    // 共有URLから起動した場合、地図作成後に該当座標へズーム（起動直後はcontroller未設定のためここで実行）
+    if (_pendingSharedPosition != null && mounted) {
+      await ref.read(cameraControllerProvider.notifier).animateTo(
+            _pendingSharedPosition!,
+            zoom: 18.0,
+          );
+    }
   }
 
   Future<void> _onMapStyleTap() async {
@@ -601,11 +719,28 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                 );
               });
 
+              final markers = _pendingSharedPosition != null
+                  ? {
+                      ...mapState.routeMarkers,
+                      Marker(
+                        markerId: const MarkerId('share_preview'),
+                        position: _pendingSharedPosition!,
+                        icon: _sharePreviewIcon ??
+                            BitmapDescriptor.defaultMarkerWithHue(
+                                BitmapDescriptor.hueOrange),
+                        anchor: _sharePreviewIcon != null
+                            ? const Offset(0.3, 0.5)
+                            : const Offset(0.5, 1.0),
+                        zIndexInt: 5,
+                      ),
+                    }
+                  : mapState.routeMarkers;
+
               return MapScreenContent(
                 initialPosition: LatLng(position.latitude, position.longitude),
                 initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
                 polylines: mapState.routePolylines,
-                markers: mapState.routeMarkers,
+                markers: markers,
                 mapStyleMode: mapState.mapStyleMode,
                 onCameraIdle: _onCameraIdle,
                 onMapCreated: _onMapCreated,
@@ -628,8 +763,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                 hasUserPois: mapState.userPois.isNotEmpty,
                 onUserInteraction: _onUserInteraction,
                 isDragMode: _isDragMode,
-                isMapTapAddMode: _isMapTapAddMode,
-                onMapLongPress: _isMapTapAddMode ? _onMapLongPress : null,
+                isMapTapAddMode:
+                    _isMapTapAddMode || _pendingSharedPosition != null,
+                onMapLongPress:
+                    _isMapTapAddMode && _pendingSharedPosition == null
+                        ? _onMapLongPress
+                        : null,
               );
             },
           ),
@@ -687,7 +826,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             ),
           ),
         ],
-        if (_isMapTapAddMode) ...[
+        if (_isMapTapAddMode || _pendingSharedPosition != null) ...[
           const Positioned.fill(
             child: IgnorePointer(
               child: ColoredBox(color: Color(0x66000000)),
@@ -712,7 +851,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                       children: [
                         Expanded(
                           child: Text(
-                            AppLocalizations.of(context)!.longPressPoiHint,
+                            _pendingSharedPosition != null
+                                ? AppLocalizations.of(context)!
+                                    .registerThisPlaceAsPoi
+                                : AppLocalizations.of(context)!
+                                    .longPressPoiHint,
                             style: const TextStyle(
                               fontSize: 15,
                               height: 1.5,
@@ -721,17 +864,41 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                             ),
                           ),
                         ),
-                        TextButton(
-                          onPressed: _onCancelMapTapAddMode,
-                          child: Text(
-                            AppLocalizations.of(context)!.cancel,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
+                        if (_pendingSharedPosition != null) ...[
+                          TextButton(
+                            onPressed: _onCancelSharePreview,
+                            child: Text(
+                              AppLocalizations.of(context)!.cancel,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                decoration: TextDecoration.none,
+                              ),
                             ),
                           ),
-                        ),
+                          TextButton(
+                            onPressed: _onConfirmSharePreview,
+                            child: Text(
+                              AppLocalizations.of(context)!.ok,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                          ),
+                        ] else
+                          TextButton(
+                            onPressed: _onCancelMapTapAddMode,
+                            child: Text(
+                              AppLocalizations.of(context)!.cancel,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                   ),

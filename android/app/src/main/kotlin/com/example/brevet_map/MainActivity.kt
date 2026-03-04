@@ -11,8 +11,11 @@ import java.io.InputStreamReader
 
 class MainActivity : FlutterAndroidVolumeKeydownActivity() {
     private val channelName = "com.example.brevet_map/gpx"
+    private val shareChannelName = "com.example.brevet_map/share"
     private var pendingGpxUri: Uri? = null
+    private var pendingSharedUrl: String? = null
     private var gpxMethodChannel: MethodChannel? = null
+    private var shareMethodChannel: MethodChannel? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -38,34 +41,93 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
                 }
             }
         }
+        shareMethodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, shareChannelName).apply {
+            setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "getInitialSharedUrl" -> {
+                        val url = pendingSharedUrl
+                        pendingSharedUrl = null
+                        clearShareIntent()
+                        result.success(url)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        intent?.data?.let { uri ->
-            if (isGpxUri(uri)) pendingGpxUri = uri
-        }
+        intent?.let { storePendingFromIntent(it) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        intent.data?.let { uri ->
-            if (isGpxUri(uri)) {
-                pendingGpxUri = uri
-                try {
-                    val content = readUriContent(uri)
-                    gpxMethodChannel?.invokeMethod(
-                        "onGpxFileReceived",
-                        content,
-                        object : MethodChannel.Result {
-                            override fun success(result: Any?) {}
-                            override fun error(code: String, msg: String?, details: Any?) {}
-                            override fun notImplemented() {}
-                        }
-                    )
-                } catch (_: Exception) {}
+        handleIntent(intent)
+    }
+
+    private fun storePendingFromIntent(intent: Intent) {
+        when (intent.action) {
+            Intent.ACTION_SEND -> {
+                if (intent.type == "text/plain") {
+                    intent.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() }
+                        ?.let { pendingSharedUrl = it.trim() }
+                }
             }
+            Intent.ACTION_VIEW -> {
+                intent.data?.let { uri ->
+                    if (isGpxUri(uri)) pendingGpxUri = uri
+                }
+            }
+        }
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        when (intent?.action) {
+            Intent.ACTION_SEND -> {
+                if (intent.type == "text/plain") {
+                    val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+                    if (!text.isNullOrBlank()) {
+                        shareMethodChannel?.invokeMethod(
+                            "onSharedUrlReceived",
+                            text.trim(),
+                            object : MethodChannel.Result {
+                                override fun success(result: Any?) {}
+                                override fun error(code: String, msg: String?, details: Any?) {}
+                                override fun notImplemented() {}
+                            }
+                        )
+                        clearShareIntent()
+                    }
+                }
+            }
+            Intent.ACTION_VIEW -> {
+                intent?.data?.let { uri ->
+                    if (isGpxUri(uri)) {
+                        try {
+                            val content = readUriContent(uri)
+                            gpxMethodChannel?.invokeMethod(
+                                "onGpxFileReceived",
+                                content,
+                                object : MethodChannel.Result {
+                                    override fun success(result: Any?) {}
+                                    override fun error(code: String, msg: String?, details: Any?) {}
+                                    override fun notImplemented() {}
+                                }
+                            )
+                        } catch (_: Exception) {}
+                    }
+                }
+            }
+        }
+    }
+
+    private fun clearShareIntent() {
+        intent?.removeExtra(Intent.EXTRA_TEXT)
+        if (intent?.action == Intent.ACTION_SEND) {
+            intent?.action = Intent.ACTION_MAIN
+            intent?.type = null
         }
     }
 

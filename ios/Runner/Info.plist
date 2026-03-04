@@ -53,6 +53,19 @@
 	<string>このアプリは地図表示のために位置情報を使用します。</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>このアプリは地図表示のために位置情報を使用します。</string>
+	<key>AppGroupId</key>
+	<string>group.com.example.brevetMap</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ShareMedia-com.example.brevetMap</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleDocumentTypes</key>
 	<array>
 		<dict>

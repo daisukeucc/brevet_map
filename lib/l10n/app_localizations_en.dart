@@ -116,6 +116,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiRegistered => 'POI registered';
 
   @override
+  String get poiAddedFromShare => 'POI added from shared link';
+
+  @override
+  String get shareUrlInvalid =>
+      'Could not extract coordinates from shared link';
+
+  @override
+  String get registerThisPlaceAsPoi => 'Register this location as POI?';
+
+  @override
   String get poiUpdated => 'POI updated';
 
   @override

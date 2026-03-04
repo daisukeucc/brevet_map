@@ -302,6 +302,24 @@ abstract class AppLocalizations {
   /// **'POI registered'**
   String get poiRegistered;
 
+  /// No description provided for @poiAddedFromShare.
+  ///
+  /// In en, this message translates to:
+  /// **'POI added from shared link'**
+  String get poiAddedFromShare;
+
+  /// No description provided for @shareUrlInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not extract coordinates from shared link'**
+  String get shareUrlInvalid;
+
+  /// No description provided for @registerThisPlaceAsPoi.
+  ///
+  /// In en, this message translates to:
+  /// **'Register this location as POI?'**
+  String get registerThisPlaceAsPoi;
+
   /// No description provided for @poiUpdated.
   ///
   /// In en, this message translates to:

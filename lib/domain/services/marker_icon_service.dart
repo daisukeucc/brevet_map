@@ -205,6 +205,57 @@ Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
   return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
 }
 
+/// 共有プレビュー用
+Future<BitmapDescriptor> createSharePreviewMarkerIcon() async {
+  const size = 102.0;
+  const radius = 40.0;
+  const pixelRatio = 2.0;
+  final cx = size / 2;
+  final cy = size / 2;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+
+  final circlePaint = Paint()
+    ..color = Colors.blue
+    ..style = PaintingStyle.fill;
+  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+
+  final borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 6;
+  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+
+  // 下向き矢印（パスで描画・天地左右中央揃え、太め）
+  const arrowTip = 14.0;
+  const arrowBase = 18.0;
+  // 三角形の重心が (cx, cy) に来るようオフセット（重心=(y1+y2+y3)/3）
+  const arrowOffsetY = (2.0 * arrowBase - arrowTip) / 3.0;
+  final arrowPath = Path()
+    ..moveTo(cx, cy + arrowTip + arrowOffsetY)
+    ..lineTo(cx - arrowBase, cy - arrowBase + arrowOffsetY)
+    ..lineTo(cx + arrowBase, cy - arrowBase + arrowOffsetY)
+    ..close();
+  canvas.drawPath(
+    arrowPath,
+    Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill
+      ..strokeWidth = 0,
+  );
+
+  final picture = recorder.endRecording();
+  final w = (size * pixelRatio).round();
+  final h = (size * pixelRatio).round();
+  final image = await picture.toImage(w, h);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+}
+
 /// チェックポイントPOI用
 Future<BitmapDescriptor> createPoiCheckpointMarkerIcon() async {
   const size = 102.0;
