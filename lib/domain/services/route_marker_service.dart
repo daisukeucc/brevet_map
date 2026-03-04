@@ -85,14 +85,15 @@ Future<Set<Marker>> buildRouteMarkers({
     if (showDistanceMarkers) {
       final intervalMeters =
           distanceUnit == 1 ? _interval50mileMeters : _interval50kmMeters;
-      final distanceList =
-          distanceMarkersAlongTrack(routePoints, intervalMeters: intervalMeters);
+      final distanceList = distanceMarkersAlongTrack(routePoints,
+          intervalMeters: intervalMeters);
       for (var i = 0; i < distanceList.length; i++) {
         final m = distanceList[i];
         final label = distanceUnit == 1
             ? '${50 * (i + 1)}mi'
             : '${m.distanceKm.toInt()}km';
-        final idSuffix = distanceUnit == 1 ? 50 * (i + 1) : m.distanceKm.toInt();
+        final idSuffix =
+            distanceUnit == 1 ? 50 * (i + 1) : m.distanceKm.toInt();
         try {
           final icon = await createDistanceMarkerIcon(label);
           markers.add(Marker(

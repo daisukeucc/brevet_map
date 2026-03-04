@@ -115,6 +115,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get poiRegistered => 'POIを登録しました';
 
   @override
+  String get poiAddedFromShare => '共有リンクからPOIを登録しました';
+
+  @override
+  String get shareUrlInvalid => '共有されたリンクから座標を取得できませんでした';
+
+  @override
+  String get registerThisPlaceAsPoi => 'この場所をPOIとして登録する';
+
+  @override
   String get poiUpdated => 'POIを変更しました';
 
   @override
