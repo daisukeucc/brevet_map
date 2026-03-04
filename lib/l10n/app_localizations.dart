@@ -335,7 +335,7 @@ abstract class AppLocalizations {
   /// No description provided for @changePoiTextTitle.
   ///
   /// In en, this message translates to:
-  /// **'Change text'**
+  /// **'Change POI title and body'**
   String get changePoiTextTitle;
 
   /// No description provided for @routeOverwrite.

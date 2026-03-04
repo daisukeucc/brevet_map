@@ -129,7 +129,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPoiRegistered => 'No POI registered';
 
   @override
-  String get changePoiTextTitle => 'Change text';
+  String get changePoiTextTitle => 'Change POI title and body';
 
   @override
   String get routeOverwrite => 'Overwrite current route';

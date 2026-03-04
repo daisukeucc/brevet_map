@@ -39,7 +39,7 @@
   "changePoiPositionTitle": "POIの位置を変更",
   "deletePoiConfirm": "このPOIを削除しますか？",
   "noPoiRegistered": "POIの登録はありません",
-  "changePoiTextTitle": "テキストを変更",
+  "changePoiTextTitle": "POIのタイトル・本文を変更",
   "routeOverwrite": "現在のルートを上書きします",
   "selectGpxFile": "GPXファイルを選択してください",
   "routeNotLoaded": "ルートが読み込まれていません",

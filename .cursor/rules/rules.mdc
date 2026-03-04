@@ -37,6 +37,7 @@ alwaysApply: true
 
 - **確認ダイアログ**: 本文とボタンのみの確認ダイアログは `showConfirmDialog`（`confirm_dialog.dart`）を使用する
 - **ラジオ選択**: ラジオボタンで項目を設定するダイアログは `showRadioSelectionDialog`（`radio_selection_dialog.dart`）を使用する
+- **テキストメニュー**: テキストのみのメニューを追加する場合は `showTextMenuDialog`（`text_menu_dialog.dart`）を使用する
 
 ## 角丸禁止
 

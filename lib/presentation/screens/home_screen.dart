@@ -17,7 +17,9 @@ import '../../domain/services/volume_zoom_handler.dart';
 import '../../utils/map_utils.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
+import '../theme/app_text_styles.dart';
 import '../widgets/confirm_dialog.dart';
+import '../widgets/text_menu_dialog.dart';
 import '../widgets/location_error_view.dart';
 import '../widgets/map_screen_content.dart';
 import '../widgets/poi_detail_sheet.dart';
@@ -864,7 +866,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                             )
                           : Text(
                               widget.distanceUnit == 1 ? 'mi' : 'km',
-                              style: const TextStyle(fontSize: 17),
+                              style: AppTextStyles.title,
                             ),
                     ),
                   ),
@@ -872,7 +874,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
               ),
               const SizedBox(height: 28),
               Text(AppLocalizations.of(context)!.poiType,
-                  style: const TextStyle(fontSize: 15)),
+                  style: AppTextStyles.body),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -893,7 +895,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     Text(AppLocalizations.of(context)!.checkpoint,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.body),
                   ],
                 ),
               ),
@@ -916,7 +918,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     Text(AppLocalizations.of(context)!.information,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.body),
                   ],
                 ),
               ),
@@ -927,7 +929,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                   labelText: AppLocalizations.of(context)!.title,
                   isDense: true,
                 ),
-                style: const TextStyle(fontSize: 17),
+                style: AppTextStyles.title,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -936,7 +938,7 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                   labelText: AppLocalizations.of(context)!.body,
                   isDense: true,
                 ),
-                style: const TextStyle(fontSize: 17),
+                style: AppTextStyles.title,
                 maxLines: 3,
                 minLines: 3,
               ),
@@ -947,12 +949,12 @@ class _DistanceInputPoiDialogState extends State<_DistanceInputPoiDialog> {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(AppLocalizations.of(context)!.cancel,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.button),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
                     child: Text(AppLocalizations.of(context)!.register,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.button),
                   ),
                 ],
               ),
@@ -1013,19 +1015,25 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
 
   Widget _buildAddTab() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+      padding: const EdgeInsets.fromLTRB(0, 18, 0, 18),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ListTile(
-            title: Text(AppLocalizations.of(context)!.poiAddByDistance),
-            contentPadding: EdgeInsets.zero,
+            title: Text(AppLocalizations.of(context)!.poiAddByDistance,
+                style: AppTextStyles.label),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
             onTap: () => Navigator.pop(context, const _DistanceInputRequest()),
           ),
           ListTile(
-            title: Text(AppLocalizations.of(context)!.poiAddByMapTap),
-            contentPadding: EdgeInsets.zero,
+            title: Text(AppLocalizations.of(context)!.poiAddByMapTap,
+                style: AppTextStyles.label),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
             onTap: () => Navigator.pop(context, const _MapTapAddRequest()),
           ),
         ],
@@ -1034,25 +1042,13 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
   }
 
   Future<void> _onEditTap(UserPoi poi) async {
-    final action = await showDialog<int>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: const RoundedRectangleBorder(),
-        contentPadding: const EdgeInsets.symmetric(vertical: 8),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(AppLocalizations.of(context)!.changePoiTextTitle),
-              onTap: () => Navigator.pop(context, 0),
-            ),
-            ListTile(
-              title: Text(AppLocalizations.of(context)!.changePoiPositionTitle),
-              onTap: () => Navigator.pop(context, 1),
-            ),
-          ],
-        ),
-      ),
+    final l10n = AppLocalizations.of(context)!;
+    final action = await showTextMenuDialog(
+      context,
+      items: [
+        l10n.changePoiTextTitle,
+        l10n.changePoiPositionTitle,
+      ],
     );
     if (action == null || !mounted) return;
     if (action == 0) {
@@ -1113,36 +1109,39 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
               bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
             ),
           ),
-          child: ListTile(
-            title: Text(
-              distStr != null
-                  ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
-                  : (poi.title.isEmpty
-                      ? AppLocalizations.of(context)!.titleNone
-                      : poi.title),
-              style: const TextStyle(fontSize: 15),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
               children: [
-                TextButton(
-                  onPressed: () => _onEditTap(poi),
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                Expanded(
+                  child: Text(
+                    distStr != null
+                        ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
+                        : (poi.title.isEmpty
+                            ? AppLocalizations.of(context)!.titleNone
+                            : poi.title),
+                    style: AppTextStyles.bodySmall,
                   ),
-                  child: Text(AppLocalizations.of(context)!.edit),
                 ),
-                const SizedBox(width: 4),
                 TextButton(
-                  onPressed: () => _onDeleteTap(poi),
                   style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: Text(AppLocalizations.of(context)!.delete),
+                  onPressed: () => _onEditTap(poi),
+                  child: Text(AppLocalizations.of(context)!.edit,
+                      style: AppTextStyles.buttonSmall),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () => _onDeleteTap(poi),
+                  child: Text(AppLocalizations.of(context)!.delete,
+                      style: AppTextStyles.buttonSmall),
                 ),
               ],
             ),
@@ -1166,6 +1165,7 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
             TabBar(
               controller: _tabController,
               indicatorSize: TabBarIndicatorSize.tab,
+              labelStyle: AppTextStyles.bodySmall,
               tabs: [
                 Tab(text: AppLocalizations.of(context)!.poiTabAdd),
                 Tab(text: AppLocalizations.of(context)!.poiTabEdit),

@@ -128,7 +128,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPoiRegistered => 'POIの登録はありません';
 
   @override
-  String get changePoiTextTitle => 'テキストを変更';
+  String get changePoiTextTitle => 'POIのタイトル・本文を変更';
 
   @override
   String get routeOverwrite => '現在のルートを上書きします';
