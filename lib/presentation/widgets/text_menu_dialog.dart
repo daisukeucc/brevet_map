@@ -12,14 +12,15 @@ Future<int?> showTextMenuDialog(
     context: context,
     builder: (context) => AlertDialog(
       shape: const RoundedRectangleBorder(),
-      contentPadding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+      contentPadding: const EdgeInsets.fromLTRB(0, 18, 0, 18),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           for (var i = 0; i < items.length; i++)
             ListTile(
               title: Text(items[i], style: AppTextStyles.label),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
               visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
               onTap: () => Navigator.pop(context, i),
             ),
