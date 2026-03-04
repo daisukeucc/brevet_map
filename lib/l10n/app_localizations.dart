@@ -479,7 +479,7 @@ abstract class AppLocalizations {
   /// No description provided for @distanceUnit.
   ///
   /// In en, this message translates to:
-  /// **'Distance unit'**
+  /// **'Distance unit settings'**
   String get distanceUnit;
 
   /// No description provided for @unitKm.

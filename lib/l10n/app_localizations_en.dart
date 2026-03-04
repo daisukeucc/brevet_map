@@ -206,7 +206,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleep10min => '10min';
 
   @override
-  String get distanceUnit => 'Distance unit';
+  String get distanceUnit => 'Distance unit settings';
 
   @override
   String get unitKm => 'km';

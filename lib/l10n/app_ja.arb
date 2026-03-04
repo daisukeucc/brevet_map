@@ -1,6 +1,6 @@
 {
   "@@locale": "ja",
-  "appTitle": "Brevet Map",
+  "appTitle": "ブルベMap",
   "cancel": "キャンセル",
   "ok": "OK",
   "ng": "NG",
@@ -63,7 +63,7 @@
   "sleep1min": "1分",
   "sleep5min": "5分",
   "sleep10min": "10分",
-  "distanceUnit": "距離の単位",
+  "distanceUnit": "距離の単位設定",
   "unitKm": "km",
   "unitMile": "mile",
   "distanceUnitSetToKm": "距離の単位をkmに設定しました",

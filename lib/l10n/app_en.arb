@@ -77,7 +77,7 @@
   "sleep1min": "1min",
   "sleep5min": "5min",
   "sleep10min": "10min",
-  "distanceUnit": "Distance unit",
+  "distanceUnit": "Distance unit settings",
   "unitKm": "km",
   "unitMile": "mile",
   "distanceUnitSetToKm": "Distance unit set to km",

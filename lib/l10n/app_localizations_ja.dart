@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'Brevet Map';
+  String get appTitle => 'ブルベMap';
 
   @override
   String get cancel => 'キャンセル';
@@ -203,7 +203,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleep10min => '10分';
 
   @override
-  String get distanceUnit => '距離の単位';
+  String get distanceUnit => '距離の単位設定';
 
   @override
   String get unitKm => 'km';

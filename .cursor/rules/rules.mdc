@@ -9,6 +9,8 @@ alwaysApply: true
 
 - **方式**: Flutter ARB + `flutter gen-l10n`
 - **文言追加**: `lib/l10n/app_en.arb` と `lib/l10n/app_ja.arb` に両方追加
+- **app_ja.arb 変更時**: 他言語（`app_en.arb` 等）の同一キーを該当言語に翻訳して更新し、最後に `flutter gen-l10n` を実行する（逆方向の同期は行わない）
+- **ARB 変更後**: `.arb` ファイルを変更したら `flutter gen-l10n` を実行する
 - **参照**: `AppLocalizations.of(context)!.キー名`
 - **禁止**: `initState` 内で `AppLocalizations.of(context)` を呼ばない（inherited widget 未準備のため）
 - **対策**: `addPostFrameCallback` 内で取得するか、`build` / `didChangeDependencies` で取得
