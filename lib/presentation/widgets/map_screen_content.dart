@@ -148,10 +148,6 @@ class MapScreenContent extends StatelessWidget {
                               context: context,
                               shape: const RoundedRectangleBorder(),
                               builder: (_) => _SettingsBottomSheet(
-                                sleepDuration: sleepDuration,
-                                onSleepDurationChanged: onSleepDurationChanged,
-                                distanceUnit: distanceUnit,
-                                onDistanceUnitChanged: onDistanceUnitChanged,
                                 onGpxImportTap: () {
                                   final navigator = Navigator.of(context);
                                   Future.delayed(
@@ -172,6 +168,20 @@ class MapScreenContent extends StatelessWidget {
                                       onAddPoiTap();
                                     },
                                   );
+                                },
+                                onSleepSettingsTap: () async {
+                                  final navigator = Navigator.of(context);
+                                  await Future.delayed(const Duration(milliseconds: 200));
+                                  navigator.pop();
+                                  if (!context.mounted) return;
+                                  _showSleepDurationDialog(context, sleepDuration, onSleepDurationChanged);
+                                },
+                                onDistanceUnitTap: () async {
+                                  final navigator = Navigator.of(context);
+                                  await Future.delayed(const Duration(milliseconds: 200));
+                                  navigator.pop();
+                                  if (!context.mounted) return;
+                                  _showDistanceUnitDialog(context, distanceUnit, onDistanceUnitChanged);
                                 },
                               ),
                             ),
@@ -267,118 +277,110 @@ class MapScreenContent extends StatelessWidget {
   }
 }
 
+void _showSleepDurationDialog(
+  BuildContext context,
+  int initialSleepDuration,
+  void Function(int) onSleepDurationChanged,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  final options = [
+    (0, l10n.sleepOff),
+    (1, l10n.sleep1min),
+    (5, l10n.sleep5min),
+    (10, l10n.sleep10min),
+  ];
+  showDialog<void>(
+    context: context,
+    builder: (ctx) {
+      int selected = initialSleepDuration;
+      return StatefulBuilder(
+        builder: (_, setDialogState) => AlertDialog(
+          shape: const RoundedRectangleBorder(),
+          title: Text(l10n.sleepSettings),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options
+                .map((e) => RadioListTile<int>(
+                      title: Text(e.$2),
+                      value: e.$1,
+                      groupValue: selected,
+                      onChanged: (v) {
+                        if (v == null) return;
+                        setDialogState(() => selected = v);
+                        onSleepDurationChanged(v);
+                        Future.delayed(const Duration(milliseconds: 400), () {
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        });
+                      },
+                    ))
+                .toList(),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+void _showDistanceUnitDialog(
+  BuildContext context,
+  int initialDistanceUnit,
+  void Function(int) onDistanceUnitChanged,
+) {
+  final l10n = AppLocalizations.of(context)!;
+  final options = [(0, l10n.unitKm), (1, l10n.unitMile)];
+  showDialog<void>(
+    context: context,
+    builder: (ctx) {
+      int selected = initialDistanceUnit;
+      return StatefulBuilder(
+        builder: (_, setDialogState) => AlertDialog(
+          shape: const RoundedRectangleBorder(),
+          title: Text(l10n.distanceUnit),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options
+                .map((e) => RadioListTile<int>(
+                      title: Text(e.$2),
+                      value: e.$1,
+                      groupValue: selected,
+                      onChanged: (v) {
+                        if (v == null) return;
+                        setDialogState(() => selected = v);
+                        onDistanceUnitChanged(v);
+                        Future.delayed(const Duration(milliseconds: 400), () {
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        });
+                      },
+                    ))
+                .toList(),
+          ),
+        ),
+      );
+    },
+  );
+}
+
 /// 設定ボトムシート
 class _SettingsBottomSheet extends StatefulWidget {
   const _SettingsBottomSheet({
-    required this.sleepDuration,
-    required this.onSleepDurationChanged,
-    required this.distanceUnit,
-    required this.onDistanceUnitChanged,
     required this.onGpxImportTap,
     required this.hasUserPois,
     required this.onAddPoiTap,
+    required this.onSleepSettingsTap,
+    required this.onDistanceUnitTap,
   });
 
-  final int sleepDuration;
-  final void Function(int) onSleepDurationChanged;
-  final int distanceUnit;
-  final void Function(int) onDistanceUnitChanged;
   final VoidCallback onGpxImportTap;
   final bool hasUserPois;
   final VoidCallback onAddPoiTap;
+  final VoidCallback onSleepSettingsTap;
+  final VoidCallback onDistanceUnitTap;
 
   @override
   State<_SettingsBottomSheet> createState() => _SettingsBottomSheetState();
 }
 
 class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
-  late int _sleepDuration;
-  late int _distanceUnit;
-
-  @override
-  void initState() {
-    super.initState();
-    _sleepDuration = widget.sleepDuration;
-    _distanceUnit = widget.distanceUnit;
-  }
-
-  void _showSleepDurationDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final options = [
-      (0, l10n.sleepOff),
-      (1, l10n.sleep1min),
-      (5, l10n.sleep5min),
-      (10, l10n.sleep10min),
-    ];
-    showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        int selected = _sleepDuration;
-        return StatefulBuilder(
-          builder: (_, setDialogState) => AlertDialog(
-            shape: const RoundedRectangleBorder(),
-            title: Text(l10n.sleepSettings),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: options
-                  .map((e) => RadioListTile<int>(
-                        title: Text(e.$2),
-                        value: e.$1,
-                        groupValue: selected,
-                        onChanged: (v) {
-                          if (v == null) return;
-                          setDialogState(() => selected = v);
-                          setState(() => _sleepDuration = v);
-                          widget.onSleepDurationChanged(v);
-                          Future.delayed(const Duration(milliseconds: 400), () {
-                            if (ctx.mounted) Navigator.pop(ctx);
-                          });
-                        },
-                      ))
-                  .toList(),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showDistanceUnitDialog(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final options = [(0, l10n.unitKm), (1, l10n.unitMile)];
-    showDialog<void>(
-      context: context,
-      builder: (ctx) {
-        int selected = _distanceUnit;
-        return StatefulBuilder(
-          builder: (_, setDialogState) => AlertDialog(
-            shape: const RoundedRectangleBorder(),
-            title: Text(l10n.distanceUnit),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: options
-                  .map((e) => RadioListTile<int>(
-                        title: Text(e.$2),
-                        value: e.$1,
-                        groupValue: selected,
-                        onChanged: (v) {
-                          if (v == null) return;
-                          setDialogState(() => selected = v);
-                          setState(() => _distanceUnit = v);
-                          widget.onDistanceUnitChanged(v);
-                          Future.delayed(const Duration(milliseconds: 400), () {
-                            if (ctx.mounted) Navigator.pop(ctx);
-                          });
-                        },
-                      ))
-                  .toList(),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -416,7 +418,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
               AppLocalizations.of(context)!.sleepSettings,
               style: const TextStyle(fontSize: 15),
             ),
-            onTap: () => _showSleepDurationDialog(context),
+            onTap: widget.onSleepSettingsTap,
             contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             horizontalTitleGap: 20,
             visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
@@ -427,7 +429,7 @@ class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
               AppLocalizations.of(context)!.distanceUnit,
               style: const TextStyle(fontSize: 15),
             ),
-            onTap: () => _showDistanceUnitDialog(context),
+            onTap: widget.onDistanceUnitTap,
             contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             horizontalTitleGap: 20,
             visualDensity: const VisualDensity(horizontal: 0, vertical: -4),

@@ -41,6 +41,8 @@ alwaysApply: true
 ## 設定ボトムシート UI
 
 - **配置**: `map_screen_content.dart` の `_SettingsBottomSheet`
+- **項目タップ時**: ボトムシートの項目をタップしたらボトムシートを閉じる
+- **ダイアログ表示の遅延**: タップで ListTile の選択状態（ハイライト）を確認できるよう、`Future.delayed(200)` 後にボトムシートを閉じてダイアログを表示する
 - **共通パターン**:
   1. ラジオ選択時は `setState` でローカル更新
   2. 親のコールバックで Provider 更新・永続化
