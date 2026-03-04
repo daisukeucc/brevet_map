@@ -6,6 +6,8 @@ import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
+import 'radio_selection_dialog.dart';
+import 'settings_bottom_sheet.dart';
 
 /// 地図画面の本体。地図・オーバーレイ・下部バーをまとめる。
 class MapScreenContent extends StatelessWidget {
@@ -147,11 +149,7 @@ class MapScreenContent extends StatelessWidget {
                             onTap: () => showModalBottomSheet<void>(
                               context: context,
                               shape: const RoundedRectangleBorder(),
-                              builder: (_) => _SettingsBottomSheet(
-                                sleepDuration: sleepDuration,
-                                onSleepDurationChanged: onSleepDurationChanged,
-                                distanceUnit: distanceUnit,
-                                onDistanceUnitChanged: onDistanceUnitChanged,
+                              builder: (_) => SettingsBottomSheet(
                                 onGpxImportTap: () {
                                   final navigator = Navigator.of(context);
                                   Future.delayed(
@@ -171,6 +169,44 @@ class MapScreenContent extends StatelessWidget {
                                       navigator.pop();
                                       onAddPoiTap();
                                     },
+                                  );
+                                },
+                                onSleepSettingsTap: () async {
+                                  final navigator = Navigator.of(context);
+                                  final l10n = AppLocalizations.of(context)!;
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 200));
+                                  navigator.pop();
+                                  if (!context.mounted) return;
+                                  showRadioSelectionDialog<int>(
+                                    context: context,
+                                    title: l10n.sleepSettings,
+                                    options: [
+                                      (0, l10n.sleepOff),
+                                      (1, l10n.sleep1min),
+                                      (5, l10n.sleep5min),
+                                      (10, l10n.sleep10min),
+                                    ],
+                                    initialValue: sleepDuration,
+                                    onChanged: onSleepDurationChanged,
+                                  );
+                                },
+                                onDistanceUnitTap: () async {
+                                  final navigator = Navigator.of(context);
+                                  final l10n = AppLocalizations.of(context)!;
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 200));
+                                  navigator.pop();
+                                  if (!context.mounted) return;
+                                  showRadioSelectionDialog<int>(
+                                    context: context,
+                                    title: l10n.distanceUnit,
+                                    options: [
+                                      (0, l10n.unitKm),
+                                      (1, l10n.unitMile)
+                                    ],
+                                    initialValue: distanceUnit,
+                                    onChanged: onDistanceUnitChanged,
                                   );
                                 },
                               ),
@@ -261,222 +297,6 @@ class MapScreenContent extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// 設定ボトムシート
-class _SettingsBottomSheet extends StatefulWidget {
-  const _SettingsBottomSheet({
-    required this.sleepDuration,
-    required this.onSleepDurationChanged,
-    required this.distanceUnit,
-    required this.onDistanceUnitChanged,
-    required this.onGpxImportTap,
-    required this.hasUserPois,
-    required this.onAddPoiTap,
-  });
-
-  final int sleepDuration;
-  final void Function(int) onSleepDurationChanged;
-  final int distanceUnit;
-  final void Function(int) onDistanceUnitChanged;
-  final VoidCallback onGpxImportTap;
-  final bool hasUserPois;
-  final VoidCallback onAddPoiTap;
-
-  @override
-  State<_SettingsBottomSheet> createState() => _SettingsBottomSheetState();
-}
-
-class _SettingsBottomSheetState extends State<_SettingsBottomSheet> {
-  late int _sleepDuration;
-  late int _distanceUnit;
-
-  @override
-  void initState() {
-    super.initState();
-    _sleepDuration = widget.sleepDuration;
-    _distanceUnit = widget.distanceUnit;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 13),
-          ListTile(
-            leading: const Icon(Icons.download, color: Colors.blueGrey),
-            title: Text(
-              AppLocalizations.of(context)!.gpxImport,
-              style: const TextStyle(fontSize: 17),
-            ),
-            onTap: widget.onGpxImportTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            horizontalTitleGap: 8,
-          ),
-          ListTile(
-            leading: const Icon(Icons.add_location_alt, color: Colors.blueGrey),
-            title: Text(
-              widget.hasUserPois
-                  ? AppLocalizations.of(context)!.poiAddEdit
-                  : AppLocalizations.of(context)!.poiAdd,
-              style: const TextStyle(fontSize: 17),
-            ),
-            onTap: widget.onAddPoiTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            horizontalTitleGap: 8,
-          ),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              children: [
-                const Icon(Icons.bedtime, color: Colors.blueGrey),
-                const SizedBox(width: 8),
-                Text(
-                  AppLocalizations.of(context)!.sleepSettings,
-                  style: const TextStyle(fontSize: 17),
-                ),
-              ],
-            ),
-          ),
-          _SleepDurationSelector(
-            value: _sleepDuration,
-            onChanged: (v) {
-              setState(() => _sleepDuration = v);
-              widget.onSleepDurationChanged(v);
-              Future.delayed(const Duration(milliseconds: 400), () {
-                if (context.mounted) Navigator.pop(context);
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            child: Row(
-              children: [
-                const Icon(Icons.straighten, color: Colors.blueGrey),
-                const SizedBox(width: 8),
-                Text(
-                  AppLocalizations.of(context)!.distanceUnit,
-                  style: const TextStyle(fontSize: 17),
-                ),
-              ],
-            ),
-          ),
-          _DistanceUnitSelector(
-            value: _distanceUnit,
-            onChanged: (v) {
-              setState(() => _distanceUnit = v);
-              widget.onDistanceUnitChanged(v);
-              Future.delayed(const Duration(milliseconds: 400), () {
-                if (context.mounted) Navigator.pop(context);
-              });
-            },
-          ),
-          const SizedBox(height: 23),
-        ],
-      ),
-    );
-  }
-}
-
-/// 距離単位ラジオボタン行
-class _DistanceUnitSelector extends StatelessWidget {
-  const _DistanceUnitSelector({
-    required this.value,
-    required this.onChanged,
-  });
-
-  final int value;
-  final void Function(int) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final options = [(0, l10n.unitKm), (1, l10n.unitMile)];
-    return Padding(
-      padding: const EdgeInsets.only(left: 32),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          for (int i = 0; i < options.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onChanged(options[i].$1),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: options[i].$1,
-                      groupValue: value,
-                      onChanged: (v) => onChanged(v!),
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(options[i].$2, style: const TextStyle(fontSize: 17)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// スリープ時間ラジオボタン行
-class _SleepDurationSelector extends StatelessWidget {
-  const _SleepDurationSelector({
-    required this.value,
-    required this.onChanged,
-  });
-
-  final int value;
-  final void Function(int) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final options = [
-      (0, l10n.sleepOff),
-      (1, l10n.sleep1min),
-      (5, l10n.sleep5min),
-      (10, l10n.sleep10min),
-    ];
-    return Padding(
-      padding: const EdgeInsets.only(left: 38),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          for (int i = 0; i < options.length; i++) ...[
-            if (i > 0) const SizedBox(width: 8),
-            GestureDetector(
-              onTap: () => onChanged(options[i].$1),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Radio<int>(
-                    value: options[i].$1,
-                    groupValue: value,
-                    onChanged: (v) => onChanged(v!),
-                    visualDensity: VisualDensity.compact,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  Text(options[i].$2, style: const TextStyle(fontSize: 17)),
-                ],
-              ),
-            ),
-          ],
         ],
       ),
     );

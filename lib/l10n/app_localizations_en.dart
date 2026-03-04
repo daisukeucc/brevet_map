@@ -95,6 +95,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String poiAtKmPoint(String kmLabel) {
+    return 'POI at $kmLabel';
+  }
+
+  @override
+  String get poiOffRoutePoi => 'Manually set POI';
+
+  @override
   String get changePoiPosition => 'Change to this position';
 
   @override
@@ -129,7 +137,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPoiRegistered => 'No POI registered';
 
   @override
-  String get changePoiTextTitle => 'Change text';
+  String get changePoiTextTitle => 'Change POI title and body';
 
   @override
   String get routeOverwrite => 'Overwrite current route';
@@ -206,7 +214,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleep10min => '10min';
 
   @override
-  String get distanceUnit => 'Distance unit';
+  String get distanceUnit => 'Distance unit settings';
 
   @override
   String get unitKm => 'km';

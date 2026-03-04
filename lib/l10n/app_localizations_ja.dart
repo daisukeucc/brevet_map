@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'Brevet Map';
+  String get appTitle => 'ブルベMap';
 
   @override
   String get cancel => 'キャンセル';
@@ -95,6 +95,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String poiAtKmPoint(String kmLabel) {
+    return '$kmLabel地点のPOI';
+  }
+
+  @override
+  String get poiOffRoutePoi => '手動設定のPOI';
+
+  @override
   String get changePoiPosition => 'この位置に変更する';
 
   @override
@@ -128,7 +136,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPoiRegistered => 'POIの登録はありません';
 
   @override
-  String get changePoiTextTitle => 'テキストを変更';
+  String get changePoiTextTitle => 'POIのタイトル・本文を変更';
 
   @override
   String get routeOverwrite => '現在のルートを上書きします';
@@ -203,7 +211,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleep10min => '10分';
 
   @override
-  String get distanceUnit => '距離の単位';
+  String get distanceUnit => '距離の単位設定';
 
   @override
   String get unitKm => 'km';

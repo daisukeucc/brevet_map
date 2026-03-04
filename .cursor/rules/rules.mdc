@@ -9,6 +9,8 @@ alwaysApply: true
 
 - **方式**: Flutter ARB + `flutter gen-l10n`
 - **文言追加**: `lib/l10n/app_en.arb` と `lib/l10n/app_ja.arb` に両方追加
+- **app_ja.arb 変更時**: 他言語（`app_en.arb` 等）の同一キーを該当言語に翻訳して更新し、最後に `flutter gen-l10n` を実行する（逆方向の同期は行わない）
+- **ARB 変更後**: `.arb` ファイルを変更したら `flutter gen-l10n` を実行する
 - **参照**: `AppLocalizations.of(context)!.キー名`
 - **禁止**: `initState` 内で `AppLocalizations.of(context)` を呼ばない（inherited widget 未準備のため）
 - **対策**: `addPostFrameCallback` 内で取得するか、`build` / `didChangeDependencies` で取得
@@ -31,9 +33,22 @@ alwaysApply: true
 - **providers.dart**: `mapStateProvider`, `locationStreamProvider` など
 - **循環参照回避**: `map_state_notifier` は `app_settings_providers` のみ import
 
+## ダイアログ
+
+- **確認ダイアログ**: 本文とボタンのみの確認ダイアログは `showConfirmDialog`（`confirm_dialog.dart`）を使用する
+- **ラジオ選択**: ラジオボタンで項目を設定するダイアログは `showRadioSelectionDialog`（`radio_selection_dialog.dart`）を使用する
+- **テキストメニュー**: テキストのみのメニューを追加する場合は `showTextMenuDialog`（`text_menu_dialog.dart`）を使用する
+
+## 角丸禁止
+
+- **ダイアログ**: デフォルト表示では角丸にしない（`shape: RoundedRectangleBorder()` など角丸指定を避ける）
+- **ボトムナビゲーション**: 同様に角丸にしない
+
 ## 設定ボトムシート UI
 
-- **配置**: `map_screen_content.dart` の `_SettingsBottomSheet`
+- **配置**: `settings_bottom_sheet.dart` の `SettingsBottomSheet`
+- **項目タップ時**: ボトムシートの項目をタップしたらボトムシートを閉じる
+- **ダイアログ表示の遅延**: タップで ListTile の選択状態（ハイライト）を確認できるよう、`Future.delayed(200)` 後にボトムシートを閉じてダイアログを表示する
 - **共通パターン**:
   1. ラジオ選択時は `setState` でローカル更新
   2. 親のコールバックで Provider 更新・永続化
@@ -54,7 +69,12 @@ alwaysApply: true
 - **キー定義**: ファイル先頭の `_keyXxx` 定数
 - **新規保存**: `saveXxx` / `loadXxx` のペアで追加
 
+## テキストスタイル
+
+- **AppTextStyles**: アプリ内でテキストを表示する場合は `AppTextStyles`（`app_text_styles.dart`）のスタイルを使用する（`title` / `body` / `label` / `button` を用途に合わせて選択）
+
 ## 共通
 
 - **応答言語**: 日本語で応答する
 - **単位などの固定ラベル**: ローカライズ不要の場合はコード内に直接記述（例: "km", "mi"）
+- **ラジオボタン**: ラジオボタンを追加する場合は `Radio` + `Row` + `Text` パターンで実装する（`RadioListTile` ではなく。`visualDensity: VisualDensity.compact`、`materialTapTargetSize: MaterialTapTargetSize.shrinkWrap` を指定）
