@@ -266,6 +266,18 @@ abstract class AppLocalizations {
   /// **'{km}km point'**
   String kmPoint(String km);
 
+  /// No description provided for @poiAtKmPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'POI at {kmLabel}'**
+  String poiAtKmPoint(String kmLabel);
+
+  /// No description provided for @poiOffRoutePoi.
+  ///
+  /// In en, this message translates to:
+  /// **'Manually set POI'**
+  String get poiOffRoutePoi;
+
   /// No description provided for @changePoiPosition.
   ///
   /// In en, this message translates to:

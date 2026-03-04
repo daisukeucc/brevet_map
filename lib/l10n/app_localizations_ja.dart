@@ -95,6 +95,14 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String poiAtKmPoint(String kmLabel) {
+    return '$kmLabel地点のPOI';
+  }
+
+  @override
+  String get poiOffRoutePoi => '手動設定のPOI';
+
+  @override
   String get changePoiPosition => 'この位置に変更する';
 
   @override

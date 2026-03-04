@@ -28,6 +28,15 @@
   "kmRequired": "Distance is required",
   "offRoute": "Off route",
   "kmPoint": "{km}km point",
+  "poiAtKmPoint": "POI at {kmLabel}",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "poiOffRoutePoi": "Manually set POI",
   "@kmPoint": {
     "placeholders": {
       "km": {

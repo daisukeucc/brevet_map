@@ -1234,14 +1234,8 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                AppLocalizations.of(context)!.poiAdd,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
               Text(AppLocalizations.of(context)!.poiType,
-                  style: const TextStyle(fontSize: 15)),
+                  style: AppTextStyles.body),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -1262,7 +1256,7 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     Text(AppLocalizations.of(context)!.checkpoint,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.body),
                   ],
                 ),
               ),
@@ -1285,7 +1279,7 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     Text(AppLocalizations.of(context)!.information,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.body),
                   ],
                 ),
               ),
@@ -1296,7 +1290,7 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                   labelText: AppLocalizations.of(context)!.title,
                   isDense: true,
                 ),
-                style: const TextStyle(fontSize: 17),
+                style: AppTextStyles.title,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1305,7 +1299,7 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                   labelText: AppLocalizations.of(context)!.body,
                   isDense: true,
                 ),
-                style: const TextStyle(fontSize: 17),
+                style: AppTextStyles.title,
                 maxLines: 3,
                 minLines: 3,
               ),
@@ -1316,12 +1310,12 @@ class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(AppLocalizations.of(context)!.cancel,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.button),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
                     child: Text(AppLocalizations.of(context)!.register,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.button),
                   ),
                 ],
               ),
@@ -1382,9 +1376,12 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final kmLabel = widget.poi.km != null
+    final isOnRoute = widget.poi.km != null;
+    final kmLabel = isOnRoute
         ? _formatDistance(widget.poi.km!, widget.distanceUnit)
         : l10n.offRoute;
+    final titleText =
+        isOnRoute ? l10n.poiAtKmPoint(kmLabel) : l10n.poiOffRoutePoi;
     return Dialog(
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(),
@@ -1395,24 +1392,18 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                AppLocalizations.of(context)!.changePoiText,
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
-                    kmLabel,
-                    style: const TextStyle(fontSize: 17),
+                    titleText,
+                    style: AppTextStyles.headline,
                   ),
                 ],
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 15),
               Text(AppLocalizations.of(context)!.poiType,
-                  style: const TextStyle(fontSize: 15)),
+                  style: AppTextStyles.body),
               const SizedBox(height: 4),
               GestureDetector(
                 onTap: () {
@@ -1433,7 +1424,7 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     Text(AppLocalizations.of(context)!.checkpoint,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.body),
                   ],
                 ),
               ),
@@ -1456,7 +1447,7 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
                     Text(AppLocalizations.of(context)!.information,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.body),
                   ],
                 ),
               ),
@@ -1467,7 +1458,7 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                   labelText: AppLocalizations.of(context)!.title,
                   isDense: true,
                 ),
-                style: const TextStyle(fontSize: 17),
+                style: AppTextStyles.title,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1476,23 +1467,23 @@ class _EditPoiTextDialogState extends State<_EditPoiTextDialog> {
                   labelText: AppLocalizations.of(context)!.body,
                   isDense: true,
                 ),
-                style: const TextStyle(fontSize: 17),
+                style: AppTextStyles.title,
                 maxLines: 3,
                 minLines: 3,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text(AppLocalizations.of(context)!.cancel,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.button),
                   ),
                   TextButton(
                     onPressed: _onSubmit,
                     child: Text(AppLocalizations.of(context)!.change,
-                        style: const TextStyle(fontSize: 17)),
+                        style: AppTextStyles.button),
                   ),
                 ],
               ),

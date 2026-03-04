@@ -95,6 +95,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String poiAtKmPoint(String kmLabel) {
+    return 'POI at $kmLabel';
+  }
+
+  @override
+  String get poiOffRoutePoi => 'Manually set POI';
+
+  @override
   String get changePoiPosition => 'Change to this position';
 
   @override

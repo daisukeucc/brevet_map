@@ -28,6 +28,8 @@
   "kmRequired": "距離の入力は必須です",
   "offRoute": "ルート外",
   "kmPoint": "{km}km地点",
+  "poiAtKmPoint": "{kmLabel}地点のPOI",
+  "poiOffRoutePoi": "手動設定のPOI",
   "changePoiPosition": "この位置に変更する",
   "dragMarkerHint": "マーカーをドラッグして位置を変更して下さい",
   "longPressPoiHint": "POIを登録したいポイントを長押しして下さい",
