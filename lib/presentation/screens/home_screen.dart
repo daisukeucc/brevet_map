@@ -57,6 +57,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 共有リンクから取得した座標。非 null のときプレビューマーカー表示・登録確認UI表示
   LatLng? _pendingSharedPosition;
 
+  /// 共有リンクから取得した施設名。POI登録時のタイトル初期値に使用
+  String? _pendingSharedPlaceName;
+
   /// 共有プレビュー用の現在地風アイコン
   BitmapDescriptor? _sharePreviewIcon;
 
@@ -166,7 +169,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (!mounted) return;
     if (coords != null) {
       final position = LatLng(coords.lat, coords.lng);
-      setState(() => _pendingSharedPosition = position);
+      final placeName = extractPlaceNameFromUrlString(trimmedUrl);
+      setState(() {
+        _pendingSharedPosition = position;
+        _pendingSharedPlaceName = placeName;
+      });
       await ref.read(cameraControllerProvider.notifier).animateTo(
             position,
             zoom: 18.0,
@@ -181,17 +188,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   void _onCancelSharePreview() {
-    setState(() => _pendingSharedPosition = null);
+    setState(() {
+      _pendingSharedPosition = null;
+      _pendingSharedPlaceName = null;
+    });
   }
 
   Future<void> _onConfirmSharePreview() async {
     final position = _pendingSharedPosition;
     if (position == null || !mounted) return;
-    setState(() => _pendingSharedPosition = null);
+    final placeName = _pendingSharedPlaceName;
+    setState(() {
+      _pendingSharedPosition = null;
+      _pendingSharedPlaceName = null;
+    });
     final data = await showDialog<_AddPoiFormData>(
       context: context,
       barrierColor: Colors.black54,
-      builder: (context) => const _MapTapPoiAddDialog(),
+      builder: (context) => _MapTapPoiAddDialog(initialTitle: placeName),
     );
     if (!mounted) return;
     if (data == null) return;
@@ -1359,7 +1373,9 @@ class _PoiManagementDialogState extends ConsumerState<_PoiManagementDialog>
 // ---------------------------------------------------------------------------
 
 class _MapTapPoiAddDialog extends StatefulWidget {
-  const _MapTapPoiAddDialog();
+  const _MapTapPoiAddDialog({this.initialTitle});
+
+  final String? initialTitle;
 
   @override
   State<_MapTapPoiAddDialog> createState() => _MapTapPoiAddDialogState();
@@ -1367,8 +1383,14 @@ class _MapTapPoiAddDialog extends StatefulWidget {
 
 class _MapTapPoiAddDialogState extends State<_MapTapPoiAddDialog> {
   int _poiType = 0;
-  final _titleController = TextEditingController();
+  late final TextEditingController _titleController;
   final _bodyController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(text: widget.initialTitle ?? '');
+  }
 
   @override
   void dispose() {
