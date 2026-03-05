@@ -74,8 +74,9 @@ bool _isValidCoord(double lat, double lng) {
   return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 }
 
-/// URLから施設名を抽出する
-/// 〒郵便番号+住所+施設名 形式の場合は施設名のみを返す
+/// Google Maps place URL から施設名を抽出する。
+/// 日本語住所形式（〒、丁目等）の場合は住所を除去して施設名のみを返す。
+/// それ以外のロケールは切り分けせず全文を返す（ユーザーが編集可能）。
 String? extractPlaceNameFromUrlString(String url) {
   final trimmed = url.trim();
   if (trimmed.isEmpty) return null;
@@ -92,13 +93,22 @@ String? extractPlaceNameFromUrlString(String url) {
   }
 }
 
-/// 〒郵便番号+住所+施設名 形式から施設名のみを抽出
+/// 日本語住所形式の場合のみ住所を除去し施設名を抽出。それ以外は全文を返す。
 /// 施設名は建物名・会社名・支店名など複数になる場合がある
 String _extractFacilityNameOnly(String raw) {
   var s = raw.trim();
   if (s.isEmpty) return s;
 
-  if (s.contains('〒') || RegExp(r'^\d{3}-?\d{4}').hasMatch(s)) {
+  // 日本語住所形式の判定（〒、丁目、都道府県などの有無）
+  final isJapaneseAddress =
+      s.contains('〒') ||
+      s.contains('丁目') ||
+      s.contains('県') ||
+      s.contains('都') ||
+      s.contains('府') ||
+      (s.contains('市') && RegExp(r'\d{3}-?\d{4}').hasMatch(s));
+
+  if (isJapaneseAddress) {
     final parts =
         s.split(RegExp(r'[\s+]+')).where((p) => p.isNotEmpty).toList();
     if (parts.isEmpty) return s;
@@ -115,6 +125,7 @@ String _extractFacilityNameOnly(String raw) {
     }
   }
 
+  // 日本語以外など：切り分けせず全文をタイトルとして返す
   return s;
 }
 
