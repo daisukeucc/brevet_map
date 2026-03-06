@@ -48,7 +48,7 @@
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
 	<key>GoogleMapsApiKey</key>
-	<string></string>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>このアプリは地図表示のために位置情報を使用します。</string>
 	<key>NSLocationAlwaysUsageDescription</key>
