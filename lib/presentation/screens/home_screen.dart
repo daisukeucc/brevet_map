@@ -23,7 +23,9 @@ import '../providers/providers.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/text_menu_dialog.dart';
-import '../widgets/connectivity_gate.dart';
+import '../widgets/connectivity_gate.dart'
+    show ConnectivityGate, ConnectivityGateState, ConnectivityCheckingView,
+        OfflinePlaceholderView;
 import '../widgets/map_screen_content.dart';
 import '../widgets/poi_detail_sheet.dart';
 
@@ -309,6 +311,160 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   void _onUserInteraction() {
     _restoreBrightness();
     _restartSleepTimer(ref.read(sleepDurationProvider));
+  }
+
+  Widget _buildOfflineLayout(BuildContext context, VoidCallback onRetry) {
+    final mapState = ref.watch(mapStateProvider);
+    final locationState = ref.watch(locationStreamProvider);
+    final sleepDuration = ref.watch(sleepDurationProvider);
+    final distanceUnit = ref.watch(distanceUnitProvider);
+    final position = _initialPosition ?? _defaultPosition();
+
+    return MapScreenContent(
+      initialPosition: LatLng(position.latitude, position.longitude),
+      initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
+      polylines: mapState.routePolylines,
+      markers: mapState.routeMarkers,
+      mapStyleMode: mapState.mapStyleMode,
+      onCameraIdle: _onCameraIdle,
+      onMapCreated: _onMapCreated,
+      onMapStyleTap: _onMapStyleTap,
+      onRouteBoundsTap: _onRouteBoundsTap,
+      onMyLocationTap: _moveCameraToCurrentPosition,
+      showMyLocationButton: !locationState.isActive,
+      isStreamActive: locationState.isActive,
+      onToggleLocationStream: _toggleLocationStream,
+      progressBarValue: locationState.progressBarValue,
+      isLowMode: locationState.isInLowMode,
+      isStreamAccuracyLow: locationState.isAccuracyLow,
+      onGpsLevelTap: _onGpsLevelTap,
+      sleepDuration: sleepDuration,
+      onSleepDurationChanged: _onSleepDurationChanged,
+      distanceUnit: distanceUnit,
+      onDistanceUnitChanged: _onDistanceUnitChanged,
+      onGpxImportTap: _onGpxImportTap,
+      onAddPoiTap: _onAddPoiTap,
+      hasUserPois: mapState.userPois.isNotEmpty,
+      onUserInteraction: _onUserInteraction,
+      isDragMode: _isDragMode,
+      isMapTapAddMode:
+          _isMapTapAddMode || _pendingSharedPosition != null,
+      onMapLongPress: null,
+      offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
+    );
+  }
+
+  Widget _buildMapLayout(BuildContext context) {
+    final mapState = ref.watch(mapStateProvider);
+    final locationState = ref.watch(locationStreamProvider);
+    final sleepDuration = ref.watch(sleepDurationProvider);
+    final distanceUnit = ref.watch(distanceUnitProvider);
+    final hasMapController = ref.watch(cameraControllerProvider) != null;
+    final position = _initialPosition ?? _defaultPosition();
+
+    if (!_hasTriggeredInitialRouteFetch) {
+      _hasTriggeredInitialRouteFetch = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
+          position,
+          animateCamera: (bounds) async {
+            if (bounds != null) {
+              await ref
+                  .read(cameraControllerProvider.notifier)
+                  .animateToBounds(bounds);
+            }
+          },
+        );
+      });
+    }
+
+    final markers = _pendingSharedPosition != null
+        ? {
+            ...mapState.routeMarkers,
+            Marker(
+              markerId: const MarkerId('share_preview'),
+              position: _pendingSharedPosition!,
+              icon: _sharePreviewIcon ??
+                  BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueOrange),
+              anchor: _sharePreviewIcon != null
+                  ? const Offset(0.3, 0.5)
+                  : const Offset(0.5, 1.0),
+              zIndexInt: 5,
+            ),
+          }
+        : mapState.routeMarkers;
+
+    return Stack(
+      children: [
+        MapScreenContent(
+          initialPosition: LatLng(position.latitude, position.longitude),
+          initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
+          polylines: mapState.routePolylines,
+          markers: markers,
+          mapStyleMode: mapState.mapStyleMode,
+          onCameraIdle: _onCameraIdle,
+          onMapCreated: _onMapCreated,
+          onMapStyleTap: _onMapStyleTap,
+          onRouteBoundsTap: _onRouteBoundsTap,
+          onMyLocationTap: _moveCameraToCurrentPosition,
+          showMyLocationButton: !locationState.isActive,
+          isStreamActive: locationState.isActive,
+          onToggleLocationStream: _toggleLocationStream,
+          progressBarValue: locationState.progressBarValue,
+          isLowMode: locationState.isInLowMode,
+          isStreamAccuracyLow: locationState.isAccuracyLow,
+          onGpsLevelTap: _onGpsLevelTap,
+          sleepDuration: sleepDuration,
+          onSleepDurationChanged: _onSleepDurationChanged,
+          distanceUnit: distanceUnit,
+          onDistanceUnitChanged: _onDistanceUnitChanged,
+          onGpxImportTap: _onGpxImportTap,
+          onAddPoiTap: _onAddPoiTap,
+          hasUserPois: mapState.userPois.isNotEmpty,
+          onUserInteraction: _onUserInteraction,
+          isDragMode: _isDragMode,
+          isMapTapAddMode:
+              _isMapTapAddMode || _pendingSharedPosition != null,
+          onMapLongPress:
+              _isMapTapAddMode && _pendingSharedPosition == null
+                  ? _onMapLongPress
+                  : null,
+        ),
+        if (!hasMapController)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ColoredBox(
+                color: Colors.grey.shade100,
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppLocalizations.of(context)!.loadingMap,
+                        style: TextStyle(
+                          color: Colors.grey.shade700,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '※ ${AppLocalizations.of(context)!.mapRequiresNetwork}',
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   void _onSleepDurationChanged(int minutes) {
@@ -715,131 +871,21 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   Widget build(BuildContext context) {
-    final mapState = ref.watch(mapStateProvider);
-    final locationState = ref.watch(locationStreamProvider);
-    final sleepDuration = ref.watch(sleepDurationProvider);
-    final distanceUnit = ref.watch(distanceUnitProvider);
-    final hasMapController = ref.watch(cameraControllerProvider) != null;
-
     return Stack(
       children: [
         Scaffold(
           body: ConnectivityGate(
             onOnline: () =>
                 setState(() => _hasTriggeredInitialRouteFetch = false),
-            child: Builder(
-              builder: (context) {
-                // _initialPosition は initState で必ず設定される
-                final position = _initialPosition ?? _defaultPosition();
-
-                if (!_hasTriggeredInitialRouteFetch) {
-                  _hasTriggeredInitialRouteFetch = true;
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    ref
-                        .read(mapStateProvider.notifier)
-                        .fetchOrLoadRouteIfNeeded(
-                      position,
-                      animateCamera: (bounds) async {
-                        if (bounds != null) {
-                          await ref
-                              .read(cameraControllerProvider.notifier)
-                              .animateToBounds(bounds);
-                        }
-                      },
-                    );
-                  });
-                }
-
-                final markers = _pendingSharedPosition != null
-                    ? {
-                        ...mapState.routeMarkers,
-                        Marker(
-                          markerId: const MarkerId('share_preview'),
-                          position: _pendingSharedPosition!,
-                          icon: _sharePreviewIcon ??
-                              BitmapDescriptor.defaultMarkerWithHue(
-                                  BitmapDescriptor.hueOrange),
-                          anchor: _sharePreviewIcon != null
-                              ? const Offset(0.3, 0.5)
-                              : const Offset(0.5, 1.0),
-                          zIndexInt: 5,
-                        ),
-                      }
-                    : mapState.routeMarkers;
-
-                return Stack(
-                  children: [
-                    MapScreenContent(
-                      initialPosition:
-                          LatLng(position.latitude, position.longitude),
-                      initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
-                      polylines: mapState.routePolylines,
-                      markers: markers,
-                      mapStyleMode: mapState.mapStyleMode,
-                      onCameraIdle: _onCameraIdle,
-                      onMapCreated: _onMapCreated,
-                      onMapStyleTap: _onMapStyleTap,
-                      onRouteBoundsTap: _onRouteBoundsTap,
-                      onMyLocationTap: _moveCameraToCurrentPosition,
-                      showMyLocationButton: !locationState.isActive,
-                      isStreamActive: locationState.isActive,
-                      onToggleLocationStream: _toggleLocationStream,
-                      progressBarValue: locationState.progressBarValue,
-                      isLowMode: locationState.isInLowMode,
-                      isStreamAccuracyLow: locationState.isAccuracyLow,
-                      onGpsLevelTap: _onGpsLevelTap,
-                      sleepDuration: sleepDuration,
-                      onSleepDurationChanged: _onSleepDurationChanged,
-                      distanceUnit: distanceUnit,
-                      onDistanceUnitChanged: _onDistanceUnitChanged,
-                      onGpxImportTap: _onGpxImportTap,
-                      onAddPoiTap: _onAddPoiTap,
-                      hasUserPois: mapState.userPois.isNotEmpty,
-                      onUserInteraction: _onUserInteraction,
-                      isDragMode: _isDragMode,
-                      isMapTapAddMode:
-                          _isMapTapAddMode || _pendingSharedPosition != null,
-                      onMapLongPress:
-                          _isMapTapAddMode && _pendingSharedPosition == null
-                              ? _onMapLongPress
-                              : null,
-                    ),
-                    if (!hasMapController)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: ColoredBox(
-                            color: Colors.grey.shade100,
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const CircularProgressIndicator(),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    '地図を読み込み中...',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade700,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    '※ ${AppLocalizations.of(context)!.mapRequiresNetwork}',
-                                    style: TextStyle(
-                                      color: Colors.grey.shade500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              },
-            ),
+            builder: (context, gateState, onRetry) {
+              if (gateState == ConnectivityGateState.checking) {
+                return const ConnectivityCheckingView();
+              }
+              if (gateState == ConnectivityGateState.offline) {
+                return _buildOfflineLayout(context, onRetry);
+              }
+              return _buildMapLayout(context);
+            },
           ),
         ),
         if (_isDragMode) ...[

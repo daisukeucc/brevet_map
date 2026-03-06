@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
-  connectivity_plus
   geolocator_windows
   screen_brightness_windows
   volume_controller

@@ -32,10 +32,23 @@ private let kSharedUrlKey = "shared_url"
       }
     }
 
-    let controller = window?.rootViewController as! FlutterViewController
+    // プラグイン登録を先に実行し、メソッドチャネルは super 実行後
+    // （FlutterEngine の binaryMessenger 準備完了後）に設定
+    GeneratedPluginRegistrant.register(with: self)
+    let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+
+    if let controller = window?.rootViewController as? FlutterViewController {
+      setupMethodChannels(controller: controller)
+    }
+
+    return result
+  }
+
+  private func setupMethodChannels(controller: FlutterViewController) {
+    let messenger = controller.binaryMessenger
     gpxChannel = FlutterMethodChannel(
       name: channelName,
-      binaryMessenger: controller.binaryMessenger
+      binaryMessenger: messenger
     )
     gpxChannel?.setMethodCallHandler { [weak self] call, result in
       if call.method == "getInitialGpxContent" {
@@ -52,7 +65,7 @@ private let kSharedUrlKey = "shared_url"
 
     shareChannel = FlutterMethodChannel(
       name: shareChannelName,
-      binaryMessenger: controller.binaryMessenger
+      binaryMessenger: messenger
     )
     shareChannel?.setMethodCallHandler { [weak self] call, result in
       if call.method == "getInitialSharedUrl" {
@@ -69,9 +82,6 @@ private let kSharedUrlKey = "shared_url"
         result(FlutterMethodNotImplemented)
       }
     }
-
-    GeneratedPluginRegistrant.register(with: self)
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 
   override func application(

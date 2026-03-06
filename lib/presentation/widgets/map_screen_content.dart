@@ -41,7 +41,12 @@ class MapScreenContent extends StatelessWidget {
     this.isStreamAccuracyLow = false,
     this.onGpsLevelTap,
     this.onUserInteraction,
+    this.offlineCenter,
   });
+
+  /// オフライン時に地図の代わりに中央に表示するウィジェット。
+  /// 非 null の場合、GoogleMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
+  final Widget? offlineCenter;
 
   final LatLng initialPosition;
   final double initialZoom;
@@ -109,21 +114,24 @@ class MapScreenContent extends StatelessWidget {
               onPointerDown: (_) => onUserInteraction?.call(),
               child: Stack(
                 children: [
-                  GoogleMap(
-                    initialCameraPosition: CameraPosition(
-                      target: initialPosition,
-                      zoom: initialZoom,
+                  if (offlineCenter != null)
+                    Positioned.fill(child: offlineCenter!)
+                  else
+                    GoogleMap(
+                      initialCameraPosition: CameraPosition(
+                        target: initialPosition,
+                        zoom: initialZoom,
+                      ),
+                      myLocationEnabled: true,
+                      myLocationButtonEnabled: false,
+                      mapToolbarEnabled: false,
+                      zoomControlsEnabled: false,
+                      polylines: polylines,
+                      markers: markers,
+                      onCameraIdle: onCameraIdle,
+                      onMapCreated: onMapCreated,
+                      onLongPress: onMapLongPress,
                     ),
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: false,
-                    mapToolbarEnabled: false,
-                    zoomControlsEnabled: false,
-                    polylines: polylines,
-                    markers: markers,
-                    onCameraIdle: onCameraIdle,
-                    onMapCreated: onMapCreated,
-                    onLongPress: onMapLongPress,
-                  ),
                   if (!isDragMode && !isMapTapAddMode)
                     Positioned(
                       left: 16,

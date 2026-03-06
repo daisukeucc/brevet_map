@@ -1,23 +1,42 @@
-import 'dart:async';
-
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import '../../l10n/app_localizations.dart';
 
-/// ネットワーク接続をチェックし、オフライン時は子ウィジェットを非表示にして
-/// プレースホルダーを表示する。オンライン時のみ [child] を表示する。
+/// 接続状態
+enum ConnectivityGateState {
+  /// 接続確認中
+  checking,
+
+  /// オフライン
+  offline,
+
+  /// オンライン
+  online,
+}
+
+/// ネットワーク接続をチェックし、[builder] で状態に応じた UI を構築する。
 ///
-/// GoogleMap のオフラインクラッシュ回避のため、接続確認後にのみ子を表示する。
+/// connectivity_plus の iOS でのクラッシュを避けるため、
+/// HTTP リクエストで実インターネット到達をチェックしている。
+///
+/// オフライン時もボタンなどを表示したい場合は、[builder] で
+/// [ConnectivityGateState.offline] のときに同じレイアウトでオフライン表示を返す。
+///
+/// GoogleMap は [ConnectivityGateState.online] のときのみ作成すること（オフラインクラッシュ回避）。
 class ConnectivityGate extends StatefulWidget {
   const ConnectivityGate({
     super.key,
-    required this.child,
+    required this.builder,
     this.onOnline,
   });
 
-  /// オンライン時のみ表示するコンテンツ
-  final Widget child;
+  /// 接続状態に応じて UI を構築する。offline 時は [onRetry] で再接続を試行できる。
+  final Widget Function(
+    BuildContext context,
+    ConnectivityGateState state,
+    VoidCallback onRetry,
+  ) builder;
 
   /// オフライン → オンラインに切り替わった時に呼ばれるコールバック
   final VoidCallback? onOnline;
@@ -26,78 +45,64 @@ class ConnectivityGate extends StatefulWidget {
   State<ConnectivityGate> createState() => _ConnectivityGateState();
 }
 
+/// 軽量な接続チェック用 URL（204 No Content を返す）
+const _kConnectivityCheckUrl = 'https://www.gstatic.com/generate_204';
+
 class _ConnectivityGateState extends State<ConnectivityGate> {
   bool _hasCheckedConnectivity = false;
   bool _isOffline = false;
-  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   @override
   void initState() {
     super.initState();
     _checkConnectivity();
-    _connectivitySubscription =
-        Connectivity().onConnectivityChanged.listen(_onConnectivityChanged);
-  }
-
-  @override
-  void dispose() {
-    _connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
-  void _onConnectivityChanged(List<ConnectivityResult> results) {
-    if (!mounted) return;
-    final offline = _isConnectivityOffline(results);
-    if (_hasCheckedConnectivity && offline != _isOffline) {
-      setState(() {
-        _isOffline = offline;
-        if (!offline) widget.onOnline?.call();
-      });
-    }
-  }
-
-  bool _isConnectivityOffline(List<ConnectivityResult> results) {
-    return results.length == 1 && results.single == ConnectivityResult.none;
   }
 
   Future<void> _checkConnectivity() async {
+    final wasOffline = _isOffline;
     try {
-      final results = await Connectivity().checkConnectivity();
+      final response = await http
+          .head(Uri.parse(_kConnectivityCheckUrl))
+          .timeout(const Duration(seconds: 5));
       if (!mounted) return;
+      final isOnline = response.statusCode == 204 || response.statusCode == 200;
       setState(() {
         _hasCheckedConnectivity = true;
-        _isOffline = _isConnectivityOffline(results);
+        _isOffline = !isOnline;
+        if (wasOffline && isOnline) widget.onOnline?.call();
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _hasCheckedConnectivity = true;
-        _isOffline = false;
+        _isOffline = true;
       });
     }
   }
 
-  Future<void> _onRetry() async {
-    setState(() => _hasCheckedConnectivity = false);
-    await _checkConnectivity();
+  void _onRetry() {
+    setState(() {
+      _hasCheckedConnectivity = false;
+    });
+    _checkConnectivity();
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_hasCheckedConnectivity) {
-      return _ConnectivityCheckingView();
+      return widget.builder(context, ConnectivityGateState.checking, _onRetry);
     }
     if (_isOffline) {
-      return _OfflinePlaceholderView(
-        onRetry: _onRetry,
-      );
+      return widget.builder(context, ConnectivityGateState.offline, _onRetry);
     }
-    return widget.child;
+    return widget.builder(context, ConnectivityGateState.online, _onRetry);
   }
 }
 
-/// 接続確認中の表示
-class _ConnectivityCheckingView extends StatelessWidget {
+/// 接続確認中の表示（builder の checking 時に使用可能）
+class ConnectivityCheckingView extends StatelessWidget {
+  const ConnectivityCheckingView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
@@ -119,40 +124,46 @@ class _ConnectivityCheckingView extends StatelessWidget {
   }
 }
 
-/// オフライン時のプレースホルダー表示
-class _OfflinePlaceholderView extends StatelessWidget {
-  const _OfflinePlaceholderView({required this.onRetry});
+/// オフライン時の中央表示（地図エリアに配置。ボタン等と組み合わせて使用）
+class OfflinePlaceholderView extends StatelessWidget {
+  const OfflinePlaceholderView({
+    super.key,
+    required this.onRetry,
+  });
 
   final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.wifi_off_rounded,
-                  size: 64, color: Colors.grey.shade400),
-              const SizedBox(height: 24),
-              Text(
-                AppLocalizations.of(context)!.offline,
-                style: TextStyle(
-                  color: Colors.grey.shade800,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.wifi_off_rounded, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 24),
+            Text(
+              AppLocalizations.of(context)!.offline,
+              style: TextStyle(
+                color: Colors.grey.shade800,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 32),
-              FilledButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
-                label: Text(AppLocalizations.of(context)!.retryConnectivity),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              AppLocalizations.of(context)!.mapRequiresNetwork,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            ),
+            const SizedBox(height: 32),
+            FilledButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh),
+              label: Text(AppLocalizations.of(context)!.retryConnectivity),
+            ),
+          ],
         ),
       ),
     );
