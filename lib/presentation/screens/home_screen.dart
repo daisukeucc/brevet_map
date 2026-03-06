@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -68,8 +67,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool _wasStreamActiveBeforeDim = false;
   OverlayEntry? _dimOverlayEntry;
 
-  StreamSubscription? _intentDataStreamSubscription;
-
   late final VolumeZoomHandler _volumeZoomHandler;
 
   static const double _trackingZoom = 15.0;
@@ -118,47 +115,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       }
     });
 
-    if (Platform.isAndroid) {
-      ShareChannelService.setMethodCallHandler(_onSharedUrlReceived);
-      ShareChannelService.getInitialSharedUrl().then((url) {
-        if (url != null && url.isNotEmpty && mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _onSharedUrlReceived(url);
-          });
-        }
-      });
-    } else if (Platform.isIOS) {
-      _intentDataStreamSubscription =
-          ReceiveSharingIntent.instance.getMediaStream().listen((list) {
-        final url = _extractUrlFromSharedMedia(list);
-        if (url != null && url.isNotEmpty && mounted) {
+    ShareChannelService.setMethodCallHandler(_onSharedUrlReceived);
+    ShareChannelService.getInitialSharedUrl().then((url) {
+      if (url != null && url.isNotEmpty && mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           _onSharedUrlReceived(url);
-        }
-      });
-      ReceiveSharingIntent.instance.getInitialMedia().then((list) {
-        final url = _extractUrlFromSharedMedia(list);
-        if (url != null && url.isNotEmpty && mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _onSharedUrlReceived(url);
-            ReceiveSharingIntent.instance.reset();
-          });
-        }
-      });
-    }
-  }
-
-  String? _extractUrlFromSharedMedia(List<SharedMediaFile> list) {
-    for (final file in list) {
-      final path = file.path;
-      if (path.isEmpty) continue;
-      if (path.startsWith('http://') || path.startsWith('https://')) {
-        return path;
+        });
       }
-      if (file.type == SharedMediaType.text) {
-        return path;
-      }
-    }
-    return null;
+    });
   }
 
   Future<void> _onSharedUrlReceived(String url) async {
@@ -226,7 +190,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   void dispose() {
-    _intentDataStreamSubscription?.cancel();
     _sleepTimer?.cancel();
     _restoreBrightness();
     WidgetsBinding.instance.removeObserver(this);

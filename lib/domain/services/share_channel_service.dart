@@ -1,6 +1,6 @@
 import 'package:flutter/services.dart';
 
-/// 共有（Google Maps URL など）受信用の MethodChannel。Android 用。
+/// 共有（Google Maps URL など）受信用の MethodChannel。Android / iOS 共通。
 class ShareChannelService {
   ShareChannelService._();
 
