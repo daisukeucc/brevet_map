@@ -107,6 +107,7 @@ class MapScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
+      bottom: false,
       child: Column(
         children: [
           Expanded(
@@ -234,7 +235,7 @@ class MapScreenContent extends StatelessWidget {
                       ),
                     ),
                   if (!isDragMode && !isMapTapAddMode)
-                    Positioned(
+                    const Positioned(
                       left: 0,
                       right: 0,
                       top: 24,
@@ -263,7 +264,7 @@ class MapScreenContent extends StatelessWidget {
                           child: InkWell(
                             onTap: onMyLocationTap,
                             customBorder: const CircleBorder(),
-                            child: SizedBox(
+                            child: const SizedBox(
                               width: 60,
                               height: 60,
                               child: Icon(

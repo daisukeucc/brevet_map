@@ -22,41 +22,44 @@ class LocationBottomBar extends StatelessWidget {
     final barColor = isLowMode
         ? Colors.blueGrey
         : (isStreamActive ? Colors.red : Colors.green);
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Material(
-          color: barColor,
-          child: InkWell(
-            onTap: onTap,
-            child: SizedBox(
-              width: double.infinity,
-              height: 80,
-              child: Center(
-                child: Icon(
-                  isStreamActive ? Icons.stop : Icons.play_arrow,
-                  color: Colors.white,
-                  size: 48,
+
+    return ColoredBox(
+      color: barColor,
+      child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Material(
+              color: barColor,
+              child: InkWell(
+                onTap: onTap,
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 80,
+                  child: Center(
+                    child: Icon(
+                      isStreamActive ? Icons.stop : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
-        ),
-        if (isStreamActive && progressBarValue != null)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: 3,
-            child: Container(
-              width: double.infinity,
-              color: isLowMode ? Colors.blueGrey.shade900 : Colors.red.shade900,
-              child: ClipRect(
-                child: ValueListenableBuilder<double>(
-                  valueListenable: progressBarValue!,
-                  builder: (context, value, child) {
-                    return LayoutBuilder(
-                      builder: (context, constraints) {
+            if (isStreamActive && progressBarValue != null)
+              Positioned(
+                left: 0,
+                right: 0,
+                top: 0,
+                height: 3,
+                child: Container(
+                  width: double.infinity,
+                  color: isLowMode ? Colors.blueGrey.shade900 : Colors.red.shade900,
+                  child: ClipRect(
+                    child: ValueListenableBuilder<double>(
+                      valueListenable: progressBarValue!,
+                      builder: (context, value, child) {
+                        return LayoutBuilder(
+                          builder: (context, constraints) {
                         const barWidth = 80.0;
                         final left =
                             (value * (constraints.maxWidth + barWidth)) -
@@ -73,15 +76,16 @@ class LocationBottomBar extends StatelessWidget {
                               ),
                             ),
                           ],
-                        );
-                      },
-                    );
-                  },
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
-          ),
-      ],
+          ],
+        ),
     );
   }
 }
