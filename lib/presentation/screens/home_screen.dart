@@ -94,6 +94,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 初回ルート取得を実行したか（addPostFrameCallback の多重登録防止）
   bool _hasTriggeredInitialRouteFetch = false;
 
+  /// 位置取得の試行が完了したか（成功・失敗・タイムアウト問わず）
+  bool _positionFetchCompleted = false;
+
   static const double _trackingZoom = 15.0;
   static const double _defaultZoom = 14.0;
 
@@ -109,7 +112,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     // 地図を即座に表示するため、まずデフォルト位置で初期化
     _initialPosition = _defaultPosition();
-    _fetchPositionInBackground();
+    // 初回フレーム後に位置取得開始（権限ダイアログが正しく表示されるように）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _fetchPositionInBackground();
+    });
 
     WakelockPlus.enable();
 
@@ -271,32 +277,33 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     getPositionWithPermission(
       context,
       onOpenSettings: () => _expectingReturnFromSettings = true,
-    ).timeout(const Duration(seconds: 10), onTimeout: () => null).then((pos) {
-      if (!mounted || pos == null) {
-        if (pos == null && mounted && !_hasShownLocationUnavailableHint) {
-          _hasShownLocationUnavailableHint = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  AppLocalizations.of(context)!.locationUnavailable +
-                      ' '
-                          '「現在地を表示」で再試行するか、設定から位置情報を許可してください。',
-                ),
-                action: SnackBarAction(
-                  label: AppLocalizations.of(context)!.openSettings,
-                  onPressed: () => Geolocator.openAppSettings(),
-                ),
+    ).timeout(const Duration(seconds: 20), onTimeout: () => null).then((pos) {
+      if (!mounted) return;
+      final position = pos ?? _defaultPosition();
+      setState(() {
+        if (pos != null) _initialPosition = pos;
+        _positionFetchCompleted = true;
+      });
+      if (pos == null && !_hasShownLocationUnavailableHint) {
+        _hasShownLocationUnavailableHint = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.locationUnavailableWithRetry,
               ),
-            );
-          });
-        }
-        return;
+              action: SnackBarAction(
+                label: AppLocalizations.of(context)!.openSettings,
+                onPressed: () => Geolocator.openAppSettings(),
+              ),
+            ),
+          );
+        });
       }
-      setState(() => _initialPosition = pos);
+      _hasTriggeredInitialRouteFetch = true;
       ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
-        pos,
+        position,
         animateCamera: (bounds) async {
           if (bounds != null) {
             await ref
@@ -362,7 +369,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final hasMapController = ref.watch(cameraControllerProvider) != null;
     final position = _initialPosition ?? _defaultPosition();
 
-    if (!_hasTriggeredInitialRouteFetch) {
+    // 位置取得が完了してからルート作成（ネットワークチェックでオンライン表示が先になる場合の対策）
+    if (_positionFetchCompleted && !_hasTriggeredInitialRouteFetch) {
       _hasTriggeredInitialRouteFetch = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
@@ -875,14 +883,21 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       children: [
         Scaffold(
           body: ConnectivityGate(
-            onOnline: () =>
-                setState(() => _hasTriggeredInitialRouteFetch = false),
+            onOnline: () {
+              setState(() => _hasTriggeredInitialRouteFetch = false);
+              ref.read(mapStateProvider.notifier).resetInitialRouteFetchForRetry();
+            },
             builder: (context, gateState, onRetry) {
               if (gateState == ConnectivityGateState.checking) {
                 return const ConnectivityCheckingView();
               }
               if (gateState == ConnectivityGateState.offline) {
                 return _buildOfflineLayout(context, onRetry);
+              }
+              // オンライン時も位置取得が完了するまで地図を表示せず待機
+              // （初回インストールでデフォルト座標からルートになるのを防ぐ）
+              if (!_positionFetchCompleted) {
+                return const ConnectivityCheckingView();
               }
               return _buildMapLayout(context);
             },

@@ -434,6 +434,12 @@ abstract class AppLocalizations {
   /// **'Location unavailable'**
   String get locationUnavailable;
 
+  /// No description provided for @locationUnavailableWithRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Location unavailable. Tap \"Show my location\" to retry, or allow location access in settings.'**
+  String get locationUnavailableWithRetry;
+
   /// No description provided for @openSettings.
   ///
   /// In en, this message translates to:

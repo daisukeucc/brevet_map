@@ -70,6 +70,7 @@
   "mapStyleDark": "Show map in dark mode",
   "showFullRoute": "Show full route",
   "locationUnavailable": "Location unavailable",
+  "locationUnavailableWithRetry": "Location unavailable. Tap \"Show my location\" to retry, or allow location access in settings.",
   "openSettings": "Open settings",
   "locationInvalid": "Location is invalid",
   "locationServiceOff": "Location service is off. Please turn it on in device settings.",

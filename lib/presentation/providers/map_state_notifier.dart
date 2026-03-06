@@ -253,6 +253,11 @@ class MapStateNotifier extends Notifier<MapState> {
     await saveMapStyleMode(newMode);
   }
 
+  /// オフライン復帰時など、初回ルート取得の再試行を許可する
+  void resetInitialRouteFetchForRetry() {
+    state = state.copyWith(hasStartedInitialRouteFetch: false);
+  }
+
   /// 初回 API 取得 or 保存済みルート読み込み（1回のみ実行）
   Future<void> fetchOrLoadRouteIfNeeded(
     Position position, {

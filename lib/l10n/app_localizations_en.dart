@@ -183,6 +183,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationUnavailable => 'Location unavailable';
 
   @override
+  String get locationUnavailableWithRetry =>
+      'Location unavailable. Tap \"Show my location\" to retry, or allow location access in settings.';
+
+  @override
   String get openSettings => 'Open settings';
 
   @override

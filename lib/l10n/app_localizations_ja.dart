@@ -181,6 +181,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locationUnavailable => '位置情報を取得できません';
 
   @override
+  String get locationUnavailableWithRetry =>
+      '位置情報を取得できません。「現在地を表示」で再試行するか、設定から位置情報を許可してください。';
+
+  @override
   String get openSettings => '設定を開く';
 
   @override
