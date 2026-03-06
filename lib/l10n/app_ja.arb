@@ -56,6 +56,7 @@
   "mapStyleDark": "地図をダーク表示",
   "showFullRoute": "ルート全体を表示",
   "locationUnavailable": "位置情報を取得できません",
+  "locationUnavailableWithRetry": "位置情報を取得できません。「現在地を表示」で再試行するか、設定から位置情報を許可してください。",
   "openSettings": "設定を開く",
   "locationInvalid": "位置情報が無効です",
   "locationServiceOff": "位置情報サービスがオフになっています。端末の設定でオンにしてください。",
@@ -72,5 +73,10 @@
   "unitKm": "km",
   "unitMile": "mile",
   "distanceUnitSetToKm": "距離の単位をkmに設定しました",
-  "distanceUnitSetToMile": "距離の単位をmileに設定しました"
+  "distanceUnitSetToMile": "距離の単位をmileに設定しました",
+  "loadingMap": "地図を読み込み中...",
+  "mapRequiresNetwork": "地図表示にはネットワーク接続が必要です",
+  "checkingConnectivity": "接続を確認しています...",
+  "offline": "オフラインです",
+  "retryConnectivity": "再接続"
 }

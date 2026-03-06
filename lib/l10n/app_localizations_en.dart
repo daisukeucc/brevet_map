@@ -183,6 +183,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationUnavailable => 'Location unavailable';
 
   @override
+  String get locationUnavailableWithRetry =>
+      'Location unavailable. Tap \"Show my location\" to retry, or allow location access in settings.';
+
+  @override
   String get openSettings => 'Open settings';
 
   @override
@@ -237,4 +241,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get distanceUnitSetToMile => 'Distance unit set to mile';
+
+  @override
+  String get loadingMap => 'Loading map...';
+
+  @override
+  String get mapRequiresNetwork => 'Map display requires network connection';
+
+  @override
+  String get checkingConnectivity => 'Checking connection...';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get retryConnectivity => 'Retry';
 }

@@ -181,6 +181,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locationUnavailable => '位置情報を取得できません';
 
   @override
+  String get locationUnavailableWithRetry =>
+      '位置情報を取得できません。「現在地を表示」で再試行するか、設定から位置情報を許可してください。';
+
+  @override
   String get openSettings => '設定を開く';
 
   @override
@@ -233,4 +237,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get distanceUnitSetToMile => '距離の単位をmileに設定しました';
+
+  @override
+  String get loadingMap => '地図を読み込み中...';
+
+  @override
+  String get mapRequiresNetwork => '地図表示にはネットワーク接続が必要です';
+
+  @override
+  String get checkingConnectivity => '接続を確認しています...';
+
+  @override
+  String get offline => 'オフラインです';
+
+  @override
+  String get retryConnectivity => '再接続';
 }

@@ -434,6 +434,12 @@ abstract class AppLocalizations {
   /// **'Location unavailable'**
   String get locationUnavailable;
 
+  /// No description provided for @locationUnavailableWithRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Location unavailable. Tap \"Show my location\" to retry, or allow location access in settings.'**
+  String get locationUnavailableWithRetry;
+
   /// No description provided for @openSettings.
   ///
   /// In en, this message translates to:
@@ -535,6 +541,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Distance unit set to mile'**
   String get distanceUnitSetToMile;
+
+  /// No description provided for @loadingMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading map...'**
+  String get loadingMap;
+
+  /// No description provided for @mapRequiresNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Map display requires network connection'**
+  String get mapRequiresNetwork;
+
+  /// No description provided for @checkingConnectivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking connection...'**
+  String get checkingConnectivity;
+
+  /// No description provided for @offline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get offline;
+
+  /// No description provided for @retryConnectivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryConnectivity;
 }
 
 class _AppLocalizationsDelegate

@@ -2,23 +2,59 @@
 
 A new Flutter project.
 
-## Google Maps API キー（Dart 側・.env で「flutter run」のみで動かす）
+## Google Maps API キーの必須設定
 
-**「flutter run」だけで動かす場合（推奨）**
+地図表示と Directions API を利用するため、以下の 3 か所に API キーを設定する必要があります。いずれも `.gitignore` 済みのため、GitHub には公開されません。
 
-1. プロジェクトルートで `.env` を作成する（初回のみ）
-   ```bash
-   cp env.example .env
-   ```
-2. `.env` を開き、`GOOGLE_MAPS_API_KEY=` に API キーを追加
-3. `flutter run` のみで OK（`--dart-define` 不要）
+| プラットフォーム | 設定先 | 用途 |
+|-----------------|--------|------|
+| **Dart** | `.env`（flutter_dotenv） | Directions API（ルート取得） |
+| **Android** | `local.properties` | 地図表示（ネイティブ SDK） |
+| **iOS** | `ios/Runner/Secrets.xcconfig` | 地図表示（ネイティブ SDK） |
 
-`.env` は .gitignore 済み 
-Android は `android/local.properties` の `google.maps.api.key`、iOS は `ios/Runner/Secrets.xcconfig` の設定も必要（地図表示用）
+### 設定手順
 
-`--dart-define` を使う場合:  
-`flutter run --dart-define=GOOGLE_MAPS_API_KEY=あなたのキー`  
-（.env より優先される）
+**1. Dart 用（.env）**
+
+```bash
+cp env.example .env
+```
+
+`.env` を開き、`GOOGLE_MAPS_API_KEY=あなたのキー` を記述。
+
+**2. Android 用（local.properties）**
+
+`android/local.properties` に以下を追加（ファイルがなければ作成）:
+
+```
+google.maps.api.key=あなたのキー
+```
+
+**3. iOS 用（Secrets.xcconfig）**
+
+`ios/Runner/Secrets.xcconfig` を作成し、以下を記述:
+
+```
+GOOGLE_MAPS_API_KEY=あなたのキー
+```
+
+※ `Secrets.xcconfig` は `ios/Flutter/*.xcconfig` から参照されます。
+
+### Dart のみ別の方法を使う場合
+
+`--dart-define` で渡すことも可能（.env より優先）:
+
+```bash
+flutter run --dart-define=GOOGLE_MAPS_API_KEY=あなたのキー
+```
+
+## iOS での動作確認
+
+iOS 14 以降では、デバッグモード（`flutter run`）でアプリをタスクキル後に再起動するとクラッシュする場合があります。本番動作に近い挙動の確認には、リリース版で実行することを推奨します。
+
+```bash
+flutter run --release
+```
 
 ## Getting Started
 
