@@ -237,4 +237,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get distanceUnitSetToMile => 'Distance unit set to mile';
+
+  @override
+  String get loadingMap => 'Loading map...';
+
+  @override
+  String get mapRequiresNetwork => 'Map display requires network connection';
+
+  @override
+  String get checkingConnectivity => 'Checking connection...';
+
+  @override
+  String get offline => 'Offline';
+
+  @override
+  String get retryConnectivity => 'Retry';
 }

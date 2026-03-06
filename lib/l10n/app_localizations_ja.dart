@@ -233,4 +233,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get distanceUnitSetToMile => '距離の単位をmileに設定しました';
+
+  @override
+  String get loadingMap => '地図を読み込み中...';
+
+  @override
+  String get mapRequiresNetwork => '地図表示にはネットワーク接続が必要です';
+
+  @override
+  String get checkingConnectivity => '接続を確認しています...';
+
+  @override
+  String get offline => 'オフラインです';
+
+  @override
+  String get retryConnectivity => '再接続';
 }

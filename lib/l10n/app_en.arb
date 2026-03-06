@@ -93,5 +93,10 @@
   "unitKm": "km",
   "unitMile": "mile",
   "distanceUnitSetToKm": "Distance unit set to km",
-  "distanceUnitSetToMile": "Distance unit set to mile"
+  "distanceUnitSetToMile": "Distance unit set to mile",
+  "loadingMap": "Loading map...",
+  "mapRequiresNetwork": "Map display requires network connection",
+  "checkingConnectivity": "Checking connection...",
+  "offline": "Offline",
+  "retryConnectivity": "Retry"
 }
