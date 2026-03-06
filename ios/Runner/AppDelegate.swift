@@ -6,7 +6,7 @@ private let kShareSchemePrefix = "ShareMedia-com.example.brevetMap"
 private let kAppGroupId = "group.com.example.brevetMap"
 private let kSharedUrlKey = "shared_url"
 
-@UIApplicationMain
+@main
 @objc class AppDelegate: FlutterAppDelegate {
   private let channelName = "com.example.brevet_map/gpx"
   private let shareChannelName = "com.example.brevet_map/share"
