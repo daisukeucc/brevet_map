@@ -347,11 +347,26 @@ class _MapScreenContentState extends State<MapScreenContent> {
         ),
       ),
       children: [
-        TileLayer(
-          urlTemplate: TileConfig.tileUrlTemplate,
-          userAgentPackageName: 'dev.brevet_map.app',
-          tileProvider: _tileProvider,
-        ),
+        if (isDark)
+          ColorFiltered(
+            colorFilter: const ColorFilter.matrix(<double>[
+              -0.2126, -0.7152, -0.0722, 0, 265,
+              -0.2126, -0.7152, -0.0722, 0, 265,
+              -0.2126, -0.7152, -0.0722, 0, 285,
+              0, 0, 0, 1, 0,
+            ]),
+            child: TileLayer(
+              urlTemplate: TileConfig.tileUrlTemplate,
+              userAgentPackageName: 'dev.brevet_map.app',
+              tileProvider: _tileProvider,
+            ),
+          )
+        else
+          TileLayer(
+            urlTemplate: TileConfig.tileUrlTemplate,
+            userAgentPackageName: 'dev.brevet_map.app',
+            tileProvider: _tileProvider,
+          ),
         RichAttributionWidget(
           animationConfig: const ScaleRAWA(),
           showFlutterMapAttribution: false,
@@ -365,15 +380,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
           MarkerLayer(markers: widget.markers),
       ],
     );
-    if (isDark) {
-      return ColorFiltered(
-        colorFilter: const ColorFilter.mode(
-          Color(0xFF1a1a2e),
-          BlendMode.overlay,
-        ),
-        child: map,
-      );
-    }
     return map;
   }
 }
