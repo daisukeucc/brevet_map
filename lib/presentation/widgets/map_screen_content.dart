@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../config/tile_config.dart';
 import '../../l10n/app_localizations.dart';
 import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
@@ -10,7 +13,7 @@ import 'radio_selection_dialog.dart';
 import 'settings_bottom_sheet.dart';
 
 /// 地図画面の本体。地図・オーバーレイ・下部バーをまとめる。
-class MapScreenContent extends StatelessWidget {
+class MapScreenContent extends StatefulWidget {
   const MapScreenContent({
     super.key,
     required this.initialPosition,
@@ -45,16 +48,16 @@ class MapScreenContent extends StatelessWidget {
   });
 
   /// オフライン時に地図の代わりに中央に表示するウィジェット。
-  /// 非 null の場合、GoogleMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
+  /// 非 null の場合、FlutterMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
   final Widget? offlineCenter;
 
   final LatLng initialPosition;
   final double initialZoom;
-  final Set<Polyline> polylines;
-  final Set<Marker> markers;
+  final List<Polyline> polylines;
+  final List<Marker> markers;
   final int mapStyleMode;
   final VoidCallback onCameraIdle;
-  final void Function(GoogleMapController controller) onMapCreated;
+  final void Function(MapController controller) onMapCreated;
   final VoidCallback onMapStyleTap;
   final VoidCallback onRouteBoundsTap;
   final VoidCallback onMyLocationTap;
@@ -105,6 +108,25 @@ class MapScreenContent extends StatelessWidget {
   final VoidCallback? onUserInteraction;
 
   @override
+  State<MapScreenContent> createState() => _MapScreenContentState();
+}
+
+class _MapScreenContentState extends State<MapScreenContent> {
+  late final MapController _mapController;
+  static final _tileProvider = FMTCTileProvider(
+    stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onMapCreated(_mapController);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
@@ -112,37 +134,25 @@ class MapScreenContent extends StatelessWidget {
         children: [
           Expanded(
             child: Listener(
-              onPointerDown: (_) => onUserInteraction?.call(),
+              onPointerDown: (_) => widget.onUserInteraction?.call(),
               child: Stack(
                 children: [
-                  if (offlineCenter != null)
-                    Positioned.fill(child: offlineCenter!)
+                  if (widget.offlineCenter != null)
+                    Positioned.fill(child: widget.offlineCenter!)
                   else
-                    GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: initialPosition,
-                        zoom: initialZoom,
-                      ),
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      mapToolbarEnabled: false,
-                      zoomControlsEnabled: false,
-                      polylines: polylines,
-                      markers: markers,
-                      onCameraIdle: onCameraIdle,
-                      onMapCreated: onMapCreated,
-                      onLongPress: onMapLongPress,
-                    ),
-                  if (!isDragMode && !isMapTapAddMode)
+                    _buildMap(),
+                  if (!widget.isDragMode && !widget.isMapTapAddMode)
                     Positioned(
                       left: 16,
                       bottom: 24,
                       child: MapStyleButton(
-                        mapStyleMode: mapStyleMode,
-                        onTap: onMapStyleTap,
+                        mapStyleMode: widget.mapStyleMode,
+                        onTap: widget.onMapStyleTap,
                       ),
                     ),
-                  if (!isStreamActive && !isDragMode && !isMapTapAddMode)
+                  if (!widget.isStreamActive &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     Positioned(
                       left: 16,
                       top: 24,
@@ -165,24 +175,25 @@ class MapScreenContent extends StatelessWidget {
                                     const Duration(milliseconds: 200),
                                     () {
                                       navigator.pop();
-                                      onGpxImportTap();
+                                      widget.onGpxImportTap();
                                     },
                                   );
                                 },
-                                hasUserPois: hasUserPois,
+                                hasUserPois: widget.hasUserPois,
                                 onAddPoiTap: () {
                                   final navigator = Navigator.of(context);
                                   Future.delayed(
                                     const Duration(milliseconds: 200),
                                     () {
                                       navigator.pop();
-                                      onAddPoiTap();
+                                      widget.onAddPoiTap();
                                     },
                                   );
                                 },
                                 onSleepSettingsTap: () async {
                                   final navigator = Navigator.of(context);
-                                  final l10n = AppLocalizations.of(context)!;
+                                  final l10n =
+                                      AppLocalizations.of(context)!;
                                   await Future.delayed(
                                       const Duration(milliseconds: 200));
                                   navigator.pop();
@@ -196,13 +207,14 @@ class MapScreenContent extends StatelessWidget {
                                       (5, l10n.sleep5min),
                                       (10, l10n.sleep10min),
                                     ],
-                                    initialValue: sleepDuration,
-                                    onChanged: onSleepDurationChanged,
+                                    initialValue: widget.sleepDuration,
+                                    onChanged: widget.onSleepDurationChanged,
                                   );
                                 },
                                 onDistanceUnitTap: () async {
                                   final navigator = Navigator.of(context);
-                                  final l10n = AppLocalizations.of(context)!;
+                                  final l10n =
+                                      AppLocalizations.of(context)!;
                                   await Future.delayed(
                                       const Duration(milliseconds: 200));
                                   navigator.pop();
@@ -214,8 +226,8 @@ class MapScreenContent extends StatelessWidget {
                                       (0, l10n.unitKm),
                                       (1, l10n.unitMile)
                                     ],
-                                    initialValue: distanceUnit,
-                                    onChanged: onDistanceUnitChanged,
+                                    initialValue: widget.distanceUnit,
+                                    onChanged: widget.onDistanceUnitChanged,
                                   );
                                 },
                               ),
@@ -234,7 +246,7 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (!isDragMode && !isMapTapAddMode)
+                  if (!widget.isDragMode && !widget.isMapTapAddMode)
                     const Positioned(
                       left: 0,
                       right: 0,
@@ -243,18 +255,22 @@ class MapScreenContent extends StatelessWidget {
                         child: BatteryIndicator(),
                       ),
                     ),
-                  if (!isDragMode && !isMapTapAddMode)
+                  if (!widget.isDragMode && !widget.isMapTapAddMode)
                     Positioned(
                       right: 16,
                       top: 24,
-                      child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
+                      child: MapToolButtons(
+                          onRouteBoundsTap: widget.onRouteBoundsTap),
                     ),
-                  if (showMyLocationButton && !isDragMode && !isMapTapAddMode)
+                  if (widget.showMyLocationButton &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
                       child: Tooltip(
-                        message: AppLocalizations.of(context)!.showMyLocation,
+                        message:
+                            AppLocalizations.of(context)!.showMyLocation,
                         child: Material(
                           color: Colors.white,
                           elevation: 5,
@@ -262,7 +278,7 @@ class MapScreenContent extends StatelessWidget {
                           shape: const CircleBorder(),
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            onTap: onMyLocationTap,
+                            onTap: widget.onMyLocationTap,
                             customBorder: const CircleBorder(),
                             child: const SizedBox(
                               width: 60,
@@ -277,17 +293,17 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isStreamActive &&
-                      onGpsLevelTap != null &&
-                      !isDragMode &&
-                      !isMapTapAddMode)
+                  if (widget.isStreamActive &&
+                      widget.onGpsLevelTap != null &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
                       child: _GpsLevelButton(
-                        isLowMode: isLowMode,
-                        isStreamAccuracyLow: isStreamAccuracyLow,
-                        onTap: onGpsLevelTap!,
+                        isLowMode: widget.isLowMode,
+                        isStreamAccuracyLow: widget.isStreamAccuracyLow,
+                        onTap: widget.onGpsLevelTap!,
                       ),
                     ),
                 ],
@@ -295,20 +311,70 @@ class MapScreenContent extends StatelessWidget {
             ),
           ),
           AbsorbPointer(
-            absorbing: isDragMode || isMapTapAddMode,
+            absorbing: widget.isDragMode || widget.isMapTapAddMode,
             child: Opacity(
-              opacity: (isDragMode || isMapTapAddMode) ? 0.0 : 1.0,
+              opacity: (widget.isDragMode || widget.isMapTapAddMode)
+                  ? 0.0
+                  : 1.0,
               child: LocationBottomBar(
-                isStreamActive: isStreamActive,
-                onTap: onToggleLocationStream,
-                progressBarValue: progressBarValue,
-                isLowMode: isLowMode,
+                isStreamActive: widget.isStreamActive,
+                onTap: widget.onToggleLocationStream,
+                progressBarValue: widget.progressBarValue,
+                isLowMode: widget.isLowMode,
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildMap() {
+    final isDark = widget.mapStyleMode == 2;
+    final map = FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: widget.initialPosition,
+        initialZoom: widget.initialZoom,
+        onMapEvent: (event) {
+          if (event is MapEventMoveEnd) {
+            widget.onCameraIdle();
+          }
+        },
+        onLongPress: (_, point) => widget.onMapLongPress?.call(point),
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all,
+        ),
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: TileConfig.tileUrlTemplate,
+          userAgentPackageName: 'dev.brevet_map.app',
+          tileProvider: _tileProvider,
+        ),
+        RichAttributionWidget(
+          animationConfig: const ScaleRAWA(),
+          showFlutterMapAttribution: false,
+          attributions: [
+            TextSourceAttribution(TileConfig.attribution),
+          ],
+        ),
+        if (widget.polylines.isNotEmpty)
+          PolylineLayer(polylines: widget.polylines),
+        if (widget.markers.isNotEmpty)
+          MarkerLayer(markers: widget.markers),
+      ],
+    );
+    if (isDark) {
+      return ColorFiltered(
+        colorFilter: const ColorFilter.mode(
+          Color(0xFF1a1a2e),
+          BlendMode.overlay,
+        ),
+        child: map,
+      );
+    }
+    return map;
   }
 }
 

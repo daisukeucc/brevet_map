@@ -1,10 +1,10 @@
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// 角丸の正方形マーカー（スタート・ゴール用）
-Future<BitmapDescriptor> createRoundedSquareMarkerIcon({
+Future<Widget> createRoundedSquareMarkerIcon({
   required Color backgroundColor,
   required bool isPlayIcon,
 }) async {
@@ -63,11 +63,41 @@ Future<BitmapDescriptor> createRoundedSquareMarkerIcon({
   if (byteData == null) {
     throw StateError('Failed to encode marker icon');
   }
-  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+  return _sizedIcon(byteData.buffer.asUint8List(), 72);
+}
+
+/// マーカー位置の微調整オフセット（ずれている方向に応じて調整可能）
+/// 例: アイコンが右下にずれている場合 → Offset(-1, -1)
+/// 例: アイコンが左上にずれている場合 → Offset(1, 1) を大きく
+/// ズームアウト時にずれが目立つ場合は値を大きくする
+const Offset _markerOffset = Offset(12, 15);
+
+/// 距離マーカー用の追加オフセット（左ずれ補正のため右にシフト）
+const Offset _distanceMarkerOffset = Offset(12, 0);
+
+/// アイコンを指定サイズでラップ（flutter_map Marker 用）
+/// マーカー領域いっぱいに広げて中央配置し、位置ずれを防ぐ
+Widget _sizedIcon(Uint8List bytes, double size) {
+  return Transform.translate(
+    offset: _markerOffset,
+    child: SizedBox.expand(
+      child: Center(
+        child: SizedBox(
+          width: size,
+          height: size,
+          child: FittedBox(
+            fit: BoxFit.contain,
+            alignment: Alignment.center,
+            child: Image.memory(bytes),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// インフォメーションPOI用
-Future<BitmapDescriptor> createPoiInfoMarkerIcon() async {
+Future<Widget> createPoiInfoMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
   const pixelRatio = 2.0;
@@ -114,11 +144,11 @@ Future<BitmapDescriptor> createPoiInfoMarkerIcon() async {
   if (byteData == null) {
     throw StateError('Failed to encode marker icon');
   }
-  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+  return _sizedIcon(byteData.buffer.asUint8List(), 72);
 }
 
-/// 距離マーカー用の円アイコン
-Future<BitmapDescriptor> createSmallCircleMarkerIcon({
+/// 距離マーカー用の円アイコン（未使用・将来用）
+Future<Widget> createSmallCircleMarkerIcon({
   Color color = Colors.blueGrey,
   double size = 32.0,
 }) async {
@@ -149,11 +179,11 @@ Future<BitmapDescriptor> createSmallCircleMarkerIcon({
   if (byteData == null) {
     throw StateError('Failed to encode marker icon');
   }
-  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+  return Image.memory(byteData.buffer.asUint8List());
 }
 
 /// 距離マーカー用アイコン
-Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
+Future<Widget> createDistanceMarkerIcon(String label) async {
   const pixelRatio = 2.0;
   const horizontalPadding = 8.0; // 左右の余白
   const verticalPadding = 4.0; // 上下の余白
@@ -202,11 +232,15 @@ Future<BitmapDescriptor> createDistanceMarkerIcon(String label) async {
   if (byteData == null) {
     throw StateError('Failed to encode marker icon');
   }
-  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+  // 距離マーカーは左にずれやすいため右方向、下にずれやすいため上方向の補正を追加
+  return Transform.translate(
+    offset: const Offset(10, -12),
+    child: _sizedIcon(byteData.buffer.asUint8List(), 72),
+  );
 }
 
 /// 共有プレビュー用
-Future<BitmapDescriptor> createSharePreviewMarkerIcon() async {
+Future<Widget> createSharePreviewMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
   const pixelRatio = 2.0;
@@ -253,11 +287,11 @@ Future<BitmapDescriptor> createSharePreviewMarkerIcon() async {
   if (byteData == null) {
     throw StateError('Failed to encode marker icon');
   }
-  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+  return _sizedIcon(byteData.buffer.asUint8List(), 72);
 }
 
 /// チェックポイントPOI用
-Future<BitmapDescriptor> createPoiCheckpointMarkerIcon() async {
+Future<Widget> createPoiCheckpointMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
   const pixelRatio = 2.0;
@@ -298,5 +332,5 @@ Future<BitmapDescriptor> createPoiCheckpointMarkerIcon() async {
   if (byteData == null) {
     throw StateError('Failed to encode marker icon');
   }
-  return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
+  return _sizedIcon(byteData.buffer.asUint8List(), 72);
 }

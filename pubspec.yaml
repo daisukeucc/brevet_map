@@ -32,13 +32,10 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  google_maps_flutter: ^2.6.1
   flutter_plugin_android_lifecycle: ^2.0.28
-  google_maps: ^8.1.1
-  google_maps_flutter_android: ^2.16.1
-  google_maps_flutter_ios: ^2.15.2
-  google_maps_flutter_platform_interface: ^2.12.1
-  google_maps_flutter_web: ^0.5.8
+  flutter_map: ^7.0.2
+  flutter_map_tile_caching: ^10.0.0
+  latlong2: ^0.9.1
   geolocator: ^10.1.0
   js: ^0.6.7
   leak_tracker: ^11.0.1

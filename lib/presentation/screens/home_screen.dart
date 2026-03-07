@@ -5,7 +5,8 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:screen_brightness/screen_brightness.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -79,7 +80,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   String? _pendingSharedPlaceName;
 
   /// 共有プレビュー用の現在地風アイコン
-  BitmapDescriptor? _sharePreviewIcon;
+  Widget? _sharePreviewIcon;
 
   Timer? _sleepTimer;
   bool _isScreenDimmed = false;
@@ -387,20 +388,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     }
 
     final markers = _pendingSharedPosition != null
-        ? {
+        ? [
             ...mapState.routeMarkers,
             Marker(
-              markerId: const MarkerId('share_preview'),
-              position: _pendingSharedPosition!,
-              icon: _sharePreviewIcon ??
-                  BitmapDescriptor.defaultMarkerWithHue(
-                      BitmapDescriptor.hueOrange),
-              anchor: _sharePreviewIcon != null
-                  ? const Offset(0.3, 0.5)
-                  : const Offset(0.5, 1.0),
-              zIndexInt: 5,
+              point: _pendingSharedPosition!,
+              width: 72,
+              height: 72,
+              alignment: Alignment.center,
+              child: _sharePreviewIcon ??
+                  Icon(Icons.place, color: Colors.orange, size: 48),
             ),
-          }
+          ]
         : mapState.routeMarkers;
 
     return Stack(
@@ -581,7 +579,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(mapStateProvider.notifier).onCameraIdle(controller);
   }
 
-  Future<void> _onMapCreated(GoogleMapController controller) async {
+  Future<void> _onMapCreated(MapController controller) async {
     ref.read(cameraControllerProvider.notifier).setController(controller);
     ref.read(mapStateProvider.notifier).setPoiTapHandler((poi) {
       showPoiDetailSheet(context, name: poi.name, description: poi.description);

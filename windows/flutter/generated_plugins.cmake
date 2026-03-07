@@ -5,6 +5,7 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   battery_plus
   geolocator_windows
+  objectbox_flutter_libs
   screen_brightness_windows
   volume_controller
 )

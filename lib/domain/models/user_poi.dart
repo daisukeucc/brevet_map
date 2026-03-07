@@ -1,4 +1,4 @@
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 /// ユーザーが手動で登録した POI。SharedPreferences に JSON で保存する。
 class UserPoi {
