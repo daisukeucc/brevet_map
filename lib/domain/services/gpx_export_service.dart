@@ -3,18 +3,21 @@ import 'package:xml/xml.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../domain/models/user_poi.dart';
+import '../../utils/map_utils.dart';
 
 /// GPX XML を生成する。
 ///
 /// [trackPoints] トラック（ルート）の座標リスト
 /// [gpxPois] GPXからインポートしたウェイポイント
 /// [userPois] ユーザーが追加したPOI
-/// [filename] metadata と wpt の name に使用するファイル名（任意）
+/// [filename] metadata と trk の name に使用するファイル名（任意）
+/// [distanceUnit] 0=km, 1=mile。UserPoi の name で距離表示に使用
 String buildGpxXml({
   required List<LatLng> trackPoints,
   List<GpxPoi> gpxPois = const [],
   List<UserPoi> userPois = const [],
   String? filename,
+  int distanceUnit = 0,
 }) {
   final builder = XmlBuilder();
   builder.declaration(version: '1.0', encoding: 'UTF-8');
@@ -47,12 +50,14 @@ String buildGpxXml({
     for (final poi in userPois) {
       final title = poi.title.isEmpty ? null : poi.title;
       final body = poi.body.isEmpty ? null : poi.body;
-      final desc = (title != null && body != null)
-          ? '$title - $body'
-          : (title ?? body);
+      final String? name = poi.km != null
+          ? (title != null && title.isNotEmpty
+              ? '${formatDistance(poi.km!, distanceUnit)} : $title'
+              : formatDistance(poi.km!, distanceUnit))
+          : title;
       _addWpt(builder, poi.lat, poi.lng,
-          name: title ?? filename,
-          desc: desc,
+          name: name?.isEmpty == true ? null : name,
+          desc: body,
           type: poi.isCheckpoint ? 'checkpoint' : 'information');
     }
 
