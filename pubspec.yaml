@@ -64,6 +64,9 @@ dependencies:
   battery_plus: ^6.0.2
   flutter_riverpod: ^2.6.1
   file_picker: ^8.1.2
+  path_provider: ^2.1.2
+  permission_handler: ^11.3.0
+  downloadsfolder: ^1.2.0
   package_info_plus: ^9.0.0
 
 dev_dependencies:

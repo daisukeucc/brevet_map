@@ -48,6 +48,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gpxImport => 'GPXファイルをインポート';
 
   @override
+  String get gpxExport => 'GPXファイルをエクスポート';
+
+  @override
+  String get gpxExportDialogTitle => 'ファイル名';
+
+  @override
+  String get gpxExportFilenameHint => 'ファイル名を入力してください（未入力の場合は日時を使用）';
+
+  @override
+  String gpxExportComplete(String filename) {
+    return '$filename を保存しました';
+  }
+
+  @override
+  String get gpxExportFailed => 'エクスポートに失敗しました';
+
+  @override
+  String get gpxExportPermissionDenied => 'ファイル保存の権限がありません';
+
+  @override
   String get poiAdd => 'POIの登録';
 
   @override

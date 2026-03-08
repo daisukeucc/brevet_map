@@ -176,6 +176,42 @@ abstract class AppLocalizations {
   /// **'Import GPX file'**
   String get gpxImport;
 
+  /// No description provided for @gpxExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export GPX file'**
+  String get gpxExport;
+
+  /// No description provided for @gpxExportDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'File name'**
+  String get gpxExportDialogTitle;
+
+  /// No description provided for @gpxExportFilenameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter filename (use date/time if empty)'**
+  String get gpxExportFilenameHint;
+
+  /// No description provided for @gpxExportComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved {filename}'**
+  String gpxExportComplete(String filename);
+
+  /// No description provided for @gpxExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Export failed'**
+  String get gpxExportFailed;
+
+  /// No description provided for @gpxExportPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'File save permission denied'**
+  String get gpxExportPermissionDenied;
+
   /// No description provided for @poiAdd.
   ///
   /// In en, this message translates to:

@@ -6,6 +6,7 @@ import '../../l10n/app_localizations.dart';
 class SettingsBottomSheet extends StatefulWidget {
   const SettingsBottomSheet({
     required this.onGpxImportTap,
+    required this.onGpxExportTap,
     required this.onOfflineMapTap,
     required this.hasUserPois,
     required this.onAddPoiTap,
@@ -14,6 +15,7 @@ class SettingsBottomSheet extends StatefulWidget {
   });
 
   final VoidCallback onGpxImportTap;
+  final VoidCallback onGpxExportTap;
   final VoidCallback onOfflineMapTap;
   final bool hasUserPois;
   final VoidCallback onAddPoiTap;
@@ -76,6 +78,17 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
             onTap: widget.onSleepSettingsTap,
             contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             horizontalTitleGap: 20,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+          ),
+          ListTile(
+            leading: const Icon(Icons.upload, color: Colors.black54),
+            title: Text(
+              AppLocalizations.of(context)!.gpxExport,
+              style: const TextStyle(fontSize: 15),
+            ),
+            onTap: widget.onGpxExportTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            horizontalTitleGap: 22,
             visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
           ),
           ListTile(

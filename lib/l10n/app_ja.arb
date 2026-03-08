@@ -13,6 +13,17 @@
   "sleepSettings": "画面スリープ設定",
   "switchGpsLevel": "位置情報レベルを切り替え",
   "gpxImport": "GPXファイルをインポート",
+  "gpxExport": "GPXファイルをエクスポート",
+  "gpxExportDialogTitle": "ファイル名",
+  "gpxExportFilenameHint": "ファイル名を入力してください（未入力の場合は日時を使用）",
+  "gpxExportComplete": "{filename} を保存しました",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": { "type": "String" }
+    }
+  },
+  "gpxExportFailed": "エクスポートに失敗しました",
+  "gpxExportPermissionDenied": "ファイル保存の権限がありません",
   "poiAdd": "POIの登録",
   "poiAddEdit": "POIの登録・編集",
   "poiAddByDistance": "距離入力でPOIを登録",

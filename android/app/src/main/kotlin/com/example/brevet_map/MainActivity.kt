@@ -1,12 +1,18 @@
 package com.example.brevet_map
 
+import android.annotation.TargetApi
+import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import dev.darttools.flutter_android_volume_keydown.FlutterAndroidVolumeKeydownActivity
 import java.io.BufferedReader
+import java.io.FileInputStream
 import java.io.InputStreamReader
 
 class MainActivity : FlutterAndroidVolumeKeydownActivity() {
@@ -35,6 +41,20 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
                             }
                         } else {
                             result.success(null)
+                        }
+                    }
+                    "saveFileToDownloads" -> {
+                        val filePath = call.argument<String>("filePath")
+                        val fileName = call.argument<String>("fileName")
+                        if (filePath != null && fileName != null) {
+                            try {
+                                val success = saveFileToDownloads(filePath, fileName)
+                                result.success(success)
+                            } catch (e: Exception) {
+                                result.error("SAVE_ERROR", e.message, null)
+                            }
+                        } else {
+                            result.error("INVALID_ARGS", "filePath and fileName required", null)
                         }
                     }
                     else -> result.notImplemented()
@@ -149,5 +169,33 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
             return BufferedReader(InputStreamReader(input)).use { it.readText() }
         }
             ?: throw Exception("Could not open URI")
+    }
+
+    /** MediaStore でダウンロードフォルダにファイルを保存。fileName に拡張子を含める */
+    @TargetApi(Build.VERSION_CODES.Q)
+    private fun saveFileToDownloads(filePath: String, fileName: String): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+
+        val extension = fileName.substringAfterLast('.', "").takeIf { it.isNotEmpty() }
+        val mimeType = when (extension?.lowercase()) {
+            "gpx" -> "application/gpx+xml"
+            else -> "application/octet-stream"
+        }
+
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, mimeType)
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+        }
+
+        val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            ?: return false
+
+        FileInputStream(filePath).use { input ->
+            contentResolver.openOutputStream(uri)?.use { output ->
+                input.copyTo(output)
+            }
+        }
+        return true
     }
 }

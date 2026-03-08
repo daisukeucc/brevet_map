@@ -312,6 +312,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           ),
       onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
       onGpxImportTap: () => handleGpxImportTap(context, ref),
+      onGpxExportTap: () => handleGpxExportTap(context, ref),
       onOfflineMapTap: () => handleOfflineMapTap(context, ref),
       onAddPoiTap: () => handleAddPoiTap(
             context,
@@ -402,6 +403,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               ),
           onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
           onGpxImportTap: () => handleGpxImportTap(context, ref),
+          onGpxExportTap: () => handleGpxExportTap(context, ref),
           onOfflineMapTap: () => handleOfflineMapTap(context, ref),
           onAddPoiTap: () => handleAddPoiTap(
                 context,
