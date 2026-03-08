@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 import '../../l10n/app_localizations.dart';
+import '../../utils/connectivity_check.dart';
 
 /// 接続状態
 enum ConnectivityGateState {
@@ -49,9 +49,6 @@ class ConnectivityGate extends StatefulWidget {
   State<ConnectivityGate> createState() => _ConnectivityGateState();
 }
 
-/// 軽量な接続チェック用 URL（204 No Content を返す）
-const _kConnectivityCheckUrl = 'https://www.gstatic.com/generate_204';
-
 class _ConnectivityGateState extends State<ConnectivityGate> {
   bool _hasCheckedConnectivity = false;
   bool _isOffline = false;
@@ -64,26 +61,14 @@ class _ConnectivityGateState extends State<ConnectivityGate> {
 
   Future<void> _checkConnectivity() async {
     final wasOffline = _isOffline;
-    try {
-      final response = await http
-          .head(Uri.parse(_kConnectivityCheckUrl))
-          .timeout(const Duration(seconds: 5));
-      if (!mounted) return;
-      final isOnline = response.statusCode == 204 || response.statusCode == 200;
-      setState(() {
-        _hasCheckedConnectivity = true;
-        _isOffline = !isOnline;
-        if (wasOffline && isOnline) widget.onOnline?.call();
-        if (!isOnline) widget.onOffline?.call();
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _hasCheckedConnectivity = true;
-        _isOffline = true;
-      });
-      widget.onOffline?.call();
-    }
+    final isOnline = await checkConnectivity();
+    if (!mounted) return;
+    setState(() {
+      _hasCheckedConnectivity = true;
+      _isOffline = !isOnline;
+      if (wasOffline && isOnline) widget.onOnline?.call();
+      if (!isOnline) widget.onOffline?.call();
+    });
   }
 
   void _onRetry() {

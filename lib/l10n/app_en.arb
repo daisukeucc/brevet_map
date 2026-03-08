@@ -121,6 +121,7 @@
       "size": { "type": "String" }
     }
   },
+  "offlineMapRequiresNetwork": "Network connection is required to download offline maps",
   "offlineMapNoRoute": "Route is not loaded. Please import a GPX file first.",
   "offlineMapDownloading": "Downloading ... ",
   "offlineMapCancel": "Cancel",

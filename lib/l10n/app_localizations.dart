@@ -608,6 +608,12 @@ abstract class AppLocalizations {
   /// **'Zoom: Extended ({size})'**
   String offlineMapZoomLargeWithSize(String size);
 
+  /// No description provided for @offlineMapRequiresNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Network connection is required to download offline maps'**
+  String get offlineMapRequiresNetwork;
+
   /// No description provided for @offlineMapNoRoute.
   ///
   /// In en, this message translates to:

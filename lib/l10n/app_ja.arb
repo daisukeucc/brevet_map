@@ -100,6 +100,7 @@
       "size": { "type": "String" }
     }
   },
+  "offlineMapRequiresNetwork": "オフラインマップのダウンロードにはネットワーク接続が必要です",
   "offlineMapNoRoute": "ルートが読み込まれていません。GPXをインポートしてからダウンロードしてください。",
   "offlineMapDownloading": "ダウンロード中 ... ",
   "offlineMapCancel": "キャンセル",

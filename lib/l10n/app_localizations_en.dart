@@ -282,6 +282,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get offlineMapRequiresNetwork =>
+      'Network connection is required to download offline maps';
+
+  @override
   String get offlineMapNoRoute =>
       'Route is not loaded. Please import a GPX file first.';
 

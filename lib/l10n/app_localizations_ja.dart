@@ -278,6 +278,9 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
+  String get offlineMapRequiresNetwork => 'オフラインマップのダウンロードにはネットワーク接続が必要です';
+
+  @override
   String get offlineMapNoRoute => 'ルートが読み込まれていません。GPXをインポートしてからダウンロードしてください。';
 
   @override

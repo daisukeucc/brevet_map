@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../config/tile_config.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/connectivity_check.dart';
 import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
 import '../theme/app_text_styles.dart';
@@ -15,12 +16,19 @@ import 'confirm_dialog.dart';
 import 'text_menu_dialog.dart';
 
 /// オフラインマップのダウンロードフローを実行する。
-/// ルートが読み込まれていない場合は SnackBar で通知し、何もしない。
+/// ルートが読み込まれていない場合やオフラインの場合は SnackBar で通知し、何もしない。
 Future<void> showOfflineMapDownloadFlow(
   BuildContext context,
   WidgetRef ref,
 ) async {
   final l10n = AppLocalizations.of(context)!;
+
+  // ダウンロードはネットワーク必須のため、オフライン時は開始しない
+  if (!await checkConnectivity()) {
+    if (!context.mounted) return;
+    showAppSnackBar(context, l10n.offlineMapRequiresNetwork);
+    return;
+  }
 
   final routePoints = ref.read(mapStateProvider).fullRoutePoints ??
       ref.read(mapStateProvider).savedRoutePoints;
