@@ -72,9 +72,6 @@ Future<Widget> createRoundedSquareMarkerIcon({
 /// ズームアウト時にずれが目立つ場合は値を大きくする
 const Offset _markerOffset = Offset(12, 15);
 
-/// 距離マーカー用の追加オフセット（左ずれ補正のため右にシフト）
-const Offset _distanceMarkerOffset = Offset(12, 0);
-
 /// アイコンを指定サイズでラップ（flutter_map Marker 用）
 /// マーカー領域いっぱいに広げて中央配置し、位置ずれを防ぐ
 Widget _sizedIcon(Uint8List bytes, double size) {
@@ -182,18 +179,22 @@ Future<Widget> createSmallCircleMarkerIcon({
   return Image.memory(byteData.buffer.asUint8List());
 }
 
-/// 距離マーカー用アイコン
-Future<Widget> createDistanceMarkerIcon(String label) async {
+/// 距離マーカー用アイコン（文字サイズ固定、マーカーサイズはラベル長に応じて可変）
+/// 返り値: (アイコン Widget, マーカー幅, マーカー高さ)
+Future<({Widget icon, double width, double height})> createDistanceMarkerIcon(
+    String label) async {
   const pixelRatio = 2.0;
-  const horizontalPadding = 8.0; // 左右の余白
-  const verticalPadding = 4.0; // 上下の余白
+  const horizontalPadding = 6.0; // 左右の余白
+  const verticalPadding = 3.0; // 上下の余白
+  // 文字サイズを固定（桁数に依存しない）
+  const fixedFontSize = 20.0;
 
   final textPainter = TextPainter(
     text: TextSpan(
       text: label,
       style: const TextStyle(
         color: Colors.white,
-        fontSize: 35,
+        fontSize: fixedFontSize,
         fontWeight: FontWeight.w500,
         fontFamily: 'sans-serif',
       ),
@@ -233,9 +234,18 @@ Future<Widget> createDistanceMarkerIcon(String label) async {
     throw StateError('Failed to encode marker icon');
   }
   // 距離マーカーは左にずれやすいため右方向、下にずれやすいため上方向の補正を追加
-  return Transform.translate(
-    offset: const Offset(10, -12),
-    child: _sizedIcon(byteData.buffer.asUint8List(), 72),
+  // _sizedIcon は使わず、画像をそのまま表示（スケールしない＝文字サイズ固定）
+  const offsetX = 10.0;
+  const offsetY = -12.0;
+  final icon = Transform.translate(
+    offset: const Offset(offsetX, offsetY),
+    child: Image.memory(byteData.buffer.asUint8List()),
+  );
+  // オフセット分をマーカーサイズに加算してクリッピングを防ぐ
+  return (
+    icon: icon,
+    width: width + offsetX,
+    height: height + offsetY.abs(),
   );
 }
 

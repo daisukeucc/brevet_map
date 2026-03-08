@@ -93,13 +93,13 @@ Future<List<Marker>> buildRouteMarkers({
             ? '${50 * (i + 1)}mi'
             : '${m.distanceKm.toInt()}km';
         try {
-          final icon = await createDistanceMarkerIcon(label);
+          final result = await createDistanceMarkerIcon(label);
           markers.add(Marker(
             point: m.position,
-            width: 108,
-            height: 54,
+            width: result.width,
+            height: result.height,
             alignment: Alignment.center,
-            child: icon,
+            child: result.icon,
           ));
         } catch (_) {
           // アイコン生成に失敗した場合はスキップ
