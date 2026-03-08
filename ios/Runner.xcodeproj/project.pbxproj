@@ -239,7 +239,6 @@
 				A1B2C3D41E2F3A4B5C6D7E8F /* Inject Secrets */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				98926703A773DCDC547D59AD /* [CP] Embed Pods Frameworks */,
-				F025693D01FADFD8E926DE35 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -452,23 +451,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "if [ -f \"${SRCROOT}/Runner/Secrets.xcconfig\" ]; then\n  . \"${SRCROOT}/Runner/Secrets.xcconfig\"\n  /usr/libexec/PlistBuddy -c \"Set :GoogleMapsApiKey $GOOGLE_MAPS_API_KEY\" \"${TARGET_BUILD_DIR}/Runner.app/Info.plist\"\nfi\n";
-		};
-		F025693D01FADFD8E926DE35 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-resources.sh\"\n";
-			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
 

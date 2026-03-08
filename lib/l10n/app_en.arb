@@ -95,9 +95,46 @@
   "unitMile": "mile",
   "distanceUnitSetToKm": "Distance unit set to km",
   "distanceUnitSetToMile": "Distance unit set to mile",
-  "loadingMap": "Loading map...",
-  "mapRequiresNetwork": "Map display requires network connection",
   "checkingConnectivity": "Checking connection...",
+  "fetchingLocation": "Getting location...",
   "offline": "Offline",
-  "retryConnectivity": "Retry"
+  "retryConnectivity": "Retry",
+  "offlineMap": "Offline Map",
+  "offlineMapZoomSmall": "Zoom: Limited",
+  "offlineMapZoomMedium": "Zoom: Standard",
+  "offlineMapZoomLarge": "Zoom: Extended",
+  "offlineMapZoomSmallWithSize": "Zoom: Limited ({size})",
+  "offlineMapZoomMediumWithSize": "Zoom: Standard ({size})",
+  "offlineMapZoomLargeWithSize": "Zoom: Extended ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapRequiresNetwork": "Network connection is required to download offline maps",
+  "offlineMapNoRoute": "Route is not loaded. Please import a GPX file first.",
+  "offlineMapDownloading": "Downloading ... ",
+  "offlineMapCancel": "Cancel",
+  "offlineMapDownloadComplete": "Offline map download complete",
+  "offlineMapDownloadFailed": "Download failed",
+  "offlineMapDownloadCancelled": "Download cancelled",
+  "offlineMapWifiRecommendation": "We recommend downloading over Wi-Fi due to the large data size",
+  "offlineMapWifiRecommendationWithSize": "We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }

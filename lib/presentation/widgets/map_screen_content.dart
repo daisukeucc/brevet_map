@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:latlong2/latlong.dart';
 
+import '../../config/tile_config.dart';
 import '../../l10n/app_localizations.dart';
+import '../handlers/settings_menu_handler.dart';
 import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
-import 'radio_selection_dialog.dart';
 import 'settings_bottom_sheet.dart';
 
 /// 地図画面の本体。地図・オーバーレイ・下部バーをまとめる。
-class MapScreenContent extends StatelessWidget {
+class MapScreenContent extends StatefulWidget {
   const MapScreenContent({
     super.key,
     required this.initialPosition,
@@ -26,11 +29,10 @@ class MapScreenContent extends StatelessWidget {
     required this.showMyLocationButton,
     required this.isStreamActive,
     required this.onToggleLocationStream,
-    required this.sleepDuration,
-    required this.onSleepDurationChanged,
-    required this.distanceUnit,
-    required this.onDistanceUnitChanged,
+    required this.onSleepSettingsTap,
+    required this.onDistanceUnitTap,
     required this.onGpxImportTap,
+    required this.onOfflineMapTap,
     required this.onAddPoiTap,
     this.hasUserPois = false,
     this.isDragMode = false,
@@ -45,16 +47,16 @@ class MapScreenContent extends StatelessWidget {
   });
 
   /// オフライン時に地図の代わりに中央に表示するウィジェット。
-  /// 非 null の場合、GoogleMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
+  /// 非 null の場合、FlutterMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
   final Widget? offlineCenter;
 
   final LatLng initialPosition;
   final double initialZoom;
-  final Set<Polyline> polylines;
-  final Set<Marker> markers;
+  final List<Polyline> polylines;
+  final List<Marker> markers;
   final int mapStyleMode;
   final VoidCallback onCameraIdle;
-  final void Function(GoogleMapController controller) onMapCreated;
+  final void Function(MapController controller) onMapCreated;
   final VoidCallback onMapStyleTap;
   final VoidCallback onRouteBoundsTap;
   final VoidCallback onMyLocationTap;
@@ -71,20 +73,17 @@ class MapScreenContent extends StatelessWidget {
 
   final VoidCallback? onGpsLevelTap;
 
-  /// 画面スリープまでの時間（分）。0=OFF
-  final int sleepDuration;
+  /// スリープ設定メニュータップ時のコールバック（フロー全体を実行）
+  final VoidCallback onSleepSettingsTap;
 
-  /// スリープ時間変更コールバック
-  final void Function(int) onSleepDurationChanged;
-
-  /// 距離単位。0=km, 1=mile
-  final int distanceUnit;
-
-  /// 距離単位変更コールバック
-  final void Function(int) onDistanceUnitChanged;
+  /// 距離単位メニュータップ時のコールバック（フロー全体を実行）
+  final VoidCallback onDistanceUnitTap;
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
+
+  /// オフラインマップコールバック
+  final VoidCallback onOfflineMapTap;
 
   /// POI登録コールバック
   final VoidCallback onAddPoiTap;
@@ -105,6 +104,28 @@ class MapScreenContent extends StatelessWidget {
   final VoidCallback? onUserInteraction;
 
   @override
+  State<MapScreenContent> createState() => _MapScreenContentState();
+}
+
+class _MapScreenContentState extends State<MapScreenContent> {
+  late final MapController _mapController;
+  late final FMTCTileProvider _tileProvider;
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    // initState 時点で TileConfig.initUserAgentPackageName() は main() で完了済み
+    _tileProvider = FMTCTileProvider(
+      stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
+      headers: {'User-Agent': TileConfig.userAgent},
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onMapCreated(_mapController);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       bottom: false,
@@ -112,37 +133,25 @@ class MapScreenContent extends StatelessWidget {
         children: [
           Expanded(
             child: Listener(
-              onPointerDown: (_) => onUserInteraction?.call(),
+              onPointerDown: (_) => widget.onUserInteraction?.call(),
               child: Stack(
                 children: [
-                  if (offlineCenter != null)
-                    Positioned.fill(child: offlineCenter!)
+                  if (widget.offlineCenter != null)
+                    Positioned.fill(child: widget.offlineCenter!)
                   else
-                    GoogleMap(
-                      initialCameraPosition: CameraPosition(
-                        target: initialPosition,
-                        zoom: initialZoom,
-                      ),
-                      myLocationEnabled: true,
-                      myLocationButtonEnabled: false,
-                      mapToolbarEnabled: false,
-                      zoomControlsEnabled: false,
-                      polylines: polylines,
-                      markers: markers,
-                      onCameraIdle: onCameraIdle,
-                      onMapCreated: onMapCreated,
-                      onLongPress: onMapLongPress,
-                    ),
-                  if (!isDragMode && !isMapTapAddMode)
+                    _buildMap(),
+                  if (!widget.isDragMode && !widget.isMapTapAddMode)
                     Positioned(
                       left: 16,
                       bottom: 24,
                       child: MapStyleButton(
-                        mapStyleMode: mapStyleMode,
-                        onTap: onMapStyleTap,
+                        mapStyleMode: widget.mapStyleMode,
+                        onTap: widget.onMapStyleTap,
                       ),
                     ),
-                  if (!isStreamActive && !isDragMode && !isMapTapAddMode)
+                  if (!widget.isStreamActive &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     Positioned(
                       left: 16,
                       top: 24,
@@ -159,65 +168,22 @@ class MapScreenContent extends StatelessWidget {
                               context: context,
                               shape: const RoundedRectangleBorder(),
                               builder: (_) => SettingsBottomSheet(
-                                onGpxImportTap: () {
-                                  final navigator = Navigator.of(context);
-                                  Future.delayed(
-                                    const Duration(milliseconds: 200),
-                                    () {
-                                      navigator.pop();
-                                      onGpxImportTap();
-                                    },
-                                  );
-                                },
-                                hasUserPois: hasUserPois,
-                                onAddPoiTap: () {
-                                  final navigator = Navigator.of(context);
-                                  Future.delayed(
-                                    const Duration(milliseconds: 200),
-                                    () {
-                                      navigator.pop();
-                                      onAddPoiTap();
-                                    },
-                                  );
-                                },
-                                onSleepSettingsTap: () async {
-                                  final navigator = Navigator.of(context);
-                                  final l10n = AppLocalizations.of(context)!;
-                                  await Future.delayed(
-                                      const Duration(milliseconds: 200));
-                                  navigator.pop();
-                                  if (!context.mounted) return;
-                                  showRadioSelectionDialog<int>(
-                                    context: context,
-                                    title: l10n.sleepSettings,
-                                    options: [
-                                      (0, l10n.sleepOff),
-                                      (1, l10n.sleep1min),
-                                      (5, l10n.sleep5min),
-                                      (10, l10n.sleep10min),
-                                    ],
-                                    initialValue: sleepDuration,
-                                    onChanged: onSleepDurationChanged,
-                                  );
-                                },
-                                onDistanceUnitTap: () async {
-                                  final navigator = Navigator.of(context);
-                                  final l10n = AppLocalizations.of(context)!;
-                                  await Future.delayed(
-                                      const Duration(milliseconds: 200));
-                                  navigator.pop();
-                                  if (!context.mounted) return;
-                                  showRadioSelectionDialog<int>(
-                                    context: context,
-                                    title: l10n.distanceUnit,
-                                    options: [
-                                      (0, l10n.unitKm),
-                                      (1, l10n.unitMile)
-                                    ],
-                                    initialValue: distanceUnit,
-                                    onChanged: onDistanceUnitChanged,
-                                  );
-                                },
+                                onGpxImportTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onGpxImportTap),
+                                onOfflineMapTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onOfflineMapTap),
+                                hasUserPois: widget.hasUserPois,
+                                onAddPoiTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onAddPoiTap),
+                                onSleepSettingsTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onSleepSettingsTap),
+                                onDistanceUnitTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onDistanceUnitTap),
                               ),
                             ),
                             customBorder: const CircleBorder(),
@@ -234,7 +200,7 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (!isDragMode && !isMapTapAddMode)
+                  if (!widget.isDragMode && !widget.isMapTapAddMode)
                     const Positioned(
                       left: 0,
                       right: 0,
@@ -243,18 +209,22 @@ class MapScreenContent extends StatelessWidget {
                         child: BatteryIndicator(),
                       ),
                     ),
-                  if (!isDragMode && !isMapTapAddMode)
+                  if (!widget.isDragMode && !widget.isMapTapAddMode)
                     Positioned(
                       right: 16,
                       top: 24,
-                      child: MapToolButtons(onRouteBoundsTap: onRouteBoundsTap),
+                      child: MapToolButtons(
+                          onRouteBoundsTap: widget.onRouteBoundsTap),
                     ),
-                  if (showMyLocationButton && !isDragMode && !isMapTapAddMode)
+                  if (widget.showMyLocationButton &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
                       child: Tooltip(
-                        message: AppLocalizations.of(context)!.showMyLocation,
+                        message:
+                            AppLocalizations.of(context)!.showMyLocation,
                         child: Material(
                           color: Colors.white,
                           elevation: 5,
@@ -262,7 +232,7 @@ class MapScreenContent extends StatelessWidget {
                           shape: const CircleBorder(),
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            onTap: onMyLocationTap,
+                            onTap: widget.onMyLocationTap,
                             customBorder: const CircleBorder(),
                             child: const SizedBox(
                               width: 60,
@@ -277,17 +247,17 @@ class MapScreenContent extends StatelessWidget {
                         ),
                       ),
                     ),
-                  if (isStreamActive &&
-                      onGpsLevelTap != null &&
-                      !isDragMode &&
-                      !isMapTapAddMode)
+                  if (widget.isStreamActive &&
+                      widget.onGpsLevelTap != null &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     Positioned(
                       right: 16,
                       bottom: 24,
                       child: _GpsLevelButton(
-                        isLowMode: isLowMode,
-                        isStreamAccuracyLow: isStreamAccuracyLow,
-                        onTap: onGpsLevelTap!,
+                        isLowMode: widget.isLowMode,
+                        isStreamAccuracyLow: widget.isStreamAccuracyLow,
+                        onTap: widget.onGpsLevelTap!,
                       ),
                     ),
                 ],
@@ -295,20 +265,95 @@ class MapScreenContent extends StatelessWidget {
             ),
           ),
           AbsorbPointer(
-            absorbing: isDragMode || isMapTapAddMode,
+            absorbing: widget.isDragMode || widget.isMapTapAddMode,
             child: Opacity(
-              opacity: (isDragMode || isMapTapAddMode) ? 0.0 : 1.0,
+              opacity: (widget.isDragMode || widget.isMapTapAddMode)
+                  ? 0.0
+                  : 1.0,
               child: LocationBottomBar(
-                isStreamActive: isStreamActive,
-                onTap: onToggleLocationStream,
-                progressBarValue: progressBarValue,
-                isLowMode: isLowMode,
+                isStreamActive: widget.isStreamActive,
+                onTap: widget.onToggleLocationStream,
+                progressBarValue: widget.progressBarValue,
+                isLowMode: widget.isLowMode,
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  TileLayer _buildTileLayer(String urlTemplate, bool useOsmOrg) {
+    return TileLayer(
+      urlTemplate: urlTemplate,
+      userAgentPackageName: TileConfig.userAgentPackageName,
+      subdomains: useOsmOrg ? const [] : const ['a', 'b', 'c'],
+      tileProvider: _tileProvider,
+    );
+  }
+
+  Widget _buildMap() {
+    final isDark = widget.mapStyleMode == 2;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final urlTemplate = TileConfig.getTileUrlTemplate(languageCode);
+    // tile.openstreetmap.org は OSM 推奨のためサブドメインなし（subdomains: []）
+    final useOsmOrg = urlTemplate.contains('tile.openstreetmap.org');
+    final map = FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: widget.initialPosition,
+        initialZoom: widget.initialZoom,
+        onMapReady: () {
+          // flutter_map の既知の不具合: 初回表示でタイルがグレーのままになる場合がある
+          // workaround: 微移動で MapEventWithMove を発火させ、タイル読み込みを促す
+          Future.delayed(const Duration(milliseconds: 250), () {
+            if (!mounted) return;
+            final cam = _mapController.camera;
+            _mapController.move(cam.center, cam.zoom + 0.0001);
+            Future.delayed(const Duration(milliseconds: 50), () {
+              if (!mounted) return;
+              _mapController.move(cam.center, cam.zoom);
+              setState(() {});
+            });
+          });
+        },
+        onMapEvent: (event) {
+          if (event is MapEventMoveEnd) {
+            widget.onCameraIdle();
+          }
+        },
+        onLongPress: (_, point) => widget.onMapLongPress?.call(point),
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all,
+        ),
+      ),
+      children: [
+        if (isDark)
+          ColorFiltered(
+            colorFilter: const ColorFilter.matrix(<double>[
+              -0.2126, -0.7152, -0.0722, 0, 265,
+              -0.2126, -0.7152, -0.0722, 0, 265,
+              -0.2126, -0.7152, -0.0722, 0, 285,
+              0, 0, 0, 1, 0,
+            ]),
+            child: _buildTileLayer(urlTemplate, useOsmOrg),
+          )
+        else
+          _buildTileLayer(urlTemplate, useOsmOrg),
+        RichAttributionWidget(
+          animationConfig: const ScaleRAWA(),
+          showFlutterMapAttribution: false,
+          attributions: [
+            TextSourceAttribution(TileConfig.attribution),
+          ],
+        ),
+        if (widget.polylines.isNotEmpty)
+          PolylineLayer(polylines: widget.polylines),
+        if (widget.markers.isNotEmpty)
+          MarkerLayer(markers: widget.markers),
+      ],
+    );
+    return map;
   }
 }
 

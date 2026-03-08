@@ -1,6 +1,5 @@
 import UIKit
 import Flutter
-import GoogleMaps
 
 private let kShareSchemePrefix = "ShareMedia-com.example.brevetMap"
 private let kAppGroupId = "group.com.example.brevetMap"
@@ -19,10 +18,6 @@ private let kSharedUrlKey = "shared_url"
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    // Google Maps は最初に初期化する必要がある（地図表示前に呼ばれること）
-    let apiKey = Bundle.main.object(forInfoDictionaryKey: "GoogleMapsApiKey") as? String ?? ""
-    GMSServices.provideAPIKey(apiKey)
-
     // コールドスタートで GPX ファイルをタップして起動した場合、URL が launchOptions で渡される
     if let url = launchOptions?[.url] as? URL {
       if isShareScheme(url) {

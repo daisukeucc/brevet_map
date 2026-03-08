@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
-import '../../constants/map_styles.dart';
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/first_launch_repository.dart';
 import '../../data/repositories/user_poi_repository.dart';
@@ -21,8 +21,8 @@ enum GpxApplyStatus { success, empty, parseError }
 @immutable
 class MapState {
   const MapState({
-    this.routePolylines = const {},
-    this.routeMarkers = const {},
+    this.routePolylines = const [],
+    this.routeMarkers = const [],
     this.mapStyleMode = 0,
     this.savedRoutePoints,
     this.gpxPois = const [],
@@ -34,8 +34,8 @@ class MapState {
     this.lastShowDistanceMarkers,
   });
 
-  final Set<Polyline> routePolylines;
-  final Set<Marker> routeMarkers;
+  final List<Polyline> routePolylines;
+  final List<Marker> routeMarkers;
 
   /// 0=通常カラー, 2=ダーク。デフォルトは 0
   final int mapStyleMode;
@@ -60,8 +60,8 @@ class MapState {
   final bool? lastShowDistanceMarkers;
 
   MapState copyWith({
-    Set<Polyline>? routePolylines,
-    Set<Marker>? routeMarkers,
+    List<Polyline>? routePolylines,
+    List<Marker>? routeMarkers,
     int? mapStyleMode,
     List<LatLng>? savedRoutePoints,
     List<GpxPoi>? gpxPois,
@@ -155,17 +155,16 @@ class MapStateNotifier extends Notifier<MapState> {
     await _refreshRouteMarkers(routePoints);
   }
 
-  /// SharedPreferences から保存済みマップスタイルを読み込み、state と controller に適用する
-  Future<void> loadAndApplyMapStyle(GoogleMapController? controller) async {
+  /// SharedPreferences から保存済みマップスタイルを読み込み、state に反映する
+  /// （OpenStreetMap では ColorFilter でダークモードを適用するため controller は不要）
+  Future<void> loadAndApplyMapStyle(MapController? controller) async {
     final mode = await loadMapStyleMode();
     state = state.copyWith(mapStyleMode: mode);
-    // ignore: deprecated_member_use
-    await controller?.setMapStyle(mapStyleForMode(mode));
   }
 
   /// カメラアイドル時: ズームを保存し、必要な場合のみマーカーを再構築する
-  Future<void> onCameraIdle(GoogleMapController controller) async {
-    final z = await controller.getZoomLevel();
+  Future<void> onCameraIdle(MapController controller) async {
+    final z = controller.camera.zoom;
     state = state.copyWith(savedZoomLevel: z);
 
     final routePoints = state.savedRoutePoints ?? _emptyRoute;
@@ -183,7 +182,7 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// マップ作成時: スタイル適用・マーカー初期構築・保存済みルート描画
   Future<void> onMapCreated(
-    GoogleMapController controller, {
+    MapController controller, {
     required Future<void> Function(LatLngBounds) animateCamera,
   }) async {
     await loadAndApplyMapStyle(controller);
@@ -245,11 +244,10 @@ class MapStateNotifier extends Notifier<MapState> {
   }
 
   /// マップスタイルを 0⇔2 でトグルし、SharedPreferences に保存する
-  Future<void> toggleMapStyle(GoogleMapController? controller) async {
+  /// （OpenStreetMap では ColorFilter でダークモードを適用）
+  Future<void> toggleMapStyle(MapController? controller) async {
     final newMode = state.mapStyleMode == 0 ? 2 : 0;
     state = state.copyWith(mapStyleMode: newMode);
-    // ignore: deprecated_member_use
-    await controller?.setMapStyle(mapStyleForMode(newMode));
     await saveMapStyleMode(newMode);
   }
 

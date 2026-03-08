@@ -1,7 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 import 'marker_icon_service.dart';
 
@@ -13,10 +14,12 @@ class RouteAnimationRunner {
   static const _interval = Duration(milliseconds: 20);
   static const _pointsPerFrame = 5;
 
+  static const double _markerSize = 72.0;
+
   Future<void> start(
     List<LatLng> fullPoints, {
-    required void Function(Set<Polyline>) onPolyline,
-    required void Function(Set<Marker>) onMarkers,
+    required void Function(List<Polyline>) onPolyline,
+    required void Function(List<Marker>) onMarkers,
     required bool Function() mounted,
     bool animate = true,
     bool buildMarkers = true,
@@ -34,26 +37,24 @@ class RouteAnimationRunner {
         fullPoints.length <= 500;
 
     if (!useAnimation) {
-      onPolyline({
+      onPolyline([
         Polyline(
-          polylineId: const PolylineId('initial_route'),
           points: fullPoints,
           color: Colors.red,
-          width: 5,
+          strokeWidth: 5,
         ),
-      });
+      ]);
       return;
     }
 
     final startPoints = fullPoints.sublist(0, _initialPoints);
-    onPolyline({
+    onPolyline([
       Polyline(
-        polylineId: const PolylineId('initial_route'),
         points: startPoints,
         color: Colors.red,
-        width: 5,
+        strokeWidth: 5,
       ),
-    });
+    ]);
 
     var animatedCount = startPoints.length;
     _timer = Timer.periodic(_interval, (t) {
@@ -63,14 +64,13 @@ class RouteAnimationRunner {
       }
       final nextCount =
           (animatedCount + _pointsPerFrame).clamp(0, fullPoints.length);
-      onPolyline({
+      onPolyline([
         Polyline(
-          polylineId: const PolylineId('initial_route'),
           points: fullPoints.sublist(0, nextCount),
           color: Colors.red,
-          width: 5,
+          strokeWidth: 5,
         ),
-      });
+      ]);
       animatedCount = nextCount;
       if (nextCount >= fullPoints.length) {
         t.cancel();
@@ -79,15 +79,15 @@ class RouteAnimationRunner {
     });
   }
 
-  Future<Set<Marker>?> _buildStartGoalMarkers(
+  Future<List<Marker>?> _buildStartGoalMarkers(
     List<LatLng> points,
     bool Function() mounted,
   ) async {
     if (points.isEmpty) return null;
     final start = points.first;
     final goal = points.length > 1 ? points.last : start;
-    BitmapDescriptor? startIcon;
-    BitmapDescriptor? goalIcon;
+    Widget? startIcon;
+    Widget? goalIcon;
     try {
       startIcon = await createRoundedSquareMarkerIcon(
         backgroundColor: Colors.green,
@@ -103,24 +103,26 @@ class RouteAnimationRunner {
     if (!mounted()) return null;
     final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
         (start.longitude - goal.longitude).abs() < 1e-6;
-    final startAnchor =
-        isSamePoint ? const Offset(0, 0) : const Offset(0.5, 0.5);
-    return {
+    final startPoint = isSamePoint
+        ? LatLng(start.latitude + 0.00008, start.longitude)
+        : start;
+    // スタートを上に表示するため、ゴールを先に追加してスタートを後に描画
+    return [
       Marker(
-        markerId: const MarkerId('start'),
-        position: start,
-        icon: startIcon,
-        anchor: startAnchor,
-        zIndex: 1,
+        point: goal,
+        width: _markerSize,
+        height: _markerSize,
+        alignment: Alignment.center,
+        child: goalIcon!,
       ),
       Marker(
-        markerId: const MarkerId('goal'),
-        position: goal,
-        icon: goalIcon,
-        anchor: const Offset(0.5, 0.5),
-        zIndex: 0,
+        point: startPoint,
+        width: _markerSize,
+        height: _markerSize,
+        alignment: Alignment.center,
+        child: startIcon!,
       ),
-    };
+    ];
   }
 
   void cancel() {

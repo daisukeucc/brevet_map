@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/directions_repository.dart';

@@ -24,6 +24,8 @@ class GpxChannelService {
       return await _channel.invokeMethod<String?>('getInitialGpxContent');
     } on PlatformException catch (_) {
       return null;
+    } on MissingPluginException catch (_) {
+      return null;
     }
   }
 }

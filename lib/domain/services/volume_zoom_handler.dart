@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
 import 'package:volume_controller/volume_controller.dart';
 import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.dart';
 
@@ -9,10 +9,10 @@ import 'package:flutter_android_volume_keydown/flutter_android_volume_keydown.da
 class VolumeZoomHandler {
   VolumeZoomHandler({required this.getController});
 
-  final GoogleMapController? Function() getController;
+  final MapController? Function() getController;
 
-  static const _zoomAmountUp = 1.2;
-  static const _zoomAmountDown = 1.2;
+  static const _zoomAmountUp = 1.0;
+  static const _zoomAmountDown = 1.0;
   static const _debounce = Duration(milliseconds: 400);
 
   StreamSubscription<double>? _volumeSubscription;
@@ -37,10 +37,12 @@ class VolumeZoomHandler {
         }
         _lastKeyTime = now;
         _lastKeyButton = event;
+        final center = controller.camera.center;
+        final zoom = controller.camera.zoom;
         if (event == HardwareButton.volume_up) {
-          controller.animateCamera(CameraUpdate.zoomBy(_zoomAmountUp));
+          controller.move(center, zoom + _zoomAmountUp);
         } else if (event == HardwareButton.volume_down) {
-          controller.animateCamera(CameraUpdate.zoomBy(-_zoomAmountDown));
+          controller.move(center, (zoom - _zoomAmountDown).clamp(0.0, 22.0));
         }
       });
       return;
@@ -64,7 +66,9 @@ class VolumeZoomHandler {
         }
         _lastChangeTime = now;
         _lastChangeUp = true;
-        controller.animateCamera(CameraUpdate.zoomBy(_zoomAmountUp));
+        final center = controller.camera.center;
+        final zoom = controller.camera.zoom;
+        controller.move(center, zoom + _zoomAmountUp);
         VolumeController.instance.setVolume(_previousVolume!);
         return;
       }
@@ -77,7 +81,9 @@ class VolumeZoomHandler {
         }
         _lastChangeTime = now;
         _lastChangeUp = false;
-        controller.animateCamera(CameraUpdate.zoomBy(-_zoomAmountDown));
+        final center = controller.camera.center;
+        final zoom = controller.camera.zoom;
+        controller.move(center, (zoom - _zoomAmountDown).clamp(0.0, 22.0));
         VolumeController.instance.setVolume(_previousVolume!);
         return;
       }

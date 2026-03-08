@@ -243,17 +243,73 @@ class AppLocalizationsEn extends AppLocalizations {
   String get distanceUnitSetToMile => 'Distance unit set to mile';
 
   @override
-  String get loadingMap => 'Loading map...';
-
-  @override
-  String get mapRequiresNetwork => 'Map display requires network connection';
-
-  @override
   String get checkingConnectivity => 'Checking connection...';
+
+  @override
+  String get fetchingLocation => 'Getting location...';
 
   @override
   String get offline => 'Offline';
 
   @override
   String get retryConnectivity => 'Retry';
+
+  @override
+  String get offlineMap => 'Offline Map';
+
+  @override
+  String get offlineMapZoomSmall => 'Zoom: Limited';
+
+  @override
+  String get offlineMapZoomMedium => 'Zoom: Standard';
+
+  @override
+  String get offlineMapZoomLarge => 'Zoom: Extended';
+
+  @override
+  String offlineMapZoomSmallWithSize(String size) {
+    return 'Zoom: Limited ($size)';
+  }
+
+  @override
+  String offlineMapZoomMediumWithSize(String size) {
+    return 'Zoom: Standard ($size)';
+  }
+
+  @override
+  String offlineMapZoomLargeWithSize(String size) {
+    return 'Zoom: Extended ($size)';
+  }
+
+  @override
+  String get offlineMapRequiresNetwork =>
+      'Network connection is required to download offline maps';
+
+  @override
+  String get offlineMapNoRoute =>
+      'Route is not loaded. Please import a GPX file first.';
+
+  @override
+  String get offlineMapDownloading => 'Downloading ... ';
+
+  @override
+  String get offlineMapCancel => 'Cancel';
+
+  @override
+  String get offlineMapDownloadComplete => 'Offline map download complete';
+
+  @override
+  String get offlineMapDownloadFailed => 'Download failed';
+
+  @override
+  String get offlineMapDownloadCancelled => 'Download cancelled';
+
+  @override
+  String get offlineMapWifiRecommendation =>
+      'We recommend downloading over Wi-Fi due to the large data size';
+
+  @override
+  String offlineMapWifiRecommendationWithSize(String size) {
+    return 'We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~$size';
+  }
 }

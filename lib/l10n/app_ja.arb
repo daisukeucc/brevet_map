@@ -74,9 +74,46 @@
   "unitMile": "mile",
   "distanceUnitSetToKm": "距離の単位をkmに設定しました",
   "distanceUnitSetToMile": "距離の単位をmileに設定しました",
-  "loadingMap": "地図を読み込み中...",
-  "mapRequiresNetwork": "地図表示にはネットワーク接続が必要です",
   "checkingConnectivity": "接続を確認しています...",
+  "fetchingLocation": "位置情報を取得しています...",
   "offline": "オフラインです",
-  "retryConnectivity": "再接続"
+  "retryConnectivity": "再接続",
+  "offlineMap": "オフラインマップ",
+  "offlineMapZoomSmall": "拡大：狭い",
+  "offlineMapZoomMedium": "拡大：標準",
+  "offlineMapZoomLarge": "拡大：広い",
+  "offlineMapZoomSmallWithSize": "拡大：狭い（{size}）",
+  "offlineMapZoomMediumWithSize": "拡大：標準（{size}）",
+  "offlineMapZoomLargeWithSize": "拡大：広い（{size}）",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapRequiresNetwork": "オフラインマップのダウンロードにはネットワーク接続が必要です",
+  "offlineMapNoRoute": "ルートが読み込まれていません。GPXをインポートしてからダウンロードしてください。",
+  "offlineMapDownloading": "ダウンロード中 ... ",
+  "offlineMapCancel": "キャンセル",
+  "offlineMapDownloadComplete": "オフラインマップのダウンロードが完了しました",
+  "offlineMapDownloadFailed": "ダウンロードに失敗しました",
+  "offlineMapDownloadCancelled": "ダウンロードをキャンセルしました",
+  "offlineMapWifiRecommendation": "データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします",
+  "offlineMapWifiRecommendationWithSize": "データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします。\n\n推定サイズ: 約{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }
