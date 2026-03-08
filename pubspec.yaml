@@ -64,6 +64,7 @@ dependencies:
   battery_plus: ^6.0.2
   flutter_riverpod: ^2.6.1
   file_picker: ^8.1.2
+  package_info_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:

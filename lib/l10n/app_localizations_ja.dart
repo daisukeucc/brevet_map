@@ -252,4 +252,58 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get retryConnectivity => '再接続';
+
+  @override
+  String get offlineMap => 'オフラインマップ';
+
+  @override
+  String get offlineMapZoomSmall => '拡大：狭い';
+
+  @override
+  String get offlineMapZoomMedium => '拡大：標準';
+
+  @override
+  String get offlineMapZoomLarge => '拡大：広い';
+
+  @override
+  String offlineMapZoomSmallWithSize(String size) {
+    return '拡大：狭い（$size）';
+  }
+
+  @override
+  String offlineMapZoomMediumWithSize(String size) {
+    return '拡大：標準（$size）';
+  }
+
+  @override
+  String offlineMapZoomLargeWithSize(String size) {
+    return '拡大：広い（$size）';
+  }
+
+  @override
+  String get offlineMapNoRoute => 'ルートが読み込まれていません。GPXをインポートしてからダウンロードしてください。';
+
+  @override
+  String get offlineMapDownloading => 'ダウンロード中 ... ';
+
+  @override
+  String get offlineMapCancel => 'キャンセル';
+
+  @override
+  String get offlineMapDownloadComplete => 'オフラインマップのダウンロードが完了しました';
+
+  @override
+  String get offlineMapDownloadFailed => 'ダウンロードに失敗しました';
+
+  @override
+  String get offlineMapDownloadCancelled => 'ダウンロードをキャンセルしました';
+
+  @override
+  String get offlineMapWifiRecommendation =>
+      'データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします';
+
+  @override
+  String offlineMapWifiRecommendationWithSize(String size) {
+    return 'データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします。\n\n推定サイズ: 約$size';
+  }
 }

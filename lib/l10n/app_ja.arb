@@ -78,5 +78,42 @@
   "mapRequiresNetwork": "地図表示にはネットワーク接続が必要です",
   "checkingConnectivity": "接続を確認しています...",
   "offline": "オフラインです",
-  "retryConnectivity": "再接続"
+  "retryConnectivity": "再接続",
+  "offlineMap": "オフラインマップ",
+  "offlineMapZoomSmall": "拡大：狭い",
+  "offlineMapZoomMedium": "拡大：標準",
+  "offlineMapZoomLarge": "拡大：広い",
+  "offlineMapZoomSmallWithSize": "拡大：狭い（{size}）",
+  "offlineMapZoomMediumWithSize": "拡大：標準（{size}）",
+  "offlineMapZoomLargeWithSize": "拡大：広い（{size}）",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapNoRoute": "ルートが読み込まれていません。GPXをインポートしてからダウンロードしてください。",
+  "offlineMapDownloading": "ダウンロード中 ... ",
+  "offlineMapCancel": "キャンセル",
+  "offlineMapDownloadComplete": "オフラインマップのダウンロードが完了しました",
+  "offlineMapDownloadFailed": "ダウンロードに失敗しました",
+  "offlineMapDownloadCancelled": "ダウンロードをキャンセルしました",
+  "offlineMapWifiRecommendation": "データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします",
+  "offlineMapWifiRecommendationWithSize": "データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします。\n\n推定サイズ: 約{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  }
 }

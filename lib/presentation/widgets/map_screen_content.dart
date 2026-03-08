@@ -34,6 +34,7 @@ class MapScreenContent extends StatefulWidget {
     required this.distanceUnit,
     required this.onDistanceUnitChanged,
     required this.onGpxImportTap,
+    required this.onOfflineMapTap,
     required this.onAddPoiTap,
     this.hasUserPois = false,
     this.isDragMode = false,
@@ -88,6 +89,9 @@ class MapScreenContent extends StatefulWidget {
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
+
+  /// オフラインマップコールバック
+  final VoidCallback onOfflineMapTap;
 
   /// POI登録コールバック
   final VoidCallback onAddPoiTap;
@@ -176,6 +180,16 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                     () {
                                       navigator.pop();
                                       widget.onGpxImportTap();
+                                    },
+                                  );
+                                },
+                                onOfflineMapTap: () {
+                                  final navigator = Navigator.of(context);
+                                  Future.delayed(
+                                    const Duration(milliseconds: 200),
+                                    () {
+                                      navigator.pop();
+                                      widget.onOfflineMapTap();
                                     },
                                   );
                                 },
@@ -357,14 +371,14 @@ class _MapScreenContentState extends State<MapScreenContent> {
             ]),
             child: TileLayer(
               urlTemplate: TileConfig.tileUrlTemplate,
-              userAgentPackageName: 'dev.brevet_map.app',
+              userAgentPackageName: TileConfig.userAgentPackageName,
               tileProvider: _tileProvider,
             ),
           )
         else
           TileLayer(
             urlTemplate: TileConfig.tileUrlTemplate,
-            userAgentPackageName: 'dev.brevet_map.app',
+            userAgentPackageName: TileConfig.userAgentPackageName,
             tileProvider: _tileProvider,
           ),
         RichAttributionWidget(

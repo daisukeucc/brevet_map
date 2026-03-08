@@ -256,4 +256,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get retryConnectivity => 'Retry';
+
+  @override
+  String get offlineMap => 'Offline Map';
+
+  @override
+  String get offlineMapZoomSmall => 'Zoom: Limited';
+
+  @override
+  String get offlineMapZoomMedium => 'Zoom: Standard';
+
+  @override
+  String get offlineMapZoomLarge => 'Zoom: Extended';
+
+  @override
+  String offlineMapZoomSmallWithSize(String size) {
+    return 'Zoom: Limited ($size)';
+  }
+
+  @override
+  String offlineMapZoomMediumWithSize(String size) {
+    return 'Zoom: Standard ($size)';
+  }
+
+  @override
+  String offlineMapZoomLargeWithSize(String size) {
+    return 'Zoom: Extended ($size)';
+  }
+
+  @override
+  String get offlineMapNoRoute =>
+      'Route is not loaded. Please import a GPX file first.';
+
+  @override
+  String get offlineMapDownloading => 'Downloading ... ';
+
+  @override
+  String get offlineMapCancel => 'Cancel';
+
+  @override
+  String get offlineMapDownloadComplete => 'Offline map download complete';
+
+  @override
+  String get offlineMapDownloadFailed => 'Download failed';
+
+  @override
+  String get offlineMapDownloadCancelled => 'Download cancelled';
+
+  @override
+  String get offlineMapWifiRecommendation =>
+      'We recommend downloading over Wi-Fi due to the large data size';
+
+  @override
+  String offlineMapWifiRecommendationWithSize(String size) {
+    return 'We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~$size';
+  }
 }

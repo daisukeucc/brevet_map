@@ -571,6 +571,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry'**
   String get retryConnectivity;
+
+  /// No description provided for @offlineMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline Map'**
+  String get offlineMap;
+
+  /// No description provided for @offlineMapZoomSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom: Limited'**
+  String get offlineMapZoomSmall;
+
+  /// No description provided for @offlineMapZoomMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom: Standard'**
+  String get offlineMapZoomMedium;
+
+  /// No description provided for @offlineMapZoomLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom: Extended'**
+  String get offlineMapZoomLarge;
+
+  /// No description provided for @offlineMapZoomSmallWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom: Limited ({size})'**
+  String offlineMapZoomSmallWithSize(String size);
+
+  /// No description provided for @offlineMapZoomMediumWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom: Standard ({size})'**
+  String offlineMapZoomMediumWithSize(String size);
+
+  /// No description provided for @offlineMapZoomLargeWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Zoom: Extended ({size})'**
+  String offlineMapZoomLargeWithSize(String size);
+
+  /// No description provided for @offlineMapNoRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Route is not loaded. Please import a GPX file first.'**
+  String get offlineMapNoRoute;
+
+  /// No description provided for @offlineMapDownloading.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloading ... '**
+  String get offlineMapDownloading;
+
+  /// No description provided for @offlineMapCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get offlineMapCancel;
+
+  /// No description provided for @offlineMapDownloadComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline map download complete'**
+  String get offlineMapDownloadComplete;
+
+  /// No description provided for @offlineMapDownloadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Download failed'**
+  String get offlineMapDownloadFailed;
+
+  /// No description provided for @offlineMapDownloadCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Download cancelled'**
+  String get offlineMapDownloadCancelled;
+
+  /// No description provided for @offlineMapWifiRecommendation.
+  ///
+  /// In en, this message translates to:
+  /// **'We recommend downloading over Wi-Fi due to the large data size'**
+  String get offlineMapWifiRecommendation;
+
+  /// No description provided for @offlineMapWifiRecommendationWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~{size}'**
+  String offlineMapWifiRecommendationWithSize(String size);
 }
 
 class _AppLocalizationsDelegate
