@@ -542,23 +542,17 @@ abstract class AppLocalizations {
   /// **'Distance unit set to mile'**
   String get distanceUnitSetToMile;
 
-  /// No description provided for @loadingMap.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading map...'**
-  String get loadingMap;
-
-  /// No description provided for @mapRequiresNetwork.
-  ///
-  /// In en, this message translates to:
-  /// **'Map display requires network connection'**
-  String get mapRequiresNetwork;
-
   /// No description provided for @checkingConnectivity.
   ///
   /// In en, this message translates to:
   /// **'Checking connection...'**
   String get checkingConnectivity;
+
+  /// No description provided for @fetchingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting location...'**
+  String get fetchingLocation;
 
   /// No description provided for @offline.
   ///

@@ -29,6 +29,7 @@ class ConnectivityGate extends StatefulWidget {
     super.key,
     required this.builder,
     this.onOnline,
+    this.onOffline,
   });
 
   /// 接続状態に応じて UI を構築する。offline 時は [onRetry] で再接続を試行できる。
@@ -40,6 +41,9 @@ class ConnectivityGate extends StatefulWidget {
 
   /// オフライン → オンラインに切り替わった時に呼ばれるコールバック
   final VoidCallback? onOnline;
+
+  /// オフラインと判定された時に呼ばれるコールバック
+  final VoidCallback? onOffline;
 
   @override
   State<ConnectivityGate> createState() => _ConnectivityGateState();
@@ -70,6 +74,7 @@ class _ConnectivityGateState extends State<ConnectivityGate> {
         _hasCheckedConnectivity = true;
         _isOffline = !isOnline;
         if (wasOffline && isOnline) widget.onOnline?.call();
+        if (!isOnline) widget.onOffline?.call();
       });
     } catch (_) {
       if (!mounted) return;
@@ -77,6 +82,7 @@ class _ConnectivityGateState extends State<ConnectivityGate> {
         _hasCheckedConnectivity = true;
         _isOffline = true;
       });
+      widget.onOffline?.call();
     }
   }
 
@@ -100,11 +106,20 @@ class _ConnectivityGateState extends State<ConnectivityGate> {
 }
 
 /// 接続確認中の表示（builder の checking 時に使用可能）
+///
+/// [message] を指定するとその文言を使用。
+/// 未指定時は「接続を確認しています」を使用（初回の ConnectivityGate 用）。
+/// 位置取得待ちのときは `fetchingLocation` を渡すと「位置情報を取得しています」になる。
 class ConnectivityCheckingView extends StatelessWidget {
-  const ConnectivityCheckingView({super.key});
+  const ConnectivityCheckingView({super.key, this.message});
+
+  /// 表示するメッセージ。null のときは接続確認用の文言を使用
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
+    final text = message ??
+        AppLocalizations.of(context)!.checkingConnectivity;
     return ColoredBox(
       color: Colors.grey.shade100,
       child: Center(
@@ -114,7 +129,7 @@ class ConnectivityCheckingView extends StatelessWidget {
             const CircularProgressIndicator(),
             const SizedBox(height: 16),
             Text(
-              AppLocalizations.of(context)!.checkingConnectivity,
+              text,
               style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
             ),
           ],
@@ -150,12 +165,6 @@ class OfflinePlaceholderView extends StatelessWidget {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              AppLocalizations.of(context)!.mapRequiresNetwork,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
             ),
             const SizedBox(height: 32),
             FilledButton.icon(

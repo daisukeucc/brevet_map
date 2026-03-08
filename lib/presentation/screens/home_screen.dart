@@ -87,6 +87,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 位置取得の試行が完了したか（成功・失敗・タイムアウト問わず）
   bool _positionFetchCompleted = false;
 
+  /// 初回インストールか（null=未取得、true=初回、false=2回目以降）
+  bool? _isFirstLaunch;
+
+  /// 初回起動時に ConnectivtyGate がオフラインと判定したか
+  bool _isConnectivityOffline = false;
+
   static const double _trackingZoom = 15.0;
   static const double _defaultZoom = 14.0;
 
@@ -128,6 +134,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     });
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
+
+    isFirstLaunch().then((first) {
+      if (mounted) setState(() => _isFirstLaunch = first);
+    });
 
     createSharePreviewMarkerIcon().then((icon) {
       if (mounted) setState(() => _sharePreviewIcon = icon);
@@ -239,7 +249,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         if (pos != null) _initialPosition = pos;
         _positionFetchCompleted = true;
       });
-      if (pos == null && !_hasShownLocationUnavailableHint) {
+      if (pos == null &&
+          !_hasShownLocationUnavailableHint &&
+          !_isConnectivityOffline) {
         _hasShownLocationUnavailableHint = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -327,7 +339,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Widget _buildMapLayout(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
-    final hasMapController = ref.watch(cameraControllerProvider) != null;
     final position = _initialPosition ?? _defaultPosition();
 
     // 位置取得が完了してからルート作成（ネットワークチェックでオンライン表示が先になる場合の対策）
@@ -414,38 +425,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               ? _onMapLongPress
               : null,
         ),
-        if (!hasMapController)
-          Positioned.fill(
-            child: IgnorePointer(
-              child: ColoredBox(
-                color: Colors.grey.shade100,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircularProgressIndicator(),
-                      const SizedBox(height: 16),
-                      Text(
-                        AppLocalizations.of(context)!.loadingMap,
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '※ ${AppLocalizations.of(context)!.mapRequiresNetwork}',
-                        style: TextStyle(
-                          color: Colors.grey.shade500,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -580,33 +559,47 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
   }
 
+  Widget _buildBody(BuildContext context) {
+    if (!_positionFetchCompleted) {
+      return ConnectivityCheckingView(
+        message: AppLocalizations.of(context)!.fetchingLocation,
+      );
+    }
+    return _buildMapLayout(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
         Scaffold(
-          body: ConnectivityGate(
-            onOnline: () {
-              setState(() => _hasTriggeredInitialRouteFetch = false);
-              ref
-                  .read(mapStateProvider.notifier)
-                  .resetInitialRouteFetchForRetry();
-            },
-            builder: (context, gateState, onRetry) {
-              if (gateState == ConnectivityGateState.checking) {
-                return const ConnectivityCheckingView();
-              }
-              if (gateState == ConnectivityGateState.offline) {
-                return _buildOfflineLayout(context, onRetry);
-              }
-              // オンライン時も位置取得が完了するまで地図を表示せず待機
-              // （初回インストールでデフォルト座標からルートになるのを防ぐ）
-              if (!_positionFetchCompleted) {
-                return const ConnectivityCheckingView();
-              }
-              return _buildMapLayout(context);
-            },
-          ),
+          body: _isFirstLaunch == null
+              ? ConnectivityCheckingView(
+                  message: AppLocalizations.of(context)!.fetchingLocation,
+                )
+              : _isFirstLaunch!
+                  ? ConnectivityGate(
+                      onOnline: () {
+                        ref.read(cameraControllerProvider.notifier).clearController();
+                        setState(() => _hasTriggeredInitialRouteFetch = false);
+                        ref
+                            .read(mapStateProvider.notifier)
+                            .resetInitialRouteFetchForRetry();
+                      },
+                      onOffline: () {
+                        _isConnectivityOffline = true;
+                      },
+                      builder: (context, gateState, onRetry) {
+                        if (gateState == ConnectivityGateState.checking) {
+                          return const ConnectivityCheckingView();
+                        }
+                        if (gateState == ConnectivityGateState.offline) {
+                          return _buildOfflineLayout(context, onRetry);
+                        }
+                        return _buildBody(context);
+                      },
+                    )
+                  : _buildBody(context),
         ),
         if (_isDragMode) ...[
           const Positioned.fill(

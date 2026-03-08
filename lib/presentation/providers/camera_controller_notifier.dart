@@ -12,6 +12,9 @@ class CameraControllerNotifier extends Notifier<MapController?> {
   /// onMapCreated で受け取った controller を登録する
   void setController(MapController controller) => state = controller;
 
+  /// controller をクリアする（オフライン→オンライン遷移時に破棄済み controller の使用を防ぐ）
+  void clearController() => state = null;
+
   /// 指定座標へカメラをアニメーション移動する
   Future<void> animateTo(
     LatLng target, {
@@ -31,13 +34,17 @@ class CameraControllerNotifier extends Notifier<MapController?> {
   Future<void> animateToBounds(LatLngBounds bounds, {double padding = 30}) async {
     final ctrl = state;
     if (ctrl == null) return;
-    ctrl.rotate(0);
-    ctrl.fitCamera(
-      CameraFit.bounds(
-        bounds: bounds,
-        padding: EdgeInsets.all(padding),
-      ),
-    );
+    try {
+      ctrl.rotate(0);
+      ctrl.fitCamera(
+        CameraFit.bounds(
+          bounds: bounds,
+          padding: EdgeInsets.all(padding),
+        ),
+      );
+    } catch (_) {
+      // FlutterMap が未レンダー時に controller 使用で例外が出る場合がある（オフライン復帰時など）
+    }
   }
 
   /// 現在のズームレベルを取得する。controller未設定の場合は null
