@@ -65,21 +65,25 @@ Future<List<Marker>> buildRouteMarkers({
     final goal = routePoints.length > 1 ? routePoints.last : start;
     final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
         (start.longitude - goal.longitude).abs() < 1e-6;
-    final startAlignment =
-        isSamePoint ? Alignment.topLeft : Alignment.center;
-    markers.add(Marker(
-      point: start,
-      width: _markerSize,
-      height: _markerSize,
-      alignment: startAlignment,
-      child: startIcon,
-    ));
+    // 同一点の場合: Alignment.topLeft は初回表示でずれるため、
+    // スタートを北方向にわずかにオフセットし、上に表示して center で両方描画
+    final startPoint = isSamePoint
+        ? LatLng(start.latitude + 0.00008, start.longitude)
+        : start;
+    // スタートを上に表示するため、ゴールを先に追加してスタートを後に描画
     markers.add(Marker(
       point: goal,
       width: _markerSize,
       height: _markerSize,
       alignment: Alignment.center,
       child: goalIcon!,
+    ));
+    markers.add(Marker(
+      point: startPoint,
+      width: _markerSize,
+      height: _markerSize,
+      alignment: Alignment.center,
+      child: startIcon,
     ));
 
     if (showDistanceMarkers) {

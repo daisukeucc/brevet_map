@@ -103,22 +103,24 @@ class RouteAnimationRunner {
     if (!mounted()) return null;
     final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
         (start.longitude - goal.longitude).abs() < 1e-6;
-    final startAlignment =
-        isSamePoint ? Alignment.topLeft : Alignment.center;
+    final startPoint = isSamePoint
+        ? LatLng(start.latitude + 0.00008, start.longitude)
+        : start;
+    // スタートを上に表示するため、ゴールを先に追加してスタートを後に描画
     return [
-      Marker(
-        point: start,
-        width: _markerSize,
-        height: _markerSize,
-        alignment: startAlignment,
-        child: startIcon!,
-      ),
       Marker(
         point: goal,
         width: _markerSize,
         height: _markerSize,
         alignment: Alignment.center,
         child: goalIcon!,
+      ),
+      Marker(
+        point: startPoint,
+        width: _markerSize,
+        height: _markerSize,
+        alignment: Alignment.center,
+        child: startIcon!,
       ),
     ];
   }
