@@ -303,6 +303,20 @@ class _MapScreenContentState extends State<MapScreenContent> {
       options: MapOptions(
         initialCenter: widget.initialPosition,
         initialZoom: widget.initialZoom,
+        onMapReady: () {
+          // flutter_map の既知の不具合: 初回表示でタイルがグレーのままになる場合がある
+          // workaround: 微移動で MapEventWithMove を発火させ、タイル読み込みを促す
+          Future.delayed(const Duration(milliseconds: 250), () {
+            if (!mounted) return;
+            final cam = _mapController.camera;
+            _mapController.move(cam.center, cam.zoom + 0.0001);
+            Future.delayed(const Duration(milliseconds: 50), () {
+              if (!mounted) return;
+              _mapController.move(cam.center, cam.zoom);
+              setState(() {});
+            });
+          });
+        },
         onMapEvent: (event) {
           if (event is MapEventMoveEnd) {
             widget.onCameraIdle();
