@@ -88,6 +88,20 @@ alwaysApply: true
 
 - **AppTextStyles**: アプリ内でテキストを表示する場合は `AppTextStyles`（`app_text_styles.dart`）のスタイルを使用する（`title` / `body` / `label` / `button` を用途に合わせて選択）
 
+## 地図タイル・対応言語
+
+- **拡張箇所**: 対応言語を増やす場合は `TileConfig.getTileUrlTemplate()`（`lib/config/tile_config.dart`）で言語コードごとにタイル URL を分岐させる
+- **現在**: `ja` → tile.openstreetmap.jp（osm-bright-ja）、`en` 等 → tile.openstreetmap.org（標準 OSM）
+- **参照元**: `map_screen_content.dart`、`offline_map_download.dart` が `Localizations.localeOf(context).languageCode` で取得した言語コードを渡している
+- **補足**: 標準 OSM は地域ごとに現地表記を表示。言語ごとのタイルサーバーがあれば分岐を追加する
+
+## パッケージ名・バージョン
+
+- **取得**: パッケージ名（applicationId / バンドル ID）やバージョンを使う処理では、`PackageInfo.fromPlatform()` から取得する（ハードコードしない）
+- **初期化**: `TileConfig.initUserAgentPackageName()` は `main()` で起動時に呼ぶ
+- **参照**: 初期化後は `TileConfig.userAgentPackageName` / `TileConfig.userAgent` を参照する
+- **フォールバック**: PackageInfo 取得失敗時のフォールバック値は `TileConfig` 内で定数化する
+
 ## 共通
 
 - **応答言語**: 日本語で応答する

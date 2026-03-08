@@ -43,9 +43,16 @@ Future<void> showOfflineMapDownloadFlow(
     west: (bounds.west - lngPad).clamp(-180.0, 180.0),
   );
 
+  final languageCode = Localizations.localeOf(context).languageCode;
+  final urlTemplate = TileConfig.getTileUrlTemplate(languageCode);
+  final useOsmOrg = urlTemplate.contains('tile.openstreetmap.org');
   final tileLayerOptions = TileLayer(
-    urlTemplate: TileConfig.tileUrlTemplate,
+    urlTemplate: urlTemplate,
     userAgentPackageName: TileConfig.userAgentPackageName,
+    subdomains: useOsmOrg ? const [] : const ['a', 'b', 'c'],
+    tileProvider: NetworkTileProvider(
+      headers: {'User-Agent': TileConfig.userAgent},
+    ),
   );
 
   // 3オプションのタイル数を並列で取得し、推定サイズを算出

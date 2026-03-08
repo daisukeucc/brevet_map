@@ -109,14 +109,17 @@ class MapScreenContent extends StatefulWidget {
 
 class _MapScreenContentState extends State<MapScreenContent> {
   late final MapController _mapController;
-  static final _tileProvider = FMTCTileProvider(
-    stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
-  );
+  late final FMTCTileProvider _tileProvider;
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
+    // initState 時点で TileConfig.initUserAgentPackageName() は main() で完了済み
+    _tileProvider = FMTCTileProvider(
+      stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
+      headers: {'User-Agent': TileConfig.userAgent},
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onMapCreated(_mapController);
     });
@@ -280,8 +283,21 @@ class _MapScreenContentState extends State<MapScreenContent> {
     );
   }
 
+  TileLayer _buildTileLayer(String urlTemplate, bool useOsmOrg) {
+    return TileLayer(
+      urlTemplate: urlTemplate,
+      userAgentPackageName: TileConfig.userAgentPackageName,
+      subdomains: useOsmOrg ? const [] : const ['a', 'b', 'c'],
+      tileProvider: _tileProvider,
+    );
+  }
+
   Widget _buildMap() {
     final isDark = widget.mapStyleMode == 2;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final urlTemplate = TileConfig.getTileUrlTemplate(languageCode);
+    // tile.openstreetmap.org は OSM 推奨のためサブドメインなし（subdomains: []）
+    final useOsmOrg = urlTemplate.contains('tile.openstreetmap.org');
     final map = FlutterMap(
       mapController: _mapController,
       options: MapOptions(
@@ -306,18 +322,10 @@ class _MapScreenContentState extends State<MapScreenContent> {
               -0.2126, -0.7152, -0.0722, 0, 285,
               0, 0, 0, 1, 0,
             ]),
-            child: TileLayer(
-              urlTemplate: TileConfig.tileUrlTemplate,
-              userAgentPackageName: TileConfig.userAgentPackageName,
-              tileProvider: _tileProvider,
-            ),
+            child: _buildTileLayer(urlTemplate, useOsmOrg),
           )
         else
-          TileLayer(
-            urlTemplate: TileConfig.tileUrlTemplate,
-            userAgentPackageName: TileConfig.userAgentPackageName,
-            tileProvider: _tileProvider,
-          ),
+          _buildTileLayer(urlTemplate, useOsmOrg),
         RichAttributionWidget(
           animationConfig: const ScaleRAWA(),
           showFlutterMapAttribution: false,
