@@ -38,11 +38,26 @@ alwaysApply: true
 - **確認ダイアログ**: 本文とボタンのみの確認ダイアログは `showConfirmDialog`（`confirm_dialog.dart`）を使用する
 - **ラジオ選択**: ラジオボタンで項目を設定するダイアログは `showRadioSelectionDialog`（`radio_selection_dialog.dart`）を使用する
 - **テキストメニュー**: テキストのみのメニューを追加する場合は `showTextMenuDialog`（`text_menu_dialog.dart`）を使用する
+- **カスタムダイアログ**（進行表示・ダウンロード等）:
+  - `showDialog` + 独自ウィジェットで表示する
+  - コールバック内で SnackBar を表示する場合は `ScaffoldMessenger.of(context)` を事前にキャプチャし、`showAppSnackBarWithMessenger` を使用する（`context` はダイアログ閉じ後に変わるため）
+  - 角丸禁止を守る（`shape: RoundedRectangleBorder()`）
+  - 参考: `offline_map_download.dart` の `OfflineMapDownloadDialog`
+
+## SnackBar
+
+- **表示**: SnackBar を使用する場合は `showAppSnackBar`（`snackbar_utils.dart`）を使用する
+- **ダイアログコールバック内**: `context` が変わる可能性がある場合は `showAppSnackBarWithMessenger` を使用する
 
 ## 角丸禁止
 
 - **ダイアログ**: デフォルト表示では角丸にしない（`shape: RoundedRectangleBorder()` など角丸指定を避ける）
 - **ボトムナビゲーション**: 同様に角丸にしない
+
+## 設定ボトムメニュー・ハンドラ
+
+- **メニュー追加時**: 設定ボトムメニューにメニューを追加した場合は、`lib/presentation/handlers/{アクション名}_handler.dart` のタップアクション用のファイルを追加する
+- **実行登録**: 追加したタップアクションの実行は `settings_menu_handler.dart` に追加する
 
 ## 設定ボトムシート UI
 
