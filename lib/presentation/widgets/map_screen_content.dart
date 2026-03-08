@@ -5,11 +5,11 @@ import 'package:latlong2/latlong.dart';
 
 import '../../config/tile_config.dart';
 import '../../l10n/app_localizations.dart';
+import '../handlers/settings_menu_handler.dart';
 import 'battery_indicator.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
-import 'radio_selection_dialog.dart';
 import 'settings_bottom_sheet.dart';
 
 /// 地図画面の本体。地図・オーバーレイ・下部バーをまとめる。
@@ -29,10 +29,8 @@ class MapScreenContent extends StatefulWidget {
     required this.showMyLocationButton,
     required this.isStreamActive,
     required this.onToggleLocationStream,
-    required this.sleepDuration,
-    required this.onSleepDurationChanged,
-    required this.distanceUnit,
-    required this.onDistanceUnitChanged,
+    required this.onSleepSettingsTap,
+    required this.onDistanceUnitTap,
     required this.onGpxImportTap,
     required this.onOfflineMapTap,
     required this.onAddPoiTap,
@@ -75,17 +73,11 @@ class MapScreenContent extends StatefulWidget {
 
   final VoidCallback? onGpsLevelTap;
 
-  /// 画面スリープまでの時間（分）。0=OFF
-  final int sleepDuration;
+  /// スリープ設定メニュータップ時のコールバック（フロー全体を実行）
+  final VoidCallback onSleepSettingsTap;
 
-  /// スリープ時間変更コールバック
-  final void Function(int) onSleepDurationChanged;
-
-  /// 距離単位。0=km, 1=mile
-  final int distanceUnit;
-
-  /// 距離単位変更コールバック
-  final void Function(int) onDistanceUnitChanged;
+  /// 距離単位メニュータップ時のコールバック（フロー全体を実行）
+  final VoidCallback onDistanceUnitTap;
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
@@ -173,77 +165,22 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               context: context,
                               shape: const RoundedRectangleBorder(),
                               builder: (_) => SettingsBottomSheet(
-                                onGpxImportTap: () {
-                                  final navigator = Navigator.of(context);
-                                  Future.delayed(
-                                    const Duration(milliseconds: 200),
-                                    () {
-                                      navigator.pop();
-                                      widget.onGpxImportTap();
-                                    },
-                                  );
-                                },
-                                onOfflineMapTap: () {
-                                  final navigator = Navigator.of(context);
-                                  Future.delayed(
-                                    const Duration(milliseconds: 200),
-                                    () {
-                                      navigator.pop();
-                                      widget.onOfflineMapTap();
-                                    },
-                                  );
-                                },
+                                onGpxImportTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onGpxImportTap),
+                                onOfflineMapTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onOfflineMapTap),
                                 hasUserPois: widget.hasUserPois,
-                                onAddPoiTap: () {
-                                  final navigator = Navigator.of(context);
-                                  Future.delayed(
-                                    const Duration(milliseconds: 200),
-                                    () {
-                                      navigator.pop();
-                                      widget.onAddPoiTap();
-                                    },
-                                  );
-                                },
-                                onSleepSettingsTap: () async {
-                                  final navigator = Navigator.of(context);
-                                  final l10n =
-                                      AppLocalizations.of(context)!;
-                                  await Future.delayed(
-                                      const Duration(milliseconds: 200));
-                                  navigator.pop();
-                                  if (!context.mounted) return;
-                                  showRadioSelectionDialog<int>(
-                                    context: context,
-                                    title: l10n.sleepSettings,
-                                    options: [
-                                      (0, l10n.sleepOff),
-                                      (1, l10n.sleep1min),
-                                      (5, l10n.sleep5min),
-                                      (10, l10n.sleep10min),
-                                    ],
-                                    initialValue: widget.sleepDuration,
-                                    onChanged: widget.onSleepDurationChanged,
-                                  );
-                                },
-                                onDistanceUnitTap: () async {
-                                  final navigator = Navigator.of(context);
-                                  final l10n =
-                                      AppLocalizations.of(context)!;
-                                  await Future.delayed(
-                                      const Duration(milliseconds: 200));
-                                  navigator.pop();
-                                  if (!context.mounted) return;
-                                  showRadioSelectionDialog<int>(
-                                    context: context,
-                                    title: l10n.distanceUnit,
-                                    options: [
-                                      (0, l10n.unitKm),
-                                      (1, l10n.unitMile)
-                                    ],
-                                    initialValue: widget.distanceUnit,
-                                    onChanged: widget.onDistanceUnitChanged,
-                                  );
-                                },
+                                onAddPoiTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onAddPoiTap),
+                                onSleepSettingsTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onSleepSettingsTap),
+                                onDistanceUnitTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onDistanceUnitTap),
                               ),
                             ),
                             customBorder: const CircleBorder(),

@@ -4,6 +4,17 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 
+const double kmPerMile = 1.609344;
+
+/// 距離を単位に応じてフォーマット（0=km, 1=mile）
+String formatDistance(double km, int unit) {
+  if (unit == 1) {
+    final mi = km / kmPerMile;
+    return '${mi % 1 == 0 ? mi.toInt() : mi.toStringAsFixed(1)}mi';
+  }
+  return '${km % 1 == 0 ? km.toInt() : km}km';
+}
+
 /// 複数の座標を囲む [LatLngBounds] を返す。空のときは null。
 LatLngBounds? boundsFromPoints(List<LatLng> points) {
   if (points.isEmpty) return null;

@@ -10,6 +10,7 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/snackbar_utils.dart';
 import 'confirm_dialog.dart';
 import 'text_menu_dialog.dart';
 
@@ -25,11 +26,7 @@ Future<void> showOfflineMapDownloadFlow(
       ref.read(mapStateProvider).savedRoutePoints;
   if (routePoints == null || routePoints.isEmpty) {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.offlineMapNoRoute, style: AppTextStyles.body),
-      ),
-    );
+    showAppSnackBar(context, l10n.offlineMapNoRoute);
     return;
   }
 
@@ -145,36 +142,18 @@ Future<void> showOfflineMapDownloadFlow(
       region: region,
       onComplete: () {
         if (ctx.mounted) Navigator.of(ctx).pop();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.offlineMapDownloadComplete,
-              style: AppTextStyles.body,
-            ),
-          ),
-        );
+        showAppSnackBarWithMessenger(
+            messenger, l10n.offlineMapDownloadComplete);
       },
       onFailed: () {
         if (ctx.mounted) Navigator.of(ctx).pop();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.offlineMapDownloadFailed,
-              style: AppTextStyles.body,
-            ),
-          ),
-        );
+        showAppSnackBarWithMessenger(
+            messenger, l10n.offlineMapDownloadFailed);
       },
       onCancelled: () {
         if (ctx.mounted) Navigator.of(ctx).pop();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n.offlineMapDownloadCancelled,
-              style: AppTextStyles.body,
-            ),
-          ),
-        );
+        showAppSnackBarWithMessenger(
+            messenger, l10n.offlineMapDownloadCancelled);
       },
     ),
   );
