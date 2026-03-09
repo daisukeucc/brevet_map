@@ -278,6 +278,12 @@ abstract class AppLocalizations {
   /// **'Body'**
   String get body;
 
+  /// No description provided for @distance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance'**
+  String get distance;
+
   /// No description provided for @titleNone.
   ///
   /// In en, this message translates to:
@@ -311,7 +317,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiOffRoutePoi.
   ///
   /// In en, this message translates to:
-  /// **'Manually set POI'**
+  /// **'Edit POI'**
   String get poiOffRoutePoi;
 
   /// No description provided for @changePoiPosition.
@@ -401,7 +407,7 @@ abstract class AppLocalizations {
   /// No description provided for @changePoiTextTitle.
   ///
   /// In en, this message translates to:
-  /// **'Change POI title and body'**
+  /// **'Change POI content'**
   String get changePoiTextTitle;
 
   /// No description provided for @routeOverwrite.

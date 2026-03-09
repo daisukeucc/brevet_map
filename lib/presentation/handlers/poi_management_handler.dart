@@ -74,6 +74,7 @@ Future<void> handleDistanceInputPoiAdd(
   final data = await showDialog<AddPoiFormData>(
     context: context,
     barrierColor: Colors.black54,
+    barrierDismissible: false,
     builder: (context) =>
         DistanceInputPoiDialog(distanceUnit: distanceUnit),
   );
@@ -119,6 +120,7 @@ Future<void> handleMapLongPressPoiAdd(
   final data = await showDialog<AddPoiFormData>(
     context: context,
     barrierColor: Colors.black54,
+    barrierDismissible: false,
     builder: (context) => MapTapPoiAddDialog(initialTitle: initialTitle),
   );
   onComplete();
@@ -148,6 +150,7 @@ Future<void> handleEditPoiText(
   final data = await showDialog<AddPoiFormData>(
     context: context,
     barrierColor: Colors.black54,
+    barrierDismissible: false,
     builder: (context) =>
         EditPoiTextDialog(poi: poi, distanceUnit: distanceUnit),
   );
@@ -808,6 +811,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   late int _poiType;
   late final TextEditingController _titleController;
   late final TextEditingController _bodyController;
+  late final TextEditingController _kmController;
+  late final FocusNode _kmFocusNode;
+  String? _kmError;
 
   @override
   void initState() {
@@ -815,20 +821,55 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _poiType = widget.poi.type;
     _titleController = TextEditingController(text: widget.poi.title);
     _bodyController = TextEditingController(text: widget.poi.body);
+    final kmText = widget.poi.km != null
+        ? (() {
+            final displayValue = widget.distanceUnit == 1
+                ? (widget.poi.km! / kmPerMile)
+                : widget.poi.km!;
+            return displayValue % 1 == 0
+                ? displayValue.toInt().toString()
+                : displayValue.toStringAsFixed(1);
+          }())
+        : '';
+    _kmController = TextEditingController(text: kmText);
+    _kmFocusNode = FocusNode();
+    _kmFocusNode.addListener(_onKmFocusChange);
+  }
+
+  void _onKmFocusChange() {
+    if (_kmFocusNode.hasFocus && _kmError != null && mounted) {
+      setState(() => _kmError = null);
+    }
   }
 
   @override
   void dispose() {
+    _kmFocusNode.removeListener(_onKmFocusChange);
+    _kmFocusNode.dispose();
+    _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
     super.dispose();
   }
 
   void _onSubmit() {
+    final text = _kmController.text.trim();
+    final double? km;
+    if (text.isEmpty) {
+      km = null;
+    } else {
+      final value = double.tryParse(text);
+      if (value == null || value < 0) {
+        setState(() => _kmError = AppLocalizations.of(context)!.kmRequired);
+        return;
+      }
+      km = widget.distanceUnit == 1 ? value * kmPerMile : value;
+    }
+    setState(() => _kmError = null);
     Navigator.pop(
       context,
       AddPoiFormData(
-        km: widget.poi.km,
+        km: km,
         type: _poiType,
         title: _titleController.text.trim(),
         body: _bodyController.text.trim(),
@@ -838,13 +879,6 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final isOnRoute = widget.poi.km != null;
-    final kmLabel = isOnRoute
-        ? formatDistance(widget.poi.km!, widget.distanceUnit)
-        : l10n.offRoute;
-    final titleText =
-        isOnRoute ? l10n.poiAtKmPoint(kmLabel) : l10n.poiOffRoutePoi;
     return Dialog(
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(),
@@ -856,15 +890,47 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    titleText,
-                    style: AppTextStyles.headline,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
+                  SizedBox(
+                    width: 72,
+                    child: TextField(
+                      controller: _kmController,
+                      focusNode: _kmFocusNode,
+                        keyboardType:
+                            const TextInputType.numberWithOptions(decimal: true),
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.distance,
+                          isDense: true,
+                          errorText: _kmError != null ? ' ' : null,
+                          errorStyle: const TextStyle(height: 0, fontSize: 0),
+                        ),
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(fontSize: 17),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: _kmError != null
+                            ? Text(
+                                _kmError!,
+                                style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.error,
+                                  fontSize: 12,
+                                ),
+                              )
+                            : Text(
+                                widget.distanceUnit == 1 ? 'mi' : 'km',
+                                style: AppTextStyles.title,
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 16),
               Text(AppLocalizations.of(context)!.poiType,
                   style: AppTextStyles.body),
               const SizedBox(height: 4),

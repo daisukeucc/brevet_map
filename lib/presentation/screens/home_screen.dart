@@ -204,6 +204,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final data = await showDialog<AddPoiFormData>(
       context: context,
       barrierColor: Colors.black54,
+      barrierDismissible: false,
       builder: (context) => MapTapPoiAddDialog(initialTitle: placeName),
     );
     if (!mounted) return;

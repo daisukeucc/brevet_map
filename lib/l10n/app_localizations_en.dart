@@ -101,6 +101,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get body => 'Body';
 
   @override
+  String get distance => 'Distance';
+
+  @override
   String get titleNone => '(No title)';
 
   @override
@@ -120,7 +123,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get poiOffRoutePoi => 'Manually set POI';
+  String get poiOffRoutePoi => 'Edit POI';
 
   @override
   String get changePoiPosition => 'Change to this position';
@@ -167,7 +170,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPoiRegistered => 'No POI registered';
 
   @override
-  String get changePoiTextTitle => 'Change POI title and body';
+  String get changePoiTextTitle => 'Change POI content';
 
   @override
   String get routeOverwrite => 'Overwrite current route';

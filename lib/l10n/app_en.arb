@@ -35,6 +35,7 @@
   "information": "Information",
   "title": "Title",
   "body": "Body",
+  "distance": "Distance",
   "titleNone": "(No title)",
   "kmRequired": "Distance is required",
   "offRoute": "Off route",
@@ -47,7 +48,7 @@
       }
     }
   },
-  "poiOffRoutePoi": "Manually set POI",
+  "poiOffRoutePoi": "Edit POI",
   "@kmPoint": {
     "placeholders": {
       "km": {
@@ -69,7 +70,7 @@
   "changePoiPositionTitle": "Change POI position",
   "deletePoiConfirm": "Delete this POI?",
   "noPoiRegistered": "No POI registered",
-  "changePoiTextTitle": "Change POI title and body",
+  "changePoiTextTitle": "Change POI content",
   "routeOverwrite": "Overwrite current route",
   "selectGpxFile": "Please select a GPX file",
   "routeNotLoaded": "Route is not loaded",

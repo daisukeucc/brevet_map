@@ -101,6 +101,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get body => '本文';
 
   @override
+  String get distance => '距離';
+
+  @override
   String get titleNone => '(タイトルなし)';
 
   @override
@@ -120,7 +123,7 @@ class AppLocalizationsJa extends AppLocalizations {
   }
 
   @override
-  String get poiOffRoutePoi => '手動設定のPOI';
+  String get poiOffRoutePoi => 'POIの編集';
 
   @override
   String get changePoiPosition => 'この位置に変更する';
@@ -165,7 +168,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get noPoiRegistered => 'POIの登録はありません';
 
   @override
-  String get changePoiTextTitle => 'POIのタイトル・本文を変更';
+  String get changePoiTextTitle => 'POIの内容を変更';
 
   @override
   String get routeOverwrite => '現在のルートを上書きします';
