@@ -60,54 +60,29 @@ Future<List<Marker>> buildRouteMarkers({
     return markers;
   }
 
-  if (routePoints.isNotEmpty && startIcon != null && goalIcon != null) {
-    final start = routePoints.first;
-    final goal = routePoints.length > 1 ? routePoints.last : start;
-    final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
-        (start.longitude - goal.longitude).abs() < 1e-6;
-    // 同一点の場合: Alignment.topLeft は初回表示でずれるため、
-    // スタートを北方向にわずかにオフセットし、上に表示して center で両方描画
-    final startPoint = isSamePoint
-        ? LatLng(start.latitude + 0.00008, start.longitude)
-        : start;
-    // スタートを上に表示するため、ゴールを先に追加してスタートを後に描画
-    markers.add(Marker(
-      point: goal,
-      width: _markerSize,
-      height: _markerSize,
-      alignment: Alignment.center,
-      child: goalIcon!,
-    ));
-    markers.add(Marker(
-      point: startPoint,
-      width: _markerSize,
-      height: _markerSize,
-      alignment: Alignment.center,
-      child: startIcon,
-    ));
+  // 描画順: 距離マーカー → POI → ユーザー POI → ゴール → スタート（最前面）
 
-    if (showDistanceMarkers) {
-      final intervalMeters =
-          distanceUnit == 1 ? _interval50mileMeters : _interval50kmMeters;
-      final distanceList = distanceMarkersAlongTrack(routePoints,
-          intervalMeters: intervalMeters);
-      for (var i = 0; i < distanceList.length; i++) {
-        final m = distanceList[i];
-        final label = distanceUnit == 1
-            ? '${50 * (i + 1)}mi'
-            : '${m.distanceKm.toInt()}km';
-        try {
-          final result = await createDistanceMarkerIcon(label);
-          markers.add(Marker(
-            point: m.position,
-            width: result.width,
-            height: result.height,
-            alignment: Alignment.center,
-            child: result.icon,
-          ));
-        } catch (_) {
-          // アイコン生成に失敗した場合はスキップ
-        }
+  if (routePoints.isNotEmpty && showDistanceMarkers) {
+    final intervalMeters =
+        distanceUnit == 1 ? _interval50mileMeters : _interval50kmMeters;
+    final distanceList = distanceMarkersAlongTrack(routePoints,
+        intervalMeters: intervalMeters);
+    for (var i = 0; i < distanceList.length; i++) {
+      final m = distanceList[i];
+      final label = distanceUnit == 1
+          ? '${50 * (i + 1)}mi'
+          : '${m.distanceKm.toInt()}km';
+      try {
+        final result = await createDistanceMarkerIcon(label);
+        markers.add(Marker(
+          point: m.position,
+          width: result.width,
+          height: result.height,
+          alignment: Alignment.center,
+          child: result.icon,
+        ));
+      } catch (_) {
+        // アイコン生成に失敗した場合はスキップ
       }
     }
   }
@@ -149,6 +124,30 @@ Future<List<Marker>> buildRouteMarkers({
         ),
       ));
     }
+  }
+
+  if (routePoints.isNotEmpty && startIcon != null && goalIcon != null) {
+    final start = routePoints.first;
+    final goal = routePoints.length > 1 ? routePoints.last : start;
+    final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
+        (start.longitude - goal.longitude).abs() < 1e-6;
+    final startPoint =
+        isSamePoint ? LatLng(start.latitude + 0.00008, start.longitude) : start;
+
+    markers.add(Marker(
+      point: goal,
+      width: _markerSize,
+      height: _markerSize,
+      alignment: Alignment.center,
+      child: goalIcon!,
+    ));
+    markers.add(Marker(
+      point: startPoint,
+      width: _markerSize,
+      height: _markerSize,
+      alignment: Alignment.center,
+      child: startIcon,
+    ));
   }
 
   return markers;
