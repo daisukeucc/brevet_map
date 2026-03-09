@@ -32,6 +32,7 @@ class MapScreenContent extends StatefulWidget {
     required this.onSleepSettingsTap,
     required this.onDistanceUnitTap,
     required this.onGpxImportTap,
+    required this.onGpxExportTap,
     required this.onOfflineMapTap,
     required this.onAddPoiTap,
     this.hasUserPois = false,
@@ -81,6 +82,9 @@ class MapScreenContent extends StatefulWidget {
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
+
+  /// GPXファイルエクスポートコールバック
+  final VoidCallback onGpxExportTap;
 
   /// オフラインマップコールバック
   final VoidCallback onOfflineMapTap;
@@ -171,6 +175,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                 onGpxImportTap: () =>
                                     popSheetAndCall(
                                         context, widget.onGpxImportTap),
+                                onGpxExportTap: () =>
+                                    popSheetAndCall(
+                                        context, widget.onGpxExportTap),
                                 onOfflineMapTap: () =>
                                     popSheetAndCall(
                                         context, widget.onOfflineMapTap),

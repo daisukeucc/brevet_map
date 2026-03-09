@@ -48,6 +48,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gpxImport => 'Import GPX file';
 
   @override
+  String get gpxExport => 'Export GPX file';
+
+  @override
+  String get gpxExportDialogTitle => 'File name';
+
+  @override
+  String get gpxExportFilenameHint => 'Enter filename (use date/time if empty)';
+
+  @override
+  String gpxExportComplete(String filename) {
+    return 'Saved $filename';
+  }
+
+  @override
+  String get gpxExportFailed => 'Export failed';
+
+  @override
+  String get gpxExportPermissionDenied => 'File save permission denied';
+
+  @override
   String get poiAdd => 'Add POI';
 
   @override
@@ -81,6 +101,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get body => 'Body';
 
   @override
+  String get distance => 'Distance';
+
+  @override
   String get titleNone => '(No title)';
 
   @override
@@ -100,7 +123,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get poiOffRoutePoi => 'Manually set POI';
+  String get poiOffRoutePoi => 'Edit POI';
 
   @override
   String get changePoiPosition => 'Change to this position';
@@ -147,7 +170,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noPoiRegistered => 'No POI registered';
 
   @override
-  String get changePoiTextTitle => 'Change POI title and body';
+  String get changePoiTextTitle => 'Change POI content';
 
   @override
   String get routeOverwrite => 'Overwrite current route';

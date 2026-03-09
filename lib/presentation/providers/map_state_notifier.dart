@@ -212,14 +212,12 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     if (result.isEmpty) return GpxApplyStatus.empty;
 
-    await saveUserPois([]);
-
     state = state.copyWith(
       savedRoutePoints:
           result.trackPoints.isNotEmpty ? result.trackPoints : null,
       clearSavedRoutePoints: result.trackPoints.isEmpty,
-      gpxPois: result.waypoints,
-      userPois: const [],
+      gpxPois: const [],
+      userPois: result.userPois,
       hasStartedInitialRouteFetch: true,
     );
 
@@ -230,13 +228,13 @@ class MapStateNotifier extends Notifier<MapState> {
       await _startRouteAnimation(result.trackPoints, animate: false);
       final bounds = boundsFromPointsWithPois(
         result.trackPoints,
-        result.waypoints.map((p) => p.position).toList(),
+        result.userPois.map((p) => p.position).toList(),
       );
       if (bounds != null) await animateCamera(bounds);
-    } else if (result.waypoints.isNotEmpty) {
+    } else if (result.userPois.isNotEmpty) {
       await _refreshRouteMarkers(_emptyRoute);
       final bounds =
-          boundsFromPoints(result.waypoints.map((p) => p.position).toList());
+          boundsFromPoints(result.userPois.map((p) => p.position).toList());
       if (bounds != null) await animateCamera(bounds);
     }
 

@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _keyInitialRouteShown = 'initial_route_shown';
 const _keySavedRoutePolyline = 'saved_route_polyline';
 const _keyGpxPois = 'gpx_pois';
+const _keyGpxMetadataName = 'gpx_metadata_name';
 const _keyMapStyleMode = 'map_style_mode';
 const _keyLocationStreamActive = 'location_stream_active';
 const _keySleepDuration = 'sleep_duration';
@@ -37,6 +38,19 @@ Future<void> clearSavedRoute() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove(_keySavedRoutePolyline);
   await prefs.remove(_keyGpxPois);
+  await prefs.remove(_keyGpxMetadataName);
+}
+
+/// GPXの<metadata><name>を保存する（エクスポート時のデフォルト名に使用）
+Future<void> saveGpxMetadataName(String name) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_keyGpxMetadataName, name);
+}
+
+/// 保存済みのGPX metadata nameを返す。未保存なら null
+Future<String?> loadGpxMetadataName() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_keyGpxMetadataName);
 }
 
 /// GPXのPOI（ウェイポイント）一覧をJSONで保存する

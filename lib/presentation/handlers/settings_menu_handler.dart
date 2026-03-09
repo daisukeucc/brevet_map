@@ -8,6 +8,7 @@ import '../providers/providers.dart';
 import '../widgets/offline_map_download.dart';
 import '../widgets/radio_selection_dialog.dart';
 import 'distance_unit_handler.dart';
+import 'gpx_export_handler.dart';
 import 'gpx_import_handler.dart';
 import 'poi_management_handler.dart';
 import 'sleep_settings_handler.dart';
@@ -25,6 +26,11 @@ void popSheetAndCall(BuildContext context, VoidCallback callback) {
 /// GPXインポートメニューがタップされたときのフロー
 Future<void> handleGpxImportTap(BuildContext context, WidgetRef ref) async {
   await showGpxImportFlow(context, ref);
+}
+
+/// GPXエクスポートメニューがタップされたときのフロー
+Future<void> handleGpxExportTap(BuildContext context, WidgetRef ref) async {
+  await showGpxExportFlow(context, ref);
 }
 
 /// オフラインマップメニューがタップされたときのフロー
