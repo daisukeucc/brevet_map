@@ -92,13 +92,11 @@ Future<void> showGpxExportFlow(
 
   final sanitized = _sanitizeFilename(filename);
   final displayFilename = '$sanitized.gpx';
-  final distanceUnit = ref.read(distanceUnitProvider);
   final gpxXml = buildGpxXml(
     trackPoints: routePoints,
     gpxPois: mapState.gpxPois,
     userPois: mapState.userPois,
     filename: sanitized,
-    distanceUnit: distanceUnit,
   );
 
   try {

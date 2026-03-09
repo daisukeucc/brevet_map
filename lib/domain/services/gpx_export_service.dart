@@ -11,13 +11,11 @@ import '../../utils/map_utils.dart';
 /// [gpxPois] GPXからインポートしたウェイポイント
 /// [userPois] ユーザーが追加したPOI
 /// [filename] metadata と trk の name に使用するファイル名（任意）
-/// [distanceUnit] 0=km, 1=mile。UserPoi の name で距離表示に使用
 String buildGpxXml({
   required List<LatLng> trackPoints,
   List<GpxPoi> gpxPois = const [],
   List<UserPoi> userPois = const [],
   String? filename,
-  int distanceUnit = 0,
 }) {
   final builder = XmlBuilder();
   builder.declaration(version: '1.0', encoding: 'UTF-8');
@@ -48,15 +46,12 @@ String buildGpxXml({
           type: poi.type);
     }
     for (final poi in userPois) {
-      final title = poi.title.isEmpty ? null : poi.title;
       final body = poi.body.isEmpty ? null : poi.body;
-      final String? name = poi.km != null
-          ? (title != null && title.isNotEmpty
-              ? '${formatDistance(poi.km!, distanceUnit)} : $title'
-              : formatDistance(poi.km!, distanceUnit))
-          : title;
+      final name = poi.km != null
+          ? '${formatDistance(poi.km!, 0)}：${poi.title}'
+          : (poi.title.isEmpty ? null : poi.title);
       _addWpt(builder, poi.lat, poi.lng,
-          name: name?.isEmpty == true ? null : name,
+          name: name,
           desc: body,
           sym: 'Dot',
           cmt: poi.isCheckpoint ? 'control' : 'generic',

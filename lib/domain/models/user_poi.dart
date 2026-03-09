@@ -4,7 +4,7 @@ import 'package:latlong2/latlong.dart';
 class UserPoi {
   const UserPoi({
     required this.type,
-    this.km,
+    required this.km,
     required this.title,
     required this.body,
     required this.lat,
