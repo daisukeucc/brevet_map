@@ -347,12 +347,20 @@ class _MapScreenContentState extends State<MapScreenContent> {
           )
         else
           _buildTileLayer(urlTemplate, useOsmOrg),
-        RichAttributionWidget(
-          animationConfig: const ScaleRAWA(),
-          showFlutterMapAttribution: false,
-          attributions: [
-            TextSourceAttribution(TileConfig.attribution),
-          ],
+        SafeArea(
+          child: Align(
+            alignment: Alignment.bottomRight,
+            child: Padding(
+              padding: const EdgeInsets.all(3),
+              child: Text(
+                TileConfig.attribution,
+                style: (Theme.of(context).textTheme.bodySmall ?? const TextStyle())
+                    .copyWith(
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+          ),
         ),
         if (widget.polylines.isNotEmpty)
           PolylineLayer(polylines: widget.polylines),
