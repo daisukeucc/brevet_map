@@ -70,6 +70,10 @@ Future<GpxImportResult?> parseAndSaveGpx(String gpxContent) async {
     await markInitialRouteShown();
   }
 
+  if (result.metadataName != null && result.metadataName!.isNotEmpty) {
+    await saveGpxMetadataName(result.metadataName!);
+  }
+
   final userPois = result.waypoints.map(_gpxPoiToUserPoi).toList();
   if (userPois.isNotEmpty) {
     await saveUserPois(userPois);

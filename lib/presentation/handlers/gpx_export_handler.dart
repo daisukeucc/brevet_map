@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/services/gpx_export_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
@@ -78,12 +79,19 @@ Future<void> showGpxExportFlow(
 
   if (!context.mounted) return;
 
+  // インポートしたGPXのmetadata/nameがあればデフォルトに使用
+  final savedMetadataName = await loadGpxMetadataName();
+  final defaultFilename = (savedMetadataName != null &&
+          savedMetadataName.trim().isNotEmpty)
+      ? _sanitizeFilename(savedMetadataName)
+      : _defaultGpxFilename();
+
   // ファイル名入力フォーム
   final filename = await showDialog<String>(
     context: context,
     barrierDismissible: false,
     builder: (ctx) => _GpxExportFilenameDialog(
-      defaultFilename: _defaultGpxFilename(),
+      defaultFilename: defaultFilename,
       l10n: l10n,
     ),
   );

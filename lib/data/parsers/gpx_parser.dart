@@ -59,10 +59,11 @@ class GpxPoi {
   }
 }
 
-/// GPXパース結果：トラックポイントのリストとウェイポイント（POI）のリスト
+/// GPXパース結果：トラックポイントのリスト、ウェイポイント（POI）のリスト、metadataのname
 typedef GpxParseResult = ({
   List<LatLng> trackPoints,
   List<GpxPoi> waypoints,
+  String? metadataName,
 });
 
 /// GPX XML文字列をパースしてトラックとウェイポイントを返す。失敗時は null
@@ -71,6 +72,16 @@ GpxParseResult? parseGpx(String xmlContent) {
     final doc = XmlDocument.parse(xmlContent);
     final trackPoints = <LatLng>[];
     final waypoints = <GpxPoi>[];
+
+    // <metadata><name>...</name></metadata>
+    final metadataName = doc
+        .findAllElements('metadata')
+        .firstOrNull
+        ?.findElements('name')
+        .firstOrNull
+        ?.innerText
+        .trim();
+    final name = metadataName?.isEmpty == true ? null : metadataName;
 
     // <trk><trkseg><trkpt lat="..." lon="..."> ...
     for (final trk in doc.findAllElements('trk')) {
@@ -107,7 +118,11 @@ GpxParseResult? parseGpx(String xmlContent) {
       }
     }
 
-    return (trackPoints: trackPoints, waypoints: waypoints);
+    return (
+      trackPoints: trackPoints,
+      waypoints: waypoints,
+      metadataName: name,
+    );
   } catch (_) {
     return null;
   }
