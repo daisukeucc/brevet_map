@@ -30,6 +30,7 @@ import '../widgets/connectivity_gate.dart'
         ConnectivityCheckingView,
         OfflinePlaceholderView;
 import '../widgets/map_screen_content.dart';
+import '../widgets/pulsing_location_marker.dart';
 import '../widgets/poi_detail_sheet.dart';
 
 /// 位置情報が取得できない場合のフォールバック位置（東京駅）
@@ -74,6 +75,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 共有プレビュー用の現在地風アイコン
   Widget? _sharePreviewIcon;
 
+  /// 位置ストリームON時の最新位置（現在地マーカー表示用）
+  Position? _latestStreamPosition;
+
+  /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
+  bool _isFirstPositionAfterStreamOn = false;
+
   late final SleepTimerController _sleepTimerController;
 
   late final VolumeZoomHandler _volumeZoomHandler;
@@ -93,7 +100,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 初回起動時に ConnectivtyGate がオフラインと判定したか
   bool _isConnectivityOffline = false;
 
-  static const double _trackingZoom = 15.0;
+  static const double _trackingZoom = 16.0;
   static const double _defaultZoom = 14.0;
 
   @override
@@ -302,33 +309,34 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       progressBarValue: locationState.progressBarValue,
       isLowMode: locationState.isInLowMode,
       isStreamAccuracyLow: locationState.isAccuracyLow,
-      onGpsLevelTap: () => ref.read(locationStreamProvider.notifier).switchGpsLevel(
-            onPosition: _onPositionUpdate,
-          ),
+      onGpsLevelTap: () =>
+          ref.read(locationStreamProvider.notifier).switchGpsLevel(
+                onPosition: _onPositionUpdate,
+              ),
       onSleepSettingsTap: () => showSleepSettingsFlow(
-            context,
-            ref,
-            restoreBrightness: _sleepTimerController.restoreBrightness,
-            restartTimer: _sleepTimerController.restart,
-          ),
+        context,
+        ref,
+        restoreBrightness: _sleepTimerController.restoreBrightness,
+        restartTimer: _sleepTimerController.restart,
+      ),
       onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
       onGpxImportTap: () => handleGpxImportTap(context, ref),
       onGpxExportTap: () => handleGpxExportTap(context, ref),
       onOfflineMapTap: () => handleOfflineMapTap(context, ref),
       onAddPoiTap: () => handleAddPoiTap(
-            context,
-            ref,
-            getMounted: () => mounted,
-            onStartMapTapAddMode: () => setState(() => _isMapTapAddMode = true),
-            onStartDragMode: () => setState(() => _isDragMode = true),
-            onDragEnd: (p, latLng) => handlePoiDragEnd(
-              context,
-              ref,
-              p,
-              latLng,
-              onStopDragMode: () => setState(() => _isDragMode = false),
-            ),
-          ),
+        context,
+        ref,
+        getMounted: () => mounted,
+        onStartMapTapAddMode: () => setState(() => _isMapTapAddMode = true),
+        onStartDragMode: () => setState(() => _isDragMode = true),
+        onDragEnd: (p, latLng) => handlePoiDragEnd(
+          context,
+          ref,
+          p,
+          latLng,
+          onStopDragMode: () => setState(() => _isDragMode = false),
+        ),
+      ),
       hasUserPois: mapState.userPois.isNotEmpty,
       onUserInteraction: _onUserInteraction,
       isDragMode: _isDragMode,
@@ -360,19 +368,36 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       });
     }
 
-    final markers = _pendingSharedPosition != null
-        ? [
-            ...mapState.routeMarkers,
-            Marker(
-              point: _pendingSharedPosition!,
-              width: 72,
-              height: 72,
-              alignment: Alignment.center,
-              child: _sharePreviewIcon ??
-                  Icon(Icons.place, color: Colors.orange, size: 48),
-            ),
-          ]
-        : mapState.routeMarkers;
+    var markers = mapState.routeMarkers;
+    if (_pendingSharedPosition != null) {
+      markers = [
+        ...markers,
+        Marker(
+          point: _pendingSharedPosition!,
+          width: 72,
+          height: 72,
+          alignment: Alignment.center,
+          child: _sharePreviewIcon ??
+              Icon(Icons.place, color: Colors.orange, size: 48),
+        ),
+      ];
+    }
+    if (locationState.isActive) {
+      final pos = _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+      markers = [
+        ...markers,
+        Marker(
+          point: LatLng(pos.latitude, pos.longitude),
+          width: 72,
+          height: 72,
+          alignment: Alignment.center,
+          child: PulsingLocationMarker(
+            size: 72,
+            isDarkMode: mapState.mapStyleMode == 2,
+          ),
+        ),
+      ];
+    }
 
     return Stack(
       children: [
@@ -393,33 +418,34 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           progressBarValue: locationState.progressBarValue,
           isLowMode: locationState.isInLowMode,
           isStreamAccuracyLow: locationState.isAccuracyLow,
-          onGpsLevelTap: () => ref.read(locationStreamProvider.notifier).switchGpsLevel(
-                onPosition: _onPositionUpdate,
-              ),
+          onGpsLevelTap: () =>
+              ref.read(locationStreamProvider.notifier).switchGpsLevel(
+                    onPosition: _onPositionUpdate,
+                  ),
           onSleepSettingsTap: () => showSleepSettingsFlow(
-                context,
-                ref,
-                restoreBrightness: _sleepTimerController.restoreBrightness,
-                restartTimer: _sleepTimerController.restart,
-              ),
+            context,
+            ref,
+            restoreBrightness: _sleepTimerController.restoreBrightness,
+            restartTimer: _sleepTimerController.restart,
+          ),
           onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
           onGpxImportTap: () => handleGpxImportTap(context, ref),
           onGpxExportTap: () => handleGpxExportTap(context, ref),
           onOfflineMapTap: () => handleOfflineMapTap(context, ref),
           onAddPoiTap: () => handleAddPoiTap(
-                context,
-                ref,
-                getMounted: () => mounted,
-                onStartMapTapAddMode: () => setState(() => _isMapTapAddMode = true),
-                onStartDragMode: () => setState(() => _isDragMode = true),
-                onDragEnd: (p, latLng) => handlePoiDragEnd(
-                  context,
-                  ref,
-                  p,
-                  latLng,
-                  onStopDragMode: () => setState(() => _isDragMode = false),
-                ),
-              ),
+            context,
+            ref,
+            getMounted: () => mounted,
+            onStartMapTapAddMode: () => setState(() => _isMapTapAddMode = true),
+            onStartDragMode: () => setState(() => _isDragMode = true),
+            onDragEnd: (p, latLng) => handlePoiDragEnd(
+              context,
+              ref,
+              p,
+              latLng,
+              onStopDragMode: () => setState(() => _isDragMode = false),
+            ),
+          ),
           hasUserPois: mapState.userPois.isNotEmpty,
           onUserInteraction: _onUserInteraction,
           isDragMode: _isDragMode,
@@ -462,15 +488,25 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   void _onPositionUpdate(Position position, Position? previous) {
     if (!mounted) return;
+    _latestStreamPosition = position;
     if (previous != null) {
       final b = bearingFromPositions(previous, position);
       if (b != null) _lastBearing = b;
     }
+    final zoomToUse = _isFirstPositionAfterStreamOn
+        ? _trackingZoom
+        : (ref.read(cameraControllerProvider)?.camera.zoom ??
+            ref.read(mapStateProvider).savedZoomLevel ??
+            _trackingZoom);
+    if (_isFirstPositionAfterStreamOn) {
+      _isFirstPositionAfterStreamOn = false;
+    }
     ref.read(cameraControllerProvider.notifier).animateTo(
           LatLng(position.latitude, position.longitude),
-          zoom: ref.read(mapStateProvider).savedZoomLevel ?? _trackingZoom,
+          zoom: zoomToUse,
           bearing: _lastBearing,
         );
+    setState(() {});
   }
 
   Future<void> _onCameraIdle() async {
@@ -535,8 +571,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     await ref.read(locationStreamProvider.notifier).toggle(
           onPosition: _onPositionUpdate,
         );
-    if (!wasActive) {
+    if (wasActive) {
+      setState(() => _latestStreamPosition = null);
+    } else {
       ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
+      _isFirstPositionAfterStreamOn = true;
     }
   }
 
@@ -583,7 +622,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               : _isFirstLaunch!
                   ? ConnectivityGate(
                       onOnline: () {
-                        ref.read(cameraControllerProvider.notifier).clearController();
+                        ref
+                            .read(cameraControllerProvider.notifier)
+                            .clearController();
                         setState(() => _hasTriggeredInitialRouteFetch = false);
                         ref
                             .read(mapStateProvider.notifier)
