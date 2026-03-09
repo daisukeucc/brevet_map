@@ -347,17 +347,15 @@ class _MapScreenContentState extends State<MapScreenContent> {
           )
         else
           _buildTileLayer(urlTemplate, useOsmOrg),
-        SafeArea(
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: Padding(
-              padding: const EdgeInsets.all(3),
-              child: Text(
-                TileConfig.attribution,
-                style: (Theme.of(context).textTheme.bodySmall ?? const TextStyle())
-                    .copyWith(
-                  color: isDark ? Colors.white : Colors.black87,
-                ),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: Text(
+              TileConfig.attribution,
+              style: (Theme.of(context).textTheme.bodySmall ?? const TextStyle())
+                  .copyWith(
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
           ),
