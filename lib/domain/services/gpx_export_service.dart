@@ -58,7 +58,9 @@ String buildGpxXml({
       _addWpt(builder, poi.lat, poi.lng,
           name: name?.isEmpty == true ? null : name,
           desc: body,
-          type: poi.isCheckpoint ? 'checkpoint' : 'information');
+          sym: 'Dot',
+          cmt: poi.isCheckpoint ? 'control' : 'generic',
+          type: poi.isCheckpoint ? 'checkpoint' : 'generic');
     }
 
     // trk
