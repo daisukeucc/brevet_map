@@ -4,6 +4,7 @@ import Flutter
 private let kShareSchemePrefix = "ShareMedia-com.example.brevetMap"
 private let kAppGroupId = "group.com.example.brevetMap"
 private let kSharedUrlKey = "shared_url"
+private let kPendingGpxContentKey = "pending_gpx_content"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -21,9 +22,13 @@ private let kSharedUrlKey = "shared_url"
     // コールドスタートで GPX ファイルをタップして起動した場合、URL が launchOptions で渡される
     if let url = launchOptions?[.url] as? URL {
       if isShareScheme(url) {
-        loadSharedUrlFromAppGroup()
-      } else if isGpxUrl(url), let content = try? String(contentsOf: url, encoding: .utf8) {
-        pendingGpxContent = content
+        if url.absoluteString.hasSuffix(":gpx") {
+          loadPendingGpxFromAppGroup()
+        } else {
+          loadSharedUrlFromAppGroup()
+        }
+      } else if isGpxUrl(url) {
+        pendingGpxContent = readGpxContent(from: url)
       }
     }
 
@@ -85,14 +90,24 @@ private let kSharedUrlKey = "shared_url"
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
     if isShareScheme(url) {
-      loadSharedUrlFromAppGroup()
-      if let sharedUrl = pendingSharedUrl {
-        shareChannel?.invokeMethod("onSharedUrlReceived", arguments: sharedUrl)
-        pendingSharedUrl = nil
+      if url.absoluteString.hasSuffix(":gpx") {
+        loadPendingGpxFromAppGroup()
+        if let content = pendingGpxContent {
+          pendingGpxContent = nil
+          if gpxChannel != nil {
+            gpxChannel?.invokeMethod("onGpxFileReceived", arguments: content)
+          }
+        }
+      } else {
+        loadSharedUrlFromAppGroup()
+        if let sharedUrl = pendingSharedUrl {
+          shareChannel?.invokeMethod("onSharedUrlReceived", arguments: sharedUrl)
+          pendingSharedUrl = nil
+        }
       }
       return true
     }
-    if isGpxUrl(url), let content = try? String(contentsOf: url, encoding: .utf8) {
+    if isGpxUrl(url), let content = readGpxContent(from: url) {
       pendingGpxContent = content
       if gpxChannel != nil {
         gpxChannel?.invokeMethod("onGpxFileReceived", arguments: content)
@@ -110,12 +125,28 @@ private let kSharedUrlKey = "shared_url"
     url.pathExtension.lowercased() == "gpx" || url.absoluteString.lowercased().contains("gpx")
   }
 
+  /// 他アプリから共有された GPX ファイルを読み取る。セキュリティスコープ付きリソースに対応。
+  private func readGpxContent(from url: URL) -> String? {
+    let accessed = url.startAccessingSecurityScopedResource()
+    defer { if accessed { url.stopAccessingSecurityScopedResource() } }
+    return try? String(contentsOf: url, encoding: .utf8)
+  }
+
   private func loadSharedUrlFromAppGroup() {
     if let userDefaults = UserDefaults(suiteName: kAppGroupId),
        let url = userDefaults.string(forKey: kSharedUrlKey) {
       userDefaults.removeObject(forKey: kSharedUrlKey)
       userDefaults.synchronize()
       pendingSharedUrl = url
+    }
+  }
+
+  private func loadPendingGpxFromAppGroup() {
+    if let userDefaults = UserDefaults(suiteName: kAppGroupId),
+       let content = userDefaults.string(forKey: kPendingGpxContentKey) {
+      userDefaults.removeObject(forKey: kPendingGpxContentKey)
+      userDefaults.synchronize()
+      pendingGpxContent = content
     }
   }
 }
