@@ -36,6 +36,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get settings => '설정';
 
   @override
+  String get share => '공유';
+
+  @override
   String get showMyLocation => '내 위치 표시';
 
   @override

@@ -36,6 +36,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings => '设置';
 
   @override
+  String get share => '分享';
+
+  @override
   String get showMyLocation => '显示我的位置';
 
   @override

@@ -36,6 +36,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings => '設定';
 
   @override
+  String get share => '共有';
+
+  @override
   String get showMyLocation => '現在地を表示';
 
   @override

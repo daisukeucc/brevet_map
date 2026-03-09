@@ -153,6 +153,43 @@ class _MapScreenContentState extends State<MapScreenContent> {
                         onTap: widget.onMapStyleTap,
                       ),
                     ),
+                  if (widget.isStreamActive &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
+                    Positioned(
+                      left: 16,
+                      top: 24,
+                      child: Tooltip(
+                        message: AppLocalizations.of(context)!.share,
+                        child: Material(
+                        color: Colors.white,
+                          elevation: 5,
+                          shadowColor: Colors.black26,
+                          shape: const CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          child: InkWell(
+                            onTap: () {
+                              // TODO: 共有処理
+                            },
+                            customBorder: const CircleBorder(),
+                            child: SizedBox(
+                              width: 60,
+                              height: 60,
+                              child: Center(
+                                child: Transform.translate(
+                                  offset: const Offset(-3, 0),
+                                  child: const Icon(
+                                    Icons.share,
+                                    color: Colors.blueGrey,
+                                    size: 32,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   if (!widget.isStreamActive &&
                       !widget.isDragMode &&
                       !widget.isMapTapAddMode)

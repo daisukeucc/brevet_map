@@ -36,6 +36,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings => 'Paramètres';
 
   @override
+  String get share => 'Partager';
+
+  @override
   String get showMyLocation => 'Afficher ma position';
 
   @override
