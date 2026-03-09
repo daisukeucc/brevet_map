@@ -91,12 +91,12 @@
   "offline": "オフラインです",
   "retryConnectivity": "再接続",
   "offlineMap": "オフラインマップ",
-  "offlineMapZoomSmall": "拡大：狭い",
-  "offlineMapZoomMedium": "拡大：標準",
-  "offlineMapZoomLarge": "拡大：広い",
-  "offlineMapZoomSmallWithSize": "拡大：狭い（{size}）",
-  "offlineMapZoomMediumWithSize": "拡大：標準（{size}）",
-  "offlineMapZoomLargeWithSize": "拡大：広い（{size}）",
+  "offlineMapZoomSmall": "ズーム：小",
+  "offlineMapZoomMedium": "ズーム：中",
+  "offlineMapZoomLarge": "ズーム：大",
+  "offlineMapZoomSmallWithSize": "ズーム：小（{size}）",
+  "offlineMapZoomMediumWithSize": "ズーム：中（{size}）",
+  "offlineMapZoomLargeWithSize": "ズーム：大（{size}）",
   "@offlineMapZoomSmallWithSize": {
     "placeholders": {
       "size": { "type": "String" }

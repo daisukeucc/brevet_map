@@ -277,27 +277,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get offlineMap => 'オフラインマップ';
 
   @override
-  String get offlineMapZoomSmall => '拡大：狭い';
+  String get offlineMapZoomSmall => 'ズーム：小';
 
   @override
-  String get offlineMapZoomMedium => '拡大：標準';
+  String get offlineMapZoomMedium => 'ズーム：中';
 
   @override
-  String get offlineMapZoomLarge => '拡大：広い';
+  String get offlineMapZoomLarge => 'ズーム：大';
 
   @override
   String offlineMapZoomSmallWithSize(String size) {
-    return '拡大：狭い（$size）';
+    return 'ズーム：小（$size）';
   }
 
   @override
   String offlineMapZoomMediumWithSize(String size) {
-    return '拡大：標準（$size）';
+    return 'ズーム：中（$size）';
   }
 
   @override
   String offlineMapZoomLargeWithSize(String size) {
-    return '拡大：広い（$size）';
+    return 'ズーム：大（$size）';
   }
 
   @override

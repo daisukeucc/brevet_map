@@ -88,7 +88,7 @@ Future<void> showOfflineMapDownloadFlow(
       ),
       RectangleRegion(paddedBounds).toDownloadable(
         minZoom: 14,
-        maxZoom: 18,
+        maxZoom: 17,
         options: tileLayerOptions,
       ),
     ];
@@ -117,11 +117,11 @@ Future<void> showOfflineMapDownloadFlow(
   final selected = await showTextMenuDialog(context, items: menuItems);
   if (selected == null || !context.mounted) return;
 
-  // 0=z14のみ, 1=z14-16, 2=z14-18
+  // 0=z14のみ, 1=z14-16, 2=z14-17
   final maxZoom = switch (selected) {
     0 => 14,
     1 => 16,
-    _ => 18,
+    _ => 17,
   };
 
   final region = RectangleRegion(paddedBounds).toDownloadable(
