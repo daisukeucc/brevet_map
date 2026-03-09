@@ -1,0 +1,333 @@
+// ignore: unused_import
+import 'package:intl/intl.dart' as intl;
+import 'app_localizations.dart';
+
+// ignore_for_file: type=lint
+
+/// The translations for Korean (`ko`).
+class AppLocalizationsKo extends AppLocalizations {
+  AppLocalizationsKo([String locale = 'ko']) : super(locale);
+
+  @override
+  String get appTitle => '브레베 지도';
+
+  @override
+  String get cancel => '취소';
+
+  @override
+  String get ok => '확인';
+
+  @override
+  String get ng => 'NG';
+
+  @override
+  String get delete => '삭제';
+
+  @override
+  String get edit => '편집';
+
+  @override
+  String get change => '변경';
+
+  @override
+  String get register => '등록';
+
+  @override
+  String get settings => '설정';
+
+  @override
+  String get showMyLocation => '내 위치 표시';
+
+  @override
+  String get sleepSettings => '화면 절전 설정';
+
+  @override
+  String get switchGpsLevel => '위치 수준 전환';
+
+  @override
+  String get gpxImport => 'GPX 파일 가져오기';
+
+  @override
+  String get gpxExport => 'GPX 파일 내보내기';
+
+  @override
+  String get gpxExportDialogTitle => '파일 이름';
+
+  @override
+  String get gpxExportFilenameHint => '파일 이름 입력 (비워두면 날짜/시간 사용)';
+
+  @override
+  String gpxExportComplete(String filename) {
+    return '$filename 저장됨';
+  }
+
+  @override
+  String get gpxExportFailed => '내보내기 실패';
+
+  @override
+  String get gpxExportPermissionDenied => '파일 저장 권한이 거부되었습니다';
+
+  @override
+  String get poiAdd => 'POI 추가';
+
+  @override
+  String get poiAddEdit => 'POI 추가 / 편집';
+
+  @override
+  String get poiAddByDistance => '거리로 POI 추가';
+
+  @override
+  String get poiAddByMapTap => '지도 탭으로 POI 추가';
+
+  @override
+  String get poiTabAdd => 'POI 추가';
+
+  @override
+  String get poiTabEdit => 'POI 편집 / 삭제';
+
+  @override
+  String get poiType => 'POI 유형';
+
+  @override
+  String get checkpoint => '체크포인트';
+
+  @override
+  String get information => '정보';
+
+  @override
+  String get title => '제목';
+
+  @override
+  String get body => '본문';
+
+  @override
+  String get distance => '거리';
+
+  @override
+  String get titleNone => '(제목 없음)';
+
+  @override
+  String get kmRequired => '거리를 입력해 주세요';
+
+  @override
+  String get offRoute => '경로 이탈';
+
+  @override
+  String kmPoint(String km) {
+    return '${km}km 지점';
+  }
+
+  @override
+  String poiAtKmPoint(String kmLabel) {
+    return '$kmLabel 지점의 POI';
+  }
+
+  @override
+  String get poiOffRoutePoi => 'POI 편집';
+
+  @override
+  String get changePoiPosition => '이 위치로 변경';
+
+  @override
+  String get dragMarkerHint => '마커를 드래그하여 위치 변경';
+
+  @override
+  String get longPressPoiHint => 'POI를 추가할 지점을 길게 누르세요';
+
+  @override
+  String get poiRegistered => 'POI 등록됨';
+
+  @override
+  String get poiAddedFromShare => '공유 링크에서 POI 추가됨';
+
+  @override
+  String get shareUrlInvalid => '공유된 링크에서 좌표를 추출할 수 없습니다';
+
+  @override
+  String get registerThisPlaceAsPoi => '이 위치를 POI로 등록하시겠습니까?';
+
+  @override
+  String get poiUpdated => 'POI 업데이트됨';
+
+  @override
+  String get poiDeleted => 'POI 삭제됨';
+
+  @override
+  String get poiPositionChanged => 'POI 위치 변경됨';
+
+  @override
+  String get changePoiText => 'POI 제목 및 본문 변경';
+
+  @override
+  String get changePoiPositionTitle => 'POI 위치 변경';
+
+  @override
+  String get deletePoiConfirm => '이 POI를 삭제하시겠습니까?';
+
+  @override
+  String get noPoiRegistered => '등록된 POI가 없습니다';
+
+  @override
+  String get changePoiTextTitle => 'POI 내용 변경';
+
+  @override
+  String get routeOverwrite => '현재 경로 덮어쓰기';
+
+  @override
+  String get selectGpxFile => 'GPX 파일을 선택해 주세요';
+
+  @override
+  String get routeNotLoaded => '경로가 로드되지 않았습니다';
+
+  @override
+  String get kmPointNotFound => '지정한 km 지점을 찾을 수 없습니다';
+
+  @override
+  String get gpxInvalidFormat => '이 파일은 GPX 형식이 아닙니다';
+
+  @override
+  String get gpxNoRouteOrWaypoint => 'GPX에 경로 또는 웨이포인트가 없습니다';
+
+  @override
+  String get locationFailed => '위치를 가져오지 못했습니다';
+
+  @override
+  String get mapStyleNormal => '일반 모드로 지도 표시';
+
+  @override
+  String get mapStyleDark => '다크 모드로 지도 표시';
+
+  @override
+  String get showFullRoute => '전체 경로 표시';
+
+  @override
+  String get locationUnavailable => '위치를 사용할 수 없음';
+
+  @override
+  String get locationUnavailableWithRetry =>
+      '위치를 사용할 수 없습니다. \"내 위치 표시\"를 탭하여 다시 시도하거나 설정에서 위치 액세스를 허용하세요.';
+
+  @override
+  String get openSettings => '설정 열기';
+
+  @override
+  String get locationInvalid => '위치가 올바르지 않습니다';
+
+  @override
+  String get locationServiceOff => '위치 서비스가 꺼져 있습니다. 기기 설정에서 켜 주세요.';
+
+  @override
+  String get locationPermissionRequired => '위치 권한이 필요합니다';
+
+  @override
+  String get locationPermissionDenied =>
+      '위치 권한이 거부되었습니다. 권한 없이는 위치를 표시할 수 없습니다.';
+
+  @override
+  String get locationPermissionDeniedForever =>
+      '위치 권한이 \"다시 묻지 않음\"으로 설정되어 있습니다. 앱 설정에서 활성화해 주세요.';
+
+  @override
+  String get sleepOffMessage => '화면 절전 꺼짐';
+
+  @override
+  String sleepSetMessage(int minutes) {
+    return '화면 절전 $minutes분으로 설정';
+  }
+
+  @override
+  String get sleepOff => 'OFF';
+
+  @override
+  String get sleep1min => '1분';
+
+  @override
+  String get sleep5min => '5분';
+
+  @override
+  String get sleep10min => '10분';
+
+  @override
+  String get distanceUnit => '거리 단위 설정';
+
+  @override
+  String get unitKm => 'km';
+
+  @override
+  String get unitMile => '마일';
+
+  @override
+  String get distanceUnitSetToKm => '거리 단위를 km로 설정했습니다';
+
+  @override
+  String get distanceUnitSetToMile => '거리 단위를 마일로 설정했습니다';
+
+  @override
+  String get checkingConnectivity => '연결 확인 중...';
+
+  @override
+  String get fetchingLocation => '위치 가져오는 중...';
+
+  @override
+  String get offline => '오프라인';
+
+  @override
+  String get retryConnectivity => '다시 시도';
+
+  @override
+  String get offlineMap => '오프라인 지도';
+
+  @override
+  String get offlineMapZoomSmall => '줌: 제한';
+
+  @override
+  String get offlineMapZoomMedium => '줌: 표준';
+
+  @override
+  String get offlineMapZoomLarge => '줌: 확장';
+
+  @override
+  String offlineMapZoomSmallWithSize(String size) {
+    return '줌: 제한 ($size)';
+  }
+
+  @override
+  String offlineMapZoomMediumWithSize(String size) {
+    return '줌: 표준 ($size)';
+  }
+
+  @override
+  String offlineMapZoomLargeWithSize(String size) {
+    return '줌: 확장 ($size)';
+  }
+
+  @override
+  String get offlineMapRequiresNetwork => '오프라인 지도를 다운로드하려면 네트워크 연결이 필요합니다';
+
+  @override
+  String get offlineMapNoRoute => '경로가 로드되지 않았습니다. 먼저 GPX 파일을 가져오세요.';
+
+  @override
+  String get offlineMapDownloading => '다운로드 중 ... ';
+
+  @override
+  String get offlineMapCancel => '취소';
+
+  @override
+  String get offlineMapDownloadComplete => '오프라인 지도 다운로드 완료';
+
+  @override
+  String get offlineMapDownloadFailed => '다운로드 실패';
+
+  @override
+  String get offlineMapDownloadCancelled => '다운로드 취소됨';
+
+  @override
+  String get offlineMapWifiRecommendation =>
+      '데이터 용량이 크므로 Wi-Fi로 다운로드하는 것을 권장합니다';
+
+  @override
+  String offlineMapWifiRecommendationWithSize(String size) {
+    return '데이터 용량이 크므로 Wi-Fi로 다운로드하는 것을 권장합니다.\n\n예상 크기: 약 $size';
+  }
+}

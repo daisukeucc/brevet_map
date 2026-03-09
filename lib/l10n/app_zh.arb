@@ -1,0 +1,144 @@
+{
+  "@@locale": "zh",
+  "appTitle": "Brevet 地图",
+  "cancel": "取消",
+  "ok": "确定",
+  "ng": "NG",
+  "delete": "删除",
+  "edit": "编辑",
+  "change": "更改",
+  "register": "注册",
+  "settings": "设置",
+  "showMyLocation": "显示我的位置",
+  "sleepSettings": "屏幕休眠设置",
+  "switchGpsLevel": "切换定位级别",
+  "gpxImport": "导入 GPX 文件",
+  "gpxExport": "导出 GPX 文件",
+  "gpxExportDialogTitle": "文件名",
+  "gpxExportFilenameHint": "输入文件名（留空则使用日期/时间）",
+  "gpxExportComplete": "已保存 {filename}",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": { "type": "String" }
+    }
+  },
+  "gpxExportFailed": "导出失败",
+  "gpxExportPermissionDenied": "文件保存权限被拒绝",
+  "poiAdd": "添加 POI",
+  "poiAddEdit": "添加 / 编辑 POI",
+  "poiAddByDistance": "按距离添加 POI",
+  "poiAddByMapTap": "通过点击地图添加 POI",
+  "poiTabAdd": "添加 POI",
+  "poiTabEdit": "编辑 / 删除 POI",
+  "poiType": "POI 类型",
+  "checkpoint": "检查点",
+  "information": "信息",
+  "title": "标题",
+  "body": "正文",
+  "distance": "距离",
+  "titleNone": "（无标题）",
+  "kmRequired": "距离为必填项",
+  "offRoute": "偏离路线",
+  "kmPoint": "{km}km 点",
+  "poiAtKmPoint": "{kmLabel} 点的 POI",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": { "type": "String" }
+    }
+  },
+  "poiOffRoutePoi": "编辑 POI",
+  "@kmPoint": {
+    "placeholders": {
+      "km": { "type": "String" }
+    }
+  },
+  "changePoiPosition": "更改为此位置",
+  "dragMarkerHint": "拖动标记以更改位置",
+  "longPressPoiHint": "长按要添加 POI 的位置",
+  "poiRegistered": "POI 已注册",
+  "poiAddedFromShare": "已从分享链接添加 POI",
+  "shareUrlInvalid": "无法从分享链接提取坐标",
+  "registerThisPlaceAsPoi": "将此位置注册为 POI？",
+  "poiUpdated": "POI 已更新",
+  "poiDeleted": "POI 已删除",
+  "poiPositionChanged": "POI 位置已更改",
+  "changePoiText": "更改 POI 标题和正文",
+  "changePoiPositionTitle": "更改 POI 位置",
+  "deletePoiConfirm": "删除此 POI？",
+  "noPoiRegistered": "未注册 POI",
+  "changePoiTextTitle": "更改 POI 内容",
+  "routeOverwrite": "覆盖当前路线",
+  "selectGpxFile": "请选择 GPX 文件",
+  "routeNotLoaded": "路线未加载",
+  "kmPointNotFound": "未找到指定的 km 点",
+  "gpxInvalidFormat": "此文件不是 GPX 格式",
+  "gpxNoRouteOrWaypoint": "GPX 不包含路线或航点",
+  "locationFailed": "获取位置失败",
+  "mapStyleNormal": "以普通模式显示地图",
+  "mapStyleDark": "以深色模式显示地图",
+  "showFullRoute": "显示完整路线",
+  "locationUnavailable": "位置不可用",
+  "locationUnavailableWithRetry": "位置不可用。点击「显示我的位置」重试，或在设置中允许位置访问。",
+  "openSettings": "打开设置",
+  "locationInvalid": "位置无效",
+  "locationServiceOff": "定位服务已关闭。请在设备设置中开启。",
+  "locationPermissionRequired": "需要位置权限",
+  "locationPermissionDenied": "位置权限被拒绝。未经许可无法显示您的位置。",
+  "locationPermissionDeniedForever": "位置权限已设为「不再询问」。请在应用设置中启用。",
+  "sleepOffMessage": "屏幕休眠已关闭",
+  "sleepSetMessage": "屏幕休眠已设置为 {minutes} 分钟",
+  "@sleepSetMessage": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "sleepOff": "关闭",
+  "sleep1min": "1分钟",
+  "sleep5min": "5分钟",
+  "sleep10min": "10分钟",
+  "distanceUnit": "距离单位设置",
+  "unitKm": "公里",
+  "unitMile": "英里",
+  "distanceUnitSetToKm": "距离单位已设为公里",
+  "distanceUnitSetToMile": "距离单位已设为英里",
+  "checkingConnectivity": "正在检查连接...",
+  "fetchingLocation": "正在获取位置...",
+  "offline": "离线",
+  "retryConnectivity": "重试",
+  "offlineMap": "离线地图",
+  "offlineMapZoomSmall": "缩放：限定",
+  "offlineMapZoomMedium": "缩放：标准",
+  "offlineMapZoomLarge": "缩放：扩展",
+  "offlineMapZoomSmallWithSize": "缩放：限定（{size}）",
+  "offlineMapZoomMediumWithSize": "缩放：标准（{size}）",
+  "offlineMapZoomLargeWithSize": "缩放：扩展（{size}）",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapRequiresNetwork": "下载离线地图需要网络连接",
+  "offlineMapNoRoute": "路线未加载。请先导入 GPX 文件。",
+  "offlineMapDownloading": "正在下载 ... ",
+  "offlineMapCancel": "取消",
+  "offlineMapDownloadComplete": "离线地图下载完成",
+  "offlineMapDownloadFailed": "下载失败",
+  "offlineMapDownloadCancelled": "下载已取消",
+  "offlineMapWifiRecommendation": "由于数据量大，建议使用 Wi-Fi 下载",
+  "offlineMapWifiRecommendationWithSize": "由于数据量大，建议使用 Wi-Fi 下载。\n\n预计大小：约 {size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  }
+}

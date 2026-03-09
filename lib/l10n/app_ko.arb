@@ -1,0 +1,144 @@
+{
+  "@@locale": "ko",
+  "appTitle": "브레베 지도",
+  "cancel": "취소",
+  "ok": "확인",
+  "ng": "NG",
+  "delete": "삭제",
+  "edit": "편집",
+  "change": "변경",
+  "register": "등록",
+  "settings": "설정",
+  "showMyLocation": "내 위치 표시",
+  "sleepSettings": "화면 절전 설정",
+  "switchGpsLevel": "위치 수준 전환",
+  "gpxImport": "GPX 파일 가져오기",
+  "gpxExport": "GPX 파일 내보내기",
+  "gpxExportDialogTitle": "파일 이름",
+  "gpxExportFilenameHint": "파일 이름 입력 (비워두면 날짜/시간 사용)",
+  "gpxExportComplete": "{filename} 저장됨",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": { "type": "String" }
+    }
+  },
+  "gpxExportFailed": "내보내기 실패",
+  "gpxExportPermissionDenied": "파일 저장 권한이 거부되었습니다",
+  "poiAdd": "POI 추가",
+  "poiAddEdit": "POI 추가 / 편집",
+  "poiAddByDistance": "거리로 POI 추가",
+  "poiAddByMapTap": "지도 탭으로 POI 추가",
+  "poiTabAdd": "POI 추가",
+  "poiTabEdit": "POI 편집 / 삭제",
+  "poiType": "POI 유형",
+  "checkpoint": "체크포인트",
+  "information": "정보",
+  "title": "제목",
+  "body": "본문",
+  "distance": "거리",
+  "titleNone": "(제목 없음)",
+  "kmRequired": "거리를 입력해 주세요",
+  "offRoute": "경로 이탈",
+  "kmPoint": "{km}km 지점",
+  "poiAtKmPoint": "{kmLabel} 지점의 POI",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": { "type": "String" }
+    }
+  },
+  "poiOffRoutePoi": "POI 편집",
+  "@kmPoint": {
+    "placeholders": {
+      "km": { "type": "String" }
+    }
+  },
+  "changePoiPosition": "이 위치로 변경",
+  "dragMarkerHint": "마커를 드래그하여 위치 변경",
+  "longPressPoiHint": "POI를 추가할 지점을 길게 누르세요",
+  "poiRegistered": "POI 등록됨",
+  "poiAddedFromShare": "공유 링크에서 POI 추가됨",
+  "shareUrlInvalid": "공유된 링크에서 좌표를 추출할 수 없습니다",
+  "registerThisPlaceAsPoi": "이 위치를 POI로 등록하시겠습니까?",
+  "poiUpdated": "POI 업데이트됨",
+  "poiDeleted": "POI 삭제됨",
+  "poiPositionChanged": "POI 위치 변경됨",
+  "changePoiText": "POI 제목 및 본문 변경",
+  "changePoiPositionTitle": "POI 위치 변경",
+  "deletePoiConfirm": "이 POI를 삭제하시겠습니까?",
+  "noPoiRegistered": "등록된 POI가 없습니다",
+  "changePoiTextTitle": "POI 내용 변경",
+  "routeOverwrite": "현재 경로 덮어쓰기",
+  "selectGpxFile": "GPX 파일을 선택해 주세요",
+  "routeNotLoaded": "경로가 로드되지 않았습니다",
+  "kmPointNotFound": "지정한 km 지점을 찾을 수 없습니다",
+  "gpxInvalidFormat": "이 파일은 GPX 형식이 아닙니다",
+  "gpxNoRouteOrWaypoint": "GPX에 경로 또는 웨이포인트가 없습니다",
+  "locationFailed": "위치를 가져오지 못했습니다",
+  "mapStyleNormal": "일반 모드로 지도 표시",
+  "mapStyleDark": "다크 모드로 지도 표시",
+  "showFullRoute": "전체 경로 표시",
+  "locationUnavailable": "위치를 사용할 수 없음",
+  "locationUnavailableWithRetry": "위치를 사용할 수 없습니다. \"내 위치 표시\"를 탭하여 다시 시도하거나 설정에서 위치 액세스를 허용하세요.",
+  "openSettings": "설정 열기",
+  "locationInvalid": "위치가 올바르지 않습니다",
+  "locationServiceOff": "위치 서비스가 꺼져 있습니다. 기기 설정에서 켜 주세요.",
+  "locationPermissionRequired": "위치 권한이 필요합니다",
+  "locationPermissionDenied": "위치 권한이 거부되었습니다. 권한 없이는 위치를 표시할 수 없습니다.",
+  "locationPermissionDeniedForever": "위치 권한이 \"다시 묻지 않음\"으로 설정되어 있습니다. 앱 설정에서 활성화해 주세요.",
+  "sleepOffMessage": "화면 절전 꺼짐",
+  "sleepSetMessage": "화면 절전 {minutes}분으로 설정",
+  "@sleepSetMessage": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "sleepOff": "OFF",
+  "sleep1min": "1분",
+  "sleep5min": "5분",
+  "sleep10min": "10분",
+  "distanceUnit": "거리 단위 설정",
+  "unitKm": "km",
+  "unitMile": "마일",
+  "distanceUnitSetToKm": "거리 단위를 km로 설정했습니다",
+  "distanceUnitSetToMile": "거리 단위를 마일로 설정했습니다",
+  "checkingConnectivity": "연결 확인 중...",
+  "fetchingLocation": "위치 가져오는 중...",
+  "offline": "오프라인",
+  "retryConnectivity": "다시 시도",
+  "offlineMap": "오프라인 지도",
+  "offlineMapZoomSmall": "줌: 제한",
+  "offlineMapZoomMedium": "줌: 표준",
+  "offlineMapZoomLarge": "줌: 확장",
+  "offlineMapZoomSmallWithSize": "줌: 제한 ({size})",
+  "offlineMapZoomMediumWithSize": "줌: 표준 ({size})",
+  "offlineMapZoomLargeWithSize": "줌: 확장 ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapRequiresNetwork": "오프라인 지도를 다운로드하려면 네트워크 연결이 필요합니다",
+  "offlineMapNoRoute": "경로가 로드되지 않았습니다. 먼저 GPX 파일을 가져오세요.",
+  "offlineMapDownloading": "다운로드 중 ... ",
+  "offlineMapCancel": "취소",
+  "offlineMapDownloadComplete": "오프라인 지도 다운로드 완료",
+  "offlineMapDownloadFailed": "다운로드 실패",
+  "offlineMapDownloadCancelled": "다운로드 취소됨",
+  "offlineMapWifiRecommendation": "데이터 용량이 크므로 Wi-Fi로 다운로드하는 것을 권장합니다",
+  "offlineMapWifiRecommendationWithSize": "데이터 용량이 크므로 Wi-Fi로 다운로드하는 것을 권장합니다.\n\n예상 크기: 약 {size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  }
+}

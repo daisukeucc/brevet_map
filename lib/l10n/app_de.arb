@@ -1,0 +1,144 @@
+{
+  "@@locale": "de",
+  "appTitle": "Brevet-Karte",
+  "cancel": "Abbrechen",
+  "ok": "OK",
+  "ng": "NG",
+  "delete": "Löschen",
+  "edit": "Bearbeiten",
+  "change": "Ändern",
+  "register": "Registrieren",
+  "settings": "Einstellungen",
+  "showMyLocation": "Meinen Standort anzeigen",
+  "sleepSettings": "Bildschirmschlaf-Einstellungen",
+  "switchGpsLevel": "Standortebene wechseln",
+  "gpxImport": "GPX-Datei importieren",
+  "gpxExport": "GPX-Datei exportieren",
+  "gpxExportDialogTitle": "Dateiname",
+  "gpxExportFilenameHint": "Dateiname eingeben (Datum/Uhrzeit bei leerem Feld)",
+  "gpxExportComplete": "Gespeichert {filename}",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": { "type": "String" }
+    }
+  },
+  "gpxExportFailed": "Export fehlgeschlagen",
+  "gpxExportPermissionDenied": "Dateispeicherung verweigert",
+  "poiAdd": "POI hinzufügen",
+  "poiAddEdit": "POI hinzufügen / bearbeiten",
+  "poiAddByDistance": "POI per Distanz hinzufügen",
+  "poiAddByMapTap": "POI per Kartenantippen hinzufügen",
+  "poiTabAdd": "POI hinzufügen",
+  "poiTabEdit": "POI bearbeiten / löschen",
+  "poiType": "POI-Typ",
+  "checkpoint": "Kontrollpunkt",
+  "information": "Information",
+  "title": "Titel",
+  "body": "Text",
+  "distance": "Distanz",
+  "titleNone": "(Kein Titel)",
+  "kmRequired": "Distanz ist erforderlich",
+  "offRoute": "Außerhalb der Strecke",
+  "kmPoint": "Punkt {km} km",
+  "poiAtKmPoint": "POI bei Punkt {kmLabel}",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": { "type": "String" }
+    }
+  },
+  "poiOffRoutePoi": "POI bearbeiten",
+  "@kmPoint": {
+    "placeholders": {
+      "km": { "type": "String" }
+    }
+  },
+  "changePoiPosition": "Zu dieser Position ändern",
+  "dragMarkerHint": "Markierung ziehen, um die Position zu ändern",
+  "longPressPoiHint": "Lange auf den Punkt drücken, an dem Sie einen POI hinzufügen möchten",
+  "poiRegistered": "POI registriert",
+  "poiAddedFromShare": "POI von geteiltem Link hinzugefügt",
+  "shareUrlInvalid": "Koordinaten konnten nicht aus dem geteilten Link extrahiert werden",
+  "registerThisPlaceAsPoi": "Diesen Ort als POI registrieren?",
+  "poiUpdated": "POI aktualisiert",
+  "poiDeleted": "POI gelöscht",
+  "poiPositionChanged": "POI-Position geändert",
+  "changePoiText": "POI-Titel und -Text ändern",
+  "changePoiPositionTitle": "POI-Position ändern",
+  "deletePoiConfirm": "Diesen POI löschen?",
+  "noPoiRegistered": "Kein POI registriert",
+  "changePoiTextTitle": "POI-Inhalt ändern",
+  "routeOverwrite": "Aktuelle Strecke überschreiben",
+  "selectGpxFile": "Bitte wählen Sie eine GPX-Datei",
+  "routeNotLoaded": "Strecke ist nicht geladen",
+  "kmPointNotFound": "Angegebener km-Punkt nicht gefunden",
+  "gpxInvalidFormat": "Diese Datei ist kein GPX-Format",
+  "gpxNoRouteOrWaypoint": "GPX enthält keine Strecke oder Wegpunkte",
+  "locationFailed": "Standort konnte nicht ermittelt werden",
+  "mapStyleNormal": "Karte im Normalmodus anzeigen",
+  "mapStyleDark": "Karte im Dunkelmodus anzeigen",
+  "showFullRoute": "Vollständige Strecke anzeigen",
+  "locationUnavailable": "Standort nicht verfügbar",
+  "locationUnavailableWithRetry": "Standort nicht verfügbar. Tippen Sie auf \"Meinen Standort anzeigen\" zum Wiederholen oder erlauben Sie den Standortzugriff in den Einstellungen.",
+  "openSettings": "Einstellungen öffnen",
+  "locationInvalid": "Standort ungültig",
+  "locationServiceOff": "Standortdienst ist ausgeschaltet. Bitte aktivieren Sie ihn in den Geräteeinstellungen.",
+  "locationPermissionRequired": "Standortberechtigung erforderlich",
+  "locationPermissionDenied": "Standortberechtigung wurde verweigert. Ohne Berechtigung kann Ihr Standort nicht angezeigt werden.",
+  "locationPermissionDeniedForever": "Standortberechtigung ist auf \"Nicht erneut fragen\" gesetzt. Bitte aktivieren Sie sie in den App-Einstellungen.",
+  "sleepOffMessage": "Bildschirmschlaf deaktiviert",
+  "sleepSetMessage": "Bildschirmschlaf auf {minutes} Minuten eingestellt",
+  "@sleepSetMessage": {
+    "placeholders": {
+      "minutes": { "type": "int" }
+    }
+  },
+  "sleepOff": "AUS",
+  "sleep1min": "1 Min",
+  "sleep5min": "5 Min",
+  "sleep10min": "10 Min",
+  "distanceUnit": "Distanzeinheiten-Einstellungen",
+  "unitKm": "km",
+  "unitMile": "Meilen",
+  "distanceUnitSetToKm": "Distanzeinheit auf km gesetzt",
+  "distanceUnitSetToMile": "Distanzeinheit auf Meilen gesetzt",
+  "checkingConnectivity": "Verbindung wird geprüft...",
+  "fetchingLocation": "Standort wird ermittelt...",
+  "offline": "Offline",
+  "retryConnectivity": "Wiederholen",
+  "offlineMap": "Offline-Karte",
+  "offlineMapZoomSmall": "Zoom: Begrenzt",
+  "offlineMapZoomMedium": "Zoom: Standard",
+  "offlineMapZoomLarge": "Zoom: Erweitert",
+  "offlineMapZoomSmallWithSize": "Zoom: Begrenzt ({size})",
+  "offlineMapZoomMediumWithSize": "Zoom: Standard ({size})",
+  "offlineMapZoomLargeWithSize": "Zoom: Erweitert ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapRequiresNetwork": "Netzwerkverbindung erforderlich zum Herunterladen von Offline-Karten",
+  "offlineMapNoRoute": "Strecke ist nicht geladen. Bitte importieren Sie zuerst eine GPX-Datei.",
+  "offlineMapDownloading": "Wird heruntergeladen ... ",
+  "offlineMapCancel": "Abbrechen",
+  "offlineMapDownloadComplete": "Offline-Karten-Download abgeschlossen",
+  "offlineMapDownloadFailed": "Download fehlgeschlagen",
+  "offlineMapDownloadCancelled": "Download abgebrochen",
+  "offlineMapWifiRecommendation": "Wir empfehlen das Herunterladen über WLAN wegen der großen Datenmenge",
+  "offlineMapWifiRecommendationWithSize": "Wir empfehlen das Herunterladen über WLAN wegen der großen Datenmenge.\n\nGeschätzte Größe: ~{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  }
+}
