@@ -7,6 +7,8 @@ import '../../config/tile_config.dart';
 import '../../l10n/app_localizations.dart';
 import '../handlers/settings_menu_handler.dart';
 import 'battery_indicator.dart';
+import 'callout_overlay.dart';
+import 'gps_level_button.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
@@ -46,7 +48,15 @@ class MapScreenContent extends StatefulWidget {
     this.onUserInteraction,
     this.offlineCenter,
     this.onShareTap,
+    this.calloutPosition,
+    this.calloutText,
   });
+
+  /// 吹き出し表示時の現在地（共有モード用）
+  final LatLng? calloutPosition;
+
+  /// 吹き出しのメインテキスト
+  final String? calloutText;
 
   /// 共有ボタンタップ時のコールバック。GlobalKey を渡して共有フローを実行する。
   final void Function(GlobalKey key)? onShareTap;
@@ -308,7 +318,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                     Positioned(
                       right: 16,
                       bottom: 24,
-                      child: _GpsLevelButton(
+                      child: GpsLevelButton(
                         isLowMode: widget.isLowMode,
                         isStreamAccuracyLow: widget.isStreamAccuracyLow,
                         onTap: widget.onGpsLevelTap!,
@@ -415,57 +425,15 @@ class _MapScreenContentState extends State<MapScreenContent> {
           PolylineLayer(polylines: widget.polylines),
         if (widget.markers.isNotEmpty)
           MarkerLayer(markers: widget.markers),
+        if (widget.calloutPosition != null &&
+            widget.calloutText != null &&
+            widget.offlineCenter == null)
+          CalloutOverlay(
+            position: widget.calloutPosition!,
+            text: widget.calloutText!,
+          ),
       ],
     );
     return map;
-  }
-}
-
-/// 位置情報レベル切り替えボタン
-class _GpsLevelButton extends StatelessWidget {
-  const _GpsLevelButton({
-    required this.isLowMode,
-    required this.isStreamAccuracyLow,
-    required this.onTap,
-  });
-
-  final bool isLowMode;
-  final bool isStreamAccuracyLow;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final backgroundColor = isLowMode ? Colors.blueGrey : Colors.white;
-    final textColor = isLowMode ? Colors.white : Colors.blueGrey;
-    final label = isStreamAccuracyLow ? 'LOW' : 'GPS';
-
-    return Tooltip(
-      message: AppLocalizations.of(context)!.switchGpsLevel,
-      child: Material(
-        color: backgroundColor,
-        elevation: 5,
-        shadowColor: Colors.black26,
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: SizedBox(
-            width: 60,
-            height: 60,
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: textColor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

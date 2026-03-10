@@ -16,8 +16,86 @@ import '../utils/snackbar_utils.dart';
 /// ルート上とみなす距離の閾値（メートル）
 const double _onRouteThresholdM = 1000;
 
-/// 共有テキスト（全言語共通・英語表記）
-const String _shareSuffix = 'Powerd by Brevet Map';
+/// 吹き出し用のメインテキストを取得する。
+/// 吹き出し表示や共有時に使用。routePoints, currentPosition, unit が揃っている場合に利用。
+String getLocationCalloutMainText({
+  required List<LatLng>? routePoints,
+  required LatLng? currentPosition,
+  LatLng? previousPosition,
+  required int unit,
+}) {
+  if (routePoints == null || routePoints.isEmpty || currentPosition == null) {
+    return 'Ready to Start!';
+  }
+  final result = getRouteLegWithBearing(
+    routePoints,
+    currentPosition,
+    previousPosition: previousPosition,
+  );
+  if (result.toRouteM >= _onRouteThresholdM) {
+    return 'Ready to Start!';
+  }
+  final distKm = result.alongTrackM / 1000;
+  final totalM = distanceAlongTrackFromStart(
+    routePoints,
+    routePoints.length - 1,
+  );
+  if (result.alongTrackM < 500) {
+    return 'Start!';
+  }
+  if (totalM > 0 && (totalM - result.alongTrackM) < 500) {
+    return 'Goal!';
+  }
+  return '@${formatDistance(distKm, unit)}!';
+}
+
+/// 吹き出し表示用の位置とテキストを算出する。
+/// isShareMode かつ 位置あり の場合のみ non-null を返す。
+({LatLng? position, String? text}) computeCalloutData({
+  required bool isShareMode,
+  required bool hasPosition,
+  required LatLng? currentPosition,
+  LatLng? previousPosition,
+  required List<LatLng>? routePoints,
+  required int distanceUnit,
+}) {
+  if (!isShareMode || !hasPosition || currentPosition == null) {
+    return (position: null, text: null);
+  }
+  return (
+    position: currentPosition,
+    text: getLocationCalloutMainText(
+      routePoints: routePoints,
+      currentPosition: currentPosition,
+      previousPosition: previousPosition,
+      unit: distanceUnit,
+    ),
+  );
+}
+
+/// 共有ボタンタップ時の処理。吹き出し表示と共有フローを実行する。
+void handleShareButtonTap({
+  required BuildContext context,
+  required WidgetRef ref,
+  required GlobalKey screenshotKey,
+  LatLng? currentPosition,
+  LatLng? previousPosition,
+  required void Function(bool isShareMode) onShareModeChanged,
+  required bool Function() getMounted,
+}) {
+  onShareModeChanged(true);
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    showShareFlow(
+      context,
+      ref,
+      screenshotKey,
+      currentPosition: currentPosition,
+      previousPosition: previousPosition,
+    ).whenComplete(() {
+      if (getMounted()) onShareModeChanged(false);
+    });
+  });
+}
 
 /// 地図スクリーンショットの共有フローを実行する。
 /// ルートがある場合は拡大表示し、ルート上（1km以内）であれば距離を含むテキストを共有する。
@@ -45,39 +123,7 @@ Future<void> showShareFlow(
     }
     if (!context.mounted) return;
 
-    // 2. ルート上にいるか判定・距離取得
-    final unit = ref.read(distanceUnitProvider);
-    String shareText;
-    if (routePoints != null &&
-        routePoints.isNotEmpty &&
-        currentPosition != null) {
-      final pos = LatLng(currentPosition.latitude, currentPosition.longitude);
-      final result = getRouteLegWithBearing(
-        routePoints,
-        pos,
-        previousPosition: previousPosition,
-      );
-      if (result.toRouteM < _onRouteThresholdM) {
-        final distKm = result.alongTrackM / 1000;
-        final totalM = distanceAlongTrackFromStart(
-          routePoints,
-          routePoints.length - 1,
-        );
-        if (result.alongTrackM < 500) {
-          shareText = 'Start!\n$_shareSuffix';
-        } else if (totalM > 0 && (totalM - result.alongTrackM) < 500) {
-          shareText = 'Goal!\n$_shareSuffix';
-        } else {
-          shareText = '${formatDistance(distKm, unit)} Now!\n$_shareSuffix';
-        }
-      } else {
-        shareText = 'Ready to Start!\n$_shareSuffix';
-      }
-    } else {
-      shareText = 'Ready to Start!\n$_shareSuffix';
-    }
-
-    // 3. ボタン含む複雑なシーンの描画完了を待つ
+    // 2. ボタン含む複雑なシーンの描画完了を待つ
     await Future.delayed(const Duration(milliseconds: 150));
     if (!context.mounted) return;
 
@@ -91,7 +137,7 @@ Future<void> showShareFlow(
     await file.writeAsBytes(byteData.buffer.asUint8List());
 
     if (!context.mounted) return;
-    await Share.shareXFiles([XFile(file.path)], text: shareText);
+    await Share.shareXFiles([XFile(file.path)]);
   } catch (e) {
     if (context.mounted) {
       showAppSnackBar(context, AppLocalizations.of(context)!.shareFailed);

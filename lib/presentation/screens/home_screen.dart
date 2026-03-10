@@ -8,12 +8,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
-import '../../domain/models/user_poi.dart';
 import '../../domain/services/gpx_channel_service.dart';
 import '../../domain/services/location_service.dart';
 import '../../domain/services/marker_icon_service.dart';
 import '../../domain/services/share_channel_service.dart';
-import '../../utils/coordinates_from_url.dart';
 import '../../domain/services/volume_zoom_handler.dart';
 import '../../utils/map_utils.dart';
 import '../../l10n/app_localizations.dart';
@@ -22,6 +20,7 @@ import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
+import '../handlers/share_url_handler.dart';
 import '../handlers/sleep_timer_handler.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/connectivity_gate.dart'
@@ -81,6 +80,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   /// 直前の位置（bearing による往路/復路判定用）
   Position? _previousStreamPosition;
+
+  /// 共有モード中（吹き出し表示中）は true
+  bool _isShareMode = false;
 
   /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
   bool _isFirstPositionAfterStreamOn = false;
@@ -177,24 +179,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onSharedUrlReceived(String url) async {
     if (!mounted) return;
-    final trimmedUrl = url.trim();
-    if (trimmedUrl.isEmpty) return;
-    final coords = extractCoordinatesFromUrlString(trimmedUrl);
-    if (!mounted) return;
-    if (coords != null) {
-      final position = LatLng(coords.lat, coords.lng);
-      final placeName = extractPlaceNameFromUrlString(trimmedUrl);
+    await handleSharedUrlReceived(context, ref, url, onParsed: (position, placeName) {
+      if (!mounted) return;
       setState(() {
         _pendingSharedPosition = position;
         _pendingSharedPlaceName = placeName;
       });
-      await ref.read(cameraControllerProvider.notifier).animateTo(
-            position,
-            zoom: 18.0,
-          );
-    } else {
-      showAppSnackBar(context, AppLocalizations.of(context)!.shareUrlInvalid);
-    }
+    });
   }
 
   void _onCancelSharePreview() {
@@ -208,29 +199,19 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final position = _pendingSharedPosition;
     if (position == null || !mounted) return;
     final placeName = _pendingSharedPlaceName;
-    setState(() {
-      _pendingSharedPosition = null;
-      _pendingSharedPlaceName = null;
-    });
-    final data = await showDialog<AddPoiFormData>(
-      context: context,
-      barrierColor: Colors.black54,
-      barrierDismissible: false,
-      builder: (context) => MapTapPoiAddDialog(initialTitle: placeName),
+    await handleConfirmSharePreview(
+      context,
+      ref,
+      position,
+      placeName,
+      onClear: () {
+        if (!mounted) return;
+        setState(() {
+          _pendingSharedPosition = null;
+          _pendingSharedPlaceName = null;
+        });
+      },
     );
-    if (!mounted) return;
-    if (data == null) return;
-    final poi = UserPoi(
-      type: data.type,
-      km: null,
-      title: data.title,
-      body: data.body,
-      lat: position.latitude,
-      lng: position.longitude,
-    );
-    await ref.read(mapStateProvider.notifier).addUserPoi(poi);
-    if (!mounted) return;
-    showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
   }
 
   @override
@@ -347,29 +328,35 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
       onMapLongPress: null,
       offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
-      onShareTap: (key) => showShareFlow(
-        context,
-        ref,
-        key,
-        currentPosition: _latestStreamPosition != null
-            ? LatLng(
-                _latestStreamPosition!.latitude,
-                _latestStreamPosition!.longitude,
-              )
-            : null,
-        previousPosition: _previousStreamPosition != null
-            ? LatLng(
-                _previousStreamPosition!.latitude,
-                _previousStreamPosition!.longitude,
-              )
-            : null,
-      ),
+      onShareTap: (key) {
+        handleShareButtonTap(
+          context: context,
+          ref: ref,
+          screenshotKey: key,
+          currentPosition: _latestStreamPosition != null
+              ? LatLng(
+                  _latestStreamPosition!.latitude,
+                  _latestStreamPosition!.longitude,
+                )
+              : null,
+          previousPosition: _previousStreamPosition != null
+              ? LatLng(
+                  _previousStreamPosition!.latitude,
+                  _previousStreamPosition!.longitude,
+                )
+              : null,
+          onShareModeChanged: (isShareMode) =>
+              setState(() => _isShareMode = isShareMode),
+          getMounted: () => mounted,
+        );
+      },
     );
   }
 
   Widget _buildMapLayout(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
+    final distanceUnit = ref.watch(distanceUnitProvider);
     final position = _initialPosition ?? _defaultPosition();
 
     // 位置取得が完了してからルート作成（ネットワークチェックでオンライン表示が先になる場合の対策）
@@ -405,10 +392,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     }
     if (locationState.isActive) {
       final pos = _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+      final posLatLng = LatLng(pos.latitude, pos.longitude);
       markers = [
         ...markers,
         Marker(
-          point: LatLng(pos.latitude, pos.longitude),
+          point: posLatLng,
           width: 72,
           height: 72,
           alignment: Alignment.center,
@@ -420,6 +408,26 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       ];
     }
 
+    final calloutData = computeCalloutData(
+      isShareMode: _isShareMode,
+      hasPosition: locationState.isActive ||
+          _latestStreamPosition != null ||
+          _initialPosition != null,
+      currentPosition: () {
+        final pos =
+            _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+        return LatLng(pos.latitude, pos.longitude);
+      }(),
+      previousPosition: _previousStreamPosition != null
+          ? LatLng(
+              _previousStreamPosition!.latitude,
+              _previousStreamPosition!.longitude,
+            )
+          : null,
+      routePoints: mapState.fullRoutePoints ?? mapState.savedRoutePoints,
+      distanceUnit: distanceUnit,
+    );
+
     return Stack(
       children: [
         MapScreenContent(
@@ -427,6 +435,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
           polylines: mapState.routePolylines,
           markers: markers,
+          calloutPosition: calloutData.position,
+          calloutText: calloutData.text,
           mapStyleMode: mapState.mapStyleMode,
           onCameraIdle: _onCameraIdle,
           onMapCreated: _onMapCreated,
@@ -474,23 +484,28 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onMapLongPress: _isMapTapAddMode && _pendingSharedPosition == null
               ? _onMapLongPress
               : null,
-          onShareTap: (key) => showShareFlow(
-            context,
-            ref,
-            key,
-            currentPosition: _latestStreamPosition != null
-                ? LatLng(
-                    _latestStreamPosition!.latitude,
-                    _latestStreamPosition!.longitude,
-                  )
-                : null,
-            previousPosition: _previousStreamPosition != null
-                ? LatLng(
-                    _previousStreamPosition!.latitude,
-                    _previousStreamPosition!.longitude,
-                  )
-                : null,
-          ),
+          onShareTap: (key) {
+            handleShareButtonTap(
+              context: context,
+              ref: ref,
+              screenshotKey: key,
+              currentPosition: _latestStreamPosition != null
+                  ? LatLng(
+                      _latestStreamPosition!.latitude,
+                      _latestStreamPosition!.longitude,
+                    )
+                  : null,
+              previousPosition: _previousStreamPosition != null
+                  ? LatLng(
+                      _previousStreamPosition!.latitude,
+                      _previousStreamPosition!.longitude,
+                    )
+                  : null,
+              onShareModeChanged: (isShareMode) =>
+                  setState(() => _isShareMode = isShareMode),
+              getMounted: () => mounted,
+            );
+          },
         ),
       ],
     );
@@ -725,7 +740,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                           onPressed: _onCancelDragMode,
                           child: Text(
                             AppLocalizations.of(context)!.cancel,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 15,
                               color: Colors.white,
                               decoration: TextDecoration.none,
