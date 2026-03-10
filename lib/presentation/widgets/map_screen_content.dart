@@ -45,7 +45,11 @@ class MapScreenContent extends StatefulWidget {
     this.onGpsLevelTap,
     this.onUserInteraction,
     this.offlineCenter,
+    this.onShareTap,
   });
+
+  /// 共有ボタンタップ時のコールバック。GlobalKey を渡して共有フローを実行する。
+  final void Function(GlobalKey key)? onShareTap;
 
   /// オフライン時に地図の代わりに中央に表示するウィジェット。
   /// 非 null の場合、FlutterMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
@@ -114,6 +118,7 @@ class MapScreenContent extends StatefulWidget {
 class _MapScreenContentState extends State<MapScreenContent> {
   late final MapController _mapController;
   late final FMTCTileProvider _tileProvider;
+  final GlobalKey _screenshotKey = GlobalKey();
 
   @override
   void initState() {
@@ -138,13 +143,19 @@ class _MapScreenContentState extends State<MapScreenContent> {
           Expanded(
             child: Listener(
               onPointerDown: (_) => widget.onUserInteraction?.call(),
-              child: Stack(
-                children: [
-                  if (widget.offlineCenter != null)
-                    Positioned.fill(child: widget.offlineCenter!)
-                  else
-                    _buildMap(),
-                  if (!widget.isDragMode && !widget.isMapTapAddMode)
+              child: RepaintBoundary(
+                key: _screenshotKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: Stack(
+                  children: [
+                    if (widget.offlineCenter != null)
+                      Positioned.fill(child: widget.offlineCenter!)
+                    else
+                      _buildMap(),
+                    if (!widget.isDragMode && !widget.isMapTapAddMode)
                     Positioned(
                       left: 16,
                       bottom: 24,
@@ -154,6 +165,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                       ),
                     ),
                   if (widget.isStreamActive &&
+                      widget.onShareTap != null &&
                       !widget.isDragMode &&
                       !widget.isMapTapAddMode)
                     Positioned(
@@ -168,9 +180,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                           shape: const CircleBorder(),
                           clipBehavior: Clip.antiAlias,
                           child: InkWell(
-                            onTap: () {
-                              // TODO: 共有処理
-                            },
+                            onTap: () => widget.onShareTap?.call(_screenshotKey),
                             customBorder: const CircleBorder(),
                             child: SizedBox(
                               width: 60,
@@ -304,25 +314,29 @@ class _MapScreenContentState extends State<MapScreenContent> {
                         onTap: widget.onGpsLevelTap!,
                       ),
                     ),
-                ],
+                  ],
+                ),
+              ),
+                    AbsorbPointer(
+                      absorbing: widget.isDragMode || widget.isMapTapAddMode,
+                      child: Opacity(
+                        opacity: (widget.isDragMode || widget.isMapTapAddMode)
+                            ? 0.0
+                            : 1.0,
+                        child: LocationBottomBar(
+                          isStreamActive: widget.isStreamActive,
+                          onTap: widget.onToggleLocationStream,
+                          progressBarValue: widget.progressBarValue,
+                          isLowMode: widget.isLowMode,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-          AbsorbPointer(
-            absorbing: widget.isDragMode || widget.isMapTapAddMode,
-            child: Opacity(
-              opacity: (widget.isDragMode || widget.isMapTapAddMode)
-                  ? 0.0
-                  : 1.0,
-              child: LocationBottomBar(
-                isStreamActive: widget.isStreamActive,
-                onTap: widget.onToggleLocationStream,
-                progressBarValue: widget.progressBarValue,
-                isLowMode: widget.isLowMode,
-              ),
-            ),
-          ),
-        ],
+          ],
       ),
     );
   }

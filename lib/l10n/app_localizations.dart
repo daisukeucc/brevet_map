@@ -110,7 +110,7 @@ abstract class AppLocalizations {
     Locale('zh')
   ];
 
-  /// No description provided for @appTitle.
+  /// Do not translate. Use "Brevet Map" in all non-Japanese locales.
   ///
   /// In en, this message translates to:
   /// **'Brevet Map'**

@@ -21,6 +21,7 @@ import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
 import '../handlers/settings_menu_handler.dart';
+import '../handlers/share_handler.dart';
 import '../handlers/sleep_timer_handler.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/connectivity_gate.dart'
@@ -77,6 +78,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   /// 位置ストリームON時の最新位置（現在地マーカー表示用）
   Position? _latestStreamPosition;
+
+  /// 直前の位置（bearing による往路/復路判定用）
+  Position? _previousStreamPosition;
 
   /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
   bool _isFirstPositionAfterStreamOn = false;
@@ -343,6 +347,23 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
       onMapLongPress: null,
       offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
+      onShareTap: (key) => showShareFlow(
+        context,
+        ref,
+        key,
+        currentPosition: _latestStreamPosition != null
+            ? LatLng(
+                _latestStreamPosition!.latitude,
+                _latestStreamPosition!.longitude,
+              )
+            : null,
+        previousPosition: _previousStreamPosition != null
+            ? LatLng(
+                _previousStreamPosition!.latitude,
+                _previousStreamPosition!.longitude,
+              )
+            : null,
+      ),
     );
   }
 
@@ -453,6 +474,23 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onMapLongPress: _isMapTapAddMode && _pendingSharedPosition == null
               ? _onMapLongPress
               : null,
+          onShareTap: (key) => showShareFlow(
+            context,
+            ref,
+            key,
+            currentPosition: _latestStreamPosition != null
+                ? LatLng(
+                    _latestStreamPosition!.latitude,
+                    _latestStreamPosition!.longitude,
+                  )
+                : null,
+            previousPosition: _previousStreamPosition != null
+                ? LatLng(
+                    _previousStreamPosition!.latitude,
+                    _previousStreamPosition!.longitude,
+                  )
+                : null,
+          ),
         ),
       ],
     );
@@ -488,6 +526,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   void _onPositionUpdate(Position position, Position? previous) {
     if (!mounted) return;
+    _previousStreamPosition = previous;
     _latestStreamPosition = position;
     if (previous != null) {
       final b = bearingFromPositions(previous, position);
@@ -572,7 +611,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onPosition: _onPositionUpdate,
         );
     if (wasActive) {
-      setState(() => _latestStreamPosition = null);
+      setState(() {
+        _latestStreamPosition = null;
+        _previousStreamPosition = null;
+      });
     } else {
       ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
       _isFirstPositionAfterStreamOn = true;
