@@ -1,6 +1,9 @@
 {
   "@@locale": "en",
   "appTitle": "Brevet Map",
+  "@appTitle": {
+    "description": "Do not translate. Use \"Brevet Map\" in all non-Japanese locales."
+  },
   "cancel": "Cancel",
   "ok": "OK",
   "ng": "NG",
@@ -10,6 +13,7 @@
   "register": "Register",
   "settings": "Settings",
   "share": "Share",
+  "shareFailed": "Share failed",
   "showMyLocation": "Show my location",
   "sleepSettings": "Screen sleep settings",
   "switchGpsLevel": "Switch location level",

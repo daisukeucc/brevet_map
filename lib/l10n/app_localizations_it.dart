@@ -9,7 +9,7 @@ class AppLocalizationsIt extends AppLocalizations {
   AppLocalizationsIt([String locale = 'it']) : super(locale);
 
   @override
-  String get appTitle => 'Mappa Brevet';
+  String get appTitle => 'Brevet Map';
 
   @override
   String get cancel => 'Annulla';
@@ -37,6 +37,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get share => 'Condividi';
+
+  @override
+  String get shareFailed => 'Condivisione non riuscita';
 
   @override
   String get showMyLocation => 'Mostra la mia posizione';

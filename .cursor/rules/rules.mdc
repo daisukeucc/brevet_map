@@ -20,6 +20,7 @@ alwaysApply: true
 - **禁止**: `initState` 内で `AppLocalizations.of(context)` を呼ばない（inherited widget 未準備のため）
 - **対策**: `addPostFrameCallback` 内で取得するか、`build` / `didChangeDependencies` で取得
 - **日本語の扱い**: 敬語・トーンの調整は英語ベースでは出てこないため、日本語は別途レビューする
+- **例外的にローカライズしない文字列**: アプリ名（`appTitle`）など、例外的に翻訳しないものは全言語で同じ値を使用する。日本語以外は一律 `"Brevet Map"` とする。`app_en.arb` の `@appTitle` に `description` で「Do not translate」旨を記載しておく
 
 ## 距離単位 (km / mile)
 

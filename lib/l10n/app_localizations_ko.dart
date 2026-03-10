@@ -9,7 +9,7 @@ class AppLocalizationsKo extends AppLocalizations {
   AppLocalizationsKo([String locale = 'ko']) : super(locale);
 
   @override
-  String get appTitle => '브레베 지도';
+  String get appTitle => 'Brevet Map';
 
   @override
   String get cancel => '취소';
@@ -37,6 +37,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get share => '공유';
+
+  @override
+  String get shareFailed => '공유 실패';
 
   @override
   String get showMyLocation => '내 위치 표시';

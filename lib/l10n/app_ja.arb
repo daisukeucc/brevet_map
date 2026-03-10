@@ -10,6 +10,7 @@
   "register": "登録",
   "settings": "設定",
   "share": "共有",
+  "shareFailed": "共有に失敗しました",
   "showMyLocation": "現在地を表示",
   "sleepSettings": "画面スリープ設定",
   "switchGpsLevel": "位置情報レベルを切り替え",

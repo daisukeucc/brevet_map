@@ -1,6 +1,6 @@
 {
   "@@locale": "es",
-  "appTitle": "Mapa Brevet",
+  "appTitle": "Brevet Map",
   "cancel": "Cancelar",
   "ok": "OK",
   "ng": "NG",
@@ -10,6 +10,7 @@
   "register": "Registrar",
   "settings": "Ajustes",
   "share": "Compartir",
+  "shareFailed": "Error al compartir",
   "showMyLocation": "Mostrar mi ubicación",
   "sleepSettings": "Configuración de pantalla en espera",
   "switchGpsLevel": "Cambiar nivel de ubicación",

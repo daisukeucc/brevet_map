@@ -1,6 +1,6 @@
 {
   "@@locale": "zh",
-  "appTitle": "Brevet 地图",
+  "appTitle": "Brevet Map",
   "cancel": "取消",
   "ok": "确定",
   "ng": "NG",
@@ -10,6 +10,7 @@
   "register": "注册",
   "settings": "设置",
   "share": "分享",
+  "shareFailed": "分享失败",
   "showMyLocation": "显示我的位置",
   "sleepSettings": "屏幕休眠设置",
   "switchGpsLevel": "切换定位级别",

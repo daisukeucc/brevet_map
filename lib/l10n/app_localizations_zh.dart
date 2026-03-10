@@ -9,7 +9,7 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
-  String get appTitle => 'Brevet 地图';
+  String get appTitle => 'Brevet Map';
 
   @override
   String get cancel => '取消';
@@ -37,6 +37,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get share => '分享';
+
+  @override
+  String get shareFailed => '分享失败';
 
   @override
   String get showMyLocation => '显示我的位置';

@@ -9,7 +9,7 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
-  String get appTitle => 'Brevet-Karte';
+  String get appTitle => 'Brevet Map';
 
   @override
   String get cancel => 'Abbrechen';
@@ -37,6 +37,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get share => 'Teilen';
+
+  @override
+  String get shareFailed => 'Teilen fehlgeschlagen';
 
   @override
   String get showMyLocation => 'Meinen Standort anzeigen';

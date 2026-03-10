@@ -39,6 +39,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get share => 'Share';
 
   @override
+  String get shareFailed => 'Share failed';
+
+  @override
   String get showMyLocation => 'Show my location';
 
   @override

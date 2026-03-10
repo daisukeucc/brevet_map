@@ -170,6 +170,12 @@ abstract class AppLocalizations {
   /// **'Share'**
   String get share;
 
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Share failed'**
+  String get shareFailed;
+
   /// No description provided for @showMyLocation.
   ///
   /// In en, this message translates to:

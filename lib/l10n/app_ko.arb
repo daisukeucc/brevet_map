@@ -1,6 +1,6 @@
 {
   "@@locale": "ko",
-  "appTitle": "브레베 지도",
+  "appTitle": "Brevet Map",
   "cancel": "취소",
   "ok": "확인",
   "ng": "NG",
@@ -10,6 +10,7 @@
   "register": "등록",
   "settings": "설정",
   "share": "공유",
+  "shareFailed": "공유 실패",
   "showMyLocation": "내 위치 표시",
   "sleepSettings": "화면 절전 설정",
   "switchGpsLevel": "위치 수준 전환",
