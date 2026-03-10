@@ -5,6 +5,7 @@ import '../../data/repositories/directions_repository.dart';
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/models/user_poi.dart';
 import '../../data/repositories/user_poi_repository.dart';
+import '../../utils/string_utils.dart';
 
 /// GPX をパースして永続化した結果。UI 側で setState やカメラに使う。
 class GpxImportResult {
@@ -54,7 +55,11 @@ UserPoi _gpxPoiToUserPoi(GpxPoi poi) {
 /// - パース失敗時は null
 /// - トラックもウェイポイントも無い場合は [GpxImportResult] を返す（isEmpty == true）。保存は行わない
 /// - wpt は UserPoi に変換して保存し、編集可能にする
-Future<GpxImportResult?> parseAndSaveGpx(String gpxContent) async {
+/// - [importFilename] ファイルピッカーから取得したファイル名（.gpx 除く）。metadata が空のときのフォールバック
+Future<GpxImportResult?> parseAndSaveGpx(
+  String gpxContent, {
+  String? importFilename,
+}) async {
   final result = parseGpx(gpxContent);
   if (result == null) return null;
 
@@ -70,8 +75,11 @@ Future<GpxImportResult?> parseAndSaveGpx(String gpxContent) async {
     await markInitialRouteShown();
   }
 
-  if (result.metadataName != null && result.metadataName!.isNotEmpty) {
-    await saveGpxMetadataName(result.metadataName!);
+  final nameToSave = (result.metadataName != null && result.metadataName!.isNotEmpty)
+      ? result.metadataName!
+      : (importFilename?.trim().isNotEmpty == true ? importFilename!.trim() : null);
+  if (nameToSave != null) {
+    await saveGpxMetadataName(toHalfwidthAscii(nameToSave));
   }
 
   final userPois = result.waypoints.map(_gpxPoiToUserPoi).toList();
