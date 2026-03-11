@@ -18,7 +18,7 @@ String _formatDateTime(DateTime dateTime, String locale) {
   return DateFormat.yMd(locale).add_jm().format(dateTime);
 }
 
-/// 現在地に向かって表示する吹き出し。Nkm Now! と Powered by Brevet Map を表示。
+/// 現在地に向かって表示する吹き出し。Nkm Now! HPゲージを表示。
 class LocationCallout extends StatelessWidget {
   const LocationCallout({
     super.key,
@@ -56,8 +56,8 @@ class LocationCallout extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              _formatDateTime(DateTime.now(),
-                  Localizations.localeOf(context).toString()),
+              _formatDateTime(
+                  DateTime.now(), Localizations.localeOf(context).toString()),
               style: const TextStyle(
                 fontSize: 11,
                 color: Colors.black54,
@@ -82,25 +82,6 @@ class LocationCallout extends StatelessWidget {
                 borderWidth: 1.0,
               ),
             ],
-            const SizedBox(height: 4),
-            const Text(
-              'Powered by',
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.black54,
-              ),
-            ),
-            Transform.translate(
-              offset: const Offset(0, -2),
-              child: const Text(
-                'Brevet Map',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black54,
-                ),
-              ),
-            ),
           ],
         ),
       ),
