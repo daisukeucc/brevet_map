@@ -10,6 +10,7 @@ class HpGauge extends StatelessWidget {
     this.labelGap = 6,
     this.borderWidth = 1.5,
     this.labelFontSize,
+    this.labelOnTop = false,
   });
 
   /// 0.0〜1.0 のHP値
@@ -18,8 +19,11 @@ class HpGauge extends StatelessWidget {
   final double width;
   final double height;
 
-  /// HPラベルとゲージの間隔
+  /// HPラベルとゲージの間隔（labelOnTop 時は縦方向、それ以外は横方向）
   final double labelGap;
+
+  /// HPラベルをゲージの上に配置するか。false のとき左横（吹き出し用）
+  final bool labelOnTop;
 
   /// 枠線の太さ
   final double borderWidth;
@@ -39,26 +43,21 @@ class HpGauge extends StatelessWidget {
     return _limeGreen;
   }
 
+  static Widget _buildHpLabel(double? fontSize) => Text(
+        'HP',
+        style: TextStyle(
+          fontSize: fontSize ?? 10,
+          fontWeight: FontWeight.bold,
+          color: Colors.black87,
+          letterSpacing: 0.5,
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     final fillWidth = (value.clamp(0.0, 1.0) * width).ceilToDouble();
     final labelW = labelFontSize != null ? labelFontSize! * 1.5 : 22.0;
-    return SizedBox(
-      width: width + labelW + labelGap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            'HP',
-            style: TextStyle(
-              fontSize: labelFontSize ?? 10,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-              letterSpacing: 0.5,
-            ),
-          ),
-          SizedBox(width: labelGap),
-          Container(
+    final gauge = Container(
             width: width,
             height: height,
             decoration: BoxDecoration(
@@ -78,7 +77,31 @@ class HpGauge extends StatelessWidget {
                   ),
               ],
             ),
-          ),
+          );
+
+    if (labelOnTop) {
+      return SizedBox(
+        width: width,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHpLabel(labelFontSize),
+            SizedBox(height: labelGap),
+            gauge,
+          ],
+        ),
+      );
+    }
+
+    return SizedBox(
+      width: width + labelW + labelGap,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildHpLabel(labelFontSize),
+          SizedBox(width: labelGap),
+          gauge,
         ],
       ),
     );

@@ -19,8 +19,49 @@ class _HpSetupDialog extends StatefulWidget {
   State<_HpSetupDialog> createState() => _HpSetupDialogState();
 }
 
-class _HpSetupDialogState extends State<_HpSetupDialog> {
+class _HpSetupDialogState extends State<_HpSetupDialog>
+    with SingleTickerProviderStateMixin {
   int _hp = 100;
+  bool _hasInteracted = false;
+
+  late final AnimationController _gaugeAnimationController;
+  late final Animation<double> _gaugeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _gaugeAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 700),
+      vsync: this,
+    );
+    _gaugeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(
+        parent: _gaugeAnimationController,
+        curve: Curves.easeOut,
+      ),
+    );
+    _gaugeAnimationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _gaugeAnimationController.dispose();
+    super.dispose();
+  }
+
+  double get _displayedGaugeValue {
+    if (_hasInteracted || !_gaugeAnimationController.isAnimating) {
+      return _hp / 100;
+    }
+    return _gaugeAnimation.value * (_hp / 100);
+  }
+
+  double get _displayedSliderValue {
+    if (_hasInteracted || !_gaugeAnimationController.isAnimating) {
+      return _hp.toDouble();
+    }
+    return _gaugeAnimation.value * _hp;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +73,7 @@ class _HpSetupDialogState extends State<_HpSetupDialog> {
 
     return AlertDialog(
       shape: const RoundedRectangleBorder(),
-      titlePadding: const EdgeInsets.fromLTRB(24, 26, 24, 0),
-      contentPadding: const EdgeInsets.fromLTRB(24, 36, 24, 0),
+      contentPadding: const EdgeInsets.fromLTRB(3, 25, 0, 0),
       title: null,
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 280),
@@ -41,26 +81,51 @@ class _HpSetupDialogState extends State<_HpSetupDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            HpGauge(
-              value: _hp / 100,
-              width: 195,
-              height: 14,
-              labelFontSize: 16,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 0),
+              child: SizedBox(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedBuilder(
+                      animation: _gaugeAnimation,
+                      builder: (context, _) => HpGauge(
+                        value: _displayedGaugeValue,
+                        width: 222,
+                        height: 14,
+                        labelFontSize: 20,
+                        labelOnTop: true,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const _GaugeScale(gaugeWidth: 225),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 1),
-            const _GaugeScale(gaugeWidth: 210, labelGap: 6, labelFontSize: 16),
-            const SizedBox(height: 2),
-            Slider(
-              value: _hp.toDouble(),
-              min: 0,
-              max: 100,
-              divisions: 20,
-              onChanged: (v) => setState(() => _hp = v.round()),
+            SizedBox(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 0, 12, 0),
+                child: AnimatedBuilder(
+                  animation: _gaugeAnimation,
+                  builder: (context, _) => Slider(
+                    value: _displayedSliderValue,
+                    min: 0,
+                    max: 100,
+                    divisions: 20,
+                    onChanged: (v) => setState(() {
+                      _hasInteracted = true;
+                      _hp = v.round();
+                    }),
+                  ),
+                ),
+              ),
             ),
           ],
         ),
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 18),
+      actionsPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
       actions: [
         TextButton(
           style: compactButtonStyle,
@@ -78,72 +143,59 @@ class _HpSetupDialogState extends State<_HpSetupDialog> {
 }
 
 class _GaugeScale extends StatelessWidget {
-  const _GaugeScale({
-    required this.gaugeWidth,
-    required this.labelGap,
-    required this.labelFontSize,
-  });
+  const _GaugeScale({required this.gaugeWidth});
 
   final double gaugeWidth;
-  final double labelGap;
-  final double labelFontSize;
 
   @override
   Widget build(BuildContext context) {
-    final labelW = labelFontSize * 1.5;
-    final leftOffset = labelW + labelGap;
-    return Row(
-      children: [
-        SizedBox(width: leftOffset),
-        SizedBox(
-          width: gaugeWidth,
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '0%',
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1.0,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                '|',
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1.0,
-                  color: Colors.black54,
-                ),
-              ),
-              Text(
-                '50%',
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1.0,
-                  color: Colors.black87,
-                ),
-              ),
-              Text(
-                '|',
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1.0,
-                  color: Colors.black54,
-                ),
-              ),
-              Text(
-                '100%',
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1.0,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
+    return SizedBox(
+      width: gaugeWidth,
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            '0%',
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.0,
+              color: Colors.black87,
+            ),
           ),
-        ),
-      ],
+          Text(
+            '|',
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.0,
+              color: Colors.black54,
+            ),
+          ),
+          Text(
+            '50%',
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.0,
+              color: Colors.black87,
+            ),
+          ),
+          Text(
+            '|',
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.0,
+              color: Colors.black54,
+            ),
+          ),
+          Text(
+            '100%',
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.0,
+              color: Colors.black87,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
