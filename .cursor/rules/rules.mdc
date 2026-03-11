@@ -56,6 +56,11 @@ alwaysApply: true
 - **表示**: SnackBar を使用する場合は `showAppSnackBar`（`snackbar_utils.dart`）を使用する
 - **ダイアログコールバック内**: `context` が変わる可能性がある場合は `showAppSnackBarWithMessenger` を使用する
 
+## ノッチ端末対応
+
+- **ボトムシート・下端 UI**: ノッチ端末で余計な余白を入れないため、`SafeArea` には `bottom: false` を指定する
+- **参照**: `LocationBottomBar` は SafeArea を使わず下端まで表示。ボトムメニュー・POI 詳細ビューも同様に下端まで表示する
+
 ## 角丸禁止
 
 - **ダイアログ**: デフォルト表示では角丸にしない（`shape: RoundedRectangleBorder()` など角丸指定を避ける）

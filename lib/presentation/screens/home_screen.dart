@@ -182,7 +182,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _onSharedUrlReceived(String url) async {
     if (!mounted) return;
-    await handleSharedUrlReceived(context, ref, url, onParsed: (position, placeName) {
+    await handleSharedUrlReceived(context, ref, url,
+        onParsed: (position, placeName) {
       if (!mounted) return;
       setState(() {
         _pendingSharedPosition = position;
@@ -349,11 +350,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                   _previousStreamPosition!.longitude,
                 )
               : null,
-          onShareModeChanged: (isShareMode, {shareHp}) =>
-              setState(() {
-                _isShareMode = isShareMode;
-                _shareHp = shareHp;
-              }),
+          onShareModeChanged: (isShareMode, {shareHp}) => setState(() {
+            _isShareMode = isShareMode;
+            _shareHp = shareHp;
+          }),
           getMounted: () => mounted,
         );
       },
@@ -398,7 +398,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       ];
     }
     if (locationState.isActive) {
-      final pos = _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+      final pos =
+          _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
       final posLatLng = LatLng(pos.latitude, pos.longitude);
       markers = [
         ...markers,
@@ -510,11 +511,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                       _previousStreamPosition!.longitude,
                     )
                   : null,
-              onShareModeChanged: (isShareMode, {shareHp}) =>
-                  setState(() {
-                    _isShareMode = isShareMode;
-                    _shareHp = shareHp;
-                  }),
+              onShareModeChanged: (isShareMode, {shareHp}) => setState(() {
+                _isShareMode = isShareMode;
+                _shareHp = shareHp;
+              }),
               getMounted: () => mounted,
             );
           },
@@ -728,8 +728,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               color: Colors.black.withValues(alpha: 0.6),
               child: SafeArea(
                 top: false,
+                bottom: false,
                 child: SizedBox(
-                  height: 80,
+                  height: 96,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -746,6 +747,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                               color: Colors.white60,
                               decoration: TextDecoration.none,
                             ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         TextButton(
@@ -781,8 +784,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               color: Colors.black.withValues(alpha: 0.6),
               child: SafeArea(
                 top: false,
+                bottom: false,
                 child: SizedBox(
-                  height: 80,
+                  height: 96,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -799,10 +803,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                                     .longPressPoiHint,
                             style: const TextStyle(
                               fontSize: 15,
-                              height: 1.5,
-                              color: Colors.white60,
+                              height: 1.6,
+                              color: Colors.white,
                               decoration: TextDecoration.none,
                             ),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (_pendingSharedPosition != null) ...[

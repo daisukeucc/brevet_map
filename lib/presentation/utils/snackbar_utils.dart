@@ -13,7 +13,10 @@ void showAppSnackBar(
   if (!context.mounted) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
-      content: Text(message, style: _kDarkTextStyle),
+      content: SafeArea(
+        bottom: false,
+        child: Text(message, style: _kDarkTextStyle),
+      ),
       backgroundColor: _kDarkBackground,
       action: action,
     ),
@@ -27,7 +30,10 @@ void showAppSnackBarWithMessenger(
 ) {
   messenger.showSnackBar(
     SnackBar(
-      content: Text(message, style: _kDarkTextStyle),
+      content: SafeArea(
+        bottom: false,
+        child: Text(message, style: _kDarkTextStyle),
+      ),
       backgroundColor: _kDarkBackground,
     ),
   );
