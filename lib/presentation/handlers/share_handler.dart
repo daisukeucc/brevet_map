@@ -8,6 +8,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../data/repositories/first_launch_repository.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
@@ -131,13 +132,18 @@ Future<void> showShareFlow(
     final byteData = await image.toByteData(format: ImageByteFormat.png);
     if (byteData == null || !context.mounted) return;
 
-    final tempDir = await getTemporaryDirectory();
+    final gpxName = await loadGpxMetadataName();
     final fileName = 'brevet_map_${DateTime.now().millisecondsSinceEpoch}.png';
+
+    final tempDir = await getTemporaryDirectory();
     final file = File('${tempDir.path}/$fileName');
     await file.writeAsBytes(byteData.buffer.asUint8List());
 
     if (!context.mounted) return;
-    await Share.shareXFiles([XFile(file.path)]);
+    await Share.shareXFiles(
+      [XFile(file.path)],
+      text: gpxName != null && gpxName.trim().isNotEmpty ? gpxName.trim() : null,
+    );
   } catch (e) {
     if (context.mounted) {
       showAppSnackBar(context, AppLocalizations.of(context)!.shareFailed);

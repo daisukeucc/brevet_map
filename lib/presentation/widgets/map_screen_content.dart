@@ -50,7 +50,11 @@ class MapScreenContent extends StatefulWidget {
     this.onShareTap,
     this.calloutPosition,
     this.calloutText,
+    this.isShareMode = false,
   });
+
+  /// 共有モード時 true（スクリーンショット用に四隅ボタン・バッテリーを非表示にする）
+  final bool isShareMode;
 
   /// 吹き出し表示時の現在地（共有モード用）
   final LatLng? calloutPosition;
@@ -165,7 +169,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                       Positioned.fill(child: widget.offlineCenter!)
                     else
                       _buildMap(),
-                    if (!widget.isDragMode && !widget.isMapTapAddMode)
+                    if (!widget.isShareMode &&
+                        !widget.isDragMode &&
+                        !widget.isMapTapAddMode)
                     Positioned(
                       left: 16,
                       bottom: 24,
@@ -176,6 +182,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                     ),
                   if (widget.isStreamActive &&
                       widget.onShareTap != null &&
+                      !widget.isShareMode &&
                       !widget.isDragMode &&
                       !widget.isMapTapAddMode)
                     Positioned(
@@ -211,6 +218,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                       ),
                     ),
                   if (!widget.isStreamActive &&
+                      !widget.isShareMode &&
                       !widget.isDragMode &&
                       !widget.isMapTapAddMode)
                     Positioned(
@@ -264,7 +272,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                         ),
                       ),
                     ),
-                  if (!widget.isDragMode && !widget.isMapTapAddMode)
+                  if (!widget.isShareMode &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     const Positioned(
                       left: 0,
                       right: 0,
@@ -273,7 +283,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                         child: BatteryIndicator(),
                       ),
                     ),
-                  if (!widget.isDragMode && !widget.isMapTapAddMode)
+                  if (!widget.isShareMode &&
+                      !widget.isDragMode &&
+                      !widget.isMapTapAddMode)
                     Positioned(
                       right: 16,
                       top: 24,
@@ -281,6 +293,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                           onRouteBoundsTap: widget.onRouteBoundsTap),
                     ),
                   if (widget.showMyLocationButton &&
+                      !widget.isShareMode &&
                       !widget.isDragMode &&
                       !widget.isMapTapAddMode)
                     Positioned(
@@ -313,6 +326,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                     ),
                   if (widget.isStreamActive &&
                       widget.onGpsLevelTap != null &&
+                      !widget.isShareMode &&
                       !widget.isDragMode &&
                       !widget.isMapTapAddMode)
                     Positioned(

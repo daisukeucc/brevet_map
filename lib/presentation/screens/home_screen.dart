@@ -328,6 +328,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
       onMapLongPress: null,
       offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
+      isShareMode: _isShareMode,
       onShareTap: (key) {
         handleShareButtonTap(
           context: context,
@@ -484,6 +485,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onMapLongPress: _isMapTapAddMode && _pendingSharedPosition == null
               ? _onMapLongPress
               : null,
+          isShareMode: _isShareMode,
           onShareTap: (key) {
             handleShareButtonTap(
               context: context,

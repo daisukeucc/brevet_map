@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'config/tile_config.dart';
 import 'l10n/app_localizations.dart';
@@ -9,6 +10,7 @@ import 'presentation/screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
   try {
     await dotenv.load(fileName: '.env');
   } catch (_) {}

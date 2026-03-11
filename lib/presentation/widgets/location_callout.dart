@@ -1,6 +1,20 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+
+String _formatDateTime(DateTime dateTime, String locale) {
+  if (locale.startsWith('zh')) {
+    return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
+  }
+  if (locale.startsWith('de')) {
+    return DateFormat('dd.MM.yyyy HH:mm').format(dateTime);
+  }
+  if (locale.startsWith('es')) {
+    return DateFormat('dd/MM/yyyy HH:mm').format(dateTime);
+  }
+  return DateFormat.yMd(locale).add_jm().format(dateTime);
+}
 
 /// 現在地に向かって表示する吹き出し。Nkm Now! と Powered by Brevet Map を表示。
 class LocationCallout extends StatelessWidget {
@@ -29,12 +43,21 @@ class LocationCallout extends StatelessWidget {
       ),
       child: Padding(
         padding: tailAtTop
-            ? const EdgeInsets.fromLTRB(20, 36, 20, 16)
-            : const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            ? const EdgeInsets.fromLTRB(20, 28, 20, 16)
+            : const EdgeInsets.fromLTRB(20, 8, 20, 24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Text(
+              _formatDateTime(DateTime.now(),
+                  Localizations.localeOf(context).toString()),
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 4),
             Text(
               mainText,
               style: const TextStyle(
