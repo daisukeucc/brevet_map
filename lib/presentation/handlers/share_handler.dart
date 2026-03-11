@@ -132,21 +132,41 @@ Future<void> showShareFlow(
     await Future.delayed(const Duration(milliseconds: 150));
     if (!context.mounted) return;
 
-    final image = await boundary.toImage(pixelRatio: 2.0);
+    // 共有用: 1.75 で画質優先（2.0 に近い鮮明さ、やや軽め）
+    final image = await boundary.toImage(pixelRatio: 1.75);
     final byteData = await image.toByteData(format: ImageByteFormat.png);
     if (byteData == null || !context.mounted) return;
 
     final gpxName = await loadGpxMetadataName();
     final fileName = 'brevet_map_${DateTime.now().millisecondsSinceEpoch}.png';
 
-    final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/$fileName');
+    // iOS: getTemporaryDirectory() だと共有シートがファイルを読めず失敗することがあるため、
+    // Documents ディレクトリを使用する（share_plus issue #263, #1088 等）
+    final dir = Platform.isIOS
+        ? await getApplicationDocumentsDirectory()
+        : await getTemporaryDirectory();
+    final shareDir = Directory('${dir.path}/share');
+    if (!await shareDir.exists()) await shareDir.create(recursive: true);
+    final file = File('${shareDir.path}/$fileName');
     await file.writeAsBytes(byteData.buffer.asUint8List());
 
     if (!context.mounted) return;
+
+    // iPad / iOS: sharePositionOrigin が必須の場合がある（share_plus issue #3697 等）
+    final sharePositionOrigin = Platform.isIOS
+        ? Rect.fromPoints(const Offset(0, 0), const Offset(1, 1))
+        : null;
+
     await Share.shareXFiles(
-      [XFile(file.path)],
+      [
+        XFile(
+          file.path,
+          mimeType: 'image/png',
+          name: fileName,
+        ),
+      ],
       text: gpxName != null && gpxName.trim().isNotEmpty ? gpxName.trim() : null,
+      sharePositionOrigin: sharePositionOrigin,
     );
   } catch (e) {
     if (context.mounted) {
