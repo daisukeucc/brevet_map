@@ -13,6 +13,7 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
 import '../utils/snackbar_utils.dart';
+import '../widgets/hp_setup_dialog.dart';
 
 /// ルート上とみなす距離の閾値（メートル）
 const double _onRouteThresholdM = 1000;
@@ -74,17 +75,20 @@ String getLocationCalloutMainText({
   );
 }
 
-/// 共有ボタンタップ時の処理。吹き出し表示と共有フローを実行する。
-void handleShareButtonTap({
+/// 共有ボタンタップ時の処理。HP設定ダイアログ→吹き出し表示→共有フローを実行する。
+Future<void> handleShareButtonTap({
   required BuildContext context,
   required WidgetRef ref,
   required GlobalKey screenshotKey,
   LatLng? currentPosition,
   LatLng? previousPosition,
-  required void Function(bool isShareMode) onShareModeChanged,
+  required void Function(bool isShareMode, {double? shareHp}) onShareModeChanged,
   required bool Function() getMounted,
-}) {
-  onShareModeChanged(true);
+}) async {
+  final hp = await showHpSetupDialog(context);
+  if (hp == null || !getMounted()) return;
+
+  onShareModeChanged(true, shareHp: hp / 100);
   WidgetsBinding.instance.addPostFrameCallback((_) {
     showShareFlow(
       context,

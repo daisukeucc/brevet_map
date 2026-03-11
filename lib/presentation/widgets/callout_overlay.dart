@@ -13,15 +13,19 @@ class CalloutOverlay extends StatelessWidget {
     super.key,
     required this.position,
     required this.text,
+    this.hp,
   });
 
   final LatLng position;
   final String text;
 
+  /// 0.0〜1.0 のHP値。null のときゲージ非表示
+  final double? hp;
+
   static const _padding = 12.0;
   static const _bottomPadding = 12.0;
   static const _calloutWidth = 140.0;
-  static const _calloutHeight = 112.0;
+  static const _calloutHeight = 130.0;
   static const _tailGap = 8.0;
 
   @override
@@ -85,6 +89,7 @@ class CalloutOverlay extends StatelessWidget {
                 mainText: text,
                 tailAtTop: tailAtTop,
                 tailCenterX: tailCenterX,
+                hp: hp,
               );
 
               if (text == _readyToStartText) {

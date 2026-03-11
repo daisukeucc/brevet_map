@@ -84,6 +84,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 共有モード中（吹き出し表示中）は true
   bool _isShareMode = false;
 
+  /// 共有モード時のHP値（0.0〜1.0）。ダイアログで設定
+  double? _shareHp;
+
   /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
   bool _isFirstPositionAfterStreamOn = false;
 
@@ -346,8 +349,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                   _previousStreamPosition!.longitude,
                 )
               : null,
-          onShareModeChanged: (isShareMode) =>
-              setState(() => _isShareMode = isShareMode),
+          onShareModeChanged: (isShareMode, {shareHp}) =>
+              setState(() {
+                _isShareMode = isShareMode;
+                _shareHp = shareHp;
+              }),
           getMounted: () => mounted,
         );
       },
@@ -438,6 +444,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           markers: markers,
           calloutPosition: calloutData.position,
           calloutText: calloutData.text,
+          calloutHp: _shareHp,
           mapStyleMode: mapState.mapStyleMode,
           onCameraIdle: _onCameraIdle,
           onMapCreated: _onMapCreated,
@@ -503,8 +510,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                       _previousStreamPosition!.longitude,
                     )
                   : null,
-              onShareModeChanged: (isShareMode) =>
-                  setState(() => _isShareMode = isShareMode),
+              onShareModeChanged: (isShareMode, {shareHp}) =>
+                  setState(() {
+                    _isShareMode = isShareMode;
+                    _shareHp = shareHp;
+                  }),
               getMounted: () => mounted,
             );
           },

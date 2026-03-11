@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import 'hp_gauge.dart';
+
 String _formatDateTime(DateTime dateTime, String locale) {
   if (locale.startsWith('zh')) {
     return DateFormat('yyyy-MM-dd HH:mm').format(dateTime);
@@ -23,6 +25,7 @@ class LocationCallout extends StatelessWidget {
     required this.mainText,
     this.tailAtTop = false,
     this.tailCenterX,
+    this.hp,
   });
 
   /// メイン表示文言（Start!, Goal!, Nkm Now!, Ready to Start! 等）
@@ -34,6 +37,9 @@ class LocationCallout extends StatelessWidget {
   /// しっぽの先端が指す X 位置（吹き出し左端からの相対）。null のとき中央
   final double? tailCenterX;
 
+  /// 0.0〜1.0 のHP値。null のときゲージを非表示
+  final double? hp;
+
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
@@ -43,8 +49,8 @@ class LocationCallout extends StatelessWidget {
       ),
       child: Padding(
         padding: tailAtTop
-            ? const EdgeInsets.fromLTRB(20, 28, 20, 16)
-            : const EdgeInsets.fromLTRB(20, 8, 20, 24),
+            ? const EdgeInsets.fromLTRB(20, 30, 20, 20)
+            : const EdgeInsets.fromLTRB(20, 10, 20, 28),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -66,20 +72,33 @@ class LocationCallout extends StatelessWidget {
                 color: Colors.black87,
               ),
             ),
+            if (hp != null) ...[
+              const SizedBox(height: 2),
+              HpGauge(
+                value: hp!,
+                width: 80,
+                height: 7,
+                labelGap: 3,
+                borderWidth: 1.0,
+              ),
+            ],
             const SizedBox(height: 4),
             const Text(
               'Powered by',
               style: TextStyle(
-                fontSize: 11,
+                fontSize: 10,
                 color: Colors.black54,
               ),
             ),
-            const Text(
-              'Brevet Map',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.black54,
+            Transform.translate(
+              offset: const Offset(0, -2),
+              child: const Text(
+                'Brevet Map',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black54,
+                ),
               ),
             ),
           ],

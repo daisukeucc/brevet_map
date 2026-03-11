@@ -269,8 +269,8 @@ class _OfflineMapDownloadDialogState extends State<OfflineMapDownloadDialog> {
     return AlertDialog(
       shape: const RoundedRectangleBorder(),
       contentPadding: const EdgeInsets.fromLTRB(24, 34, 24, 24),
-      content: SizedBox(
-        width: 280,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 280),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

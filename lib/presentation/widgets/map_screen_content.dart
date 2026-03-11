@@ -50,6 +50,7 @@ class MapScreenContent extends StatefulWidget {
     this.onShareTap,
     this.calloutPosition,
     this.calloutText,
+    this.calloutHp,
     this.isShareMode = false,
   });
 
@@ -61,6 +62,9 @@ class MapScreenContent extends StatefulWidget {
 
   /// 吹き出しのメインテキスト
   final String? calloutText;
+
+  /// 吹き出しのHP値（0.0〜1.0）。null のときゲージ非表示
+  final double? calloutHp;
 
   /// 共有ボタンタップ時のコールバック。GlobalKey を渡して共有フローを実行する。
   final void Function(GlobalKey key)? onShareTap;
@@ -445,6 +449,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
           CalloutOverlay(
             position: widget.calloutPosition!,
             text: widget.calloutText!,
+            hp: widget.calloutHp,
           ),
       ],
     );
