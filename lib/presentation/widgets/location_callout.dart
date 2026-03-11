@@ -49,8 +49,8 @@ class LocationCallout extends StatelessWidget {
       ),
       child: Padding(
         padding: tailAtTop
-            ? const EdgeInsets.fromLTRB(20, 30, 20, 20)
-            : const EdgeInsets.fromLTRB(20, 10, 20, 28),
+            ? const EdgeInsets.fromLTRB(20, 30, 20, 10)
+            : const EdgeInsets.fromLTRB(20, 10, 20, 31),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -63,7 +63,6 @@ class LocationCallout extends StatelessWidget {
                 color: Colors.black54,
               ),
             ),
-            const SizedBox(height: 4),
             Text(
               mainText,
               style: const TextStyle(
@@ -73,7 +72,6 @@ class LocationCallout extends StatelessWidget {
               ),
             ),
             if (hp != null) ...[
-              const SizedBox(height: 2),
               HpGauge(
                 value: hp!,
                 width: 80,
