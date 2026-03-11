@@ -83,9 +83,7 @@ Future<GpxImportResult?> parseAndSaveGpx(
   }
 
   final userPois = result.waypoints.map(_gpxPoiToUserPoi).toList();
-  if (userPois.isNotEmpty) {
-    await saveUserPois(userPois);
-  }
+  await saveUserPois(userPois); // トラックのみのGPXでも必ず上書き（過去のPOIをクリアするため）
 
   return GpxImportResult(
     trackPoints: result.trackPoints,
