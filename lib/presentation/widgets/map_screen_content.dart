@@ -342,19 +342,11 @@ class _MapScreenContentState extends State<MapScreenContent> {
                         ],
                       ),
                     ),
-                    AbsorbPointer(
-                      absorbing: widget.isDragMode || widget.isMapTapAddMode,
-                      child: Opacity(
-                        opacity: (widget.isDragMode || widget.isMapTapAddMode)
-                            ? 0.0
-                            : 1.0,
-                        child: LocationBottomBar(
-                          isStreamActive: widget.isStreamActive,
-                          onTap: widget.onToggleLocationStream,
-                          progressBarValue: widget.progressBarValue,
-                          isLowMode: widget.isLowMode,
-                        ),
-                      ),
+                    LocationBottomBar(
+                      isStreamActive: widget.isStreamActive,
+                      onTap: widget.onToggleLocationStream,
+                      progressBarValue: widget.progressBarValue,
+                      isLowMode: widget.isLowMode,
                     ),
                   ],
                 ),

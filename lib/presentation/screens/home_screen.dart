@@ -781,16 +781,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             left: 0,
             right: 0,
             child: ColoredBox(
-              color: Colors.black.withValues(alpha: 0.6),
+              color: Colors.grey.shade800,
               child: SafeArea(
                 top: false,
                 bottom: false,
                 child: SizedBox(
-                  height: 96,
+                  // height: 96,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
+                      horizontal: 25,
+                      vertical: 15,
                     ),
                     child: Row(
                       children: [
@@ -804,6 +804,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                             style: const TextStyle(
                               fontSize: 15,
                               height: 1.6,
+                              fontWeight: FontWeight.normal,
                               color: Colors.white,
                               decoration: TextDecoration.none,
                             ),
@@ -812,6 +813,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                           ),
                         ),
                         if (_pendingSharedPosition != null) ...[
+                          const SizedBox(width: 10),
                           TextButton(
                             onPressed: _onCancelSharePreview,
                             child: Text(
