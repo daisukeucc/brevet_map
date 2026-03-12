@@ -30,8 +30,17 @@ class CameraControllerNotifier extends Notifier<MapController?> {
     }
   }
 
+  /// 地図上下のボタン（60x60）＋余白に合わせたパディング。
+  /// ルート拡大表示でスタート・ゴールがボタンに隠れないようにする。
+  static const _fitPadding = EdgeInsets.only(
+    top: 100,
+    bottom: 100,
+    left: 30,
+    right: 30,
+  );
+
   /// ルート全体が収まるようにカメラをアニメーション移動する
-  Future<void> animateToBounds(LatLngBounds bounds, {double padding = 30}) async {
+  Future<void> animateToBounds(LatLngBounds bounds) async {
     final ctrl = state;
     if (ctrl == null) return;
     try {
@@ -39,7 +48,7 @@ class CameraControllerNotifier extends Notifier<MapController?> {
       ctrl.fitCamera(
         CameraFit.bounds(
           bounds: bounds,
-          padding: EdgeInsets.all(padding),
+          padding: _fitPadding,
         ),
       );
     } catch (_) {
