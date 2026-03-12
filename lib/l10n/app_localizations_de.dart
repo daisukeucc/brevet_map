@@ -288,6 +288,22 @@ class AppLocalizationsDe extends AppLocalizations {
   String get offlineMap => 'Offline-Karte';
 
   @override
+  String get offlineMapMinimalMap => 'Minimale Karte';
+
+  @override
+  String get offlineMapStandardMap => 'Standardkarte';
+
+  @override
+  String offlineMapMinimalMapWithSize(String size) {
+    return 'Minimale Karte ($size)';
+  }
+
+  @override
+  String offlineMapStandardMapWithSize(String size) {
+    return 'Standardkarte ($size)';
+  }
+
+  @override
   String get offlineMapZoomSmall => 'Zoom: Begrenzt';
 
   @override

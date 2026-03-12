@@ -108,6 +108,20 @@
   "offline": "Hors ligne",
   "retryConnectivity": "Réessayer",
   "offlineMap": "Carte hors ligne",
+  "offlineMapMinimalMap": "Carte minimale",
+  "offlineMapStandardMap": "Carte standard",
+  "offlineMapMinimalMapWithSize": "Carte minimale ({size})",
+  "offlineMapStandardMapWithSize": "Carte standard ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
   "offlineMapZoomSmall": "Zoom : Limité",
   "offlineMapZoomMedium": "Zoom : Standard",
   "offlineMapZoomLarge": "Zoom : Étendu",

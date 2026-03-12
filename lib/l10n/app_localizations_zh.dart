@@ -281,6 +281,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get offlineMap => '离线地图';
 
   @override
+  String get offlineMapMinimalMap => '最小地图';
+
+  @override
+  String get offlineMapStandardMap => '标准地图';
+
+  @override
+  String offlineMapMinimalMapWithSize(String size) {
+    return '最小地图（$size）';
+  }
+
+  @override
+  String offlineMapStandardMapWithSize(String size) {
+    return '标准地图（$size）';
+  }
+
+  @override
   String get offlineMapZoomSmall => '缩放：限定';
 
   @override

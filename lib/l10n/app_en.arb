@@ -117,6 +117,20 @@
   "offline": "Offline",
   "retryConnectivity": "Retry",
   "offlineMap": "Offline Map",
+  "offlineMapMinimalMap": "Minimal map",
+  "offlineMapStandardMap": "Standard map",
+  "offlineMapMinimalMapWithSize": "Minimal map ({size})",
+  "offlineMapStandardMapWithSize": "Standard map ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
   "offlineMapZoomSmall": "Zoom: Limited",
   "offlineMapZoomMedium": "Zoom: Standard",
   "offlineMapZoomLarge": "Zoom: Extended",

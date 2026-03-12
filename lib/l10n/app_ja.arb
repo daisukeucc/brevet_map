@@ -93,6 +93,20 @@
   "offline": "オフラインです",
   "retryConnectivity": "再接続",
   "offlineMap": "オフラインマップ",
+  "offlineMapMinimalMap": "最小地図",
+  "offlineMapStandardMap": "標準地図",
+  "offlineMapMinimalMapWithSize": "最小地図（{size}）",
+  "offlineMapStandardMapWithSize": "標準地図（{size}）",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
   "offlineMapZoomSmall": "ズーム：小",
   "offlineMapZoomMedium": "ズーム：中",
   "offlineMapZoomLarge": "ズーム：大",

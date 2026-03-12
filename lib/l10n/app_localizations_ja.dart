@@ -283,6 +283,22 @@ class AppLocalizationsJa extends AppLocalizations {
   String get offlineMap => 'オフラインマップ';
 
   @override
+  String get offlineMapMinimalMap => '最小地図';
+
+  @override
+  String get offlineMapStandardMap => '標準地図';
+
+  @override
+  String offlineMapMinimalMapWithSize(String size) {
+    return '最小地図（$size）';
+  }
+
+  @override
+  String offlineMapStandardMapWithSize(String size) {
+    return '標準地図（$size）';
+  }
+
+  @override
   String get offlineMapZoomSmall => 'ズーム：小';
 
   @override

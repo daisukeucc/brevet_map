@@ -108,6 +108,20 @@
   "offline": "오프라인",
   "retryConnectivity": "다시 시도",
   "offlineMap": "오프라인 지도",
+  "offlineMapMinimalMap": "최소 지도",
+  "offlineMapStandardMap": "표준 지도",
+  "offlineMapMinimalMapWithSize": "최소 지도 ({size})",
+  "offlineMapStandardMapWithSize": "표준 지도 ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
   "offlineMapZoomSmall": "줌: 제한",
   "offlineMapZoomMedium": "줌: 표준",
   "offlineMapZoomLarge": "줌: 확장",

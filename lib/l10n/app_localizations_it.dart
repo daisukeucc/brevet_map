@@ -289,6 +289,22 @@ class AppLocalizationsIt extends AppLocalizations {
   String get offlineMap => 'Mappa offline';
 
   @override
+  String get offlineMapMinimalMap => 'Mappa minima';
+
+  @override
+  String get offlineMapStandardMap => 'Mappa standard';
+
+  @override
+  String offlineMapMinimalMapWithSize(String size) {
+    return 'Mappa minima ($size)';
+  }
+
+  @override
+  String offlineMapStandardMapWithSize(String size) {
+    return 'Mappa standard ($size)';
+  }
+
+  @override
   String get offlineMapZoomSmall => 'Zoom: Limitato';
 
   @override

@@ -212,43 +212,40 @@ Future<void> showOfflineMapDownloadFlow(
 
   List<String> menuItems;
   List<String>? sizeStrings;
+  List<double>? estimatedMBList;
   try {
     final regions = [
       RectangleRegion(paddedBounds).toDownloadable(
-        minZoom: 14,
+        minZoom: 10,
         maxZoom: 14,
         options: tileLayerOptions,
       ),
       RectangleRegion(paddedBounds).toDownloadable(
-        minZoom: 14,
+        minZoom: 10,
         maxZoom: 16,
-        options: tileLayerOptions,
-      ),
-      RectangleRegion(paddedBounds).toDownloadable(
-        minZoom: 14,
-        maxZoom: 17,
         options: tileLayerOptions,
       ),
     ];
     final counts = await Future.wait(
       regions.map((r) => FMTCStore('mapStore').download.countTiles(r)),
     );
+    estimatedMBList = [
+      (counts[0] * bytesPerTile) / (1024 * 1024),
+      (counts[1] * bytesPerTile) / (1024 * 1024),
+    ];
     sizeStrings = [
       sizeStr(counts[0]),
       sizeStr(counts[1]),
-      sizeStr(counts[2]),
     ];
     menuItems = [
-      l10n.offlineMapZoomSmallWithSize(sizeStrings[0]),
-      l10n.offlineMapZoomMediumWithSize(sizeStrings[1]),
-      l10n.offlineMapZoomLargeWithSize(sizeStrings[2]),
+      l10n.offlineMapMinimalMapWithSize(sizeStrings[0]),
+      l10n.offlineMapStandardMapWithSize(sizeStrings[1]),
       l10n.offlineMapCacheClearWithSize(storedSize),
     ];
   } catch (_) {
     menuItems = [
-      l10n.offlineMapZoomSmall,
-      l10n.offlineMapZoomMedium,
-      l10n.offlineMapZoomLarge,
+      l10n.offlineMapMinimalMap,
+      l10n.offlineMapStandardMap,
       l10n.offlineMapCacheClearWithSize(storedSize),
     ];
   }
@@ -257,8 +254,8 @@ Future<void> showOfflineMapDownloadFlow(
   final selected = await showTextMenuDialog(context, items: menuItems);
   if (selected == null || !context.mounted) return;
 
-  // 3=キャッシュクリア
-  if (selected == 3) {
+  // 2=キャッシュクリア
+  if (selected == 2) {
     final confirmed = await _showCacheClearConfirmDialog(context, l10n);
     if (!context.mounted || confirmed != true) return;
     const storeName = 'mapStore';
@@ -271,21 +268,24 @@ Future<void> showOfflineMapDownloadFlow(
     return;
   }
 
-  // 0=z14のみ, 1=z14-16, 2=z14-17
+  // 0=最小地図(z10-14), 1=標準地図(z10-16)
   final maxZoom = switch (selected) {
     0 => 14,
-    1 => 16,
-    _ => 17,
+    _ => 16,
   };
 
   final region = RectangleRegion(paddedBounds).toDownloadable(
-    minZoom: 14,
+    minZoom: 10,
     maxZoom: maxZoom,
     options: tileLayerOptions,
   );
 
-  // ズームレベル中・大の場合はWi-Fi推奨の確認ダイアログを表示（推定サイズ付き）
-  if (selected == 1 || selected == 2) {
+  // 推定サイズが50 MB以上の場合はWi-Fi推奨の確認ダイアログを表示（推定サイズ付き）
+  const wifiRecommendationThresholdMB = 50.0;
+  final estimatedMB = estimatedMBList != null && selected < estimatedMBList.length
+      ? estimatedMBList[selected]
+      : null;
+  if (estimatedMB != null && estimatedMB >= wifiRecommendationThresholdMB) {
     if (!context.mounted) return;
     final message = sizeStrings != null && selected < sizeStrings.length
         ? l10n.offlineMapWifiRecommendationWithSize(sizeStrings[selected])
