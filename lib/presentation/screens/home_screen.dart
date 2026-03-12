@@ -279,9 +279,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Widget _buildOfflineLayout(BuildContext context, VoidCallback onRetry) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
+    final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
     final position = _initialPosition ?? _defaultPosition();
 
     return MapScreenContent(
+      key: ValueKey(tileProviderKey),
       initialPosition: LatLng(position.latitude, position.longitude),
       initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
       polylines: mapState.routePolylines,
@@ -364,6 +366,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
     final distanceUnit = ref.watch(distanceUnitProvider);
+    final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
     final position = _initialPosition ?? _defaultPosition();
 
     // 位置取得が完了してからルート作成（ネットワークチェックでオンライン表示が先になる場合の対策）
@@ -439,6 +442,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     return Stack(
       children: [
         MapScreenContent(
+          key: ValueKey(tileProviderKey),
           initialPosition: LatLng(position.latitude, position.longitude),
           initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
           polylines: mapState.routePolylines,

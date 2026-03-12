@@ -259,10 +259,17 @@ Future<void> showOfflineMapDownloadFlow(
     final confirmed = await _showCacheClearConfirmDialog(context, l10n);
     if (!context.mounted || confirmed != true) return;
     const storeName = 'mapStore';
-    final exists = await FMTCStore(storeName).manage.ready;
+    const store = FMTCStore(storeName);
+    final exists = await store.manage.ready;
     if (exists) {
-      await FMTCStore(storeName).manage.reset();
+      await store.manage.delete();
     }
+    // 空のストアを再作成。delete のみだと FMTCTileProvider がストア参照で
+    // 失敗しネットワークにフォールバックしないため、create で再作成する
+    await store.manage.create();
+    // メモリ上のデコード済みタイル画像も破棄し、地図タイルプロバイダを再生成させる
+    PaintingBinding.instance.imageCache.clear();
+    ref.read(mapTileProviderKeyProvider.notifier).state++;
     if (!context.mounted) return;
     showAppSnackBar(context, l10n.offlineMapCacheCleared);
     return;
@@ -282,9 +289,10 @@ Future<void> showOfflineMapDownloadFlow(
 
   // 推定サイズが50 MB以上の場合はWi-Fi推奨の確認ダイアログを表示（推定サイズ付き）
   const wifiRecommendationThresholdMB = 50.0;
-  final estimatedMB = estimatedMBList != null && selected < estimatedMBList.length
-      ? estimatedMBList[selected]
-      : null;
+  final estimatedMB =
+      estimatedMBList != null && selected < estimatedMBList.length
+          ? estimatedMBList[selected]
+          : null;
   if (estimatedMB != null && estimatedMB >= wifiRecommendationThresholdMB) {
     if (!context.mounted) return;
     final message = sizeStrings != null && selected < sizeStrings.length

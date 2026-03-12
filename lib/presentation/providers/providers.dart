@@ -23,3 +23,6 @@ final locationStreamProvider =
 /// ルート・マーカー・マップスタイルの状態を管理する
 final mapStateProvider =
     NotifierProvider<MapStateNotifier, MapState>(MapStateNotifier.new);
+
+/// キャッシュ削除時にインクリメントし、地図のタイルプロバイダを再生成するためのキー
+final mapTileProviderKeyProvider = StateProvider<int>((ref) => 0);

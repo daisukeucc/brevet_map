@@ -357,11 +357,18 @@ class _MapScreenContentState extends State<MapScreenContent> {
     );
   }
 
-  TileLayer _buildTileLayer(String urlTemplate, bool useOsmOrg) {
+  /// [urlTemplate] に含まれるホストに応じてサブドメインを返す。
+  /// tile.openstreetmap（.org / .jp）は OSM 推奨のためサブドメインなし。
+  static List<String> _subdomainsForTemplate(String urlTemplate) {
+    if (urlTemplate.contains('tile.openstreetmap')) return const [];
+    return const ['a', 'b', 'c'];
+  }
+
+  TileLayer _buildTileLayer(String urlTemplate) {
     return TileLayer(
       urlTemplate: urlTemplate,
       userAgentPackageName: TileConfig.userAgentPackageName,
-      subdomains: useOsmOrg ? const [] : const ['a', 'b', 'c'],
+      subdomains: _subdomainsForTemplate(urlTemplate),
       tileProvider: _tileProvider,
     );
   }
@@ -370,8 +377,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
     final isDark = widget.mapStyleMode == 2;
     final languageCode = Localizations.localeOf(context).languageCode;
     final urlTemplate = TileConfig.getTileUrlTemplate(languageCode);
-    // tile.openstreetmap.org は OSM 推奨のためサブドメインなし（subdomains: []）
-    final useOsmOrg = urlTemplate.contains('tile.openstreetmap.org');
     final map = FlutterMap(
       mapController: _mapController,
       options: MapOptions(
@@ -392,31 +397,15 @@ class _MapScreenContentState extends State<MapScreenContent> {
         if (isDark)
           ColorFiltered(
             colorFilter: const ColorFilter.matrix(<double>[
-              -0.2126,
-              -0.7152,
-              -0.0722,
-              0,
-              265,
-              -0.2126,
-              -0.7152,
-              -0.0722,
-              0,
-              265,
-              -0.2126,
-              -0.7152,
-              -0.0722,
-              0,
-              285,
-              0,
-              0,
-              0,
-              1,
-              0,
+              -0.2126, -0.7152, -0.0722, 0, 265,
+              -0.2126, -0.7152, -0.0722, 0, 265,
+              -0.2126, -0.7152, -0.0722, 0, 285,
+              0, 0, 0, 1, 0,
             ]),
-            child: _buildTileLayer(urlTemplate, useOsmOrg),
+            child: _buildTileLayer(urlTemplate),
           )
         else
-          _buildTileLayer(urlTemplate, useOsmOrg),
+          _buildTileLayer(urlTemplate),
         Align(
           alignment: Alignment.bottomRight,
           child: Container(
