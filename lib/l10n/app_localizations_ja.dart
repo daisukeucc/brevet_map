@@ -335,4 +335,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return 'データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします。\n\n推定サイズ: 約$size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return '保存済み: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return 'キャッシュ削除（$size）';
+  }
+
+  @override
+  String get offlineMapCacheClear => 'キャッシュ削除';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      'キャッシュデータ（オフラインマップ含む）が増えると、地図の表示が遅くなることがあります\n\n地図表示の流れ\n\n1. キャッシュ参照\n2-1. キャッシュあり：\nネットワークアクセスなし\n2-2. キャッシュなし：\nネットワークアクセスしキャッシュ保存\n3. 地図表示\n\n1のキャッシュ参照はデータが大きいほど時間がかかります\nそのため、地図表示が遅くなったり、ブルベ用に大容量のオフラインマップを保存した場合、キャッシュ削除することをおすすめします';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => '削除';
+
+  @override
+  String get offlineMapCacheCleared => 'キャッシュを削除しました';
 }

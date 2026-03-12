@@ -153,5 +153,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "offlineMapCurrentStorage": "Stored: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapCacheClearWithSize": "Clear cache ({size})",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "offlineMapCacheClear": "Clear cache",
+  "offlineMapCacheClearConfirmMessage": "When cache data (including offline maps) grows, map display can become slower.\n\nMap display flow:\n\n1. Cache lookup\n2-1. If cached:\nno network access\n2-2. If not cached:\nnetwork access and save to cache\n3. Map display\n\nStep 1 cache lookup takes more time when data is larger. So if the map becomes slow or you have saved a large offline map for brevet, we recommend deleting the cache.",
+  "offlineMapCacheClearConfirmButton": "Delete",
+  "offlineMapCacheCleared": "Cache cleared"
 }

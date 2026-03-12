@@ -336,4 +336,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return '데이터 용량이 크므로 Wi-Fi로 다운로드하는 것을 권장합니다.\n\n예상 크기: 약 $size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return '저장됨: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return '캐시 지우기 ($size)';
+  }
+
+  @override
+  String get offlineMapCacheClear => '캐시 지우기';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      '캐시 데이터(오프라인 지도 포함)가 늘어나면 지도 표시가 느려질 수 있습니다.\n\n지도 표시 흐름:\n\n1. 캐시 조회\n2-1. 캐시 있음:\n네트워크 접근 없음\n2-2. 캐시 없음:\n네트워크 접근 후 캐시 저장\n3. 지도 표시\n\n1단계 캐시 조회는 데이터가 클수록 시간이 더 걸립니다. 지도가 느려지거나 브레베용 대용량 오프라인 지도를 저장한 경우 캐시 삭제를 권장합니다.';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => '삭제';
+
+  @override
+  String get offlineMapCacheCleared => '캐시를 지웠습니다';
 }

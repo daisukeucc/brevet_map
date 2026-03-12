@@ -343,4 +343,27 @@ class AppLocalizationsDe extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return 'Wir empfehlen das Herunterladen über WLAN wegen der großen Datenmenge.\n\nGeschätzte Größe: ~$size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return 'Gespeichert: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return 'Cache leeren ($size)';
+  }
+
+  @override
+  String get offlineMapCacheClear => 'Cache leeren';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      'Wenn Cache-Daten (einschließlich Offline-Karten) zunehmen, kann die Kartenanzeige langsamer werden.\n\nAblauf der Kartenanzeige:\n\n1. Cache-Abfrage\n2-1. Im Cache:\nKein Netzwerkzugriff\n2-2. Nicht im Cache:\nNetzwerkzugriff und Speicherung im Cache\n3. Kartenanzeige\n\nSchritt 1 Cache-Abfrage dauert bei größeren Daten länger. Bei langsamer Kartenanzeige oder großen Offline-Karten für Brevet wird die Löschung des Caches empfohlen.';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => 'Löschen';
+
+  @override
+  String get offlineMapCacheCleared => 'Cache geleert';
 }

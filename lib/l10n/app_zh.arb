@@ -142,5 +142,15 @@
     "placeholders": {
       "size": { "type": "String" }
     }
-  }
+  },
+  "offlineMapCurrentStorage": "已保存: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "offlineMapCacheClearWithSize": "清除缓存（{size}）",
+  "@offlineMapCacheClearWithSize": { "placeholders": { "size": { "type": "String" } } },
+  "offlineMapCacheClear": "清除缓存",
+  "offlineMapCacheClearConfirmMessage": "缓存数据（含离线地图）增多时，地图显示可能会变慢。\n\n地图显示流程：\n\n1. 缓存查询\n2-1. 有缓存：\n无需网络访问\n2-2. 无缓存：\n网络访问并保存到缓存\n3. 地图显示\n\n步骤1的缓存查询在数据越大时耗时越长。若地图显示变慢或为 brevet 保存了大容量离线地图，建议删除缓存。",
+  "offlineMapCacheClearConfirmButton": "删除",
+  "offlineMapCacheCleared": "缓存已清除"
 }

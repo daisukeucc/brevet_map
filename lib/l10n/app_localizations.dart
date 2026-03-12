@@ -727,6 +727,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~{size}'**
   String offlineMapWifiRecommendationWithSize(String size);
+
+  /// No description provided for @offlineMapCurrentStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored: {size}'**
+  String offlineMapCurrentStorage(String size);
+
+  /// No description provided for @offlineMapCacheClearWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache ({size})'**
+  String offlineMapCacheClearWithSize(String size);
+
+  /// No description provided for @offlineMapCacheClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache'**
+  String get offlineMapCacheClear;
+
+  /// No description provided for @offlineMapCacheClearConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'When cache data (including offline maps) grows, map display can become slower.\n\nMap display flow:\n\n1. Cache lookup\n2-1. If cached:\nno network access\n2-2. If not cached:\nnetwork access and save to cache\n3. Map display\n\nStep 1 cache lookup takes more time when data is larger. So if the map becomes slow or you have saved a large offline map for brevet, we recommend deleting the cache.'**
+  String get offlineMapCacheClearConfirmMessage;
+
+  /// No description provided for @offlineMapCacheClearConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get offlineMapCacheClearConfirmButton;
+
+  /// No description provided for @offlineMapCacheCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared'**
+  String get offlineMapCacheCleared;
 }
 
 class _AppLocalizationsDelegate

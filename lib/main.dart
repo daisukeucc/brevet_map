@@ -17,7 +17,7 @@ Future<void> main() async {
   await TileConfig.initUserAgentPackageName();
   try {
     await FMTCObjectBoxBackend().initialise();
-    await FMTCStore('mapStore').manage.create();
+    await const FMTCStore('mapStore').manage.create();
   } catch (_) {
     // FMTC 初期化失敗時はキャッシュなしで動作継続
   }

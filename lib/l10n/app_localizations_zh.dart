@@ -332,4 +332,27 @@ class AppLocalizationsZh extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return '由于数据量大，建议使用 Wi-Fi 下载。\n\n预计大小：约 $size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return '已保存: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return '清除缓存（$size）';
+  }
+
+  @override
+  String get offlineMapCacheClear => '清除缓存';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      '缓存数据（含离线地图）增多时，地图显示可能会变慢。\n\n地图显示流程：\n\n1. 缓存查询\n2-1. 有缓存：\n无需网络访问\n2-2. 无缓存：\n网络访问并保存到缓存\n3. 地图显示\n\n步骤1的缓存查询在数据越大时耗时越长。若地图显示变慢或为 brevet 保存了大容量离线地图，建议删除缓存。';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => '删除';
+
+  @override
+  String get offlineMapCacheCleared => '缓存已清除';
 }

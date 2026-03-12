@@ -344,4 +344,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return 'Recomendamos descargar por Wi-Fi debido al gran tamaño de los datos.\n\nTamaño estimado: ~$size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return 'Almacenado: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return 'Borrar caché ($size)';
+  }
+
+  @override
+  String get offlineMapCacheClear => 'Borrar caché';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      'Cuando los datos de caché (incluidos mapas sin conexión) aumentan, la visualización del mapa puede ralentizarse.\n\nFlujo de visualización del mapa:\n\n1. Consulta de caché\n2-1. En caché:\nsin acceso a red\n2-2. No en caché:\nacceso a red y guardado en caché\n3. Visualización del mapa\n\nEl paso 1 tarda más cuando hay más datos. Se recomienda eliminar la caché si el mapa va lento o ha guardado un mapa sin conexión grande para brevet.';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => 'Eliminar';
+
+  @override
+  String get offlineMapCacheCleared => 'Caché borrada';
 }

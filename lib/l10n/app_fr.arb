@@ -142,5 +142,15 @@
     "placeholders": {
       "size": { "type": "String" }
     }
-  }
+  },
+  "offlineMapCurrentStorage": "Enregistré : {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "offlineMapCacheClearWithSize": "Vider le cache ({size})",
+  "@offlineMapCacheClearWithSize": { "placeholders": { "size": { "type": "String" } } },
+  "offlineMapCacheClear": "Vider le cache",
+  "offlineMapCacheClearConfirmMessage": "Lorsque les données en cache (y compris les cartes hors ligne) augmentent, l'affichage de la carte peut devenir plus lent.\n\nFlux d'affichage de la carte :\n\n1. Consultation du cache\n2-1. En cache :\npas d'accès réseau\n2-2. Pas en cache :\naccès réseau et enregistrement dans le cache\n3. Affichage de la carte\n\nL'étape 1 prend plus de temps lorsque les données sont volumineuses. En cas d'affichage lent ou de grande carte hors ligne pour brevet, il est recommandé de supprimer le cache.",
+  "offlineMapCacheClearConfirmButton": "Supprimer",
+  "offlineMapCacheCleared": "Cache vidé"
 }

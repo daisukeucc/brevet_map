@@ -341,4 +341,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return 'We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~$size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return 'Stored: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return 'Clear cache ($size)';
+  }
+
+  @override
+  String get offlineMapCacheClear => 'Clear cache';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      'When cache data (including offline maps) grows, map display can become slower.\n\nMap display flow:\n\n1. Cache lookup\n2-1. If cached:\nno network access\n2-2. If not cached:\nnetwork access and save to cache\n3. Map display\n\nStep 1 cache lookup takes more time when data is larger. So if the map becomes slow or you have saved a large offline map for brevet, we recommend deleting the cache.';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => 'Delete';
+
+  @override
+  String get offlineMapCacheCleared => 'Cache cleared';
 }

@@ -129,5 +129,19 @@
         "type": "String"
       }
     }
-  }
+  },
+  "offlineMapCurrentStorage": "保存済み: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": { "type": "String" }
+    }
+  },
+  "offlineMapCacheClearWithSize": "キャッシュ削除（{size}）",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "offlineMapCacheClear": "キャッシュ削除",
+  "offlineMapCacheClearConfirmMessage": "キャッシュデータ（オフラインマップ含む）が増えると、地図の表示が遅くなることがあります\n\n地図表示の流れ\n\n1. キャッシュ参照\n2-1. キャッシュあり：\nネットワークアクセスなし\n2-2. キャッシュなし：\nネットワークアクセスしキャッシュ保存\n3. 地図表示\n\n1のキャッシュ参照はデータが大きいほど時間がかかります\nそのため、地図表示が遅くなったり、ブルベ用に大容量のオフラインマップを保存した場合、キャッシュ削除することをおすすめします",
+  "offlineMapCacheClearConfirmButton": "削除",
+  "offlineMapCacheCleared": "キャッシュを削除しました"
 }

@@ -348,4 +348,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return 'Nous recommandons le téléchargement via Wi-Fi en raison de la taille des données.\n\nTaille estimée : ~$size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return 'Enregistré : $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return 'Vider le cache ($size)';
+  }
+
+  @override
+  String get offlineMapCacheClear => 'Vider le cache';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      'Lorsque les données en cache (y compris les cartes hors ligne) augmentent, l\'affichage de la carte peut devenir plus lent.\n\nFlux d\'affichage de la carte :\n\n1. Consultation du cache\n2-1. En cache :\npas d\'accès réseau\n2-2. Pas en cache :\naccès réseau et enregistrement dans le cache\n3. Affichage de la carte\n\nL\'étape 1 prend plus de temps lorsque les données sont volumineuses. En cas d\'affichage lent ou de grande carte hors ligne pour brevet, il est recommandé de supprimer le cache.';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => 'Supprimer';
+
+  @override
+  String get offlineMapCacheCleared => 'Cache vidé';
 }

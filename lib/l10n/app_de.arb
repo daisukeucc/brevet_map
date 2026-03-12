@@ -142,5 +142,15 @@
     "placeholders": {
       "size": { "type": "String" }
     }
-  }
+  },
+  "offlineMapCurrentStorage": "Gespeichert: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": { "size": { "type": "String" } }
+  },
+  "offlineMapCacheClearWithSize": "Cache leeren ({size})",
+  "@offlineMapCacheClearWithSize": { "placeholders": { "size": { "type": "String" } } },
+  "offlineMapCacheClear": "Cache leeren",
+  "offlineMapCacheClearConfirmMessage": "Wenn Cache-Daten (einschließlich Offline-Karten) zunehmen, kann die Kartenanzeige langsamer werden.\n\nAblauf der Kartenanzeige:\n\n1. Cache-Abfrage\n2-1. Im Cache:\nKein Netzwerkzugriff\n2-2. Nicht im Cache:\nNetzwerkzugriff und Speicherung im Cache\n3. Kartenanzeige\n\nSchritt 1 Cache-Abfrage dauert bei größeren Daten länger. Bei langsamer Kartenanzeige oder großen Offline-Karten für Brevet wird die Löschung des Caches empfohlen.",
+  "offlineMapCacheClearConfirmButton": "Löschen",
+  "offlineMapCacheCleared": "Cache geleert"
 }
