@@ -198,5 +198,8 @@
   "offlineMapCacheClear": "Borrar caché",
   "offlineMapCacheClearConfirmMessage": "Cuando los datos de caché (incluidos mapas sin conexión) aumentan, la visualización del mapa puede ralentizarse.\n\nFlujo de visualización del mapa:\n\n1. Consulta de caché\n2-1. En caché:\nsin acceso a red\n2-2. No en caché:\nacceso a red y guardado en caché\n3. Visualización del mapa\n\nEl paso 1 tarda más cuando hay más datos. Se recomienda eliminar la caché si el mapa va lento o ha guardado un mapa sin conexión grande para brevet.",
   "offlineMapCacheClearConfirmButton": "Eliminar",
-  "offlineMapCacheCleared": "Caché borrada"
+  "offlineMapCacheCleared": "Caché borrada",
+  "offlineMapInfoMessage1": "Los mapas sin conexión reducen el acceso a la red y ahorran batería incluso en línea",
+  "offlineMapInfoMessage2": "Para mantener la app funcionando sin problemas, recomendamos eliminar los mapas descargados cuando ya no los necesites",
+  "offlineMapInfoButton": "Descargar"
 }

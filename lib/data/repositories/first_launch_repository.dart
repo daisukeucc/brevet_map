@@ -115,6 +115,20 @@ Future<int> loadDistanceUnit() async {
   return prefs.getInt(_keyDistanceUnit) ?? 0;
 }
 
+const _keyOfflineMapInfoDismissed = 'offline_map_info_dismissed';
+
+/// オフラインマップ説明ダイアログを「以後表示しない」にしたかどうかを保存
+Future<void> saveOfflineMapInfoDismissed(bool dismissed) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_keyOfflineMapInfoDismissed, dismissed);
+}
+
+/// オフラインマップ説明ダイアログを「以後表示しない」にしたかどうかを返す
+Future<bool> loadOfflineMapInfoDismissed() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool(_keyOfflineMapInfoDismissed) ?? false;
+}
+
 /// 画面スリープ説明ダイアログを「以後表示しない」にしたかどうかを保存
 Future<void> saveSleepInfoDismissed(bool dismissed) async {
   final prefs = await SharedPreferences.getInstance();

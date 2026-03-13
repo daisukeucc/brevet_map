@@ -390,4 +390,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get offlineMapCacheCleared => 'Cache svuotata';
+
+  @override
+  String get offlineMapInfoMessage1 =>
+      'Le mappe offline riducono l\'accesso alla rete e risparmiano batteria anche quando si è online';
+
+  @override
+  String get offlineMapInfoMessage2 =>
+      'Per mantenere l\'app fluida, si consiglia di eliminare le mappe scaricate quando non sono più necessarie';
+
+  @override
+  String get offlineMapInfoButton => 'Scarica';
 }

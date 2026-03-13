@@ -12,6 +12,7 @@ import 'distance_unit_handler.dart';
 import 'gpx_export_handler.dart';
 import 'gpx_import_handler.dart';
 import 'poi_management_handler.dart';
+import 'offline_map_info_dialog.dart';
 import 'sleep_info_dialog.dart';
 import 'sleep_settings_handler.dart';
 
@@ -37,6 +38,17 @@ Future<void> handleGpxExportTap(BuildContext context, WidgetRef ref) async {
 
 /// オフラインマップメニューがタップされたときのフロー
 Future<void> handleOfflineMapTap(BuildContext context, WidgetRef ref) async {
+  if (!context.mounted) return;
+
+  final dismissed = await loadOfflineMapInfoDismissed();
+  if (!context.mounted) return;
+
+  if (!dismissed) {
+    final proceed = await showOfflineMapInfoDialog(context);
+    if (!context.mounted) return;
+    if (!proceed) return;
+  }
+
   await showOfflineMapDownloadFlow(context, ref);
 }
 

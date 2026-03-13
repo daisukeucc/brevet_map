@@ -381,4 +381,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get offlineMapCacheCleared => '캐시를 지웠습니다';
+
+  @override
+  String get offlineMapInfoMessage1 =>
+      '오프라인 지도는 온라인 상태에서도 네트워크 접근을 줄이고 배터리를 절약합니다';
+
+  @override
+  String get offlineMapInfoMessage2 =>
+      '앱을 원활하게 사용하기 위해 더 이상 필요하지 않은 지도는 삭제하는 것을 권장합니다';
+
+  @override
+  String get offlineMapInfoButton => '다운로드';
 }

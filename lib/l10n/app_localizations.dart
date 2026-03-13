@@ -799,6 +799,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cache cleared'**
   String get offlineMapCacheCleared;
+
+  /// No description provided for @offlineMapInfoMessage1.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline maps reduce network access and save battery even when online'**
+  String get offlineMapInfoMessage1;
+
+  /// No description provided for @offlineMapInfoMessage2.
+  ///
+  /// In en, this message translates to:
+  /// **'To keep the app running smoothly, we recommend deleting downloaded maps when you no longer need them'**
+  String get offlineMapInfoMessage2;
+
+  /// No description provided for @offlineMapInfoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get offlineMapInfoButton;
 }
 
 class _AppLocalizationsDelegate

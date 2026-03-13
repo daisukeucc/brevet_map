@@ -388,4 +388,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineMapCacheCleared => 'Cache cleared';
+
+  @override
+  String get offlineMapInfoMessage1 =>
+      'Offline maps reduce network access and save battery even when online';
+
+  @override
+  String get offlineMapInfoMessage2 =>
+      'To keep the app running smoothly, we recommend deleting downloaded maps when you no longer need them';
+
+  @override
+  String get offlineMapInfoButton => 'Download';
 }

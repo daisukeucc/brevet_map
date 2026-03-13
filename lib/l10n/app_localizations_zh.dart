@@ -377,4 +377,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get offlineMapCacheCleared => '缓存已清除';
+
+  @override
+  String get offlineMapInfoMessage1 => '离线地图即使在线时也能减少网络访问并节省电量';
+
+  @override
+  String get offlineMapInfoMessage2 => '为保持应用顺畅运行，建议在不再需要时删除已下载的地图';
+
+  @override
+  String get offlineMapInfoButton => '下载';
 }

@@ -198,5 +198,8 @@
   "offlineMapCacheClear": "Svuota cache",
   "offlineMapCacheClearConfirmMessage": "Quando i dati della cache (inclusi i map offline) aumentano, la visualizzazione della mappa può rallentare.\n\nFlusso di visualizzazione della mappa:\n\n1. Consultazione cache\n2-1. In cache:\nnessun accesso di rete\n2-2. Non in cache:\naccesso di rete e salvataggio in cache\n3. Visualizzazione mappa\n\nIl passaggio 1 richiede più tempo con dati più grandi. In caso di mappa lenta o mappa offline di grandi dimensioni per brevet, si consiglia di eliminare la cache.",
   "offlineMapCacheClearConfirmButton": "Elimina",
-  "offlineMapCacheCleared": "Cache svuotata"
+  "offlineMapCacheCleared": "Cache svuotata",
+  "offlineMapInfoMessage1": "Le mappe offline riducono l'accesso alla rete e risparmiano batteria anche quando si è online",
+  "offlineMapInfoMessage2": "Per mantenere l'app fluida, si consiglia di eliminare le mappe scaricate quando non sono più necessarie",
+  "offlineMapInfoButton": "Scarica"
 }

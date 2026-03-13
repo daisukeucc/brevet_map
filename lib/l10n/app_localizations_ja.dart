@@ -381,4 +381,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get offlineMapCacheCleared => 'キャッシュを削除しました';
+
+  @override
+  String get offlineMapInfoMessage1 =>
+      'オフラインマップはオンラインでもネットワークアクセスが減りバッテリー消費を抑えます';
+
+  @override
+  String get offlineMapInfoMessage2 =>
+      '但し、アプリを快適に使用するために、ダウンロードしたマップは使用終了後に削除することをお勧めします';
+
+  @override
+  String get offlineMapInfoButton => 'ダウンロード';
 }
