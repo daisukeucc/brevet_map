@@ -7,13 +7,16 @@
   "delete": "Supprimer",
   "edit": "Modifier",
   "change": "Modifier",
-  "register": "Enregistrer",
+  "register": "Ajouter",
   "settings": "Paramètres",
   "share": "Partager",
   "shareFailed": "Échec du partage",
   "showMyLocation": "Afficher ma position",
-  "sleepSettings": "Paramètres de mise en veille",
-  "switchGpsLevel": "Changer le niveau de localisation",
+  "sleepSettings": "Mise en veille",
+  "sleepInfoMessage1": "Désactive le GPS lors de la mise en veille de l'écran pour économiser la batterie",
+  "sleepInfoMessage2": "Pour économiser encore plus de batterie, mettez votre appareil en veille. Le GPS se désactive également",
+  "sleepInfoDontShowAgain": "Ne plus afficher",
+  "switchGpsLevel": "Précision de localisation",
   "gpxImport": "Importer un fichier GPX",
   "gpxExport": "Exporter un fichier GPX",
   "gpxExportDialogTitle": "Nom du fichier",
@@ -21,17 +24,19 @@
   "gpxExportComplete": "Enregistré {filename}",
   "@gpxExportComplete": {
     "placeholders": {
-      "filename": { "type": "String" }
+      "filename": {
+        "type": "String"
+      }
     }
   },
   "gpxExportFailed": "Échec de l'export",
   "gpxExportPermissionDenied": "Permission d'enregistrement refusée",
   "poiAdd": "Ajouter un POI",
-  "poiAddEdit": "Ajouter / Modifier POI",
-  "poiAddByDistance": "Ajouter un POI par distance",
-  "poiAddByMapTap": "Ajouter un POI en tapant sur la carte",
+  "poiAddEdit": "Ajouter ou modifier un POI",
+  "poiAddByDistance": "Ajouter un POI à distance",
+  "poiAddByMapTap": "Ajouter un POI depuis la carte",
   "poiTabAdd": "Ajouter POI",
-  "poiTabEdit": "Modifier / Supprimer POI",
+  "poiTabEdit": "Modifier ou supprimer un POI",
   "poiType": "Type de POI",
   "checkpoint": "Point de contrôle",
   "information": "Information",
@@ -45,17 +50,21 @@
   "poiAtKmPoint": "POI au point {kmLabel}",
   "@poiAtKmPoint": {
     "placeholders": {
-      "kmLabel": { "type": "String" }
+      "kmLabel": {
+        "type": "String"
+      }
     }
   },
   "poiOffRoutePoi": "Modifier le POI",
   "@kmPoint": {
     "placeholders": {
-      "km": { "type": "String" }
+      "km": {
+        "type": "String"
+      }
     }
   },
-  "changePoiPosition": "Changer à cette position",
-  "dragMarkerHint": "Faites glisser le marqueur pour changer la position",
+  "changePoiPosition": "Définir cette position",
+  "dragMarkerHint": "Faites glisser le marqueur pour le déplacer",
   "longPressPoiHint": "Appuyez longuement sur le point où vous voulez ajouter un POI",
   "poiRegistered": "POI enregistré",
   "poiAddedFromShare": "POI ajouté depuis un lien partagé",
@@ -91,14 +100,16 @@
   "sleepSetMessage": "Mise en veille réglée sur {minutes} minutes",
   "@sleepSetMessage": {
     "placeholders": {
-      "minutes": { "type": "int" }
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "sleepOff": "OFF",
   "sleep1min": "1 min",
   "sleep5min": "5 min",
   "sleep10min": "10 min",
-  "distanceUnit": "Paramètres des unités de distance",
+  "distanceUnit": "Unité de distance",
   "unitKm": "km",
   "unitMile": "mile",
   "distanceUnitSetToKm": "Unité de distance réglée sur km",
@@ -114,12 +125,16 @@
   "offlineMapStandardMapWithSize": "Zoom max : 16 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapStandardMapWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapZoomSmall": "Zoom : Limité",
@@ -130,22 +145,28 @@
   "offlineMapZoomLargeWithSize": "Zoom : Étendu ({size})",
   "@offlineMapZoomSmallWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomMediumWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomLargeWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapRequiresNetwork": "Une connexion réseau est requise pour télécharger les cartes hors ligne",
   "offlineMapNoRoute": "L'itinéraire n'est pas chargé. Veuillez importer un fichier GPX d'abord.",
-  "offlineMapDownloading": "Téléchargement ... ",
+  "offlineMapDownloading": "Téléchargement... ",
   "offlineMapCancel": "Annuler",
   "offlineMapDownloadComplete": "Téléchargement de la carte hors ligne terminé",
   "offlineMapDownloadFailed": "Échec du téléchargement",
@@ -154,15 +175,27 @@
   "offlineMapWifiRecommendationWithSize": "Nous recommandons le téléchargement via Wi-Fi en raison de la taille des données.\n\nTaille estimée : ~{size}",
   "@offlineMapWifiRecommendationWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapCurrentStorage": "Enregistré : {size}",
   "@offlineMapCurrentStorage": {
-    "placeholders": { "size": { "type": "String" } }
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   },
   "offlineMapCacheClearWithSize": "Vider le cache ({size})",
-  "@offlineMapCacheClearWithSize": { "placeholders": { "size": { "type": "String" } } },
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "offlineMapCacheClear": "Vider le cache",
   "offlineMapCacheClearConfirmMessage": "Lorsque les données en cache (y compris les cartes hors ligne) augmentent, l'affichage de la carte peut devenir plus lent.\n\nFlux d'affichage de la carte :\n\n1. Consultation du cache\n2-1. En cache :\npas d'accès réseau\n2-2. Pas en cache :\naccès réseau et enregistrement dans le cache\n3. Affichage de la carte\n\nL'étape 1 prend plus de temps lorsque les données sont volumineuses. En cas d'affichage lent ou de grande carte hors ligne pour brevet, il est recommandé de supprimer le cache.",
   "offlineMapCacheClearConfirmButton": "Supprimer",

@@ -30,7 +30,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get change => '변경';
 
   @override
-  String get register => '등록';
+  String get register => '추가';
 
   @override
   String get settings => '설정';
@@ -45,10 +45,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get showMyLocation => '내 위치 표시';
 
   @override
-  String get sleepSettings => '화면 절전 설정';
+  String get sleepSettings => '화면 절전';
 
   @override
-  String get switchGpsLevel => '위치 수준 전환';
+  String get sleepInfoMessage1 => '화면 절전 시 GPS를 끄고 배터리를 절약합니다';
+
+  @override
+  String get sleepInfoMessage2 => '배터리를 더 절약하려면 기기를 절전 모드로 설정하세요. GPS도 꺼집니다';
+
+  @override
+  String get sleepInfoDontShowAgain => '다시 표시하지 않음';
+
+  @override
+  String get switchGpsLevel => '위치 정확도';
 
   @override
   String get gpxImport => 'GPX 파일 가져오기';
@@ -77,19 +86,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiAdd => 'POI 추가';
 
   @override
-  String get poiAddEdit => 'POI 추가 / 편집';
+  String get poiAddEdit => 'POI 추가 또는 편집';
 
   @override
   String get poiAddByDistance => '거리로 POI 추가';
 
   @override
-  String get poiAddByMapTap => '지도 탭으로 POI 추가';
+  String get poiAddByMapTap => '지도에서 POI 추가';
 
   @override
   String get poiTabAdd => 'POI 추가';
 
   @override
-  String get poiTabEdit => 'POI 편집 / 삭제';
+  String get poiTabEdit => 'POI 편집 또는 삭제';
 
   @override
   String get poiType => 'POI 유형';
@@ -132,10 +141,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiOffRoutePoi => 'POI 편집';
 
   @override
-  String get changePoiPosition => '이 위치로 변경';
+  String get changePoiPosition => '이 위치로 설정';
 
   @override
-  String get dragMarkerHint => '마커를 드래그하여 위치 변경';
+  String get dragMarkerHint => '마커를 드래그하여 이동하세요';
 
   @override
   String get longPressPoiHint => 'POI를 추가할 지점을 길게 누르세요';
@@ -254,7 +263,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sleep10min => '10분';
 
   @override
-  String get distanceUnit => '거리 단위 설정';
+  String get distanceUnit => '거리 단위';
 
   @override
   String get unitKm => 'km';
@@ -330,7 +339,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get offlineMapNoRoute => '경로가 로드되지 않았습니다. 먼저 GPX 파일을 가져오세요.';
 
   @override
-  String get offlineMapDownloading => '다운로드 중 ... ';
+  String get offlineMapDownloading => '다운로드 중... ';
 
   @override
   String get offlineMapCancel => '취소';

@@ -30,7 +30,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get change => '更改';
 
   @override
-  String get register => '注册';
+  String get register => '添加';
 
   @override
   String get settings => '设置';
@@ -45,10 +45,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get showMyLocation => '显示我的位置';
 
   @override
-  String get sleepSettings => '屏幕休眠设置';
+  String get sleepSettings => '屏幕休眠';
 
   @override
-  String get switchGpsLevel => '切换定位级别';
+  String get sleepInfoMessage1 => '屏幕休眠时关闭GPS以节省电量';
+
+  @override
+  String get sleepInfoMessage2 => '要进一步节省电量，请将设备置于休眠状态。GPS也会关闭';
+
+  @override
+  String get sleepInfoDontShowAgain => '不再显示';
+
+  @override
+  String get switchGpsLevel => '位置精度';
 
   @override
   String get gpxImport => '导入 GPX 文件';
@@ -77,19 +86,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiAdd => '添加 POI';
 
   @override
-  String get poiAddEdit => '添加 / 编辑 POI';
+  String get poiAddEdit => '添加或编辑POI';
 
   @override
-  String get poiAddByDistance => '按距离添加 POI';
+  String get poiAddByDistance => '按距离添加POI';
 
   @override
-  String get poiAddByMapTap => '通过点击地图添加 POI';
+  String get poiAddByMapTap => '从地图添加POI';
 
   @override
   String get poiTabAdd => '添加 POI';
 
   @override
-  String get poiTabEdit => '编辑 / 删除 POI';
+  String get poiTabEdit => '编辑或删除POI';
 
   @override
   String get poiType => 'POI 类型';
@@ -132,10 +141,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiOffRoutePoi => '编辑 POI';
 
   @override
-  String get changePoiPosition => '更改为此位置';
+  String get changePoiPosition => '设为此位置';
 
   @override
-  String get dragMarkerHint => '拖动标记以更改位置';
+  String get dragMarkerHint => '拖动标记以移动';
 
   @override
   String get longPressPoiHint => '长按要添加 POI 的位置';
@@ -251,7 +260,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sleep10min => '10分钟';
 
   @override
-  String get distanceUnit => '距离单位设置';
+  String get distanceUnit => '距离单位';
 
   @override
   String get unitKm => '公里';
@@ -327,7 +336,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get offlineMapNoRoute => '路线未加载。请先导入 GPX 文件。';
 
   @override
-  String get offlineMapDownloading => '正在下载 ... ';
+  String get offlineMapDownloading => '下载中... ';
 
   @override
   String get offlineMapCancel => '取消';

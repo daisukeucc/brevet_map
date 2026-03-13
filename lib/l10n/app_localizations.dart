@@ -155,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @register.
   ///
   /// In en, this message translates to:
-  /// **'Register'**
+  /// **'Add'**
   String get register;
 
   /// No description provided for @settings.
@@ -185,13 +185,31 @@ abstract class AppLocalizations {
   /// No description provided for @sleepSettings.
   ///
   /// In en, this message translates to:
-  /// **'Screen sleep settings'**
+  /// **'Screen Sleep'**
   String get sleepSettings;
+
+  /// No description provided for @sleepInfoMessage1.
+  ///
+  /// In en, this message translates to:
+  /// **'Turns off GPS when the screen sleeps to save battery'**
+  String get sleepInfoMessage1;
+
+  /// No description provided for @sleepInfoMessage2.
+  ///
+  /// In en, this message translates to:
+  /// **'To save even more battery, put your device to sleep. GPS also turns off'**
+  String get sleepInfoMessage2;
+
+  /// No description provided for @sleepInfoDontShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show again'**
+  String get sleepInfoDontShowAgain;
 
   /// No description provided for @switchGpsLevel.
   ///
   /// In en, this message translates to:
-  /// **'Switch location level'**
+  /// **'Location accuracy'**
   String get switchGpsLevel;
 
   /// No description provided for @gpxImport.
@@ -245,19 +263,19 @@ abstract class AppLocalizations {
   /// No description provided for @poiAddEdit.
   ///
   /// In en, this message translates to:
-  /// **'Add / Edit POI'**
+  /// **'Add or Edit POI'**
   String get poiAddEdit;
 
   /// No description provided for @poiAddByDistance.
   ///
   /// In en, this message translates to:
-  /// **'Add POI by distance'**
+  /// **'Add POI at distance'**
   String get poiAddByDistance;
 
   /// No description provided for @poiAddByMapTap.
   ///
   /// In en, this message translates to:
-  /// **'Add POI by map tap'**
+  /// **'Add POI from map'**
   String get poiAddByMapTap;
 
   /// No description provided for @poiTabAdd.
@@ -269,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiTabEdit.
   ///
   /// In en, this message translates to:
-  /// **'Edit / Delete POI'**
+  /// **'Edit or Delete POI'**
   String get poiTabEdit;
 
   /// No description provided for @poiType.
@@ -347,13 +365,13 @@ abstract class AppLocalizations {
   /// No description provided for @changePoiPosition.
   ///
   /// In en, this message translates to:
-  /// **'Change to this position'**
+  /// **'Set this position'**
   String get changePoiPosition;
 
   /// No description provided for @dragMarkerHint.
   ///
   /// In en, this message translates to:
-  /// **'Drag the marker to change position'**
+  /// **'Drag the marker to move it'**
   String get dragMarkerHint;
 
   /// No description provided for @longPressPoiHint.
@@ -581,7 +599,7 @@ abstract class AppLocalizations {
   /// No description provided for @distanceUnit.
   ///
   /// In en, this message translates to:
-  /// **'Distance unit settings'**
+  /// **'Distance Unit'**
   String get distanceUnit;
 
   /// No description provided for @unitKm.
@@ -713,7 +731,7 @@ abstract class AppLocalizations {
   /// No description provided for @offlineMapDownloading.
   ///
   /// In en, this message translates to:
-  /// **'Downloading ... '**
+  /// **'Downloading... '**
   String get offlineMapDownloading;
 
   /// No description provided for @offlineMapCancel.

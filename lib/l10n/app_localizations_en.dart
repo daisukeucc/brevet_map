@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get change => 'Change';
 
   @override
-  String get register => 'Register';
+  String get register => 'Add';
 
   @override
   String get settings => 'Settings';
@@ -45,10 +45,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get showMyLocation => 'Show my location';
 
   @override
-  String get sleepSettings => 'Screen sleep settings';
+  String get sleepSettings => 'Screen Sleep';
 
   @override
-  String get switchGpsLevel => 'Switch location level';
+  String get sleepInfoMessage1 =>
+      'Turns off GPS when the screen sleeps to save battery';
+
+  @override
+  String get sleepInfoMessage2 =>
+      'To save even more battery, put your device to sleep. GPS also turns off';
+
+  @override
+  String get sleepInfoDontShowAgain => 'Don\'t show again';
+
+  @override
+  String get switchGpsLevel => 'Location accuracy';
 
   @override
   String get gpxImport => 'Import GPX file';
@@ -77,19 +88,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiAdd => 'Add POI';
 
   @override
-  String get poiAddEdit => 'Add / Edit POI';
+  String get poiAddEdit => 'Add or Edit POI';
 
   @override
-  String get poiAddByDistance => 'Add POI by distance';
+  String get poiAddByDistance => 'Add POI at distance';
 
   @override
-  String get poiAddByMapTap => 'Add POI by map tap';
+  String get poiAddByMapTap => 'Add POI from map';
 
   @override
   String get poiTabAdd => 'Add POI';
 
   @override
-  String get poiTabEdit => 'Edit / Delete POI';
+  String get poiTabEdit => 'Edit or Delete POI';
 
   @override
   String get poiType => 'POI type';
@@ -132,10 +143,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiOffRoutePoi => 'Edit POI';
 
   @override
-  String get changePoiPosition => 'Change to this position';
+  String get changePoiPosition => 'Set this position';
 
   @override
-  String get dragMarkerHint => 'Drag the marker to change position';
+  String get dragMarkerHint => 'Drag the marker to move it';
 
   @override
   String get longPressPoiHint =>
@@ -257,7 +268,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleep10min => '10min';
 
   @override
-  String get distanceUnit => 'Distance unit settings';
+  String get distanceUnit => 'Distance Unit';
 
   @override
   String get unitKm => 'km';
@@ -335,7 +346,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Route is not loaded. Please import a GPX file first.';
 
   @override
-  String get offlineMapDownloading => 'Downloading ... ';
+  String get offlineMapDownloading => 'Downloading... ';
 
   @override
   String get offlineMapCancel => 'Cancel';

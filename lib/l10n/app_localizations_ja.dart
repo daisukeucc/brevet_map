@@ -45,7 +45,17 @@ class AppLocalizationsJa extends AppLocalizations {
   String get showMyLocation => '現在地を表示';
 
   @override
-  String get sleepSettings => '画面スリープ設定';
+  String get sleepSettings => '画面スリープ';
+
+  @override
+  String get sleepInfoMessage1 => '画面スリープ時はGPSがOFFになるためバッテリー消費が減ります';
+
+  @override
+  String get sleepInfoMessage2 =>
+      'さらにバッテリー消費を抑えるためには端末自体をスリープして下さい\n端末スリープでもGPSはOFFになります';
+
+  @override
+  String get sleepInfoDontShowAgain => '以後表示しない';
 
   @override
   String get switchGpsLevel => '位置情報レベルを切り替え';
@@ -253,7 +263,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleep10min => '10分';
 
   @override
-  String get distanceUnit => '距離の単位設定';
+  String get distanceUnit => '距離の単位';
 
   @override
   String get unitKm => 'km';

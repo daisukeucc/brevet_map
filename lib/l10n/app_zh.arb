@@ -7,13 +7,16 @@
   "delete": "删除",
   "edit": "编辑",
   "change": "更改",
-  "register": "注册",
+  "register": "添加",
   "settings": "设置",
   "share": "分享",
   "shareFailed": "分享失败",
   "showMyLocation": "显示我的位置",
-  "sleepSettings": "屏幕休眠设置",
-  "switchGpsLevel": "切换定位级别",
+  "sleepSettings": "屏幕休眠",
+  "sleepInfoMessage1": "屏幕休眠时关闭GPS以节省电量",
+  "sleepInfoMessage2": "要进一步节省电量，请将设备置于休眠状态。GPS也会关闭",
+  "sleepInfoDontShowAgain": "不再显示",
+  "switchGpsLevel": "位置精度",
   "gpxImport": "导入 GPX 文件",
   "gpxExport": "导出 GPX 文件",
   "gpxExportDialogTitle": "文件名",
@@ -21,17 +24,19 @@
   "gpxExportComplete": "已保存 {filename}",
   "@gpxExportComplete": {
     "placeholders": {
-      "filename": { "type": "String" }
+      "filename": {
+        "type": "String"
+      }
     }
   },
   "gpxExportFailed": "导出失败",
   "gpxExportPermissionDenied": "文件保存权限被拒绝",
   "poiAdd": "添加 POI",
-  "poiAddEdit": "添加 / 编辑 POI",
-  "poiAddByDistance": "按距离添加 POI",
-  "poiAddByMapTap": "通过点击地图添加 POI",
+  "poiAddEdit": "添加或编辑POI",
+  "poiAddByDistance": "按距离添加POI",
+  "poiAddByMapTap": "从地图添加POI",
   "poiTabAdd": "添加 POI",
-  "poiTabEdit": "编辑 / 删除 POI",
+  "poiTabEdit": "编辑或删除POI",
   "poiType": "POI 类型",
   "checkpoint": "检查点",
   "information": "信息",
@@ -45,17 +50,21 @@
   "poiAtKmPoint": "{kmLabel} 点的 POI",
   "@poiAtKmPoint": {
     "placeholders": {
-      "kmLabel": { "type": "String" }
+      "kmLabel": {
+        "type": "String"
+      }
     }
   },
   "poiOffRoutePoi": "编辑 POI",
   "@kmPoint": {
     "placeholders": {
-      "km": { "type": "String" }
+      "km": {
+        "type": "String"
+      }
     }
   },
-  "changePoiPosition": "更改为此位置",
-  "dragMarkerHint": "拖动标记以更改位置",
+  "changePoiPosition": "设为此位置",
+  "dragMarkerHint": "拖动标记以移动",
   "longPressPoiHint": "长按要添加 POI 的位置",
   "poiRegistered": "POI 已注册",
   "poiAddedFromShare": "已从分享链接添加 POI",
@@ -91,14 +100,16 @@
   "sleepSetMessage": "屏幕休眠已设置为 {minutes} 分钟",
   "@sleepSetMessage": {
     "placeholders": {
-      "minutes": { "type": "int" }
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "sleepOff": "关闭",
   "sleep1min": "1分钟",
   "sleep5min": "5分钟",
   "sleep10min": "10分钟",
-  "distanceUnit": "距离单位设置",
+  "distanceUnit": "距离单位",
   "unitKm": "公里",
   "unitMile": "英里",
   "distanceUnitSetToKm": "距离单位已设为公里",
@@ -114,12 +125,16 @@
   "offlineMapStandardMapWithSize": "最大缩放：16（{size}）",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapStandardMapWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapZoomSmall": "缩放：限定",
@@ -130,22 +145,28 @@
   "offlineMapZoomLargeWithSize": "缩放：扩展（{size}）",
   "@offlineMapZoomSmallWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomMediumWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomLargeWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapRequiresNetwork": "下载离线地图需要网络连接",
   "offlineMapNoRoute": "路线未加载。请先导入 GPX 文件。",
-  "offlineMapDownloading": "正在下载 ... ",
+  "offlineMapDownloading": "下载中... ",
   "offlineMapCancel": "取消",
   "offlineMapDownloadComplete": "离线地图下载完成",
   "offlineMapDownloadFailed": "下载失败",
@@ -154,15 +175,27 @@
   "offlineMapWifiRecommendationWithSize": "由于数据量大，建议使用 Wi-Fi 下载。\n\n预计大小：约 {size}",
   "@offlineMapWifiRecommendationWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapCurrentStorage": "已保存: {size}",
   "@offlineMapCurrentStorage": {
-    "placeholders": { "size": { "type": "String" } }
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   },
   "offlineMapCacheClearWithSize": "清除缓存（{size}）",
-  "@offlineMapCacheClearWithSize": { "placeholders": { "size": { "type": "String" } } },
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
   "offlineMapCacheClear": "清除缓存",
   "offlineMapCacheClearConfirmMessage": "缓存数据（含离线地图）增多时，地图显示可能会变慢。\n\n地图显示流程：\n\n1. 缓存查询\n2-1. 有缓存：\n无需网络访问\n2-2. 无缓存：\n网络访问并保存到缓存\n3. 地图显示\n\n步骤1的缓存查询在数据越大时耗时越长。若地图显示变慢或为 brevet 保存了大容量离线地图，建议删除缓存。",
   "offlineMapCacheClearConfirmButton": "删除",

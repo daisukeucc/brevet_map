@@ -10,13 +10,16 @@
   "delete": "Delete",
   "edit": "Edit",
   "change": "Change",
-  "register": "Register",
+  "register": "Add",
   "settings": "Settings",
   "share": "Share",
   "shareFailed": "Share failed",
   "showMyLocation": "Show my location",
-  "sleepSettings": "Screen sleep settings",
-  "switchGpsLevel": "Switch location level",
+  "sleepSettings": "Screen Sleep",
+  "sleepInfoMessage1": "Turns off GPS when the screen sleeps to save battery",
+  "sleepInfoMessage2": "To save even more battery, put your device to sleep. GPS also turns off",
+  "sleepInfoDontShowAgain": "Don't show again",
+  "switchGpsLevel": "Location accuracy",
   "gpxImport": "Import GPX file",
   "gpxExport": "Export GPX file",
   "gpxExportDialogTitle": "File name",
@@ -24,17 +27,19 @@
   "gpxExportComplete": "Saved {filename}",
   "@gpxExportComplete": {
     "placeholders": {
-      "filename": { "type": "String" }
+      "filename": {
+        "type": "String"
+      }
     }
   },
   "gpxExportFailed": "Export failed",
   "gpxExportPermissionDenied": "File save permission denied",
   "poiAdd": "Add POI",
-  "poiAddEdit": "Add / Edit POI",
-  "poiAddByDistance": "Add POI by distance",
-  "poiAddByMapTap": "Add POI by map tap",
+  "poiAddEdit": "Add or Edit POI",
+  "poiAddByDistance": "Add POI at distance",
+  "poiAddByMapTap": "Add POI from map",
   "poiTabAdd": "Add POI",
-  "poiTabEdit": "Edit / Delete POI",
+  "poiTabEdit": "Edit or Delete POI",
   "poiType": "POI type",
   "checkpoint": "Checkpoint",
   "information": "Information",
@@ -61,8 +66,8 @@
       }
     }
   },
-  "changePoiPosition": "Change to this position",
-  "dragMarkerHint": "Drag the marker to change position",
+  "changePoiPosition": "Set this position",
+  "dragMarkerHint": "Drag the marker to move it",
   "longPressPoiHint": "Long press the point where you want to add a POI",
   "poiRegistered": "POI registered",
   "poiAddedFromShare": "POI added from shared link",
@@ -107,7 +112,7 @@
   "sleep1min": "1min",
   "sleep5min": "5min",
   "sleep10min": "10min",
-  "distanceUnit": "Distance unit settings",
+  "distanceUnit": "Distance Unit",
   "unitKm": "km",
   "unitMile": "mile",
   "distanceUnitSetToKm": "Distance unit set to km",
@@ -123,12 +128,16 @@
   "offlineMapStandardMapWithSize": "Max zoom: 16 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapStandardMapWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapZoomSmall": "Zoom: Limited",
@@ -139,22 +148,28 @@
   "offlineMapZoomLargeWithSize": "Zoom: Extended ({size})",
   "@offlineMapZoomSmallWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomMediumWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomLargeWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapRequiresNetwork": "Network connection is required to download offline maps",
   "offlineMapNoRoute": "Route is not loaded. Please import a GPX file first.",
-  "offlineMapDownloading": "Downloading ... ",
+  "offlineMapDownloading": "Downloading... ",
   "offlineMapCancel": "Cancel",
   "offlineMapDownloadComplete": "Offline map download complete",
   "offlineMapDownloadFailed": "Download failed",
@@ -171,12 +186,18 @@
   "offlineMapCurrentStorage": "Stored: {size}",
   "@offlineMapCurrentStorage": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapCacheClearWithSize": "Clear cache ({size})",
   "@offlineMapCacheClearWithSize": {
-    "placeholders": { "size": { "type": "String" } }
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
   },
   "offlineMapCacheClear": "Clear cache",
   "offlineMapCacheClearConfirmMessage": "When cache data (including offline maps) grows, map display can become slower.\n\nMap display flow:\n\n1. Cache lookup\n2-1. If cached:\nno network access\n2-2. If not cached:\nnetwork access and save to cache\n3. Map display\n\nStep 1 cache lookup takes more time when data is larger. So if the map becomes slow or you have saved a large offline map for brevet, we recommend deleting the cache.",
