@@ -25,6 +25,7 @@ Future<void> handleSharedUrlReceived(
   if (coords != null) {
     final position = LatLng(coords.lat, coords.lng);
     final placeName = extractPlaceNameFromUrlString(trimmedUrl);
+    Navigator.of(context).popUntil((route) => route is! PopupRoute);
     onParsed(position, placeName);
     await ref.read(cameraControllerProvider.notifier).animateTo(
           position,

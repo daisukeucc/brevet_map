@@ -60,6 +60,8 @@ class SleepTimerController {
 
   void _dimScreen() {
     if (!_getMounted()) return;
+    Navigator.maybeOf(overlayState.context)
+        ?.popUntil((route) => route is! PopupRoute);
     _wasStreamActiveBeforeDim = ref.read(locationStreamProvider).isActive;
     ScreenBrightness().setApplicationScreenBrightness(0.0);
     if (_wasStreamActiveBeforeDim) {
