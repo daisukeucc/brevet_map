@@ -543,6 +543,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     WakelockPlus.enable();
     _sleepTimerController.restart(ref.read(sleepDurationProvider));
 
+    // 共有シートから本アプリを選択してフォアグラウンドに戻った場合、
+    // 共有モードをリセットして吹き出しが残らないようにする
+    if (_isShareMode) {
+      setState(() {
+        _isShareMode = false;
+        _shareHp = null;
+      });
+    }
+
     if (_expectingReturnFromSettings) {
       _expectingReturnFromSettings = false;
       if (!mounted) return;
