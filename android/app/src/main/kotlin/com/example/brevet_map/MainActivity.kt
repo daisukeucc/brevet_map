@@ -142,9 +142,9 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
                     }
                     else -> {
                         getStreamUri(intent)?.let { uri ->
-                            if (isGpxUri(uri)) {
-                                try {
-                                    val content = readUriContent(uri)
+                            try {
+                                val content = readUriContent(uri)
+                                if (content.isNotEmpty()) {
                                     gpxMethodChannel?.invokeMethod(
                                         "onGpxFileReceived",
                                         content,
@@ -154,17 +154,17 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
                                             override fun notImplemented() {}
                                         }
                                     )
-                                } catch (_: Exception) {}
-                            }
+                                }
+                            } catch (_: Exception) {}
                         }
                     }
                 }
             }
             Intent.ACTION_VIEW -> {
                 intent?.data?.let { uri ->
-                    if (isGpxUri(uri)) {
-                        try {
-                            val content = readUriContent(uri)
+                    try {
+                        val content = readUriContent(uri)
+                        if (content.isNotEmpty()) {
                             gpxMethodChannel?.invokeMethod(
                                 "onGpxFileReceived",
                                 content,
@@ -174,8 +174,8 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
                                     override fun notImplemented() {}
                                 }
                             )
-                        } catch (_: Exception) {}
-                    }
+                        }
+                    } catch (_: Exception) {}
                 }
             }
         }
