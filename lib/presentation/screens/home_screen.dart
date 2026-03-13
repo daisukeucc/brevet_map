@@ -637,7 +637,54 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     }
   }
 
+  /// 位置情報サービスと権限をチェックし、不可の場合は SnackBar を表示して false を返す。
+  Future<bool> _checkLocationAndShowError() async {
+    if (!await Geolocator.isLocationServiceEnabled()) {
+      if (!mounted) return false;
+      final l10n = AppLocalizations.of(context)!;
+      showAppSnackBar(
+        context,
+        l10n.locationServiceOff,
+        action: SnackBarAction(
+          label: l10n.openSettings,
+          textColor: Colors.white,
+          onPressed: Geolocator.openLocationSettings,
+        ),
+      );
+      return false;
+    }
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (!mounted) return false;
+    final l10n = AppLocalizations.of(context)!;
+
+    if (permission == LocationPermission.deniedForever) {
+      showAppSnackBar(
+        context,
+        l10n.locationPermissionDeniedForever,
+        action: SnackBarAction(
+          label: l10n.openSettings,
+          textColor: Colors.white,
+          onPressed: Geolocator.openAppSettings,
+        ),
+      );
+      return false;
+    }
+
+    if (permission == LocationPermission.denied) {
+      showAppSnackBar(context, l10n.locationPermissionDenied);
+      return false;
+    }
+
+    return true;
+  }
+
   Future<void> _moveCameraToCurrentPosition() async {
+    if (!await _checkLocationAndShowError()) return;
     final position = await getCurrentPositionSilent();
     if (!mounted || position == null) return;
     await ref.read(cameraControllerProvider.notifier).animateTo(
@@ -647,6 +694,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   Future<void> _toggleLocationStream() async {
     final wasActive = ref.read(locationStreamProvider).isActive;
+    if (!wasActive) {
+      if (!await _checkLocationAndShowError()) return;
+    }
     await ref.read(locationStreamProvider.notifier).toggle(
           onPosition: _onPositionUpdate,
         );
