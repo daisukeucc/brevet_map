@@ -108,10 +108,10 @@
   "offline": "오프라인",
   "retryConnectivity": "다시 시도",
   "offlineMap": "오프라인 지도",
-  "offlineMapMinimalMap": "최소 지도",
-  "offlineMapStandardMap": "표준 지도",
-  "offlineMapMinimalMapWithSize": "최소 지도 ({size})",
-  "offlineMapStandardMapWithSize": "표준 지도 ({size})",
+  "offlineMapMinimalMap": "최대 줌: 14",
+  "offlineMapStandardMap": "최대 줌: 16",
+  "offlineMapMinimalMapWithSize": "최대 줌: 14 ({size})",
+  "offlineMapStandardMapWithSize": "최대 줌: 16 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": { "type": "String" }

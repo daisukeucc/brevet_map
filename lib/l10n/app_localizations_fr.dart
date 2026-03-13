@@ -293,19 +293,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get offlineMap => 'Carte hors ligne';
 
   @override
-  String get offlineMapMinimalMap => 'Carte minimale';
+  String get offlineMapMinimalMap => 'Zoom max : 14';
 
   @override
-  String get offlineMapStandardMap => 'Carte standard';
+  String get offlineMapStandardMap => 'Zoom max : 16';
 
   @override
   String offlineMapMinimalMapWithSize(String size) {
-    return 'Carte minimale ($size)';
+    return 'Zoom max : 14 ($size)';
   }
 
   @override
   String offlineMapStandardMapWithSize(String size) {
-    return 'Carte standard ($size)';
+    return 'Zoom max : 16 ($size)';
   }
 
   @override

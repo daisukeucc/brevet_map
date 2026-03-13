@@ -117,10 +117,10 @@
   "offline": "Offline",
   "retryConnectivity": "Retry",
   "offlineMap": "Offline Map",
-  "offlineMapMinimalMap": "Minimal map",
-  "offlineMapStandardMap": "Standard map",
-  "offlineMapMinimalMapWithSize": "Minimal map ({size})",
-  "offlineMapStandardMapWithSize": "Standard map ({size})",
+  "offlineMapMinimalMap": "Max zoom: 14",
+  "offlineMapStandardMap": "Max zoom: 16",
+  "offlineMapMinimalMapWithSize": "Max zoom: 14 ({size})",
+  "offlineMapStandardMapWithSize": "Max zoom: 16 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": { "type": "String" }

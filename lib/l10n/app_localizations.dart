@@ -641,25 +641,25 @@ abstract class AppLocalizations {
   /// No description provided for @offlineMapMinimalMap.
   ///
   /// In en, this message translates to:
-  /// **'Minimal map'**
+  /// **'Max zoom: 14'**
   String get offlineMapMinimalMap;
 
   /// No description provided for @offlineMapStandardMap.
   ///
   /// In en, this message translates to:
-  /// **'Standard map'**
+  /// **'Max zoom: 16'**
   String get offlineMapStandardMap;
 
   /// No description provided for @offlineMapMinimalMapWithSize.
   ///
   /// In en, this message translates to:
-  /// **'Minimal map ({size})'**
+  /// **'Max zoom: 14 ({size})'**
   String offlineMapMinimalMapWithSize(String size);
 
   /// No description provided for @offlineMapStandardMapWithSize.
   ///
   /// In en, this message translates to:
-  /// **'Standard map ({size})'**
+  /// **'Max zoom: 16 ({size})'**
   String offlineMapStandardMapWithSize(String size);
 
   /// No description provided for @offlineMapZoomSmall.

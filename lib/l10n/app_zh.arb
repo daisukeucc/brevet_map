@@ -108,10 +108,10 @@
   "offline": "离线",
   "retryConnectivity": "重试",
   "offlineMap": "离线地图",
-  "offlineMapMinimalMap": "最小地图",
-  "offlineMapStandardMap": "标准地图",
-  "offlineMapMinimalMapWithSize": "最小地图（{size}）",
-  "offlineMapStandardMapWithSize": "标准地图（{size}）",
+  "offlineMapMinimalMap": "最大缩放：14",
+  "offlineMapStandardMap": "最大缩放：16",
+  "offlineMapMinimalMapWithSize": "最大缩放：14（{size}）",
+  "offlineMapStandardMapWithSize": "最大缩放：16（{size}）",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": { "type": "String" }

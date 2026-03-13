@@ -108,10 +108,10 @@
   "offline": "Sin conexión",
   "retryConnectivity": "Reintentar",
   "offlineMap": "Mapa sin conexión",
-  "offlineMapMinimalMap": "Mapa mínimo",
-  "offlineMapStandardMap": "Mapa estándar",
-  "offlineMapMinimalMapWithSize": "Mapa mínimo ({size})",
-  "offlineMapStandardMapWithSize": "Mapa estándar ({size})",
+  "offlineMapMinimalMap": "Zoom máx.: 14",
+  "offlineMapStandardMap": "Zoom máx.: 16",
+  "offlineMapMinimalMapWithSize": "Zoom máx.: 14 ({size})",
+  "offlineMapStandardMapWithSize": "Zoom máx.: 16 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": { "type": "String" }

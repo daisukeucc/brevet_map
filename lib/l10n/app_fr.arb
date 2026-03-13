@@ -108,10 +108,10 @@
   "offline": "Hors ligne",
   "retryConnectivity": "Réessayer",
   "offlineMap": "Carte hors ligne",
-  "offlineMapMinimalMap": "Carte minimale",
-  "offlineMapStandardMap": "Carte standard",
-  "offlineMapMinimalMapWithSize": "Carte minimale ({size})",
-  "offlineMapStandardMapWithSize": "Carte standard ({size})",
+  "offlineMapMinimalMap": "Zoom max : 14",
+  "offlineMapStandardMap": "Zoom max : 16",
+  "offlineMapMinimalMapWithSize": "Zoom max : 14 ({size})",
+  "offlineMapStandardMapWithSize": "Zoom max : 16 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": { "type": "String" }
