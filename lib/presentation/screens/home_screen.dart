@@ -233,6 +233,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   void _onUserInteraction() {
     _sleepTimerController.restoreBrightness();
     _sleepTimerController.restart(ref.read(sleepDurationProvider));
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
   }
 
   void _fetchPositionInBackground() {
