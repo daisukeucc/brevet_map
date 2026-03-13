@@ -141,6 +141,8 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
                         }
                     }
                     else -> {
+                        // image/* (スクリーンショット等) は GPX ではないのでスキップ
+                        if (intent.type?.startsWith("image/") == true) return
                         getStreamUri(intent)?.let { uri ->
                             try {
                                 val content = readUriContent(uri)
@@ -162,6 +164,8 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
             }
             Intent.ACTION_VIEW -> {
                 intent?.data?.let { uri ->
+                    // image/* (スクリーンショット等) は GPX ではないのでスキップ
+                    if (contentResolver.getType(uri)?.startsWith("image/") == true) return@let
                     try {
                         val content = readUriContent(uri)
                         if (content.isNotEmpty()) {
