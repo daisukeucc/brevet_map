@@ -397,26 +397,44 @@ class _MapScreenContentState extends State<MapScreenContent> {
         if (isDark)
           ColorFiltered(
             colorFilter: const ColorFilter.matrix(<double>[
-              -0.2126, -0.7152, -0.0722, 0, 265,
-              -0.2126, -0.7152, -0.0722, 0, 265,
-              -0.2126, -0.7152, -0.0722, 0, 285,
-              0, 0, 0, 1, 0,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              265,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              265,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              285,
+              0,
+              0,
+              0,
+              1,
+              0,
             ]),
             child: _buildTileLayer(urlTemplate),
           )
         else
           _buildTileLayer(urlTemplate),
+        if (widget.polylines.isNotEmpty)
+          PolylineLayer(polylines: widget.polylines),
+        if (widget.markers.isNotEmpty) MarkerLayer(markers: widget.markers),
         Align(
           alignment: Alignment.bottomRight,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.2)
-                  : Colors.white.withValues(alpha: 0.6),
-            ),
-            child: widget.isShareMode
-                ? Text.rich(
+          child: widget.isShareMode
+              ? Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.6),
+                  child: Text.rich(
                     TextSpan(
                       text: 'Powered by ',
                       style: (Theme.of(context).textTheme.bodySmall ??
@@ -438,21 +456,42 @@ class _MapScreenContentState extends State<MapScreenContent> {
                         ),
                       ],
                     ),
-                  )
-                : Text(
-                    TileConfig.attribution,
-                    style: (Theme.of(context).textTheme.bodySmall ??
+                  ),
+                )
+              : StreamBuilder<MapEvent>(
+                  stream: _mapController.mapEventStream,
+                  builder: (context, snapshot) {
+                    final zoom = snapshot.hasData
+                        ? _mapController.camera.zoom
+                        : widget.initialZoom;
+                    final bgColor = isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.6);
+                    final textStyle = (Theme.of(context).textTheme.bodySmall ??
                             const TextStyle())
                         .copyWith(
                       fontSize: 13,
                       color: isDark ? Colors.white : Colors.black54,
-                    ),
-                  ),
-          ),
+                    );
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+                          color: bgColor,
+                          child: Text('zoom: ${zoom.toStringAsFixed(1)}',
+                              style: textStyle),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
+                          color: bgColor,
+                          child: Text(TileConfig.attribution, style: textStyle),
+                        ),
+                      ],
+                    );
+                  },
+                ),
         ),
-        if (widget.polylines.isNotEmpty)
-          PolylineLayer(polylines: widget.polylines),
-        if (widget.markers.isNotEmpty) MarkerLayer(markers: widget.markers),
         if (widget.calloutPosition != null &&
             widget.calloutText != null &&
             widget.offlineCenter == null)

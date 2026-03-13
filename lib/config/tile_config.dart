@@ -22,8 +22,7 @@ class TileConfig {
   static String get tileUrlTemplate => _tileUrlTemplateJa;
 
   /// タイルのクレジット表示
-  static const String attribution =
-      '© OpenStreetMap Contributors';
+  static const String attribution = '© OpenStreetMap Contributors';
 
   /// pubspec.yaml の name（PackageInfo 失敗時のフォールバック用）
   static const String _fallbackPackageSlug = 'brevet_map';
@@ -36,7 +35,8 @@ class TileConfig {
 
   /// OSMタイルサーバー用のUser-Agent。
   /// tile.openstreetmap.org は厳格なポリシーを適用するため、アプリを明確に識別する必要がある。
-  static String userAgent = 'BrevetMap/$_fallbackVersion ($_fallbackPackageSlug)';
+  static String userAgent =
+      'BrevetMap/$_fallbackVersion ($_fallbackPackageSlug)';
 
   /// アプリのパッケージ名・バージョンで userAgentPackageName と userAgent を初期化。
   static Future<void> initUserAgentPackageName() async {
