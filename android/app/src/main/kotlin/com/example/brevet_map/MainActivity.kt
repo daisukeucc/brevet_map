@@ -78,21 +78,39 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        intent?.let { storePendingFromIntent(it) }
+        intent?.let {
+            it.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            storePendingFromIntent(it)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         handleIntent(intent)
     }
 
     private fun storePendingFromIntent(intent: Intent) {
         when (intent.action) {
             Intent.ACTION_SEND -> {
-                if (intent.type == "text/plain") {
-                    intent.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() }
-                        ?.let { pendingSharedUrl = it.trim() }
+                when (intent.type) {
+                    "text/plain" -> {
+                        intent.getStringExtra(Intent.EXTRA_TEXT)?.takeIf { it.isNotBlank() }
+                            ?.let { pendingSharedUrl = it.trim() }
+                    }
+                    "application/gpx+xml", "text/xml", "application/octet-stream" -> {
+                        getStreamUri(intent)?.let { uri ->
+                            if (isGpxUri(uri)) pendingGpxUri = uri
+                        }
+                    }
+                    else -> {
+                        if (intent.type?.contains("xml") == true || intent.type == "*/*") {
+                            getStreamUri(intent)?.let { uri ->
+                                if (isGpxUri(uri)) pendingGpxUri = uri
+                            }
+                        }
+                    }
                 }
             }
             Intent.ACTION_VIEW -> {
@@ -106,27 +124,51 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
     private fun handleIntent(intent: Intent?) {
         when (intent?.action) {
             Intent.ACTION_SEND -> {
-                if (intent.type == "text/plain") {
-                    val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-                    if (!text.isNullOrBlank()) {
-                        shareMethodChannel?.invokeMethod(
-                            "onSharedUrlReceived",
-                            text.trim(),
-                            object : MethodChannel.Result {
-                                override fun success(result: Any?) {}
-                                override fun error(code: String, msg: String?, details: Any?) {}
-                                override fun notImplemented() {}
-                            }
-                        )
-                        clearShareIntent()
+                when (intent.type) {
+                    "text/plain" -> {
+                        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
+                        if (!text.isNullOrBlank()) {
+                            shareMethodChannel?.invokeMethod(
+                                "onSharedUrlReceived",
+                                text.trim(),
+                                object : MethodChannel.Result {
+                                    override fun success(result: Any?) {}
+                                    override fun error(code: String, msg: String?, details: Any?) {}
+                                    override fun notImplemented() {}
+                                }
+                            )
+                            clearShareIntent()
+                        }
+                    }
+                    else -> {
+                        // image/* (スクリーンショット等) は GPX ではないのでスキップ
+                        if (intent.type?.startsWith("image/") == true) return
+                        getStreamUri(intent)?.let { uri ->
+                            try {
+                                val content = readUriContent(uri)
+                                if (content.isNotEmpty()) {
+                                    gpxMethodChannel?.invokeMethod(
+                                        "onGpxFileReceived",
+                                        content,
+                                        object : MethodChannel.Result {
+                                            override fun success(result: Any?) {}
+                                            override fun error(code: String, msg: String?, details: Any?) {}
+                                            override fun notImplemented() {}
+                                        }
+                                    )
+                                }
+                            } catch (_: Exception) {}
+                        }
                     }
                 }
             }
             Intent.ACTION_VIEW -> {
                 intent?.data?.let { uri ->
-                    if (isGpxUri(uri)) {
-                        try {
-                            val content = readUriContent(uri)
+                    // image/* (スクリーンショット等) は GPX ではないのでスキップ
+                    if (contentResolver.getType(uri)?.startsWith("image/") == true) return@let
+                    try {
+                        val content = readUriContent(uri)
+                        if (content.isNotEmpty()) {
                             gpxMethodChannel?.invokeMethod(
                                 "onGpxFileReceived",
                                 content,
@@ -136,10 +178,19 @@ class MainActivity : FlutterAndroidVolumeKeydownActivity() {
                                     override fun notImplemented() {}
                                 }
                             )
-                        } catch (_: Exception) {}
-                    }
+                        }
+                    } catch (_: Exception) {}
                 }
             }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun getStreamUri(intent: Intent): Uri? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            intent.getParcelableExtra(Intent.EXTRA_STREAM)
         }
     }
 

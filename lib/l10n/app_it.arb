@@ -1,0 +1,205 @@
+{
+  "@@locale": "it",
+  "appTitle": "Brevet Map",
+  "cancel": "Annulla",
+  "ok": "OK",
+  "ng": "NG",
+  "delete": "Elimina",
+  "edit": "Modifica",
+  "change": "Modifica",
+  "register": "Aggiungi",
+  "settings": "Impostazioni",
+  "share": "Condividi",
+  "shareFailed": "Condivisione non riuscita",
+  "showMyLocation": "Mostra la mia posizione",
+  "sleepSettings": "Spegnimento schermo",
+  "sleepInfoMessage1": "Disattiva il GPS quando lo schermo va in sospensione per risparmiare batteria",
+  "sleepInfoMessage2": "Per risparmiare ancora più batteria, metti il dispositivo in sospensione. Il GPS si disattiva anch'esso",
+  "sleepInfoDontShowAgain": "Non mostrare più",
+  "switchGpsLevel": "Precisione posizione",
+  "gpxImport": "Importa file GPX",
+  "gpxExport": "Esporta file GPX",
+  "gpxExportDialogTitle": "Nome file",
+  "gpxExportFilenameHint": "Inserisci il nome del file (data/ora se vuoto)",
+  "gpxExportComplete": "Salvato {filename}",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "gpxExportFailed": "Esportazione fallita",
+  "gpxExportPermissionDenied": "Permesso di salvataggio file negato",
+  "poiAdd": "Aggiungi POI",
+  "poiAddEdit": "Aggiungi o modifica POI",
+  "poiAddByDistance": "Aggiungi POI alla distanza",
+  "poiAddByMapTap": "Aggiungi POI dalla mappa",
+  "poiTabAdd": "Aggiungi POI",
+  "poiTabEdit": "Modifica o elimina POI",
+  "poiType": "Tipo di POI",
+  "checkpoint": "Punto di controllo",
+  "information": "Informazione",
+  "title": "Titolo",
+  "body": "Testo",
+  "distance": "Distanza",
+  "titleNone": "(Nessun titolo)",
+  "kmRequired": "La distanza è obbligatoria",
+  "offRoute": "Fuori percorso",
+  "kmPoint": "Punto {km} km",
+  "poiAtKmPoint": "POI al punto {kmLabel}",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "poiOffRoutePoi": "Modifica POI",
+  "@kmPoint": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "changePoiPosition": "Imposta questa posizione",
+  "poiRegistered": "POI aggiunto",
+  "poiAddedFromShare": "POI aggiunto da link condiviso",
+  "shareUrlInvalid": "Impossibile estrarre le coordinate dal link condiviso",
+  "registerThisPlaceAsPoi": "Aggiungi POI qui",
+  "poiUpdated": "POI aggiornato",
+  "poiDeleted": "POI eliminato",
+  "poiPositionChanged": "Posizione del POI modificata",
+  "changePoiText": "Modifica titolo e testo del POI",
+  "changePoiPositionTitle": "Modifica posizione del POI",
+  "deletePoiConfirm": "Eliminare questo POI?",
+  "noPoiRegistered": "Nessun POI aggiunto",
+  "changePoiTextTitle": "Modifica contenuto del POI",
+  "routeOverwrite": "Sovrascrivi percorso attuale",
+  "selectGpxFile": "Seleziona un file GPX",
+  "routeNotLoaded": "Il percorso non è caricato",
+  "kmPointNotFound": "Punto km specificato non trovato",
+  "gpxInvalidFormat": "Questo file non è in formato GPX",
+  "gpxNoRouteOrWaypoint": "Il GPX non contiene percorso o waypoint",
+  "locationFailed": "Impossibile ottenere la posizione",
+  "mapStyleNormal": "Mostra mappa in modalità normale",
+  "mapStyleDark": "Mostra mappa in modalità scura",
+  "showFullRoute": "Mostra percorso completo",
+  "locationUnavailable": "Posizione non disponibile",
+  "locationUnavailableWithRetry": "Posizione non disponibile. Tocca \"Mostra la mia posizione\" per riprovare o consenti l'accesso alla posizione nelle impostazioni.",
+  "openSettings": "Apri impostazioni",
+  "locationInvalid": "Posizione non valida",
+  "locationServiceOff": "Il servizio di localizzazione è disattivato. Attivalo nelle impostazioni del dispositivo.",
+  "locationPermissionRequired": "Permesso di localizzazione richiesto",
+  "locationPermissionDenied": "Il permesso di localizzazione è stato negato. Non puoi mostrare la tua posizione senza permesso.",
+  "locationPermissionDeniedForever": "Il permesso di localizzazione è impostato su \"Non chiedere più\". Attivalo nelle impostazioni dell'app.",
+  "sleepOffMessage": "Spegnimento schermo disattivato",
+  "sleepSetMessage": "Spegnimento schermo impostato a {minutes} minuti",
+  "@sleepSetMessage": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepOff": "OFF",
+  "sleep1min": "1 min",
+  "sleep5min": "5 min",
+  "sleep10min": "10 min",
+  "distanceUnit": "Unità di distanza",
+  "unitKm": "km",
+  "unitMile": "miglia",
+  "distanceUnitSetToKm": "Unità di distanza impostata su km",
+  "distanceUnitSetToMile": "Unità di distanza impostata su miglia",
+  "checkingConnectivity": "Verifica connessione...",
+  "fetchingLocation": "Ottenimento posizione...",
+  "offline": "Offline",
+  "retryConnectivity": "Riprova",
+  "offlineMap": "Mappa offline",
+  "offlineMapMinimalMap": "Zoom max: 14",
+  "offlineMapStandardMap": "Zoom max: 16",
+  "offlineMapMinimalMapWithSize": "Zoom max: 14 ({size})",
+  "offlineMapStandardMapWithSize": "Zoom max: 16 ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapZoomSmall": "Zoom: Limitato",
+  "offlineMapZoomMedium": "Zoom: Standard",
+  "offlineMapZoomLarge": "Zoom: Esteso",
+  "offlineMapZoomSmallWithSize": "Zoom: Limitato ({size})",
+  "offlineMapZoomMediumWithSize": "Zoom: Standard ({size})",
+  "offlineMapZoomLargeWithSize": "Zoom: Esteso ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapRequiresNetwork": "È necessaria una connessione di rete per scaricare le mappe offline",
+  "offlineMapNoRoute": "Il percorso non è caricato. Importa prima un file GPX.",
+  "offlineMapDownloading": "Download in corso... ",
+  "offlineMapCancel": "Annulla",
+  "offlineMapDownloadComplete": "Download mappa offline completato",
+  "offlineMapDownloadFailed": "Download fallito",
+  "offlineMapDownloadCancelled": "Download annullato",
+  "offlineMapWifiRecommendation": "Si consiglia di scaricare tramite Wi-Fi a causa delle dimensioni dei dati",
+  "offlineMapWifiRecommendationWithSize": "Si consiglia di scaricare tramite Wi-Fi a causa delle dimensioni dei dati.\n\nDimensione stimata: ~{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCurrentStorage": "Salvato: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClearWithSize": "Svuota cache ({size})",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClear": "Svuota cache",
+  "offlineMapCacheClearConfirmMessage": "Quando i dati della cache (inclusi i map offline) aumentano, la visualizzazione della mappa può rallentare.\n\nFlusso di visualizzazione della mappa:\n\n1. Consultazione cache\n2-1. In cache:\nnessun accesso di rete\n2-2. Non in cache:\naccesso di rete e salvataggio in cache\n3. Visualizzazione mappa\n\nIl passaggio 1 richiede più tempo con dati più grandi. In caso di mappa lenta o mappa offline di grandi dimensioni per brevet, si consiglia di eliminare la cache.",
+  "offlineMapCacheClearConfirmButton": "Elimina",
+  "offlineMapCacheCleared": "Cache svuotata",
+  "offlineMapInfoMessage1": "Le mappe offline riducono l'accesso alla rete e risparmiano batteria anche quando si è online",
+  "offlineMapInfoMessage2": "Per mantenere l'app fluida, si consiglia di eliminare le mappe scaricate quando non sono più necessarie",
+  "offlineMapInfoButton": "Scarica",
+  "registerAtPosition": "Aggiungi qui"
+}

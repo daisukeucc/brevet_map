@@ -7,6 +7,7 @@ import '../theme/app_text_styles.dart';
 Future<int?> showTextMenuDialog(
   BuildContext context, {
   required List<String> items,
+  String? title,
 }) {
   return showDialog<int>(
     context: context,
@@ -15,7 +16,14 @@ Future<int?> showTextMenuDialog(
       contentPadding: const EdgeInsets.fromLTRB(0, 18, 0, 18),
       content: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (title != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(25, 0, 25, 12),
+              child: Text(title, style: AppTextStyles.body),
+            ),
+          ],
           for (var i = 0; i < items.length; i++)
             ListTile(
               title: Text(items[i], style: AppTextStyles.label),

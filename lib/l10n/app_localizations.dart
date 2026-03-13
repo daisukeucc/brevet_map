@@ -5,8 +5,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
+import 'app_localizations_ko.dart';
+import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -94,11 +100,17 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
-    Locale('ja')
+    Locale('es'),
+    Locale('fr'),
+    Locale('it'),
+    Locale('ja'),
+    Locale('ko'),
+    Locale('zh')
   ];
 
-  /// No description provided for @appTitle.
+  /// Do not translate. Use "Brevet Map" in all non-Japanese locales.
   ///
   /// In en, this message translates to:
   /// **'Brevet Map'**
@@ -143,7 +155,7 @@ abstract class AppLocalizations {
   /// No description provided for @register.
   ///
   /// In en, this message translates to:
-  /// **'Register'**
+  /// **'Add'**
   String get register;
 
   /// No description provided for @settings.
@@ -151,6 +163,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings'**
   String get settings;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @shareFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Share failed'**
+  String get shareFailed;
 
   /// No description provided for @showMyLocation.
   ///
@@ -161,13 +185,31 @@ abstract class AppLocalizations {
   /// No description provided for @sleepSettings.
   ///
   /// In en, this message translates to:
-  /// **'Screen sleep settings'**
+  /// **'Screen Sleep'**
   String get sleepSettings;
+
+  /// No description provided for @sleepInfoMessage1.
+  ///
+  /// In en, this message translates to:
+  /// **'Turns off GPS when the screen sleeps to save battery'**
+  String get sleepInfoMessage1;
+
+  /// No description provided for @sleepInfoMessage2.
+  ///
+  /// In en, this message translates to:
+  /// **'To save even more battery, put your device to sleep. GPS also turns off'**
+  String get sleepInfoMessage2;
+
+  /// No description provided for @sleepInfoDontShowAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t show again'**
+  String get sleepInfoDontShowAgain;
 
   /// No description provided for @switchGpsLevel.
   ///
   /// In en, this message translates to:
-  /// **'Switch location level'**
+  /// **'Location accuracy'**
   String get switchGpsLevel;
 
   /// No description provided for @gpxImport.
@@ -221,19 +263,19 @@ abstract class AppLocalizations {
   /// No description provided for @poiAddEdit.
   ///
   /// In en, this message translates to:
-  /// **'Add / Edit POI'**
+  /// **'Add or Edit POI'**
   String get poiAddEdit;
 
   /// No description provided for @poiAddByDistance.
   ///
   /// In en, this message translates to:
-  /// **'Add POI by distance'**
+  /// **'Add POI at distance'**
   String get poiAddByDistance;
 
   /// No description provided for @poiAddByMapTap.
   ///
   /// In en, this message translates to:
-  /// **'Add POI by map tap'**
+  /// **'Add POI from map'**
   String get poiAddByMapTap;
 
   /// No description provided for @poiTabAdd.
@@ -245,7 +287,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiTabEdit.
   ///
   /// In en, this message translates to:
-  /// **'Edit / Delete POI'**
+  /// **'Edit or Delete POI'**
   String get poiTabEdit;
 
   /// No description provided for @poiType.
@@ -323,25 +365,13 @@ abstract class AppLocalizations {
   /// No description provided for @changePoiPosition.
   ///
   /// In en, this message translates to:
-  /// **'Change to this position'**
+  /// **'Set this position'**
   String get changePoiPosition;
-
-  /// No description provided for @dragMarkerHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag the marker to change position'**
-  String get dragMarkerHint;
-
-  /// No description provided for @longPressPoiHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Long press the point where you want to add a POI'**
-  String get longPressPoiHint;
 
   /// No description provided for @poiRegistered.
   ///
   /// In en, this message translates to:
-  /// **'POI registered'**
+  /// **'POI added'**
   String get poiRegistered;
 
   /// No description provided for @poiAddedFromShare.
@@ -359,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerThisPlaceAsPoi.
   ///
   /// In en, this message translates to:
-  /// **'Register this location as POI?'**
+  /// **'Add POI here'**
   String get registerThisPlaceAsPoi;
 
   /// No description provided for @poiUpdated.
@@ -401,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @noPoiRegistered.
   ///
   /// In en, this message translates to:
-  /// **'No POI registered'**
+  /// **'No POI added'**
   String get noPoiRegistered;
 
   /// No description provided for @changePoiTextTitle.
@@ -557,7 +587,7 @@ abstract class AppLocalizations {
   /// No description provided for @distanceUnit.
   ///
   /// In en, this message translates to:
-  /// **'Distance unit settings'**
+  /// **'Distance Unit'**
   String get distanceUnit;
 
   /// No description provided for @unitKm.
@@ -614,6 +644,30 @@ abstract class AppLocalizations {
   /// **'Offline Map'**
   String get offlineMap;
 
+  /// No description provided for @offlineMapMinimalMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Max zoom: 14'**
+  String get offlineMapMinimalMap;
+
+  /// No description provided for @offlineMapStandardMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Max zoom: 16'**
+  String get offlineMapStandardMap;
+
+  /// No description provided for @offlineMapMinimalMapWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Max zoom: 14 ({size})'**
+  String offlineMapMinimalMapWithSize(String size);
+
+  /// No description provided for @offlineMapStandardMapWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Max zoom: 16 ({size})'**
+  String offlineMapStandardMapWithSize(String size);
+
   /// No description provided for @offlineMapZoomSmall.
   ///
   /// In en, this message translates to:
@@ -665,7 +719,7 @@ abstract class AppLocalizations {
   /// No description provided for @offlineMapDownloading.
   ///
   /// In en, this message translates to:
-  /// **'Downloading ... '**
+  /// **'Downloading... '**
   String get offlineMapDownloading;
 
   /// No description provided for @offlineMapCancel.
@@ -703,6 +757,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~{size}'**
   String offlineMapWifiRecommendationWithSize(String size);
+
+  /// No description provided for @offlineMapCurrentStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Stored: {size}'**
+  String offlineMapCurrentStorage(String size);
+
+  /// No description provided for @offlineMapCacheClearWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache ({size})'**
+  String offlineMapCacheClearWithSize(String size);
+
+  /// No description provided for @offlineMapCacheClear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear cache'**
+  String get offlineMapCacheClear;
+
+  /// No description provided for @offlineMapCacheClearConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'When cache data (including offline maps) grows, map display can become slower.\n\nMap display flow:\n\n1. Cache lookup\n2-1. If cached:\nno network access\n2-2. If not cached:\nnetwork access and save to cache\n3. Map display\n\nStep 1 cache lookup takes more time when data is larger. So if the map becomes slow or you have saved a large offline map for brevet, we recommend deleting the cache.'**
+  String get offlineMapCacheClearConfirmMessage;
+
+  /// No description provided for @offlineMapCacheClearConfirmButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get offlineMapCacheClearConfirmButton;
+
+  /// No description provided for @offlineMapCacheCleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Cache cleared'**
+  String get offlineMapCacheCleared;
+
+  /// No description provided for @offlineMapInfoMessage1.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline maps reduce network access and save battery even when online'**
+  String get offlineMapInfoMessage1;
+
+  /// No description provided for @offlineMapInfoMessage2.
+  ///
+  /// In en, this message translates to:
+  /// **'To keep the app running smoothly, we recommend deleting downloaded maps when you no longer need them'**
+  String get offlineMapInfoMessage2;
+
+  /// No description provided for @offlineMapInfoButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get offlineMapInfoButton;
+
+  /// No description provided for @registerAtPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add here'**
+  String get registerAtPosition;
 }
 
 class _AppLocalizationsDelegate
@@ -715,8 +829,16 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'ja'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+        'de',
+        'en',
+        'es',
+        'fr',
+        'it',
+        'ja',
+        'ko',
+        'zh'
+      ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -725,10 +847,22 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
     case 'ja':
       return AppLocalizationsJa();
+    case 'ko':
+      return AppLocalizationsKo();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(

@@ -1,0 +1,205 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Brevet Map",
+  "cancel": "Annuler",
+  "ok": "OK",
+  "ng": "NG",
+  "delete": "Supprimer",
+  "edit": "Modifier",
+  "change": "Modifier",
+  "register": "Ajouter",
+  "settings": "Paramètres",
+  "share": "Partager",
+  "shareFailed": "Échec du partage",
+  "showMyLocation": "Afficher ma position",
+  "sleepSettings": "Mise en veille",
+  "sleepInfoMessage1": "Désactive le GPS lors de la mise en veille de l'écran pour économiser la batterie",
+  "sleepInfoMessage2": "Pour économiser encore plus de batterie, mettez votre appareil en veille. Le GPS se désactive également",
+  "sleepInfoDontShowAgain": "Ne plus afficher",
+  "switchGpsLevel": "Précision de localisation",
+  "gpxImport": "Importer un fichier GPX",
+  "gpxExport": "Exporter un fichier GPX",
+  "gpxExportDialogTitle": "Nom du fichier",
+  "gpxExportFilenameHint": "Entrez le nom du fichier (date/heure si vide)",
+  "gpxExportComplete": "Enregistré {filename}",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "gpxExportFailed": "Échec de l'export",
+  "gpxExportPermissionDenied": "Permission d'enregistrement refusée",
+  "poiAdd": "Ajouter un POI",
+  "poiAddEdit": "Ajouter ou modifier un POI",
+  "poiAddByDistance": "Ajouter un POI à distance",
+  "poiAddByMapTap": "Ajouter un POI depuis la carte",
+  "poiTabAdd": "Ajouter POI",
+  "poiTabEdit": "Modifier ou supprimer un POI",
+  "poiType": "Type de POI",
+  "checkpoint": "Point de contrôle",
+  "information": "Information",
+  "title": "Titre",
+  "body": "Texte",
+  "distance": "Distance",
+  "titleNone": "(Sans titre)",
+  "kmRequired": "La distance est obligatoire",
+  "offRoute": "Hors itinéraire",
+  "kmPoint": "Point {km} km",
+  "poiAtKmPoint": "POI au point {kmLabel}",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "poiOffRoutePoi": "Modifier le POI",
+  "@kmPoint": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "changePoiPosition": "Définir cette position",
+  "poiRegistered": "POI ajouté",
+  "poiAddedFromShare": "POI ajouté depuis un lien partagé",
+  "shareUrlInvalid": "Impossible d'extraire les coordonnées du lien partagé",
+  "registerThisPlaceAsPoi": "Ajouter un POI ici",
+  "poiUpdated": "POI modifié",
+  "poiDeleted": "POI supprimé",
+  "poiPositionChanged": "Position du POI modifiée",
+  "changePoiText": "Modifier le titre et le texte du POI",
+  "changePoiPositionTitle": "Modifier la position du POI",
+  "deletePoiConfirm": "Supprimer ce POI ?",
+  "noPoiRegistered": "Aucun POI ajouté",
+  "changePoiTextTitle": "Modifier le contenu du POI",
+  "routeOverwrite": "Remplacer l'itinéraire actuel",
+  "selectGpxFile": "Veuillez sélectionner un fichier GPX",
+  "routeNotLoaded": "L'itinéraire n'est pas chargé",
+  "kmPointNotFound": "Point km spécifié introuvable",
+  "gpxInvalidFormat": "Ce fichier n'est pas au format GPX",
+  "gpxNoRouteOrWaypoint": "Le fichier GPX ne contient pas d'itinéraire ou de waypoints",
+  "locationFailed": "Échec de l'obtention de la position",
+  "mapStyleNormal": "Afficher la carte en mode normal",
+  "mapStyleDark": "Afficher la carte en mode sombre",
+  "showFullRoute": "Afficher l'itinéraire complet",
+  "locationUnavailable": "Position indisponible",
+  "locationUnavailableWithRetry": "Position indisponible. Appuyez sur \"Afficher ma position\" pour réessayer ou autorisez l'accès à la position dans les paramètres.",
+  "openSettings": "Ouvrir les paramètres",
+  "locationInvalid": "Position invalide",
+  "locationServiceOff": "Le service de localisation est désactivé. Veuillez l'activer dans les paramètres de l'appareil.",
+  "locationPermissionRequired": "Autorisation de localisation requise",
+  "locationPermissionDenied": "L'autorisation de localisation a été refusée. Vous ne pouvez pas afficher votre position sans autorisation.",
+  "locationPermissionDeniedForever": "L'autorisation de localisation est définie sur \"Ne plus demander\". Veuillez l'activer dans les paramètres de l'application.",
+  "sleepOffMessage": "Mise en veille désactivée",
+  "sleepSetMessage": "Mise en veille réglée sur {minutes} minutes",
+  "@sleepSetMessage": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepOff": "OFF",
+  "sleep1min": "1 min",
+  "sleep5min": "5 min",
+  "sleep10min": "10 min",
+  "distanceUnit": "Unité de distance",
+  "unitKm": "km",
+  "unitMile": "mile",
+  "distanceUnitSetToKm": "Unité de distance réglée sur km",
+  "distanceUnitSetToMile": "Unité de distance réglée sur mile",
+  "checkingConnectivity": "Vérification de la connexion...",
+  "fetchingLocation": "Obtention de la position...",
+  "offline": "Hors ligne",
+  "retryConnectivity": "Réessayer",
+  "offlineMap": "Carte hors ligne",
+  "offlineMapMinimalMap": "Zoom max : 14",
+  "offlineMapStandardMap": "Zoom max : 16",
+  "offlineMapMinimalMapWithSize": "Zoom max : 14 ({size})",
+  "offlineMapStandardMapWithSize": "Zoom max : 16 ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapZoomSmall": "Zoom : Limité",
+  "offlineMapZoomMedium": "Zoom : Standard",
+  "offlineMapZoomLarge": "Zoom : Étendu",
+  "offlineMapZoomSmallWithSize": "Zoom : Limité ({size})",
+  "offlineMapZoomMediumWithSize": "Zoom : Standard ({size})",
+  "offlineMapZoomLargeWithSize": "Zoom : Étendu ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapRequiresNetwork": "Une connexion réseau est requise pour télécharger les cartes hors ligne",
+  "offlineMapNoRoute": "L'itinéraire n'est pas chargé. Veuillez importer un fichier GPX d'abord.",
+  "offlineMapDownloading": "Téléchargement... ",
+  "offlineMapCancel": "Annuler",
+  "offlineMapDownloadComplete": "Téléchargement de la carte hors ligne terminé",
+  "offlineMapDownloadFailed": "Échec du téléchargement",
+  "offlineMapDownloadCancelled": "Téléchargement annulé",
+  "offlineMapWifiRecommendation": "Nous recommandons le téléchargement via Wi-Fi en raison de la taille des données",
+  "offlineMapWifiRecommendationWithSize": "Nous recommandons le téléchargement via Wi-Fi en raison de la taille des données.\n\nTaille estimée : ~{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCurrentStorage": "Enregistré : {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClearWithSize": "Vider le cache ({size})",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClear": "Vider le cache",
+  "offlineMapCacheClearConfirmMessage": "Lorsque les données en cache (y compris les cartes hors ligne) augmentent, l'affichage de la carte peut devenir plus lent.\n\nFlux d'affichage de la carte :\n\n1. Consultation du cache\n2-1. En cache :\npas d'accès réseau\n2-2. Pas en cache :\naccès réseau et enregistrement dans le cache\n3. Affichage de la carte\n\nL'étape 1 prend plus de temps lorsque les données sont volumineuses. En cas d'affichage lent ou de grande carte hors ligne pour brevet, il est recommandé de supprimer le cache.",
+  "offlineMapCacheClearConfirmButton": "Supprimer",
+  "offlineMapCacheCleared": "Cache vidé",
+  "offlineMapInfoMessage1": "Les cartes hors ligne réduisent les accès réseau et économisent la batterie, même en ligne",
+  "offlineMapInfoMessage2": "Pour que l'application fonctionne correctement, nous recommandons de supprimer les cartes téléchargées lorsque vous n'en avez plus besoin",
+  "offlineMapInfoButton": "Télécharger",
+  "registerAtPosition": "Ajouter ici"
+}

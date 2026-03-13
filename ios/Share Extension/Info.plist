@@ -23,6 +23,10 @@
 					<string>public.url</string>
 					<string>public.plain-text</string>
 					<string>public.vcard</string>
+					<string>com.topografix.gpx</string>
+					<string>public.xml</string>
+					<string>public.data</string>
+					<string>public.file-url</string>
 				</array>
 			</dict>
 		</dict>

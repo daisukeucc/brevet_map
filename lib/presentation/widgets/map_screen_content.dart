@@ -7,6 +7,8 @@ import '../../config/tile_config.dart';
 import '../../l10n/app_localizations.dart';
 import '../handlers/settings_menu_handler.dart';
 import 'battery_indicator.dart';
+import 'callout_overlay.dart';
+import 'gps_level_button.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
@@ -38,14 +40,33 @@ class MapScreenContent extends StatefulWidget {
     this.hasUserPois = false,
     this.isDragMode = false,
     this.isMapTapAddMode = false,
-    this.onMapLongPress,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
     this.onGpsLevelTap,
     this.onUserInteraction,
     this.offlineCenter,
+    this.onShareTap,
+    this.calloutPosition,
+    this.calloutText,
+    this.calloutHp,
+    this.isShareMode = false,
   });
+
+  /// 共有モード時 true（スクリーンショット用に四隅ボタン・バッテリーを非表示にする）
+  final bool isShareMode;
+
+  /// 吹き出し表示時の現在地（共有モード用）
+  final LatLng? calloutPosition;
+
+  /// 吹き出しのメインテキスト
+  final String? calloutText;
+
+  /// 吹き出しのHP値（0.0〜1.0）。null のときゲージ非表示
+  final double? calloutHp;
+
+  /// 共有ボタンタップ時のコールバック。GlobalKey を渡して共有フローを実行する。
+  final void Function(GlobalKey key)? onShareTap;
 
   /// オフライン時に地図の代わりに中央に表示するウィジェット。
   /// 非 null の場合、FlutterMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
@@ -101,9 +122,6 @@ class MapScreenContent extends StatefulWidget {
   /// true のとき地図タップでPOI登録モード（全ボタンを非表示にする）
   final bool isMapTapAddMode;
 
-  /// 地図長押し時コールバック（地図タップ登録モード時）
-  final void Function(LatLng)? onMapLongPress;
-
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
 
@@ -114,12 +132,12 @@ class MapScreenContent extends StatefulWidget {
 class _MapScreenContentState extends State<MapScreenContent> {
   late final MapController _mapController;
   late final FMTCTileProvider _tileProvider;
+  final GlobalKey _screenshotKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
     _mapController = MapController();
-    // initState 時点で TileConfig.initUserAgentPackageName() は main() で完了済み
     _tileProvider = FMTCTileProvider(
       stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
       headers: {'User-Agent': TileConfig.userAgent},
@@ -138,150 +156,195 @@ class _MapScreenContentState extends State<MapScreenContent> {
           Expanded(
             child: Listener(
               onPointerDown: (_) => widget.onUserInteraction?.call(),
-              child: Stack(
-                children: [
-                  if (widget.offlineCenter != null)
-                    Positioned.fill(child: widget.offlineCenter!)
-                  else
-                    _buildMap(),
-                  if (!widget.isDragMode && !widget.isMapTapAddMode)
-                    Positioned(
-                      left: 16,
-                      bottom: 24,
-                      child: MapStyleButton(
-                        mapStyleMode: widget.mapStyleMode,
-                        onTap: widget.onMapStyleTap,
-                      ),
-                    ),
-                  if (!widget.isStreamActive &&
-                      !widget.isDragMode &&
-                      !widget.isMapTapAddMode)
-                    Positioned(
-                      left: 16,
-                      top: 24,
-                      child: Tooltip(
-                        message: AppLocalizations.of(context)!.settings,
-                        child: Material(
-                          color: Colors.white,
-                          elevation: 5,
-                          shadowColor: Colors.black26,
-                          shape: const CircleBorder(),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            onTap: () => showModalBottomSheet<void>(
-                              context: context,
-                              shape: const RoundedRectangleBorder(),
-                              builder: (_) => SettingsBottomSheet(
-                                onGpxImportTap: () =>
-                                    popSheetAndCall(
-                                        context, widget.onGpxImportTap),
-                                onGpxExportTap: () =>
-                                    popSheetAndCall(
-                                        context, widget.onGpxExportTap),
-                                onOfflineMapTap: () =>
-                                    popSheetAndCall(
-                                        context, widget.onOfflineMapTap),
-                                hasUserPois: widget.hasUserPois,
-                                onAddPoiTap: () =>
-                                    popSheetAndCall(
-                                        context, widget.onAddPoiTap),
-                                onSleepSettingsTap: () =>
-                                    popSheetAndCall(
-                                        context, widget.onSleepSettingsTap),
-                                onDistanceUnitTap: () =>
-                                    popSheetAndCall(
-                                        context, widget.onDistanceUnitTap),
+              child: RepaintBoundary(
+                key: _screenshotKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          if (widget.offlineCenter != null)
+                            Positioned.fill(child: widget.offlineCenter!)
+                          else
+                            _buildMap(),
+                          if (!widget.isShareMode &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              left: 16,
+                              bottom: 24,
+                              child: MapStyleButton(
+                                mapStyleMode: widget.mapStyleMode,
+                                onTap: widget.onMapStyleTap,
                               ),
                             ),
-                            customBorder: const CircleBorder(),
-                            child: const SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: Icon(
-                                Icons.more_vert,
-                                color: Colors.blueGrey,
-                                size: 32,
+                          if (widget.isStreamActive &&
+                              widget.onShareTap != null &&
+                              !widget.isShareMode &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              left: 16,
+                              top: 24,
+                              child: Tooltip(
+                                message: AppLocalizations.of(context)!.share,
+                                child: Material(
+                                  color: Colors.white,
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                  shape: const CircleBorder(),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: () =>
+                                        widget.onShareTap?.call(_screenshotKey),
+                                    customBorder: const CircleBorder(),
+                                    child: SizedBox(
+                                      width: 60,
+                                      height: 60,
+                                      child: Center(
+                                        child: Transform.translate(
+                                          offset: const Offset(-3, 0),
+                                          child: const Icon(
+                                            Icons.share,
+                                            color: Colors.blueGrey,
+                                            size: 32,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (!widget.isDragMode && !widget.isMapTapAddMode)
-                    const Positioned(
-                      left: 0,
-                      right: 0,
-                      top: 24,
-                      child: Center(
-                        child: BatteryIndicator(),
-                      ),
-                    ),
-                  if (!widget.isDragMode && !widget.isMapTapAddMode)
-                    Positioned(
-                      right: 16,
-                      top: 24,
-                      child: MapToolButtons(
-                          onRouteBoundsTap: widget.onRouteBoundsTap),
-                    ),
-                  if (widget.showMyLocationButton &&
-                      !widget.isDragMode &&
-                      !widget.isMapTapAddMode)
-                    Positioned(
-                      right: 16,
-                      bottom: 24,
-                      child: Tooltip(
-                        message:
-                            AppLocalizations.of(context)!.showMyLocation,
-                        child: Material(
-                          color: Colors.white,
-                          elevation: 5,
-                          shadowColor: Colors.black26,
-                          shape: const CircleBorder(),
-                          clipBehavior: Clip.antiAlias,
-                          child: InkWell(
-                            onTap: widget.onMyLocationTap,
-                            customBorder: const CircleBorder(),
-                            child: const SizedBox(
-                              width: 60,
-                              height: 60,
-                              child: Icon(
-                                Icons.my_location,
-                                color: Colors.blueGrey,
-                                size: 32,
+                          if (!widget.isStreamActive &&
+                              !widget.isShareMode &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              left: 16,
+                              top: 24,
+                              child: Tooltip(
+                                message: AppLocalizations.of(context)!.settings,
+                                child: Material(
+                                  color: Colors.white,
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                  shape: const CircleBorder(),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: () => showModalBottomSheet<void>(
+                                      context: context,
+                                      shape: const RoundedRectangleBorder(),
+                                      builder: (_) => SettingsBottomSheet(
+                                        onGpxImportTap: () => popSheetAndCall(
+                                            context, widget.onGpxImportTap),
+                                        onGpxExportTap: () => popSheetAndCall(
+                                            context, widget.onGpxExportTap),
+                                        onOfflineMapTap: () => popSheetAndCall(
+                                            context, widget.onOfflineMapTap),
+                                        hasUserPois: widget.hasUserPois,
+                                        onAddPoiTap: () => popSheetAndCall(
+                                            context, widget.onAddPoiTap),
+                                        onSleepSettingsTap: () =>
+                                            popSheetAndCall(context,
+                                                widget.onSleepSettingsTap),
+                                        onDistanceUnitTap: () =>
+                                            popSheetAndCall(context,
+                                                widget.onDistanceUnitTap),
+                                      ),
+                                    ),
+                                    customBorder: const CircleBorder(),
+                                    child: const SizedBox(
+                                      width: 60,
+                                      height: 60,
+                                      child: Icon(
+                                        Icons.more_vert,
+                                        color: Colors.blueGrey,
+                                        size: 32,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          if (!widget.isShareMode &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            const Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 24,
+                              child: Center(
+                                child: BatteryIndicator(),
+                              ),
+                            ),
+                          if (!widget.isShareMode &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              right: 16,
+                              top: 24,
+                              child: MapToolButtons(
+                                  onRouteBoundsTap: widget.onRouteBoundsTap),
+                            ),
+                          if (widget.showMyLocationButton &&
+                              !widget.isShareMode &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              right: 16,
+                              bottom: 24,
+                              child: Tooltip(
+                                message: AppLocalizations.of(context)!
+                                    .showMyLocation,
+                                child: Material(
+                                  color: Colors.white,
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                  shape: const CircleBorder(),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: widget.onMyLocationTap,
+                                    customBorder: const CircleBorder(),
+                                    child: const SizedBox(
+                                      width: 60,
+                                      height: 60,
+                                      child: Icon(
+                                        Icons.my_location,
+                                        color: Colors.blueGrey,
+                                        size: 32,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (widget.isStreamActive &&
+                              widget.onGpsLevelTap != null &&
+                              !widget.isShareMode &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              right: 16,
+                              bottom: 24,
+                              child: GpsLevelButton(
+                                isLowMode: widget.isLowMode,
+                                isStreamAccuracyLow: widget.isStreamAccuracyLow,
+                                onTap: widget.onGpsLevelTap!,
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                  if (widget.isStreamActive &&
-                      widget.onGpsLevelTap != null &&
-                      !widget.isDragMode &&
-                      !widget.isMapTapAddMode)
-                    Positioned(
-                      right: 16,
-                      bottom: 24,
-                      child: _GpsLevelButton(
-                        isLowMode: widget.isLowMode,
-                        isStreamAccuracyLow: widget.isStreamAccuracyLow,
-                        onTap: widget.onGpsLevelTap!,
-                      ),
+                    LocationBottomBar(
+                      isStreamActive: widget.isStreamActive,
+                      onTap: widget.onToggleLocationStream,
+                      progressBarValue: widget.progressBarValue,
+                      isLowMode: widget.isLowMode,
                     ),
-                ],
-              ),
-            ),
-          ),
-          AbsorbPointer(
-            absorbing: widget.isDragMode || widget.isMapTapAddMode,
-            child: Opacity(
-              opacity: (widget.isDragMode || widget.isMapTapAddMode)
-                  ? 0.0
-                  : 1.0,
-              child: LocationBottomBar(
-                isStreamActive: widget.isStreamActive,
-                onTap: widget.onToggleLocationStream,
-                progressBarValue: widget.progressBarValue,
-                isLowMode: widget.isLowMode,
+                  ],
+                ),
               ),
             ),
           ),
@@ -290,11 +353,18 @@ class _MapScreenContentState extends State<MapScreenContent> {
     );
   }
 
-  TileLayer _buildTileLayer(String urlTemplate, bool useOsmOrg) {
+  /// [urlTemplate] に含まれるホストに応じてサブドメインを返す。
+  /// tile.openstreetmap（.org / .jp）は OSM 推奨のためサブドメインなし。
+  static List<String> _subdomainsForTemplate(String urlTemplate) {
+    if (urlTemplate.contains('tile.openstreetmap')) return const [];
+    return const ['a', 'b', 'c'];
+  }
+
+  TileLayer _buildTileLayer(String urlTemplate) {
     return TileLayer(
       urlTemplate: urlTemplate,
       userAgentPackageName: TileConfig.userAgentPackageName,
-      subdomains: useOsmOrg ? const [] : const ['a', 'b', 'c'],
+      subdomains: _subdomainsForTemplate(urlTemplate),
       tileProvider: _tileProvider,
     );
   }
@@ -303,33 +373,17 @@ class _MapScreenContentState extends State<MapScreenContent> {
     final isDark = widget.mapStyleMode == 2;
     final languageCode = Localizations.localeOf(context).languageCode;
     final urlTemplate = TileConfig.getTileUrlTemplate(languageCode);
-    // tile.openstreetmap.org は OSM 推奨のためサブドメインなし（subdomains: []）
-    final useOsmOrg = urlTemplate.contains('tile.openstreetmap.org');
     final map = FlutterMap(
       mapController: _mapController,
       options: MapOptions(
         initialCenter: widget.initialPosition,
         initialZoom: widget.initialZoom,
-        onMapReady: () {
-          // flutter_map の既知の不具合: 初回表示でタイルがグレーのままになる場合がある
-          // workaround: 微移動で MapEventWithMove を発火させ、タイル読み込みを促す
-          Future.delayed(const Duration(milliseconds: 250), () {
-            if (!mounted) return;
-            final cam = _mapController.camera;
-            _mapController.move(cam.center, cam.zoom + 0.0001);
-            Future.delayed(const Duration(milliseconds: 50), () {
-              if (!mounted) return;
-              _mapController.move(cam.center, cam.zoom);
-              setState(() {});
-            });
-          });
-        },
+        onMapReady: () {},
         onMapEvent: (event) {
           if (event is MapEventMoveEnd) {
             widget.onCameraIdle();
           }
         },
-        onLongPress: (_, point) => widget.onMapLongPress?.call(point),
         interactionOptions: const InteractionOptions(
           flags: InteractiveFlag.all,
         ),
@@ -338,77 +392,111 @@ class _MapScreenContentState extends State<MapScreenContent> {
         if (isDark)
           ColorFiltered(
             colorFilter: const ColorFilter.matrix(<double>[
-              -0.2126, -0.7152, -0.0722, 0, 265,
-              -0.2126, -0.7152, -0.0722, 0, 265,
-              -0.2126, -0.7152, -0.0722, 0, 285,
-              0, 0, 0, 1, 0,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              265,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              265,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              285,
+              0,
+              0,
+              0,
+              1,
+              0,
             ]),
-            child: _buildTileLayer(urlTemplate, useOsmOrg),
+            child: _buildTileLayer(urlTemplate),
           )
         else
-          _buildTileLayer(urlTemplate, useOsmOrg),
-        RichAttributionWidget(
-          animationConfig: const ScaleRAWA(),
-          showFlutterMapAttribution: false,
-          attributions: [
-            TextSourceAttribution(TileConfig.attribution),
-          ],
-        ),
+          _buildTileLayer(urlTemplate),
         if (widget.polylines.isNotEmpty)
           PolylineLayer(polylines: widget.polylines),
-        if (widget.markers.isNotEmpty)
-          MarkerLayer(markers: widget.markers),
+        if (widget.markers.isNotEmpty) MarkerLayer(markers: widget.markers),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: widget.isShareMode
+              ? Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.6),
+                  child: Text.rich(
+                    TextSpan(
+                      text: 'Powered by ',
+                      style: (Theme.of(context).textTheme.bodySmall ??
+                              const TextStyle())
+                          .copyWith(
+                        fontSize: 13,
+                        color: isDark ? Colors.white : Colors.black54,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'Brevet Map',
+                          style: (Theme.of(context).textTheme.bodySmall ??
+                                  const TextStyle())
+                              .copyWith(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : StreamBuilder<MapEvent>(
+                  stream: _mapController.mapEventStream,
+                  builder: (context, snapshot) {
+                    final zoom = snapshot.hasData
+                        ? _mapController.camera.zoom
+                        : widget.initialZoom;
+                    final bgColor = isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.6);
+                    final textStyle = (Theme.of(context).textTheme.bodySmall ??
+                            const TextStyle())
+                        .copyWith(
+                      fontSize: 13,
+                      color: isDark ? Colors.white : Colors.black54,
+                    );
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+                          color: bgColor,
+                          child: Text('zoom: ${zoom.toStringAsFixed(1)}',
+                              style: textStyle),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
+                          color: bgColor,
+                          child: Text(TileConfig.attribution, style: textStyle),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+        ),
+        if (widget.calloutPosition != null &&
+            widget.calloutText != null &&
+            widget.offlineCenter == null)
+          CalloutOverlay(
+            position: widget.calloutPosition!,
+            text: widget.calloutText!,
+            hp: widget.calloutHp,
+          ),
       ],
     );
     return map;
-  }
-}
-
-/// 位置情報レベル切り替えボタン
-class _GpsLevelButton extends StatelessWidget {
-  const _GpsLevelButton({
-    required this.isLowMode,
-    required this.isStreamAccuracyLow,
-    required this.onTap,
-  });
-
-  final bool isLowMode;
-  final bool isStreamAccuracyLow;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final backgroundColor = isLowMode ? Colors.blueGrey : Colors.white;
-    final textColor = isLowMode ? Colors.white : Colors.blueGrey;
-    final label = isStreamAccuracyLow ? 'LOW' : 'GPS';
-
-    return Tooltip(
-      message: AppLocalizations.of(context)!.switchGpsLevel,
-      child: Material(
-        color: backgroundColor,
-        elevation: 5,
-        shadowColor: Colors.black26,
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          customBorder: const CircleBorder(),
-          child: SizedBox(
-            width: 60,
-            height: 60,
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: textColor,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }

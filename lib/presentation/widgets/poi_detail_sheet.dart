@@ -17,6 +17,7 @@ void showPoiDetailSheet(
       return SizedBox(
         width: double.infinity,
         child: SafeArea(
+          bottom: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 25),
             child: Column(

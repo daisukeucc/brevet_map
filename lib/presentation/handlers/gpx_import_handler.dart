@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../utils/string_utils.dart';
 import '../providers/providers.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/confirm_dialog.dart';
@@ -16,7 +18,7 @@ Future<void> showGpxImportFlow(BuildContext context, WidgetRef ref) async {
   final confirmed = await showConfirmDialog(
     context,
     message: l10n.routeOverwrite,
-    cancelText: l10n.ng,
+    cancelText: l10n.cancel,
     confirmText: l10n.ok,
   );
   if (confirmed != true || !context.mounted) return;
@@ -32,14 +34,32 @@ Future<void> showGpxImportFlow(BuildContext context, WidgetRef ref) async {
     return;
   }
 
-  final content = await File(path).readAsString();
+  // ファイル名の全角（ローマ字・数字・スペース）を半角に変換してから読み込む
+  final sourceFile = File(path);
+  final rawFilename = path.split(RegExp(r'[/\\]')).last;
+  final normalizedFilename = toHalfwidthAscii(rawFilename);
+  String content;
+  if (normalizedFilename == rawFilename) {
+    content = await sourceFile.readAsString();
+  } else {
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File('${tempDir.path}/$normalizedFilename');
+    await sourceFile.copy(tempFile.path);
+    try {
+      content = await tempFile.readAsString();
+    } finally {
+      tempFile.deleteSync();
+    }
+  }
   if (!context.mounted) return;
 
+  final filenameWithoutExt =
+      rawFilename.replaceAll(RegExp(r'\.gpx$', caseSensitive: false), '');
   final status = await ref.read(mapStateProvider.notifier).applyImportedGpx(
         content,
-        animateCamera: (bounds) => ref
-            .read(cameraControllerProvider.notifier)
-            .animateToBounds(bounds),
+        animateCamera: (bounds) =>
+            ref.read(cameraControllerProvider.notifier).animateToBounds(bounds),
+        importFilename: filenameWithoutExt,
       );
 
   if (!context.mounted) return;
@@ -57,16 +77,15 @@ Future<void> showConfirmAndApplyGpx(
   final confirmed = await showConfirmDialog(
     context,
     message: l10n.routeOverwrite,
-    cancelText: l10n.ng,
+    cancelText: l10n.cancel,
     confirmText: l10n.ok,
   );
   if (confirmed != true || !context.mounted) return;
 
   final status = await ref.read(mapStateProvider.notifier).applyImportedGpx(
         content,
-        animateCamera: (bounds) => ref
-            .read(cameraControllerProvider.notifier)
-            .animateToBounds(bounds),
+        animateCamera: (bounds) =>
+            ref.read(cameraControllerProvider.notifier).animateToBounds(bounds),
       );
 
   if (!context.mounted) return;

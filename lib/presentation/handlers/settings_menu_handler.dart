@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
@@ -11,6 +12,8 @@ import 'distance_unit_handler.dart';
 import 'gpx_export_handler.dart';
 import 'gpx_import_handler.dart';
 import 'poi_management_handler.dart';
+import 'offline_map_info_dialog.dart';
+import 'sleep_info_dialog.dart';
 import 'sleep_settings_handler.dart';
 
 /// ボトムシートを閉じ、遅延後にコールバックを実行する
@@ -35,6 +38,17 @@ Future<void> handleGpxExportTap(BuildContext context, WidgetRef ref) async {
 
 /// オフラインマップメニューがタップされたときのフロー
 Future<void> handleOfflineMapTap(BuildContext context, WidgetRef ref) async {
+  if (!context.mounted) return;
+
+  final dismissed = await loadOfflineMapInfoDismissed();
+  if (!context.mounted) return;
+
+  if (!dismissed) {
+    final proceed = await showOfflineMapInfoDialog(context);
+    if (!context.mounted) return;
+    if (!proceed) return;
+  }
+
   await showOfflineMapDownloadFlow(context, ref);
 }
 
@@ -83,6 +97,16 @@ Future<void> showSleepSettingsFlow(
   required void Function(int) restartTimer,
 }) async {
   if (!context.mounted) return;
+
+  final dismissed = await loadSleepInfoDismissed();
+  if (!context.mounted) return;
+
+  if (!dismissed) {
+    final proceed = await showSleepInfoDialog(context);
+    if (!context.mounted) return;
+    if (!proceed) return;
+  }
+
   final l10n = AppLocalizations.of(context)!;
   showRadioSelectionDialog<int>(
     context: context,

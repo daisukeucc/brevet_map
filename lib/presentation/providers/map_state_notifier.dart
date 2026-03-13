@@ -201,11 +201,13 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// GPXインポート結果を状態に反映する。
   /// SnackBar 表示は呼び出し側（Widget）が [GpxApplyStatus] を見て行う。
+  /// [importFilename] ファイルピッカーから取得したファイル名（.gpx 除く）。metadata が空のときプリファレンスに保存
   Future<GpxApplyStatus> applyImportedGpx(
     String gpxContent, {
     required Future<void> Function(LatLngBounds) animateCamera,
+    String? importFilename,
   }) async {
-    final result = await parseAndSaveGpx(gpxContent);
+    final result = await parseAndSaveGpx(gpxContent, importFilename: importFilename);
     if (result == null) {
       if (gpxContent.trim().isNotEmpty) return GpxApplyStatus.parseError;
       return GpxApplyStatus.success;
@@ -304,6 +306,11 @@ class MapStateNotifier extends Notifier<MapState> {
     await _refreshRouteMarkers(routePoints);
   }
 
+  /// 地図中心座標で POI ドラッグ位置を確定する
+  void confirmPoiDrag(LatLng newLatLng) {
+    _onPoiDragEnd?.call(newLatLng);
+  }
+
   /// ドラッグ編集モードを終了し、マーカーを通常に戻す
   Future<void> stopPoiDrag() async {
     _draggingPoi = null;
@@ -359,7 +366,6 @@ class MapStateNotifier extends Notifier<MapState> {
       onUserPoiTap: onUserPoiTap,
       zoomLevel: state.savedZoomLevel,
       draggingPoi: _draggingPoi,
-      onPoiDragEnd: _onPoiDragEnd,
       distanceUnit: distanceUnit,
     );
     state = state.copyWith(

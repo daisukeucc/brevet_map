@@ -1,6 +1,6 @@
 {
   "@@locale": "ja",
-  "appTitle": "ブルベMap",
+  "appTitle": "ブルベMAP",
   "cancel": "キャンセル",
   "ok": "OK",
   "ng": "NG",
@@ -9,8 +9,13 @@
   "change": "変更",
   "register": "登録",
   "settings": "設定",
+  "share": "共有",
+  "shareFailed": "共有に失敗しました",
   "showMyLocation": "現在地を表示",
-  "sleepSettings": "画面スリープ設定",
+  "sleepSettings": "画面スリープ",
+  "sleepInfoMessage1": "画面スリープ時はGPSがOFFになるためバッテリー消費が減ります",
+  "sleepInfoMessage2": "さらにバッテリー消費を抑えるためには端末自体をスリープして下さい\n端末スリープでもGPSはOFFになります",
+  "sleepInfoDontShowAgain": "以後表示しない",
   "switchGpsLevel": "位置情報レベルを切り替え",
   "gpxImport": "GPXファイルをインポート",
   "gpxExport": "GPXファイルをエクスポート",
@@ -19,16 +24,18 @@
   "gpxExportComplete": "{filename} を保存しました",
   "@gpxExportComplete": {
     "placeholders": {
-      "filename": { "type": "String" }
+      "filename": {
+        "type": "String"
+      }
     }
   },
   "gpxExportFailed": "エクスポートに失敗しました",
   "gpxExportPermissionDenied": "ファイル保存の権限がありません",
-  "poiAdd": "POIの登録",
-  "poiAddEdit": "POIの登録・編集",
-  "poiAddByDistance": "距離入力でPOIを登録",
-  "poiAddByMapTap": "地図タップでPOIを登録",
-  "poiTabAdd": "POI 登録",
+  "poiAdd": "POIの追加",
+  "poiAddEdit": "POIの追加・編集",
+  "poiAddByDistance": "距離入力でPOIを追加",
+  "poiAddByMapTap": "地図上でPOIを追加",
+  "poiTabAdd": "POI 追加",
   "poiTabEdit": "POI 編集 / 削除",
   "poiType": "POIタイプ",
   "checkpoint": "チェックポイント",
@@ -43,19 +50,17 @@
   "poiAtKmPoint": "{kmLabel}地点のPOI",
   "poiOffRoutePoi": "POIの編集",
   "changePoiPosition": "この位置に変更する",
-  "dragMarkerHint": "マーカーをドラッグして位置を変更して下さい",
-  "longPressPoiHint": "POIを登録したいポイントを長押しして下さい",
-  "poiRegistered": "POIを登録しました",
-  "poiAddedFromShare": "共有リンクからPOIを登録しました",
+  "poiRegistered": "POIを追加しました",
+  "poiAddedFromShare": "共有リンクからPOIを追加しました",
   "shareUrlInvalid": "共有されたリンクから座標を取得できませんでした",
-  "registerThisPlaceAsPoi": "この場所をPOIとして登録する",
+  "registerThisPlaceAsPoi": "この場所にPOIを追加する",
   "poiUpdated": "POIを変更しました",
   "poiDeleted": "POIを削除しました",
   "poiPositionChanged": "POIの位置を変更しました",
   "changePoiText": "POIのタイトル・本文を変更",
   "changePoiPositionTitle": "POIの位置を変更",
   "deletePoiConfirm": "このPOIを削除しますか？",
-  "noPoiRegistered": "POIの登録はありません",
+  "noPoiRegistered": "追加されたPOIはありません",
   "changePoiTextTitle": "POIの内容を変更",
   "routeOverwrite": "現在のルートを上書きします",
   "selectGpxFile": "GPXファイルを選択してください",
@@ -81,7 +86,7 @@
   "sleep1min": "1分",
   "sleep5min": "5分",
   "sleep10min": "10分",
-  "distanceUnit": "距離の単位設定",
+  "distanceUnit": "距離の単位",
   "unitKm": "km",
   "unitMile": "mile",
   "distanceUnitSetToKm": "距離の単位をkmに設定しました",
@@ -91,25 +96,49 @@
   "offline": "オフラインです",
   "retryConnectivity": "再接続",
   "offlineMap": "オフラインマップ",
-  "offlineMapZoomSmall": "拡大：狭い",
-  "offlineMapZoomMedium": "拡大：標準",
-  "offlineMapZoomLarge": "拡大：広い",
-  "offlineMapZoomSmallWithSize": "拡大：狭い（{size}）",
-  "offlineMapZoomMediumWithSize": "拡大：標準（{size}）",
-  "offlineMapZoomLargeWithSize": "拡大：広い（{size}）",
+  "offlineMapMinimalMap": "最大ズーム：14",
+  "offlineMapStandardMap": "最大ズーム：16",
+  "offlineMapMinimalMapWithSize": "最大ズーム：14（{size}）",
+  "offlineMapStandardMapWithSize": "最大ズーム：16（{size}）",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapZoomSmall": "ズーム：小",
+  "offlineMapZoomMedium": "ズーム：中",
+  "offlineMapZoomLarge": "ズーム：大",
+  "offlineMapZoomSmallWithSize": "ズーム：小（{size}）",
+  "offlineMapZoomMediumWithSize": "ズーム：中（{size}）",
+  "offlineMapZoomLargeWithSize": "ズーム：大（{size}）",
   "@offlineMapZoomSmallWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomMediumWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "@offlineMapZoomLargeWithSize": {
     "placeholders": {
-      "size": { "type": "String" }
+      "size": {
+        "type": "String"
+      }
     }
   },
   "offlineMapRequiresNetwork": "オフラインマップのダウンロードにはネットワーク接続が必要です",
@@ -127,5 +156,29 @@
         "type": "String"
       }
     }
-  }
+  },
+  "offlineMapCurrentStorage": "保存済み: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClearWithSize": "キャッシュ削除（{size}）",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClear": "キャッシュ削除",
+  "offlineMapCacheClearConfirmMessage": "キャッシュデータ（オフラインマップ含む）が増えると、地図の表示が遅くなることがあります\n\n地図表示の流れ\n\n1. キャッシュ参照\n2-1. キャッシュあり：\nネットワークアクセスなし\n2-2. キャッシュなし：\nネットワークアクセスしキャッシュ保存\n3. 地図表示\n\n1のキャッシュ参照はデータが大きいほど時間がかかります\nそのため、地図表示が遅くなったり、ブルベ用に大容量のオフラインマップを保存した場合、キャッシュ削除することをおすすめします",
+  "offlineMapCacheClearConfirmButton": "削除",
+  "offlineMapCacheCleared": "キャッシュを削除しました",
+  "offlineMapInfoMessage1": "オフラインマップは、オンライン時でもネットワークアクセスを減らし、バッテリー消費を抑えます",
+  "offlineMapInfoMessage2": "但し、アプリを快適に使用するために、ダウンロードしたマップは使用終了後に削除することをお勧めします",
+  "offlineMapInfoButton": "ダウンロード",
+  "registerAtPosition": "この位置に追加する"
 }

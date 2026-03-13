@@ -8,12 +8,19 @@ alwaysApply: true
 ## ローカライズ (l10n)
 
 - **方式**: Flutter ARB + `flutter gen-l10n`
-- **文言追加**: `lib/l10n/app_en.arb` と `lib/l10n/app_ja.arb` に両方追加
-- **app_ja.arb 変更時**: 他言語（`app_en.arb` 等）の同一キーを該当言語に翻訳して更新し、最後に `flutter gen-l10n` を実行する（逆方向の同期は行わない）
+- **ベース言語**: 英語（`app_en.arb`）をベースにする。新規文言は必ず英語で先に追加し、他言語へ翻訳する
+- **文言追加時**:
+  1. `app_en.arb` に英語で追加
+  2. `app_ja.arb` に日本語を追加
+  3. 新言語を追加する場合は `app_XX.arb` を作成し、英語のキーをコピーして翻訳
+- **template-arb-file**: `l10n.yaml` で `template-arb-file: app_en.arb` を指定（未翻訳キーは英語でフォールバック）
+- **app_ja.arb / 他言語変更時**: 他言語（`app_en.arb` 等）の同一キーを該当言語に翻訳して更新し、最後に `flutter gen-l10n` を実行する（逆方向の同期は行わない）
 - **ARB 変更後**: `.arb` ファイルを変更したら `flutter gen-l10n` を実行する
 - **参照**: `AppLocalizations.of(context)!.キー名`
 - **禁止**: `initState` 内で `AppLocalizations.of(context)` を呼ばない（inherited widget 未準備のため）
 - **対策**: `addPostFrameCallback` 内で取得するか、`build` / `didChangeDependencies` で取得
+- **日本語の扱い**: 敬語・トーンの調整は英語ベースでは出てこないため、日本語は別途レビューする
+- **例外的にローカライズしない文字列**: アプリ名（`appTitle`）など、例外的に翻訳しないものは全言語で同じ値を使用する。日本語以外は一律 `"Brevet Map"` とする。`app_en.arb` の `@appTitle` に `description` で「Do not translate」旨を記載しておく
 
 ## 距離単位 (km / mile)
 
@@ -48,6 +55,11 @@ alwaysApply: true
 
 - **表示**: SnackBar を使用する場合は `showAppSnackBar`（`snackbar_utils.dart`）を使用する
 - **ダイアログコールバック内**: `context` が変わる可能性がある場合は `showAppSnackBarWithMessenger` を使用する
+
+## ノッチ端末対応
+
+- **ボトムシート・下端 UI**: ノッチ端末で余計な余白を入れないため、`SafeArea` には `bottom: false` を指定する
+- **参照**: `LocationBottomBar` は SafeArea を使わず下端まで表示。ボトムメニュー・POI 詳細ビューも同様に下端まで表示する
 
 ## 角丸禁止
 

@@ -8,6 +8,7 @@ const _keyMapStyleMode = 'map_style_mode';
 const _keyLocationStreamActive = 'location_stream_active';
 const _keySleepDuration = 'sleep_duration';
 const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
+const _keySleepInfoDismissed = 'sleep_info_dismissed';
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -112,4 +113,30 @@ Future<void> saveDistanceUnit(int unit) async {
 Future<int> loadDistanceUnit() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getInt(_keyDistanceUnit) ?? 0;
+}
+
+const _keyOfflineMapInfoDismissed = 'offline_map_info_dismissed';
+
+/// オフラインマップ説明ダイアログを「以後表示しない」にしたかどうかを保存
+Future<void> saveOfflineMapInfoDismissed(bool dismissed) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_keyOfflineMapInfoDismissed, dismissed);
+}
+
+/// オフラインマップ説明ダイアログを「以後表示しない」にしたかどうかを返す
+Future<bool> loadOfflineMapInfoDismissed() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool(_keyOfflineMapInfoDismissed) ?? false;
+}
+
+/// 画面スリープ説明ダイアログを「以後表示しない」にしたかどうかを保存
+Future<void> saveSleepInfoDismissed(bool dismissed) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_keySleepInfoDismissed, dismissed);
+}
+
+/// 画面スリープ説明ダイアログを「以後表示しない」にしたかどうかを返す
+Future<bool> loadSleepInfoDismissed() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool(_keySleepInfoDismissed) ?? false;
 }

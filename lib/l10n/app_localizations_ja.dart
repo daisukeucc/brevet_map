@@ -9,7 +9,7 @@ class AppLocalizationsJa extends AppLocalizations {
   AppLocalizationsJa([String locale = 'ja']) : super(locale);
 
   @override
-  String get appTitle => 'ブルベMap';
+  String get appTitle => 'ブルベMAP';
 
   @override
   String get cancel => 'キャンセル';
@@ -36,10 +36,26 @@ class AppLocalizationsJa extends AppLocalizations {
   String get settings => '設定';
 
   @override
+  String get share => '共有';
+
+  @override
+  String get shareFailed => '共有に失敗しました';
+
+  @override
   String get showMyLocation => '現在地を表示';
 
   @override
-  String get sleepSettings => '画面スリープ設定';
+  String get sleepSettings => '画面スリープ';
+
+  @override
+  String get sleepInfoMessage1 => '画面スリープ時はGPSがOFFになるためバッテリー消費が減ります';
+
+  @override
+  String get sleepInfoMessage2 =>
+      'さらにバッテリー消費を抑えるためには端末自体をスリープして下さい\n端末スリープでもGPSはOFFになります';
+
+  @override
+  String get sleepInfoDontShowAgain => '以後表示しない';
 
   @override
   String get switchGpsLevel => '位置情報レベルを切り替え';
@@ -68,19 +84,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gpxExportPermissionDenied => 'ファイル保存の権限がありません';
 
   @override
-  String get poiAdd => 'POIの登録';
+  String get poiAdd => 'POIの追加';
 
   @override
-  String get poiAddEdit => 'POIの登録・編集';
+  String get poiAddEdit => 'POIの追加・編集';
 
   @override
-  String get poiAddByDistance => '距離入力でPOIを登録';
+  String get poiAddByDistance => '距離入力でPOIを追加';
 
   @override
-  String get poiAddByMapTap => '地図タップでPOIを登録';
+  String get poiAddByMapTap => '地図上でPOIを追加';
 
   @override
-  String get poiTabAdd => 'POI 登録';
+  String get poiTabAdd => 'POI 追加';
 
   @override
   String get poiTabEdit => 'POI 編集 / 削除';
@@ -129,22 +145,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get changePoiPosition => 'この位置に変更する';
 
   @override
-  String get dragMarkerHint => 'マーカーをドラッグして位置を変更して下さい';
+  String get poiRegistered => 'POIを追加しました';
 
   @override
-  String get longPressPoiHint => 'POIを登録したいポイントを長押しして下さい';
-
-  @override
-  String get poiRegistered => 'POIを登録しました';
-
-  @override
-  String get poiAddedFromShare => '共有リンクからPOIを登録しました';
+  String get poiAddedFromShare => '共有リンクからPOIを追加しました';
 
   @override
   String get shareUrlInvalid => '共有されたリンクから座標を取得できませんでした';
 
   @override
-  String get registerThisPlaceAsPoi => 'この場所をPOIとして登録する';
+  String get registerThisPlaceAsPoi => 'この場所にPOIを追加する';
 
   @override
   String get poiUpdated => 'POIを変更しました';
@@ -165,7 +175,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deletePoiConfirm => 'このPOIを削除しますか？';
 
   @override
-  String get noPoiRegistered => 'POIの登録はありません';
+  String get noPoiRegistered => '追加されたPOIはありません';
 
   @override
   String get changePoiTextTitle => 'POIの内容を変更';
@@ -247,7 +257,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleep10min => '10分';
 
   @override
-  String get distanceUnit => '距離の単位設定';
+  String get distanceUnit => '距離の単位';
 
   @override
   String get unitKm => 'km';
@@ -277,27 +287,43 @@ class AppLocalizationsJa extends AppLocalizations {
   String get offlineMap => 'オフラインマップ';
 
   @override
-  String get offlineMapZoomSmall => '拡大：狭い';
+  String get offlineMapMinimalMap => '最大ズーム：14';
 
   @override
-  String get offlineMapZoomMedium => '拡大：標準';
+  String get offlineMapStandardMap => '最大ズーム：16';
 
   @override
-  String get offlineMapZoomLarge => '拡大：広い';
+  String offlineMapMinimalMapWithSize(String size) {
+    return '最大ズーム：14（$size）';
+  }
+
+  @override
+  String offlineMapStandardMapWithSize(String size) {
+    return '最大ズーム：16（$size）';
+  }
+
+  @override
+  String get offlineMapZoomSmall => 'ズーム：小';
+
+  @override
+  String get offlineMapZoomMedium => 'ズーム：中';
+
+  @override
+  String get offlineMapZoomLarge => 'ズーム：大';
 
   @override
   String offlineMapZoomSmallWithSize(String size) {
-    return '拡大：狭い（$size）';
+    return 'ズーム：小（$size）';
   }
 
   @override
   String offlineMapZoomMediumWithSize(String size) {
-    return '拡大：標準（$size）';
+    return 'ズーム：中（$size）';
   }
 
   @override
   String offlineMapZoomLargeWithSize(String size) {
-    return '拡大：広い（$size）';
+    return 'ズーム：大（$size）';
   }
 
   @override
@@ -329,4 +355,41 @@ class AppLocalizationsJa extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return 'データサイズが大きいためWi-Fi接続でのダウンロードをお勧めします。\n\n推定サイズ: 約$size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return '保存済み: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return 'キャッシュ削除（$size）';
+  }
+
+  @override
+  String get offlineMapCacheClear => 'キャッシュ削除';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      'キャッシュデータ（オフラインマップ含む）が増えると、地図の表示が遅くなることがあります\n\n地図表示の流れ\n\n1. キャッシュ参照\n2-1. キャッシュあり：\nネットワークアクセスなし\n2-2. キャッシュなし：\nネットワークアクセスしキャッシュ保存\n3. 地図表示\n\n1のキャッシュ参照はデータが大きいほど時間がかかります\nそのため、地図表示が遅くなったり、ブルベ用に大容量のオフラインマップを保存した場合、キャッシュ削除することをおすすめします';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => '削除';
+
+  @override
+  String get offlineMapCacheCleared => 'キャッシュを削除しました';
+
+  @override
+  String get offlineMapInfoMessage1 =>
+      'オフラインマップは、オンライン時でもネットワークアクセスを減らし、バッテリー消費を抑えます';
+
+  @override
+  String get offlineMapInfoMessage2 =>
+      '但し、アプリを快適に使用するために、ダウンロードしたマップは使用終了後に削除することをお勧めします';
+
+  @override
+  String get offlineMapInfoButton => 'ダウンロード';
+
+  @override
+  String get registerAtPosition => 'この位置に追加する';
 }

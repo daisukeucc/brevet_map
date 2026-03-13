@@ -30,19 +30,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get change => 'Change';
 
   @override
-  String get register => 'Register';
+  String get register => 'Add';
 
   @override
   String get settings => 'Settings';
 
   @override
+  String get share => 'Share';
+
+  @override
+  String get shareFailed => 'Share failed';
+
+  @override
   String get showMyLocation => 'Show my location';
 
   @override
-  String get sleepSettings => 'Screen sleep settings';
+  String get sleepSettings => 'Screen Sleep';
 
   @override
-  String get switchGpsLevel => 'Switch location level';
+  String get sleepInfoMessage1 =>
+      'Turns off GPS when the screen sleeps to save battery';
+
+  @override
+  String get sleepInfoMessage2 =>
+      'To save even more battery, put your device to sleep. GPS also turns off';
+
+  @override
+  String get sleepInfoDontShowAgain => 'Don\'t show again';
+
+  @override
+  String get switchGpsLevel => 'Location accuracy';
 
   @override
   String get gpxImport => 'Import GPX file';
@@ -71,19 +88,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiAdd => 'Add POI';
 
   @override
-  String get poiAddEdit => 'Add / Edit POI';
+  String get poiAddEdit => 'Add or Edit POI';
 
   @override
-  String get poiAddByDistance => 'Add POI by distance';
+  String get poiAddByDistance => 'Add POI at distance';
 
   @override
-  String get poiAddByMapTap => 'Add POI by map tap';
+  String get poiAddByMapTap => 'Add POI from map';
 
   @override
   String get poiTabAdd => 'Add POI';
 
   @override
-  String get poiTabEdit => 'Edit / Delete POI';
+  String get poiTabEdit => 'Edit or Delete POI';
 
   @override
   String get poiType => 'POI type';
@@ -126,17 +143,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiOffRoutePoi => 'Edit POI';
 
   @override
-  String get changePoiPosition => 'Change to this position';
+  String get changePoiPosition => 'Set this position';
 
   @override
-  String get dragMarkerHint => 'Drag the marker to change position';
-
-  @override
-  String get longPressPoiHint =>
-      'Long press the point where you want to add a POI';
-
-  @override
-  String get poiRegistered => 'POI registered';
+  String get poiRegistered => 'POI added';
 
   @override
   String get poiAddedFromShare => 'POI added from shared link';
@@ -146,7 +156,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not extract coordinates from shared link';
 
   @override
-  String get registerThisPlaceAsPoi => 'Register this location as POI?';
+  String get registerThisPlaceAsPoi => 'Add POI here';
 
   @override
   String get poiUpdated => 'POI updated';
@@ -167,7 +177,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deletePoiConfirm => 'Delete this POI?';
 
   @override
-  String get noPoiRegistered => 'No POI registered';
+  String get noPoiRegistered => 'No POI added';
 
   @override
   String get changePoiTextTitle => 'Change POI content';
@@ -251,7 +261,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleep10min => '10min';
 
   @override
-  String get distanceUnit => 'Distance unit settings';
+  String get distanceUnit => 'Distance Unit';
 
   @override
   String get unitKm => 'km';
@@ -279,6 +289,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineMap => 'Offline Map';
+
+  @override
+  String get offlineMapMinimalMap => 'Max zoom: 14';
+
+  @override
+  String get offlineMapStandardMap => 'Max zoom: 16';
+
+  @override
+  String offlineMapMinimalMapWithSize(String size) {
+    return 'Max zoom: 14 ($size)';
+  }
+
+  @override
+  String offlineMapStandardMapWithSize(String size) {
+    return 'Max zoom: 16 ($size)';
+  }
 
   @override
   String get offlineMapZoomSmall => 'Zoom: Limited';
@@ -313,7 +339,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Route is not loaded. Please import a GPX file first.';
 
   @override
-  String get offlineMapDownloading => 'Downloading ... ';
+  String get offlineMapDownloading => 'Downloading... ';
 
   @override
   String get offlineMapCancel => 'Cancel';
@@ -335,4 +361,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String offlineMapWifiRecommendationWithSize(String size) {
     return 'We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~$size';
   }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return 'Stored: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return 'Clear cache ($size)';
+  }
+
+  @override
+  String get offlineMapCacheClear => 'Clear cache';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      'When cache data (including offline maps) grows, map display can become slower.\n\nMap display flow:\n\n1. Cache lookup\n2-1. If cached:\nno network access\n2-2. If not cached:\nnetwork access and save to cache\n3. Map display\n\nStep 1 cache lookup takes more time when data is larger. So if the map becomes slow or you have saved a large offline map for brevet, we recommend deleting the cache.';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => 'Delete';
+
+  @override
+  String get offlineMapCacheCleared => 'Cache cleared';
+
+  @override
+  String get offlineMapInfoMessage1 =>
+      'Offline maps reduce network access and save battery even when online';
+
+  @override
+  String get offlineMapInfoMessage2 =>
+      'To keep the app running smoothly, we recommend deleting downloaded maps when you no longer need them';
+
+  @override
+  String get offlineMapInfoButton => 'Download';
+
+  @override
+  String get registerAtPosition => 'Add here';
 }
