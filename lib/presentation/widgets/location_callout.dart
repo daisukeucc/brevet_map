@@ -28,7 +28,7 @@ class LocationCallout extends StatelessWidget {
     this.hp,
   });
 
-  /// メイン表示文言（Start!, Goal!, Nkm Now!, Ready to Start! 等）
+  /// メイン表示文言（距離等）
   final String mainText;
 
   /// true のとき三角形のしっぽを上側に描画（吹き出しをポイントの下に表示する場合）

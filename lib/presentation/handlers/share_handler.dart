@@ -27,7 +27,7 @@ String getLocationCalloutMainText({
   required int unit,
 }) {
   if (routePoints == null || routePoints.isEmpty || currentPosition == null) {
-    return 'Ready to Start!';
+    return '@--km';
   }
   final result = getRouteLegWithBearing(
     routePoints,
@@ -35,7 +35,7 @@ String getLocationCalloutMainText({
     previousPosition: previousPosition,
   );
   if (result.toRouteM >= _onRouteThresholdM) {
-    return 'Ready to Start!';
+    return '@--km';
   }
   final distKm = result.alongTrackM / 1000;
   final totalM = distanceAlongTrackFromStart(
@@ -82,7 +82,8 @@ Future<void> handleShareButtonTap({
   required GlobalKey screenshotKey,
   LatLng? currentPosition,
   LatLng? previousPosition,
-  required void Function(bool isShareMode, {double? shareHp}) onShareModeChanged,
+  required void Function(bool isShareMode, {double? shareHp})
+      onShareModeChanged,
   required bool Function() getMounted,
 }) async {
   final hp = await showHpSetupDialog(context);
@@ -165,7 +166,8 @@ Future<void> showShareFlow(
           name: fileName,
         ),
       ],
-      text: gpxName != null && gpxName.trim().isNotEmpty ? gpxName.trim() : null,
+      text:
+          gpxName != null && gpxName.trim().isNotEmpty ? gpxName.trim() : null,
       sharePositionOrigin: sharePositionOrigin,
     );
   } catch (e) {

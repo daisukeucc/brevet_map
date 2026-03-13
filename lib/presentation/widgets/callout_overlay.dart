@@ -4,8 +4,8 @@ import 'package:latlong2/latlong.dart';
 
 import 'location_callout.dart';
 
-/// 「Ready to Start!」の表示文言（ルートから1km以上離れている場合）
-const String _readyToStartText = 'Ready to Start!';
+/// ルートから1km以上離れている場合
+const String _readyToStartText = '@--km';
 
 /// 吹き出しを画面上の適切な位置にオーバーレイ表示。端に隠れないよう配置を調整する。
 class CalloutOverlay extends StatelessWidget {
@@ -53,8 +53,7 @@ class CalloutOverlay extends StatelessWidget {
                 tailAtTop = false;
                 tailCenterX = _calloutWidth / 2;
               } else {
-                final pointOffset =
-                    camera.latLngToScreenOffset(position);
+                final pointOffset = camera.latLngToScreenOffset(position);
 
                 // デフォルト: ポイントの上に表示（しっぽは下向き）
                 top = pointOffset.dy - _calloutHeight - _tailGap;
