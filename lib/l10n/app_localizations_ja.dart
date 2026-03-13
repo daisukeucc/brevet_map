@@ -99,7 +99,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get poiTabAdd => 'POI 追加';
 
   @override
-  String get poiTabEdit => 'POI 編集 / 削除';
+  String get poiTabEdit => 'POI 編集・削除';
 
   @override
   String get poiType => 'POIタイプ';

@@ -75,8 +75,7 @@ Future<void> handleDistanceInputPoiAdd(
     context: context,
     barrierColor: Colors.black54,
     barrierDismissible: false,
-    builder: (context) =>
-        DistanceInputPoiDialog(distanceUnit: distanceUnit),
+    builder: (context) => DistanceInputPoiDialog(distanceUnit: distanceUnit),
   );
   if (data == null || !context.mounted) return;
   if (data.km == null) return;
@@ -84,15 +83,13 @@ Future<void> handleDistanceInputPoiAdd(
   final routePoints = ref.read(mapStateProvider).savedRoutePoints;
   if (routePoints == null || routePoints.isEmpty) {
     if (!context.mounted) return;
-    showAppSnackBar(
-        context, AppLocalizations.of(context)!.routeNotLoaded);
+    showAppSnackBar(context, AppLocalizations.of(context)!.routeNotLoaded);
     return;
   }
   final coord = coordAtKm(routePoints, data.km!);
   if (coord == null) {
     if (!context.mounted) return;
-    showAppSnackBar(
-        context, AppLocalizations.of(context)!.kmPointNotFound);
+    showAppSnackBar(context, AppLocalizations.of(context)!.kmPointNotFound);
     return;
   }
   final poi = UserPoi(
@@ -230,8 +227,7 @@ Future<void> handlePoiDragEnd(
   );
   await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
   if (!context.mounted) return;
-  showAppSnackBar(
-      context, AppLocalizations.of(context)!.poiPositionChanged);
+  showAppSnackBar(context, AppLocalizations.of(context)!.poiPositionChanged);
 }
 
 // ---------------------------------------------------------------------------
@@ -564,7 +560,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
             child: Row(
               children: [
                 Expanded(
@@ -579,8 +575,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
+                    minimumSize: const Size(48, 48),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   onPressed: () => _onEditTap(poi),
@@ -589,8 +584,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
+                    minimumSize: const Size(48, 48),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   onPressed: () => _onDeleteTap(poi),
@@ -897,39 +891,38 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                     child: TextField(
                       controller: _kmController,
                       focusNode: _kmFocusNode,
-                        keyboardType:
-                            const TextInputType.numberWithOptions(decimal: true),
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!.distance,
-                          isDense: true,
-                          errorText: _kmError != null ? ' ' : null,
-                          errorStyle: const TextStyle(height: 0, fontSize: 0),
-                        ),
-                        textAlign: TextAlign.end,
-                        style: const TextStyle(fontSize: 17),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.distance,
+                        isDense: true,
+                        errorText: _kmError != null ? ' ' : null,
+                        errorStyle: const TextStyle(height: 0, fontSize: 0),
                       ),
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(fontSize: 17),
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: _kmError != null
-                            ? Text(
-                                _kmError!,
-                                style: TextStyle(
-                                  color:
-                                      Theme.of(context).colorScheme.error,
-                                  fontSize: 12,
-                                ),
-                              )
-                            : Text(
-                                widget.distanceUnit == 1 ? 'mi' : 'km',
-                                style: AppTextStyles.title,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: _kmError != null
+                          ? Text(
+                              _kmError!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
                               ),
-                      ),
+                            )
+                          : Text(
+                              widget.distanceUnit == 1 ? 'mi' : 'km',
+                              style: AppTextStyles.title,
+                            ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
               Text(AppLocalizations.of(context)!.poiType,
                   style: AppTextStyles.body),
