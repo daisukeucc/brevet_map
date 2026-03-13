@@ -560,7 +560,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             child: Row(
               children: [
                 Expanded(
@@ -575,7 +575,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
+                    minimumSize: const Size(36, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   onPressed: () => _onEditTap(poi),
@@ -584,7 +584,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
-                    minimumSize: const Size(48, 48),
+                    minimumSize: const Size(36, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
                   onPressed: () => _onDeleteTap(poi),
