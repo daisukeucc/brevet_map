@@ -147,9 +147,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get changePoiPosition => 'Diese Position festlegen';
 
   @override
-  String get dragMarkerHint => 'Markierung ziehen, um sie zu verschieben';
-
-  @override
   String get longPressPoiHint =>
       'Lange auf den Punkt drücken, an dem Sie einen POI hinzufügen möchten';
 

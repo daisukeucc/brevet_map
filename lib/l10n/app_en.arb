@@ -67,7 +67,6 @@
     }
   },
   "changePoiPosition": "Set this position",
-  "dragMarkerHint": "Drag the marker to move it",
   "longPressPoiHint": "Long press the point where you want to add a POI",
   "poiRegistered": "POI registered",
   "poiAddedFromShare": "POI added from shared link",

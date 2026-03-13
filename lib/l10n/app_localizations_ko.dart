@@ -144,9 +144,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get changePoiPosition => '이 위치로 설정';
 
   @override
-  String get dragMarkerHint => '마커를 드래그하여 이동하세요';
-
-  @override
   String get longPressPoiHint => 'POI를 추가할 지점을 길게 누르세요';
 
   @override

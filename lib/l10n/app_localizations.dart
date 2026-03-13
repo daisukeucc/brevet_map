@@ -368,12 +368,6 @@ abstract class AppLocalizations {
   /// **'Set this position'**
   String get changePoiPosition;
 
-  /// No description provided for @dragMarkerHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Drag the marker to move it'**
-  String get dragMarkerHint;
-
   /// No description provided for @longPressPoiHint.
   ///
   /// In en, this message translates to:

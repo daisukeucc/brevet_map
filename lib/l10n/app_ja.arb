@@ -50,7 +50,6 @@
   "poiAtKmPoint": "{kmLabel}地点のPOI",
   "poiOffRoutePoi": "POIの編集",
   "changePoiPosition": "この位置に変更する",
-  "dragMarkerHint": "マーカーをドラッグして位置を変更して下さい",
   "longPressPoiHint": "POIを登録したいポイントを長押しして下さい",
   "poiRegistered": "POIを登録しました",
   "poiAddedFromShare": "共有リンクからPOIを登録しました",

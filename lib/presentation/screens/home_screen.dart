@@ -784,6 +784,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               child: ColoredBox(color: Color(0x66000000)),
             ),
           ),
+          const Positioned.fill(
+            child: IgnorePointer(
+              child: Center(
+                child: Icon(
+                  Icons.my_location,
+                  size: 56,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -801,18 +812,26 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                       vertical: 12,
                     ),
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Expanded(
+                        TextButton(
+                          onPressed: () {
+                            final center = ref
+                                .read(cameraControllerProvider)
+                                ?.camera
+                                .center;
+                            if (center == null) return;
+                            ref
+                                .read(mapStateProvider.notifier)
+                                .confirmPoiDrag(center);
+                          },
                           child: Text(
-                            AppLocalizations.of(context)!.dragMarkerHint,
+                            AppLocalizations.of(context)!.changePoiPosition,
                             style: const TextStyle(
                               fontSize: 15,
-                              height: 1.5,
-                              color: Colors.white60,
+                              color: Colors.white,
                               decoration: TextDecoration.none,
                             ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         TextButton(

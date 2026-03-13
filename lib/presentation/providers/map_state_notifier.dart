@@ -306,6 +306,11 @@ class MapStateNotifier extends Notifier<MapState> {
     await _refreshRouteMarkers(routePoints);
   }
 
+  /// 地図中心座標で POI ドラッグ位置を確定する
+  void confirmPoiDrag(LatLng newLatLng) {
+    _onPoiDragEnd?.call(newLatLng);
+  }
+
   /// ドラッグ編集モードを終了し、マーカーを通常に戻す
   Future<void> stopPoiDrag() async {
     _draggingPoi = null;

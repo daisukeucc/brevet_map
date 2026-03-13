@@ -144,9 +144,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changePoiPosition => '设为此位置';
 
   @override
-  String get dragMarkerHint => '拖动标记以移动';
-
-  @override
   String get longPressPoiHint => '长按要添加 POI 的位置';
 
   @override

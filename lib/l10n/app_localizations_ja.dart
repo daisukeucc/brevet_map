@@ -145,9 +145,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get changePoiPosition => 'この位置に変更する';
 
   @override
-  String get dragMarkerHint => 'マーカーをドラッグして位置を変更して下さい';
-
-  @override
   String get longPressPoiHint => 'POIを登録したいポイントを長押しして下さい';
 
   @override

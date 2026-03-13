@@ -64,7 +64,6 @@
     }
   },
   "changePoiPosition": "Diese Position festlegen",
-  "dragMarkerHint": "Markierung ziehen, um sie zu verschieben",
   "longPressPoiHint": "Lange auf den Punkt drücken, an dem Sie einen POI hinzufügen möchten",
   "poiRegistered": "POI registriert",
   "poiAddedFromShare": "POI von geteiltem Link hinzugefügt",

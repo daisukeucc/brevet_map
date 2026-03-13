@@ -64,7 +64,6 @@
     }
   },
   "changePoiPosition": "设为此位置",
-  "dragMarkerHint": "拖动标记以移动",
   "longPressPoiHint": "长按要添加 POI 的位置",
   "poiRegistered": "POI 已注册",
   "poiAddedFromShare": "已从分享链接添加 POI",
