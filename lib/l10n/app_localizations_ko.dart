@@ -30,7 +30,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get change => '변경';
 
   @override
-  String get register => '추가';
+  String get add => '추가';
 
   @override
   String get settings => '설정';

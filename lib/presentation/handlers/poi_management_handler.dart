@@ -428,7 +428,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: Text(AppLocalizations.of(context)!.register,
+                    child: Text(AppLocalizations.of(context)!.add,
                         style: AppTextStyles.button),
                   ),
                 ],
@@ -776,7 +776,7 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                   ),
                   TextButton(
                     onPressed: _onSubmit,
-                    child: Text(AppLocalizations.of(context)!.register,
+                    child: Text(AppLocalizations.of(context)!.add,
                         style: AppTextStyles.button),
                   ),
                 ],
