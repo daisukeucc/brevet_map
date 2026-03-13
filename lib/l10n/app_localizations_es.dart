@@ -147,11 +147,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get changePoiPosition => 'Establecer esta posición';
 
   @override
-  String get longPressPoiHint =>
-      'Mantenga pulsado el punto donde desea añadir un POI';
-
-  @override
-  String get poiRegistered => 'POI registrado';
+  String get poiRegistered => 'POI añadido';
 
   @override
   String get poiAddedFromShare => 'POI añadido desde enlace compartido';
@@ -161,7 +157,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'No se pudieron extraer las coordenadas del enlace compartido';
 
   @override
-  String get registerThisPlaceAsPoi => '¿Registrar esta ubicación como POI?';
+  String get registerThisPlaceAsPoi => 'Agregar POI aquí';
 
   @override
   String get poiUpdated => 'POI actualizado';
@@ -182,7 +178,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deletePoiConfirm => '¿Eliminar este POI?';
 
   @override
-  String get noPoiRegistered => 'No hay POI registrado';
+  String get noPoiRegistered => 'No hay POI añadido';
 
   @override
   String get changePoiTextTitle => 'Cambiar contenido del POI';
@@ -402,4 +398,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get offlineMapInfoButton => 'Descargar';
+
+  @override
+  String get registerAtPosition => 'Agregar aquí';
 }

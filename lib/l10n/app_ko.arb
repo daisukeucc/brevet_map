@@ -64,18 +64,17 @@
     }
   },
   "changePoiPosition": "이 위치로 설정",
-  "longPressPoiHint": "POI를 추가할 지점을 길게 누르세요",
-  "poiRegistered": "POI 등록됨",
+  "poiRegistered": "POI 추가됨",
   "poiAddedFromShare": "공유 링크에서 POI 추가됨",
   "shareUrlInvalid": "공유된 링크에서 좌표를 추출할 수 없습니다",
-  "registerThisPlaceAsPoi": "이 위치를 POI로 등록하시겠습니까?",
+  "registerThisPlaceAsPoi": "여기에 POI 추가",
   "poiUpdated": "POI 업데이트됨",
   "poiDeleted": "POI 삭제됨",
   "poiPositionChanged": "POI 위치 변경됨",
   "changePoiText": "POI 제목 및 본문 변경",
   "changePoiPositionTitle": "POI 위치 변경",
   "deletePoiConfirm": "이 POI를 삭제하시겠습니까?",
-  "noPoiRegistered": "등록된 POI가 없습니다",
+  "noPoiRegistered": "추가된 POI가 없습니다",
   "changePoiTextTitle": "POI 내용 변경",
   "routeOverwrite": "현재 경로 덮어쓰기",
   "selectGpxFile": "GPX 파일을 선택해 주세요",
@@ -201,5 +200,6 @@
   "offlineMapCacheCleared": "캐시를 지웠습니다",
   "offlineMapInfoMessage1": "오프라인 지도는 온라인 상태에서도 네트워크 접근을 줄이고 배터리를 절약합니다",
   "offlineMapInfoMessage2": "앱을 원활하게 사용하기 위해 더 이상 필요하지 않은 지도는 삭제하는 것을 권장합니다",
-  "offlineMapInfoButton": "다운로드"
+  "offlineMapInfoButton": "다운로드",
+  "registerAtPosition": "여기에 추가"
 }

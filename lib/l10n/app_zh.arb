@@ -64,18 +64,17 @@
     }
   },
   "changePoiPosition": "设为此位置",
-  "longPressPoiHint": "长按要添加 POI 的位置",
-  "poiRegistered": "POI 已注册",
+  "poiRegistered": "POI 已添加",
   "poiAddedFromShare": "已从分享链接添加 POI",
   "shareUrlInvalid": "无法从分享链接提取坐标",
-  "registerThisPlaceAsPoi": "将此位置注册为 POI？",
+  "registerThisPlaceAsPoi": "在此添加 POI",
   "poiUpdated": "POI 已更新",
   "poiDeleted": "POI 已删除",
   "poiPositionChanged": "POI 位置已更改",
   "changePoiText": "更改 POI 标题和正文",
   "changePoiPositionTitle": "更改 POI 位置",
   "deletePoiConfirm": "删除此 POI？",
-  "noPoiRegistered": "未注册 POI",
+  "noPoiRegistered": "未添加 POI",
   "changePoiTextTitle": "更改 POI 内容",
   "routeOverwrite": "覆盖当前路线",
   "selectGpxFile": "请选择 GPX 文件",
@@ -201,5 +200,6 @@
   "offlineMapCacheCleared": "缓存已清除",
   "offlineMapInfoMessage1": "离线地图即使在线时也能减少网络访问并节省电量",
   "offlineMapInfoMessage2": "为保持应用顺畅运行，建议在不再需要时删除已下载的地图",
-  "offlineMapInfoButton": "下载"
+  "offlineMapInfoButton": "下载",
+  "registerAtPosition": "在此添加"
 }

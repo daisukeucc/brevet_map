@@ -64,18 +64,17 @@
     }
   },
   "changePoiPosition": "Diese Position festlegen",
-  "longPressPoiHint": "Lange auf den Punkt drücken, an dem Sie einen POI hinzufügen möchten",
-  "poiRegistered": "POI registriert",
+  "poiRegistered": "POI hinzugefügt",
   "poiAddedFromShare": "POI von geteiltem Link hinzugefügt",
   "shareUrlInvalid": "Koordinaten konnten nicht aus dem geteilten Link extrahiert werden",
-  "registerThisPlaceAsPoi": "Diesen Ort als POI registrieren?",
+  "registerThisPlaceAsPoi": "POI hier hinzufügen",
   "poiUpdated": "POI aktualisiert",
   "poiDeleted": "POI gelöscht",
   "poiPositionChanged": "POI-Position geändert",
   "changePoiText": "POI-Titel und -Text ändern",
   "changePoiPositionTitle": "POI-Position ändern",
   "deletePoiConfirm": "Diesen POI löschen?",
-  "noPoiRegistered": "Kein POI registriert",
+  "noPoiRegistered": "Kein POI hinzugefügt",
   "changePoiTextTitle": "POI-Inhalt ändern",
   "routeOverwrite": "Aktuelle Strecke überschreiben",
   "selectGpxFile": "Bitte wählen Sie eine GPX-Datei",
@@ -201,5 +200,6 @@
   "offlineMapCacheCleared": "Cache geleert",
   "offlineMapInfoMessage1": "Offline-Karten reduzieren den Netzwerkzugriff und sparen Akku, auch wenn Sie online sind",
   "offlineMapInfoMessage2": "Für eine reibungslose App-Nutzung empfehlen wir, heruntergeladene Karten zu löschen, wenn Sie sie nicht mehr benötigen",
-  "offlineMapInfoButton": "Herunterladen"
+  "offlineMapInfoButton": "Herunterladen",
+  "registerAtPosition": "Hier hinzufügen"
 }

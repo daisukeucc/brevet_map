@@ -67,18 +67,17 @@
     }
   },
   "changePoiPosition": "Set this position",
-  "longPressPoiHint": "Long press the point where you want to add a POI",
-  "poiRegistered": "POI registered",
+  "poiRegistered": "POI added",
   "poiAddedFromShare": "POI added from shared link",
   "shareUrlInvalid": "Could not extract coordinates from shared link",
-  "registerThisPlaceAsPoi": "Register this location as POI?",
+  "registerThisPlaceAsPoi": "Add POI here",
   "poiUpdated": "POI updated",
   "poiDeleted": "POI deleted",
   "poiPositionChanged": "POI position changed",
   "changePoiText": "Change POI title and body",
   "changePoiPositionTitle": "Change POI position",
   "deletePoiConfirm": "Delete this POI?",
-  "noPoiRegistered": "No POI registered",
+  "noPoiRegistered": "No POI added",
   "changePoiTextTitle": "Change POI content",
   "routeOverwrite": "Overwrite current route",
   "selectGpxFile": "Please select a GPX file",
@@ -204,5 +203,6 @@
   "offlineMapCacheCleared": "Cache cleared",
   "offlineMapInfoMessage1": "Offline maps reduce network access and save battery even when online",
   "offlineMapInfoMessage2": "To keep the app running smoothly, we recommend deleting downloaded maps when you no longer need them",
-  "offlineMapInfoButton": "Download"
+  "offlineMapInfoButton": "Download",
+  "registerAtPosition": "Add here"
 }

@@ -40,7 +40,6 @@ class MapScreenContent extends StatefulWidget {
     this.hasUserPois = false,
     this.isDragMode = false,
     this.isMapTapAddMode = false,
-    this.onMapLongPress,
     this.progressBarValue,
     this.isLowMode = false,
     this.isStreamAccuracyLow = false,
@@ -122,9 +121,6 @@ class MapScreenContent extends StatefulWidget {
 
   /// true のとき地図タップでPOI登録モード（全ボタンを非表示にする）
   final bool isMapTapAddMode;
-
-  /// 地図長押し時コールバック（地図タップ登録モード時）
-  final void Function(LatLng)? onMapLongPress;
 
   /// 画面タッチ時（5分無操作LOWモード解除用）
   final VoidCallback? onUserInteraction;
@@ -388,7 +384,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
             widget.onCameraIdle();
           }
         },
-        onLongPress: (_, point) => widget.onMapLongPress?.call(point),
         interactionOptions: const InteractionOptions(
           flags: InteractiveFlag.all,
         ),

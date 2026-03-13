@@ -144,10 +144,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get changePoiPosition => '设为此位置';
 
   @override
-  String get longPressPoiHint => '长按要添加 POI 的位置';
-
-  @override
-  String get poiRegistered => 'POI 已注册';
+  String get poiRegistered => 'POI 已添加';
 
   @override
   String get poiAddedFromShare => '已从分享链接添加 POI';
@@ -156,7 +153,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get shareUrlInvalid => '无法从分享链接提取坐标';
 
   @override
-  String get registerThisPlaceAsPoi => '将此位置注册为 POI？';
+  String get registerThisPlaceAsPoi => '在此添加 POI';
 
   @override
   String get poiUpdated => 'POI 已更新';
@@ -177,7 +174,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get deletePoiConfirm => '删除此 POI？';
 
   @override
-  String get noPoiRegistered => '未注册 POI';
+  String get noPoiRegistered => '未添加 POI';
 
   @override
   String get changePoiTextTitle => '更改 POI 内容';
@@ -386,4 +383,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get offlineMapInfoButton => '下载';
+
+  @override
+  String get registerAtPosition => '在此添加';
 }

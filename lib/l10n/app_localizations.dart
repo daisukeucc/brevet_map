@@ -368,16 +368,10 @@ abstract class AppLocalizations {
   /// **'Set this position'**
   String get changePoiPosition;
 
-  /// No description provided for @longPressPoiHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Long press the point where you want to add a POI'**
-  String get longPressPoiHint;
-
   /// No description provided for @poiRegistered.
   ///
   /// In en, this message translates to:
-  /// **'POI registered'**
+  /// **'POI added'**
   String get poiRegistered;
 
   /// No description provided for @poiAddedFromShare.
@@ -395,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerThisPlaceAsPoi.
   ///
   /// In en, this message translates to:
-  /// **'Register this location as POI?'**
+  /// **'Add POI here'**
   String get registerThisPlaceAsPoi;
 
   /// No description provided for @poiUpdated.
@@ -437,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @noPoiRegistered.
   ///
   /// In en, this message translates to:
-  /// **'No POI registered'**
+  /// **'No POI added'**
   String get noPoiRegistered;
 
   /// No description provided for @changePoiTextTitle.
@@ -817,6 +811,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download'**
   String get offlineMapInfoButton;
+
+  /// No description provided for @registerAtPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add here'**
+  String get registerAtPosition;
 }
 
 class _AppLocalizationsDelegate

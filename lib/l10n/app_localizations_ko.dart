@@ -144,10 +144,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get changePoiPosition => '이 위치로 설정';
 
   @override
-  String get longPressPoiHint => 'POI를 추가할 지점을 길게 누르세요';
-
-  @override
-  String get poiRegistered => 'POI 등록됨';
+  String get poiRegistered => 'POI 추가됨';
 
   @override
   String get poiAddedFromShare => '공유 링크에서 POI 추가됨';
@@ -156,7 +153,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get shareUrlInvalid => '공유된 링크에서 좌표를 추출할 수 없습니다';
 
   @override
-  String get registerThisPlaceAsPoi => '이 위치를 POI로 등록하시겠습니까?';
+  String get registerThisPlaceAsPoi => '여기에 POI 추가';
 
   @override
   String get poiUpdated => 'POI 업데이트됨';
@@ -177,7 +174,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get deletePoiConfirm => '이 POI를 삭제하시겠습니까?';
 
   @override
-  String get noPoiRegistered => '등록된 POI가 없습니다';
+  String get noPoiRegistered => '추가된 POI가 없습니다';
 
   @override
   String get changePoiTextTitle => 'POI 내용 변경';
@@ -392,4 +389,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get offlineMapInfoButton => '다운로드';
+
+  @override
+  String get registerAtPosition => '여기에 추가';
 }

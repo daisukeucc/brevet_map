@@ -42,7 +42,7 @@ Future<bool> showOfflineMapInfoDialog(BuildContext context) async {
                         if (context.mounted) Navigator.pop(context, true);
                       },
                       child: Text(
-                        l10n.offlineMapInfoButton,
+                        l10n.offlineMap,
                         style: AppTextStyles.button,
                       ),
                     ),

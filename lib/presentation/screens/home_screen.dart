@@ -333,7 +333,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       onUserInteraction: _onUserInteraction,
       isDragMode: _isDragMode,
       isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
-      onMapLongPress: null,
       offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
       isShareMode: _isShareMode,
       onShareTap: (key) {
@@ -495,10 +494,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onUserInteraction: _onUserInteraction,
           isDragMode: _isDragMode,
           isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
-          onMapLongPress: _isMapTapAddMode && _pendingSharedPosition == null
-              ? _onMapLongPress
-              : null,
-          isShareMode: _isShareMode,
+              isShareMode: _isShareMode,
           onShareTap: (key) {
             handleShareButtonTap(
               context: context,
@@ -723,13 +719,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     setState(() => _isMapTapAddMode = false);
   }
 
-  Future<void> _onMapLongPress(LatLng position) async {
-    if (!_isMapTapAddMode || !mounted) return;
+  Future<void> _onConfirmMapTapPosition() async {
+    final center = ref.read(cameraControllerProvider)?.camera.center;
+    if (center == null || !mounted) return;
     await handleMapLongPressPoiAdd(
       context,
       ref,
-      position,
-      initialTitle: _pendingSharedPlaceName,
+      center,
+      initialTitle: null,
       onComplete: () => setState(() => _isMapTapAddMode = false),
     );
   }
@@ -784,8 +781,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               child: ColoredBox(color: Color(0x66000000)),
             ),
           ),
-          const Positioned.fill(
-            child: IgnorePointer(
+          Positioned(
+            top: MediaQuery.of(context).padding.top,
+            bottom: 80,
+            left: 0,
+            right: 0,
+            child: const IgnorePointer(
               child: Center(
                 child: Icon(
                   Icons.my_location,
@@ -859,6 +860,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               child: ColoredBox(color: Color(0x66000000)),
             ),
           ),
+          if (_isMapTapAddMode && _pendingSharedPosition == null)
+            Positioned(
+              top: MediaQuery.of(context).padding.top,
+              bottom: 80,
+              left: 0,
+              right: 0,
+              child: const IgnorePointer(
+                child: Center(
+                  child: Icon(
+                    Icons.my_location,
+                    size: 56,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
           Positioned(
             bottom: 0,
             left: 0,
@@ -869,7 +886,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                 top: false,
                 bottom: false,
                 child: SizedBox(
-                  // height: 96,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 25,
@@ -877,25 +893,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                     ),
                     child: Row(
                       children: [
-                        Expanded(
-                          child: Text(
-                            _pendingSharedPosition != null
-                                ? AppLocalizations.of(context)!
-                                    .registerThisPlaceAsPoi
-                                : AppLocalizations.of(context)!
-                                    .longPressPoiHint,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              height: 1.6,
-                              fontWeight: FontWeight.normal,
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
-                            ),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
                         if (_pendingSharedPosition != null) ...[
+                          Expanded(
+                            child: Text(
+                              AppLocalizations.of(context)!
+                                  .registerThisPlaceAsPoi,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                height: 1.6,
+                                fontWeight: FontWeight.normal,
+                                color: Colors.white,
+                                decoration: TextDecoration.none,
+                              ),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                           const SizedBox(width: 10),
                           TextButton(
                             onPressed: _onCancelSharePreview,
@@ -919,7 +932,19 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                               ),
                             ),
                           ),
-                        ] else
+                        ] else ...[
+                          const Spacer(),
+                          TextButton(
+                            onPressed: _onConfirmMapTapPosition,
+                            child: Text(
+                              AppLocalizations.of(context)!.registerAtPosition,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Colors.white,
+                                decoration: TextDecoration.none,
+                              ),
+                            ),
+                          ),
                           TextButton(
                             onPressed: _onCancelMapTapAddMode,
                             child: Text(
@@ -931,6 +956,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                               ),
                             ),
                           ),
+                        ],
                       ],
                     ),
                   ),

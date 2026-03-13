@@ -84,19 +84,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get gpxExportPermissionDenied => 'ファイル保存の権限がありません';
 
   @override
-  String get poiAdd => 'POIの登録';
+  String get poiAdd => 'POIの追加';
 
   @override
-  String get poiAddEdit => 'POIの登録・編集';
+  String get poiAddEdit => 'POIの追加・編集';
 
   @override
-  String get poiAddByDistance => '距離入力でPOIを登録';
+  String get poiAddByDistance => '距離入力でPOIを追加';
 
   @override
-  String get poiAddByMapTap => '地図タップでPOIを登録';
+  String get poiAddByMapTap => '地図上でPOIを追加';
 
   @override
-  String get poiTabAdd => 'POI 登録';
+  String get poiTabAdd => 'POI 追加';
 
   @override
   String get poiTabEdit => 'POI 編集 / 削除';
@@ -145,19 +145,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get changePoiPosition => 'この位置に変更する';
 
   @override
-  String get longPressPoiHint => 'POIを登録したいポイントを長押しして下さい';
+  String get poiRegistered => 'POIを追加しました';
 
   @override
-  String get poiRegistered => 'POIを登録しました';
-
-  @override
-  String get poiAddedFromShare => '共有リンクからPOIを登録しました';
+  String get poiAddedFromShare => '共有リンクからPOIを追加しました';
 
   @override
   String get shareUrlInvalid => '共有されたリンクから座標を取得できませんでした';
 
   @override
-  String get registerThisPlaceAsPoi => 'この場所をPOIとして登録する';
+  String get registerThisPlaceAsPoi => 'この場所にPOIを追加する';
 
   @override
   String get poiUpdated => 'POIを変更しました';
@@ -178,7 +175,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get deletePoiConfirm => 'このPOIを削除しますか？';
 
   @override
-  String get noPoiRegistered => 'POIの登録はありません';
+  String get noPoiRegistered => '追加されたPOIはありません';
 
   @override
   String get changePoiTextTitle => 'POIの内容を変更';
@@ -384,7 +381,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get offlineMapInfoMessage1 =>
-      'オフラインマップはオンラインでもネットワークアクセスが減りバッテリー消費を抑えます';
+      'オフラインマップは、オンライン時でもネットワークアクセスを減らし、バッテリー消費を抑えます';
 
   @override
   String get offlineMapInfoMessage2 =>
@@ -392,4 +389,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get offlineMapInfoButton => 'ダウンロード';
+
+  @override
+  String get registerAtPosition => 'この位置に追加する';
 }
