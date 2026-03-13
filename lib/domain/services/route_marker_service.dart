@@ -30,7 +30,6 @@ Future<List<Marker>> buildRouteMarkers({
   void Function(UserPoi poi)? onUserPoiTap,
   double? zoomLevel,
   UserPoi? draggingPoi,
-  void Function(LatLng)? onPoiDragEnd,
   int distanceUnit = 0,
 }) async {
   final showDistanceMarkers =
@@ -90,7 +89,7 @@ Future<List<Marker>> buildRouteMarkers({
   if (pois.isNotEmpty && poiIconOrange != null && poiIconCheckpoint != null) {
     for (var i = 0; i < pois.length; i++) {
       final poi = pois[i];
-      final icon = poi.isControl ? poiIconCheckpoint! : poiIconOrange!;
+      final icon = poi.isControl ? poiIconCheckpoint : poiIconOrange;
       markers.add(Marker(
         point: poi.position,
         width: _markerSize,
@@ -109,7 +108,7 @@ Future<List<Marker>> buildRouteMarkers({
       poiIconCheckpoint != null) {
     for (var i = 0; i < userPois.length; i++) {
       final poi = userPois[i];
-      final icon = poi.isCheckpoint ? poiIconCheckpoint! : poiIconOrange!;
+      final icon = poi.isCheckpoint ? poiIconCheckpoint : poiIconOrange;
       final isDragging = draggingPoi != null &&
           poi.lat == draggingPoi.lat &&
           poi.lng == draggingPoi.lng;
@@ -139,7 +138,7 @@ Future<List<Marker>> buildRouteMarkers({
       width: _markerSize,
       height: _markerSize,
       alignment: Alignment.center,
-      child: goalIcon!,
+      child: goalIcon,
     ));
     markers.add(Marker(
       point: startPoint,

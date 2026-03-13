@@ -366,7 +366,6 @@ class MapStateNotifier extends Notifier<MapState> {
       onUserPoiTap: onUserPoiTap,
       zoomLevel: state.savedZoomLevel,
       draggingPoi: _draggingPoi,
-      onPoiDragEnd: _onPoiDragEnd,
       distanceUnit: distanceUnit,
     );
     state = state.copyWith(
