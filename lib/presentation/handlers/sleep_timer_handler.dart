@@ -14,7 +14,8 @@ class SleepTimerController {
     required this.overlayState,
     required this.ref,
     required bool Function() getMounted,
-    required void Function(Position position, Position? previous) onPositionUpdate,
+    required void Function(Position position, Position? previous)
+        onPositionUpdate,
   })  : _getMounted = getMounted,
         _onPositionUpdate = onPositionUpdate;
 
@@ -69,7 +70,30 @@ class SleepTimerController {
         child: GestureDetector(
           onTap: _onUserInteraction,
           behavior: HitTestBehavior.opaque,
-          child: const ColoredBox(color: Colors.black),
+          child: ColoredBox(
+            color: Colors.black,
+            child: Center(
+              child: DecoratedBox(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Image.asset(
+                    'assets/images/app_icon.png',
+                    width: 120,
+                    height: 120,
+                    errorBuilder: (context, error, stackTrace) => const FlutterLogo(
+                      size: 120,
+                      style: FlutterLogoStyle.markOnly,
+                      textColor: Color(0xFF333333),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
