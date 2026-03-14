@@ -39,18 +39,38 @@ class CameraControllerNotifier extends Notifier<MapController?> {
     right: 30,
   );
 
-  /// ルート全体が収まるようにカメラをアニメーション移動する
+  /// ルート全体が収まるようにカメラをアニメーション移動する。
+  /// 現在位置からターゲットへ段階的に移動することで、タイルを逐次読み込みさせグレー化を軽減する。
   Future<void> animateToBounds(LatLngBounds bounds) async {
     final ctrl = state;
     if (ctrl == null) return;
     try {
       ctrl.rotate(0);
-      ctrl.fitCamera(
-        CameraFit.bounds(
-          bounds: bounds,
-          padding: _fitPadding,
-        ),
-      );
+
+      final targetCamera = CameraFit.bounds(
+        bounds: bounds,
+        padding: _fitPadding,
+      ).fit(ctrl.camera);
+
+      final startLat = ctrl.camera.center.latitude;
+      final startLng = ctrl.camera.center.longitude;
+      final startZoom = ctrl.camera.zoom;
+      final endLat = targetCamera.center.latitude;
+      final endLng = targetCamera.center.longitude;
+      final endZoom = targetCamera.zoom;
+
+      const totalFrames = 24;
+      for (int i = 1; i <= totalFrames; i++) {
+        final t = Curves.easeInOut.transform(i / totalFrames);
+        ctrl.move(
+          LatLng(
+            startLat + (endLat - startLat) * t,
+            startLng + (endLng - startLng) * t,
+          ),
+          startZoom + (endZoom - startZoom) * t,
+        );
+        await Future.delayed(const Duration(milliseconds: 16));
+      }
     } catch (_) {
       // FlutterMap が未レンダー時に controller 使用で例外が出る場合がある（オフライン復帰時など）
     }
