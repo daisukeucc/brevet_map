@@ -292,3 +292,15 @@ double? bearingFromPositions(Position from, Position to) {
   var bearing = math.atan2(x, y) * 180 / math.pi;
   return (bearing + 360) % 360;
 }
+
+/// 2つの角度の符号付き差分を -180〜+180 で返す（0/360境界を跨いでも正しく動作）
+double angleDiff(double from, double to) {
+  return ((to - from + 540) % 360) - 180;
+}
+
+/// 角度のローパスフィルター（0/360境界を跨いでも正しく動作）
+/// [alpha] が大きいほど滑らか（反応が遅い）。0.0〜1.0 の範囲で指定。
+double applyAngleLowPass(double prev, double next, double alpha) {
+  final diff = angleDiff(prev, next);
+  return (prev + diff * (1 - alpha) + 360) % 360;
+}

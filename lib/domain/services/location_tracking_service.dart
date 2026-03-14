@@ -23,13 +23,13 @@ class LocationTrackingService {
   ValueNotifier<double>? get progressBarValue => _progressBarValue;
 
   /// 位置ストリームを開始する。
-  /// [accuracy] で精度（medium / low）を指定。省略時は medium。
+  /// [accuracy] で精度（high / medium）を指定。省略時は high。
   /// [isLowMode] を渡すと、true のときプログレスバーアニメーションがゆっくりになる。
   void start({
     required void Function(Position position, Position? previous) onPosition,
     required void Function() onError,
     required bool Function() isActive,
-    LocationAccuracy accuracy = LocationAccuracy.medium,
+    LocationAccuracy accuracy = LocationAccuracy.high,
     bool Function()? isLowMode,
   }) {
     _lastPosition = null;
@@ -48,7 +48,10 @@ class LocationTrackingService {
     });
 
     final stream = Geolocator.getPositionStream(
-      locationSettings: LocationSettings(accuracy: accuracy),
+      locationSettings: LocationSettings(
+        accuracy: accuracy,
+        distanceFilter: 5,
+      ),
     );
 
     _subscription = stream.listen(

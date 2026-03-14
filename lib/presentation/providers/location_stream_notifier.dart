@@ -9,7 +9,7 @@ import '../../domain/services/location_tracking_service.dart';
 class LocationStreamState {
   const LocationStreamState({
     this.isActive = false,
-    this.accuracy = LocationAccuracy.medium,
+    this.accuracy = LocationAccuracy.high,
     this.isInLowMode = false,
     this.progressBarValue,
     this.hasStartedThisSession = false,
@@ -25,7 +25,7 @@ class LocationStreamState {
   /// このセッションで一度でも位置ストリームを開始したか（初回ONでズームを15にするため）
   final bool hasStartedThisSession;
 
-  bool get isAccuracyLow => accuracy == LocationAccuracy.low;
+  bool get isAccuracyLow => accuracy == LocationAccuracy.medium;
 
   LocationStreamState copyWith({
     bool? isActive,
@@ -68,7 +68,7 @@ class LocationStreamNotifier extends Notifier<LocationStreamState> {
         isActive: false,
         clearProgressBar: true,
         isInLowMode: false,
-        accuracy: LocationAccuracy.medium,
+        accuracy: LocationAccuracy.high,
       );
       return;
     }
@@ -90,16 +90,16 @@ class LocationStreamNotifier extends Notifier<LocationStreamState> {
     );
   }
 
-  /// GPS精度を medium⇔low で切り替えてストリームを再起動する。
+  /// GPS精度を high⇔medium で切り替えてストリームを再起動する。
   /// ストリームがアクティブでない場合は何もしない。
   Future<void> switchGpsLevel({
     required void Function(Position position, Position? previous) onPosition,
   }) async {
     if (!_service.isActive) return;
 
-    final enteringLow = state.accuracy == LocationAccuracy.medium;
+    final enteringLow = state.accuracy == LocationAccuracy.high;
     final newAccuracy =
-        enteringLow ? LocationAccuracy.low : LocationAccuracy.medium;
+        enteringLow ? LocationAccuracy.medium : LocationAccuracy.high;
 
     _service.stop();
     state = state.copyWith(

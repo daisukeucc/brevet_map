@@ -26,7 +26,7 @@ class CameraControllerNotifier extends Notifier<MapController?> {
     if (ctrl == null) return;
     ctrl.move(target, zoom ?? 15.0);
     if (bearing != 0.0) {
-      ctrl.rotate(bearing);
+      ctrl.rotate(-bearing);
     }
   }
 
@@ -54,6 +54,11 @@ class CameraControllerNotifier extends Notifier<MapController?> {
     } catch (_) {
       // FlutterMap が未レンダー時に controller 使用で例外が出る場合がある（オフライン復帰時など）
     }
+  }
+
+  /// 位置を変えずに地図の向きだけ変更する（停止時コンパス更新用）
+  void rotateTo(double bearing) {
+    state?.rotate(-bearing);
   }
 
   /// 現在のズームレベルを取得する。controller未設定の場合は null
