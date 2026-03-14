@@ -26,7 +26,7 @@ class CameraControllerNotifier extends Notifier<MapController?> {
     if (ctrl == null) return;
     ctrl.move(target, zoom ?? 15.0);
     if (bearing != 0.0) {
-      ctrl.rotate(bearing);
+      ctrl.rotate(-bearing);
     }
   }
 
@@ -58,7 +58,7 @@ class CameraControllerNotifier extends Notifier<MapController?> {
 
   /// 位置を変えずに地図の向きだけ変更する（停止時コンパス更新用）
   void rotateTo(double bearing) {
-    state?.rotate(bearing);
+    state?.rotate(-bearing);
   }
 
   /// 現在のズームレベルを取得する。controller未設定の場合は null
