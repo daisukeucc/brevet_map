@@ -366,6 +366,8 @@ class _MapScreenContentState extends State<MapScreenContent> {
       userAgentPackageName: TileConfig.userAgentPackageName,
       subdomains: _subdomainsForTemplate(urlTemplate),
       tileProvider: _tileProvider,
+      keepBuffer: 4,
+      panBuffer: 2,
     );
   }
 

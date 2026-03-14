@@ -15,6 +15,12 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
   ]);
   await initializeDateFormatting();
+
+  // デコード済みタイル画像のメモリキャッシュを拡張（デフォルト: 100MB / 1000枚）
+  // ルート表示・地図回転時のグレー化を軽減する
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 256 * 1024 * 1024; // 256MB
+  PaintingBinding.instance.imageCache.maximumSize = 3000;
+
   try {
     await dotenv.load(fileName: '.env');
   } catch (_) {}

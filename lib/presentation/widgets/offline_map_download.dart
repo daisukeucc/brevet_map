@@ -157,13 +157,6 @@ Future<void> showOfflineMapDownloadFlow(
 ) async {
   final l10n = AppLocalizations.of(context)!;
 
-  // ダウンロードはネットワーク必須のため、オフライン時は開始しない
-  if (!await checkConnectivity()) {
-    if (!context.mounted) return;
-    showAppSnackBar(context, l10n.offlineMapRequiresNetwork);
-    return;
-  }
-
   final routePoints = ref.read(mapStateProvider).fullRoutePoints ??
       ref.read(mapStateProvider).savedRoutePoints;
   if (routePoints == null || routePoints.isEmpty) {
@@ -217,12 +210,17 @@ Future<void> showOfflineMapDownloadFlow(
     final regions = [
       RectangleRegion(paddedBounds).toDownloadable(
         minZoom: 10,
-        maxZoom: 14,
+        maxZoom: 15,
         options: tileLayerOptions,
       ),
       RectangleRegion(paddedBounds).toDownloadable(
         minZoom: 10,
         maxZoom: 16,
+        options: tileLayerOptions,
+      ),
+      RectangleRegion(paddedBounds).toDownloadable(
+        minZoom: 10,
+        maxZoom: 17,
         options: tileLayerOptions,
       ),
     ];
@@ -232,20 +230,24 @@ Future<void> showOfflineMapDownloadFlow(
     estimatedMBList = [
       (counts[0] * bytesPerTile) / (1024 * 1024),
       (counts[1] * bytesPerTile) / (1024 * 1024),
+      (counts[2] * bytesPerTile) / (1024 * 1024),
     ];
     sizeStrings = [
       sizeStr(counts[0]),
       sizeStr(counts[1]),
+      sizeStr(counts[2]),
     ];
     menuItems = [
       l10n.offlineMapMinimalMapWithSize(sizeStrings[0]),
       l10n.offlineMapStandardMapWithSize(sizeStrings[1]),
+      l10n.offlineMapHighResMapWithSize(sizeStrings[2]),
       l10n.offlineMapCacheClearWithSize(storedSize),
     ];
   } catch (_) {
     menuItems = [
       l10n.offlineMapMinimalMap,
       l10n.offlineMapStandardMap,
+      l10n.offlineMapHighResMap,
       l10n.offlineMapCacheClearWithSize(storedSize),
     ];
   }
@@ -254,8 +256,8 @@ Future<void> showOfflineMapDownloadFlow(
   final selected = await showTextMenuDialog(context, items: menuItems);
   if (selected == null || !context.mounted) return;
 
-  // 2=キャッシュクリア
-  if (selected == 2) {
+  // 3=キャッシュクリア
+  if (selected == 3) {
     final confirmed = await _showCacheClearConfirmDialog(context, l10n);
     if (!context.mounted || confirmed != true) return;
     const storeName = 'mapStore';
@@ -275,10 +277,19 @@ Future<void> showOfflineMapDownloadFlow(
     return;
   }
 
-  // 0=最小地図(z10-14), 1=標準地図(z10-16)
+  // ダウンロードはネットワーク必須のため、オフライン時は開始しない
+  if (!await checkConnectivity()) {
+    if (!context.mounted) return;
+    showAppSnackBar(context, l10n.offlineMapRequiresNetwork);
+    return;
+  }
+  if (!context.mounted) return;
+
+  // 0=最小地図(z10-15), 1=標準地図(z10-16), 2=高精細地図(z10-17)
   final maxZoom = switch (selected) {
-    0 => 14,
-    _ => 16,
+    0 => 15,
+    1 => 16,
+    _ => 17,
   };
 
   final region = RectangleRegion(paddedBounds).toDownloadable(

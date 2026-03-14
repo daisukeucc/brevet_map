@@ -647,7 +647,7 @@ abstract class AppLocalizations {
   /// No description provided for @offlineMapMinimalMap.
   ///
   /// In en, this message translates to:
-  /// **'Max zoom: 14'**
+  /// **'Max zoom: 15'**
   String get offlineMapMinimalMap;
 
   /// No description provided for @offlineMapStandardMap.
@@ -659,7 +659,7 @@ abstract class AppLocalizations {
   /// No description provided for @offlineMapMinimalMapWithSize.
   ///
   /// In en, this message translates to:
-  /// **'Max zoom: 14 ({size})'**
+  /// **'Max zoom: 15 ({size})'**
   String offlineMapMinimalMapWithSize(String size);
 
   /// No description provided for @offlineMapStandardMapWithSize.
@@ -667,6 +667,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Max zoom: 16 ({size})'**
   String offlineMapStandardMapWithSize(String size);
+
+  /// No description provided for @offlineMapHighResMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Max zoom: 17'**
+  String get offlineMapHighResMap;
+
+  /// No description provided for @offlineMapHighResMapWithSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Max zoom: 17 ({size})'**
+  String offlineMapHighResMapWithSize(String size);
 
   /// No description provided for @offlineMapZoomSmall.
   ///

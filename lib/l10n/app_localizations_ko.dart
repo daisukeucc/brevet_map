@@ -287,19 +287,27 @@ class AppLocalizationsKo extends AppLocalizations {
   String get offlineMap => '오프라인 지도';
 
   @override
-  String get offlineMapMinimalMap => '최대 줌: 14';
+  String get offlineMapMinimalMap => '최대 줌: 15';
 
   @override
   String get offlineMapStandardMap => '최대 줌: 16';
 
   @override
   String offlineMapMinimalMapWithSize(String size) {
-    return '최대 줌: 14 ($size)';
+    return '최대 줌: 15 ($size)';
   }
 
   @override
   String offlineMapStandardMapWithSize(String size) {
     return '최대 줌: 16 ($size)';
+  }
+
+  @override
+  String get offlineMapHighResMap => '최대 줌: 17';
+
+  @override
+  String offlineMapHighResMapWithSize(String size) {
+    return '최대 줌: 17 ($size)';
   }
 
   @override

@@ -117,10 +117,12 @@
   "offline": "Offline",
   "retryConnectivity": "Wiederholen",
   "offlineMap": "Offline-Karte",
-  "offlineMapMinimalMap": "Max. Zoom: 14",
+  "offlineMapMinimalMap": "Max. Zoom: 15",
   "offlineMapStandardMap": "Max. Zoom: 16",
-  "offlineMapMinimalMapWithSize": "Max. Zoom: 14 ({size})",
+  "offlineMapMinimalMapWithSize": "Max. Zoom: 15 ({size})",
   "offlineMapStandardMapWithSize": "Max. Zoom: 16 ({size})",
+  "offlineMapHighResMap": "Max. Zoom: 17",
+  "offlineMapHighResMapWithSize": "Max. Zoom: 17 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": {
@@ -129,6 +131,13 @@
     }
   },
   "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
     "placeholders": {
       "size": {
         "type": "String"
