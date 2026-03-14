@@ -157,13 +157,6 @@ Future<void> showOfflineMapDownloadFlow(
 ) async {
   final l10n = AppLocalizations.of(context)!;
 
-  // ダウンロードはネットワーク必須のため、オフライン時は開始しない
-  if (!await checkConnectivity()) {
-    if (!context.mounted) return;
-    showAppSnackBar(context, l10n.offlineMapRequiresNetwork);
-    return;
-  }
-
   final routePoints = ref.read(mapStateProvider).fullRoutePoints ??
       ref.read(mapStateProvider).savedRoutePoints;
   if (routePoints == null || routePoints.isEmpty) {
@@ -283,6 +276,14 @@ Future<void> showOfflineMapDownloadFlow(
     showAppSnackBar(context, l10n.offlineMapCacheCleared);
     return;
   }
+
+  // ダウンロードはネットワーク必須のため、オフライン時は開始しない
+  if (!await checkConnectivity()) {
+    if (!context.mounted) return;
+    showAppSnackBar(context, l10n.offlineMapRequiresNetwork);
+    return;
+  }
+  if (!context.mounted) return;
 
   // 0=最小地図(z10-15), 1=標準地図(z10-16), 2=高精細地図(z10-17)
   final maxZoom = switch (selected) {
