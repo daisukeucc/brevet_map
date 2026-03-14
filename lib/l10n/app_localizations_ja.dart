@@ -30,7 +30,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get change => '変更';
 
   @override
-  String get register => '登録';
+  String get add => '追加';
 
   @override
   String get settings => '設定';
@@ -48,7 +48,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleepSettings => '画面スリープ';
 
   @override
-  String get sleepInfoMessage1 => '画面スリープ時はGPSがOFFになるためバッテリー消費が減ります';
+  String get sleepInfoMessage1 => '画面スリープ時はGPSがOFFになり、バッテリー消費を抑えます';
 
   @override
   String get sleepInfoMessage2 =>
@@ -99,7 +99,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get poiTabAdd => 'POI 追加';
 
   @override
-  String get poiTabEdit => 'POI 編集 / 削除';
+  String get poiTabEdit => 'POI 編集・削除';
 
   @override
   String get poiType => 'POIタイプ';

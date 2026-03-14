@@ -7,7 +7,7 @@
   "delete": "Supprimer",
   "edit": "Modifier",
   "change": "Modifier",
-  "register": "Ajouter",
+  "add": "Ajouter",
   "settings": "Paramètres",
   "share": "Partager",
   "shareFailed": "Échec du partage",

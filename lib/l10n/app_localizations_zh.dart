@@ -30,7 +30,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get change => '更改';
 
   @override
-  String get register => '添加';
+  String get add => '添加';
 
   @override
   String get settings => '设置';

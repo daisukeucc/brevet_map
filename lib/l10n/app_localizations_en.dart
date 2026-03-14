@@ -30,7 +30,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get change => 'Change';
 
   @override
-  String get register => 'Add';
+  String get add => 'Add';
 
   @override
   String get settings => 'Settings';
@@ -156,7 +156,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not extract coordinates from shared link';
 
   @override
-  String get registerThisPlaceAsPoi => 'Add POI here';
+  String get registerThisPlaceAsPoi => 'Add POI at this location';
 
   @override
   String get poiUpdated => 'POI updated';
@@ -177,7 +177,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deletePoiConfirm => 'Delete this POI?';
 
   @override
-  String get noPoiRegistered => 'No POI added';
+  String get noPoiRegistered => 'No POI registered';
 
   @override
   String get changePoiTextTitle => 'Change POI content';

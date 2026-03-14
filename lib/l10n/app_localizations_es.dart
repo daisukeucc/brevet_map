@@ -30,7 +30,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get change => 'Cambiar';
 
   @override
-  String get register => 'Agregar';
+  String get add => 'Agregar';
 
   @override
   String get settings => 'Ajustes';

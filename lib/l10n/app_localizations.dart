@@ -152,11 +152,11 @@ abstract class AppLocalizations {
   /// **'Change'**
   String get change;
 
-  /// No description provided for @register.
+  /// No description provided for @add.
   ///
   /// In en, this message translates to:
   /// **'Add'**
-  String get register;
+  String get add;
 
   /// No description provided for @settings.
   ///
@@ -389,7 +389,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerThisPlaceAsPoi.
   ///
   /// In en, this message translates to:
-  /// **'Add POI here'**
+  /// **'Add POI at this location'**
   String get registerThisPlaceAsPoi;
 
   /// No description provided for @poiUpdated.
@@ -431,7 +431,7 @@ abstract class AppLocalizations {
   /// No description provided for @noPoiRegistered.
   ///
   /// In en, this message translates to:
-  /// **'No POI added'**
+  /// **'No POI registered'**
   String get noPoiRegistered;
 
   /// No description provided for @changePoiTextTitle.
