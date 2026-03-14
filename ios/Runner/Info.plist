@@ -53,6 +53,8 @@
 	<string>このアプリは地図表示のために位置情報を使用します。</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>このアプリは地図表示のために位置情報を使用します。</string>
+	<key>NSMotionUsageDescription</key>
+	<string>このアプリはコンパス機能のために端末の向きを使用します。</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
