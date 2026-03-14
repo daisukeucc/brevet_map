@@ -56,6 +56,11 @@ class CameraControllerNotifier extends Notifier<MapController?> {
     }
   }
 
+  /// 位置を変えずに地図の向きだけ変更する（停止時コンパス更新用）
+  void rotateTo(double bearing) {
+    state?.rotate(bearing);
+  }
+
   /// 現在のズームレベルを取得する。controller未設定の場合は null
   Future<double?> getZoomLevel() async {
     return state?.camera.zoom;

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_compass/flutter_compass.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -64,6 +65,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool _expectingReturnFromSettings = false;
   double _lastBearing = 0.0;
   bool _isDragMode = false;
+
+  // --- コンパス関連 ---
+  StreamSubscription<CompassEvent>? _compassSubscription;
+  double _filteredCompassBearing = 0.0;
+  bool _compassInitialized = false;
+  DateTime _lastCompassUpdate = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// 停止判定の速度閾値（m/s）。これ以下でコンパス優先。≒5.4 km/h
+  static const double _movingSpeedThreshold = 1.5;
+
+  /// コンパスのローパスフィルター係数（大きいほど滑らか・反応が遅い）
+  static const double _compassFilterAlpha = 0.7;
+
+  /// 地図回転を更新する最小角度差（度）。これ未満の変化はスキップ
+  static const double _minBearingChangeDeg = 2.0;
+
+  /// コンパスイベントのスロットル間隔（ms）
+  static const int _compassThrottleMs = 100;
   bool _isMapTapAddMode = false;
 
   /// 共有リンクから取得した座標。非 null のときプレビューマーカー表示・登録確認UI表示
@@ -192,6 +211,53 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     });
   }
 
+  // ---------------------------------------------------------------------------
+  // コンパス（停止時の向き追従）
+  // ---------------------------------------------------------------------------
+
+  void _startCompass() {
+    _compassSubscription?.cancel();
+    _compassInitialized = false;
+    _compassSubscription = FlutterCompass.events?.listen((event) {
+      final heading = event.heading;
+      if (heading == null || !mounted) return;
+
+      // スロットル
+      final now = DateTime.now();
+      if (now.difference(_lastCompassUpdate).inMilliseconds <
+          _compassThrottleMs) {
+        return;
+      }
+      _lastCompassUpdate = now;
+
+      // ローパスフィルター
+      if (!_compassInitialized) {
+        _filteredCompassBearing = heading;
+        _compassInitialized = true;
+      } else {
+        _filteredCompassBearing = applyAngleLowPass(
+            _filteredCompassBearing, heading, _compassFilterAlpha);
+      }
+
+      // 走行中はコンパスを使わない（GPS ベアリング優先）
+      final speed = _latestStreamPosition?.speed ?? 0;
+      if (speed > _movingSpeedThreshold) return;
+
+      // 変化が小さい場合はスキップ
+      final delta =
+          angleDiff(_lastBearing, _filteredCompassBearing).abs();
+      if (delta < _minBearingChangeDeg) return;
+
+      _lastBearing = _filteredCompassBearing;
+      ref.read(cameraControllerProvider.notifier).rotateTo(_lastBearing);
+    });
+  }
+
+  void _stopCompass() {
+    _compassSubscription?.cancel();
+    _compassSubscription = null;
+  }
+
   void _onCancelSharePreview() {
     setState(() {
       _pendingSharedPosition = null;
@@ -220,6 +286,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   void dispose() {
+    _stopCompass();
     _sleepTimerController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     WakelockPlus.disable();
@@ -531,6 +598,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
       WakelockPlus.disable();
       ref.read(locationStreamProvider.notifier).stop();
+      _stopCompass();
       _sleepTimerController.cancel();
       if (state == AppLifecycleState.paused) return;
     }
@@ -559,13 +627,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     ref.read(locationStreamProvider.notifier).restoreFromSaved(
           onPosition: _onPositionUpdate,
         );
+    if (ref.read(locationStreamProvider).isActive) {
+      _startCompass();
+    }
   }
 
   void _onPositionUpdate(Position position, Position? previous) {
     if (!mounted) return;
     _previousStreamPosition = previous;
     _latestStreamPosition = position;
-    if (previous != null) {
+    // 走行中（速度 > 閾値）のみ GPS ベアリングで更新。停止中はコンパスが担当。
+    if (previous != null && position.speed > _movingSpeedThreshold) {
       final b = bearingFromPositions(previous, position);
       if (b != null) _lastBearing = b;
     }
@@ -698,6 +770,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onPosition: _onPositionUpdate,
         );
     if (wasActive) {
+      _stopCompass();
       setState(() {
         _latestStreamPosition = null;
         _previousStreamPosition = null;
@@ -705,6 +778,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     } else {
       ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
       _isFirstPositionAfterStreamOn = true;
+      _startCompass();
     }
   }
 
