@@ -293,19 +293,27 @@ class AppLocalizationsIt extends AppLocalizations {
   String get offlineMap => 'Mappa offline';
 
   @override
-  String get offlineMapMinimalMap => 'Zoom max: 14';
+  String get offlineMapMinimalMap => 'Zoom max: 15';
 
   @override
   String get offlineMapStandardMap => 'Zoom max: 16';
 
   @override
   String offlineMapMinimalMapWithSize(String size) {
-    return 'Zoom max: 14 ($size)';
+    return 'Zoom max: 15 ($size)';
   }
 
   @override
   String offlineMapStandardMapWithSize(String size) {
     return 'Zoom max: 16 ($size)';
+  }
+
+  @override
+  String get offlineMapHighResMap => 'Zoom max: 17';
+
+  @override
+  String offlineMapHighResMapWithSize(String size) {
+    return 'Zoom max: 17 ($size)';
   }
 
   @override

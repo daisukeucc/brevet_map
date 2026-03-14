@@ -96,10 +96,12 @@
   "offline": "オフラインです",
   "retryConnectivity": "再接続",
   "offlineMap": "オフラインマップ",
-  "offlineMapMinimalMap": "最大ズーム：14",
+  "offlineMapMinimalMap": "最大ズーム：15",
   "offlineMapStandardMap": "最大ズーム：16",
-  "offlineMapMinimalMapWithSize": "最大ズーム：14（{size}）",
+  "offlineMapMinimalMapWithSize": "最大ズーム：15（{size}）",
   "offlineMapStandardMapWithSize": "最大ズーム：16（{size}）",
+  "offlineMapHighResMap": "最大ズーム：17",
+  "offlineMapHighResMapWithSize": "最大ズーム：17（{size}）",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": {
@@ -108,6 +110,13 @@
     }
   },
   "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
     "placeholders": {
       "size": {
         "type": "String"

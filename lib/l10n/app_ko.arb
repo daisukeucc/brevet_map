@@ -117,10 +117,12 @@
   "offline": "오프라인",
   "retryConnectivity": "다시 시도",
   "offlineMap": "오프라인 지도",
-  "offlineMapMinimalMap": "최대 줌: 14",
+  "offlineMapMinimalMap": "최대 줌: 15",
   "offlineMapStandardMap": "최대 줌: 16",
-  "offlineMapMinimalMapWithSize": "최대 줌: 14 ({size})",
+  "offlineMapMinimalMapWithSize": "최대 줌: 15 ({size})",
   "offlineMapStandardMapWithSize": "최대 줌: 16 ({size})",
+  "offlineMapHighResMap": "최대 줌: 17",
+  "offlineMapHighResMapWithSize": "최대 줌: 17 ({size})",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": {
@@ -129,6 +131,13 @@
     }
   },
   "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
     "placeholders": {
       "size": {
         "type": "String"

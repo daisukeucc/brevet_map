@@ -117,10 +117,12 @@
   "offline": "离线",
   "retryConnectivity": "重试",
   "offlineMap": "离线地图",
-  "offlineMapMinimalMap": "最大缩放：14",
+  "offlineMapMinimalMap": "最大缩放：15",
   "offlineMapStandardMap": "最大缩放：16",
-  "offlineMapMinimalMapWithSize": "最大缩放：14（{size}）",
+  "offlineMapMinimalMapWithSize": "最大缩放：15（{size}）",
   "offlineMapStandardMapWithSize": "最大缩放：16（{size}）",
+  "offlineMapHighResMap": "最大缩放：17",
+  "offlineMapHighResMapWithSize": "最大缩放：17（{size}）",
   "@offlineMapMinimalMapWithSize": {
     "placeholders": {
       "size": {
@@ -129,6 +131,13 @@
     }
   },
   "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
     "placeholders": {
       "size": {
         "type": "String"
