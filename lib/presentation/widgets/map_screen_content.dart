@@ -32,7 +32,6 @@ class MapScreenContent extends StatefulWidget {
     required this.isStreamActive,
     required this.onToggleLocationStream,
     required this.onSleepSettingsTap,
-    required this.onDistanceUnitTap,
     required this.onGpxImportTap,
     required this.onGpxExportTap,
     required this.onOfflineMapTap,
@@ -98,9 +97,6 @@ class MapScreenContent extends StatefulWidget {
 
   /// スリープ設定メニュータップ時のコールバック（フロー全体を実行）
   final VoidCallback onSleepSettingsTap;
-
-  /// 距離単位メニュータップ時のコールバック（フロー全体を実行）
-  final VoidCallback onDistanceUnitTap;
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
@@ -253,9 +249,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                         onSleepSettingsTap: () =>
                                             popSheetAndCall(context,
                                                 widget.onSleepSettingsTap),
-                                        onDistanceUnitTap: () =>
-                                            popSheetAndCall(context,
-                                                widget.onDistanceUnitTap),
                                         onAppSettingsTap: () =>
                                             popSheetAndCall(context,
                                                 widget.onAppSettingsTap),
