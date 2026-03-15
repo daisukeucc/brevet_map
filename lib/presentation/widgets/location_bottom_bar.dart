@@ -28,10 +28,10 @@ class LocationBottomBar extends StatelessWidget {
       child: Stack(
           clipBehavior: Clip.none,
           children: [
-            Material(
-              color: barColor,
-              child: InkWell(
-                onTap: onTap,
+            GestureDetector(
+              onTapDown: (_) => onTap(),
+              child: ColoredBox(
+                color: barColor,
                 child: SizedBox(
                   width: double.infinity,
                   height: 80,

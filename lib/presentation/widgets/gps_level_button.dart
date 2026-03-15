@@ -17,8 +17,7 @@ class GpsLevelButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = isLowMode ? Colors.blueGrey : Colors.white;
-    final textColor = isLowMode ? Colors.white : Colors.blueGrey;
+    final backgroundColor = isLowMode ? Colors.blueGrey : Colors.red[500];
     final label = isStreamAccuracyLow ? 'LOW' : 'GPS';
 
     return Tooltip(
@@ -38,10 +37,10 @@ class GpsLevelButton extends StatelessWidget {
             child: Center(
               child: Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: textColor,
+                  color: Colors.white,
                 ),
               ),
             ),
