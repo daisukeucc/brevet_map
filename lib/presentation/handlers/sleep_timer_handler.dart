@@ -70,7 +70,7 @@ class SleepTimerController {
     _dimOverlayEntry = OverlayEntry(
       builder: (context) => Positioned.fill(
         child: GestureDetector(
-          onTap: _onUserInteraction,
+          onTapDown: (_) => _onUserInteraction(),
           behavior: HitTestBehavior.opaque,
           child: ColoredBox(
             color: Colors.black,
