@@ -210,5 +210,10 @@
   "offlineMapInfoMessage1": "Les cartes hors ligne réduisent les accès réseau et économisent la batterie, même en ligne",
   "offlineMapInfoMessage2": "Pour que l'application fonctionne correctement, nous recommandons de supprimer les cartes téléchargées lorsque vous n'en avez plus besoin",
   "offlineMapInfoButton": "Télécharger",
-  "registerAtPosition": "Ajouter ici"
+  "registerAtPosition": "Ajouter ici",
+  "locationSharing": "Partage de position",
+  "aboutApp": "À propos de l'application",
+  "rateApp": "Évaluer l'application",
+  "contactUs": "Contact",
+  "language": "Langue"
 }

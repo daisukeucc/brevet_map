@@ -408,4 +408,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get registerAtPosition => 'Aggiungi qui';
+
+  @override
+  String get locationSharing => 'Condivisione posizione';
+
+  @override
+  String get aboutApp => 'Informazioni sull\'app';
+
+  @override
+  String get rateApp => 'Valuta l\'app';
+
+  @override
+  String get contactUs => 'Contattaci';
+
+  @override
+  String get language => 'Lingua';
 }

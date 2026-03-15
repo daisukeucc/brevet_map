@@ -213,5 +213,10 @@
   "offlineMapInfoMessage1": "Offline maps reduce network access and save battery even when online",
   "offlineMapInfoMessage2": "To keep the app running smoothly, we recommend deleting downloaded maps when you no longer need them",
   "offlineMapInfoButton": "Download",
-  "registerAtPosition": "Add here"
+  "registerAtPosition": "Add here",
+  "locationSharing": "Location Sharing",
+  "aboutApp": "About this app",
+  "rateApp": "Rate this app",
+  "contactUs": "Contact",
+  "language": "Language"
 }

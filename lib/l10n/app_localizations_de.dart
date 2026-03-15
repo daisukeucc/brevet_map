@@ -408,4 +408,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get registerAtPosition => 'Hier hinzufügen';
+
+  @override
+  String get locationSharing => 'Standort teilen';
+
+  @override
+  String get aboutApp => 'Über diese App';
+
+  @override
+  String get rateApp => 'App bewerten';
+
+  @override
+  String get contactUs => 'Kontakt';
+
+  @override
+  String get language => 'Sprache';
 }

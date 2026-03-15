@@ -829,6 +829,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add here'**
   String get registerAtPosition;
+
+  /// No description provided for @locationSharing.
+  ///
+  /// In en, this message translates to:
+  /// **'Location Sharing'**
+  String get locationSharing;
+
+  /// No description provided for @aboutApp.
+  ///
+  /// In en, this message translates to:
+  /// **'About this app'**
+  String get aboutApp;
+
+  /// No description provided for @rateApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate this app'**
+  String get rateApp;
+
+  /// No description provided for @contactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get contactUs;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
 }
 
 class _AppLocalizationsDelegate

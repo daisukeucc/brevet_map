@@ -411,4 +411,19 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get registerAtPosition => 'Ajouter ici';
+
+  @override
+  String get locationSharing => 'Partage de position';
+
+  @override
+  String get aboutApp => 'À propos de l\'application';
+
+  @override
+  String get rateApp => 'Évaluer l\'application';
+
+  @override
+  String get contactUs => 'Contact';
+
+  @override
+  String get language => 'Langue';
 }

@@ -210,5 +210,10 @@
   "offlineMapInfoMessage1": "离线地图即使在线时也能减少网络访问并节省电量",
   "offlineMapInfoMessage2": "为保持应用顺畅运行，建议在不再需要时删除已下载的地图",
   "offlineMapInfoButton": "下载",
-  "registerAtPosition": "在此添加"
+  "registerAtPosition": "在此添加",
+  "locationSharing": "位置共享",
+  "aboutApp": "关于本应用",
+  "rateApp": "评价应用",
+  "contactUs": "联系我们",
+  "language": "语言"
 }

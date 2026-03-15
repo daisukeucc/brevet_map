@@ -37,6 +37,7 @@ class MapScreenContent extends StatefulWidget {
     required this.onGpxExportTap,
     required this.onOfflineMapTap,
     required this.onAddPoiTap,
+    required this.onAppSettingsTap,
     this.hasUserPois = false,
     this.isDragMode = false,
     this.isMapTapAddMode = false,
@@ -112,6 +113,9 @@ class MapScreenContent extends StatefulWidget {
 
   /// POI登録コールバック
   final VoidCallback onAddPoiTap;
+
+  /// アプリ設定画面表示コールバック
+  final VoidCallback onAppSettingsTap;
 
   /// ユーザーPOIが1件以上登録されている場合 true
   final bool hasUserPois;
@@ -252,6 +256,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                         onDistanceUnitTap: () =>
                                             popSheetAndCall(context,
                                                 widget.onDistanceUnitTap),
+                                        onAppSettingsTap: () =>
+                                            popSheetAndCall(context,
+                                                widget.onAppSettingsTap),
                                       ),
                                     ),
                                     customBorder: const CircleBorder(),

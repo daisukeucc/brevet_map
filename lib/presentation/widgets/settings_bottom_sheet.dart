@@ -12,6 +12,7 @@ class SettingsBottomSheet extends StatefulWidget {
     required this.onAddPoiTap,
     required this.onSleepSettingsTap,
     required this.onDistanceUnitTap,
+    required this.onAppSettingsTap,
   });
 
   final VoidCallback onGpxImportTap;
@@ -21,6 +22,7 @@ class SettingsBottomSheet extends StatefulWidget {
   final VoidCallback onAddPoiTap;
   final VoidCallback onSleepSettingsTap;
   final VoidCallback onDistanceUnitTap;
+  final VoidCallback onAppSettingsTap;
 
   @override
   State<SettingsBottomSheet> createState() => _SettingsBottomSheetState();
@@ -99,6 +101,17 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
               style: const TextStyle(fontSize: 15),
             ),
             onTap: widget.onDistanceUnitTap,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            horizontalTitleGap: 20,
+            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings, color: Colors.black54),
+            title: Text(
+              AppLocalizations.of(context)!.settings,
+              style: const TextStyle(fontSize: 15),
+            ),
+            onTap: widget.onAppSettingsTap,
             contentPadding: const EdgeInsets.symmetric(horizontal: 20),
             horizontalTitleGap: 20,
             visualDensity: const VisualDensity(horizontal: 0, vertical: -4),

@@ -210,5 +210,10 @@
   "offlineMapInfoMessage1": "Offline-Karten reduzieren den Netzwerkzugriff und sparen Akku, auch wenn Sie online sind",
   "offlineMapInfoMessage2": "Für eine reibungslose App-Nutzung empfehlen wir, heruntergeladene Karten zu löschen, wenn Sie sie nicht mehr benötigen",
   "offlineMapInfoButton": "Herunterladen",
-  "registerAtPosition": "Hier hinzufügen"
+  "registerAtPosition": "Hier hinzufügen",
+  "locationSharing": "Standort teilen",
+  "aboutApp": "Über diese App",
+  "rateApp": "App bewerten",
+  "contactUs": "Kontakt",
+  "language": "Sprache"
 }

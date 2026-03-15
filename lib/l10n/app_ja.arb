@@ -189,5 +189,10 @@
   "offlineMapInfoMessage1": "オフラインマップは、オンライン時でもネットワークアクセスを減らし、バッテリー消費を抑えます",
   "offlineMapInfoMessage2": "但し、アプリを快適に使用するために、ダウンロードしたマップは使用終了後に削除することをお勧めします",
   "offlineMapInfoButton": "ダウンロード",
-  "registerAtPosition": "この位置に追加する"
+  "registerAtPosition": "この位置に追加する",
+  "locationSharing": "位置情報の共有",
+  "aboutApp": "このアプリについて",
+  "rateApp": "アプリを評価する",
+  "contactUs": "お問い合わせ",
+  "language": "言語"
 }

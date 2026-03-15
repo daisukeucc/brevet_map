@@ -400,4 +400,19 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get registerAtPosition => 'この位置に追加する';
+
+  @override
+  String get locationSharing => '位置情報の共有';
+
+  @override
+  String get aboutApp => 'このアプリについて';
+
+  @override
+  String get rateApp => 'アプリを評価する';
+
+  @override
+  String get contactUs => 'お問い合わせ';
+
+  @override
+  String get language => '言語';
 }

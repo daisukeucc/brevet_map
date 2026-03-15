@@ -210,5 +210,10 @@
   "offlineMapInfoMessage1": "Los mapas sin conexión reducen el acceso a la red y ahorran batería incluso en línea",
   "offlineMapInfoMessage2": "Para mantener la app funcionando sin problemas, recomendamos eliminar los mapas descargados cuando ya no los necesites",
   "offlineMapInfoButton": "Descargar",
-  "registerAtPosition": "Agregar aquí"
+  "registerAtPosition": "Agregar aquí",
+  "locationSharing": "Compartir ubicación",
+  "aboutApp": "Acerca de la aplicación",
+  "rateApp": "Valorar la aplicación",
+  "contactUs": "Contacto",
+  "language": "Idioma"
 }

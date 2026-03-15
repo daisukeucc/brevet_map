@@ -18,6 +18,7 @@ import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
+import '../handlers/app_settings_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
 import '../handlers/share_url_handler.dart';
@@ -315,6 +316,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         restartTimer: _sleepTimerController.restart,
       ),
       onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
+      onAppSettingsTap: () => showAppSettingsScreen(context),
       onGpxImportTap: () => handleGpxImportTap(context, ref),
       onGpxExportTap: () => handleGpxExportTap(context, ref),
       onOfflineMapTap: () => handleOfflineMapTap(context, ref),
@@ -476,6 +478,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             restartTimer: _sleepTimerController.restart,
           ),
           onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
+          onAppSettingsTap: () => showAppSettingsScreen(context),
           onGpxImportTap: () => handleGpxImportTap(context, ref),
           onGpxExportTap: () => handleGpxExportTap(context, ref),
           onOfflineMapTap: () => handleOfflineMapTap(context, ref),
