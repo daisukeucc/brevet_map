@@ -412,4 +412,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get useSystemLanguage => '使用系统语言';
+
+  @override
+  String get appSettingsTitle => '设置与其他';
 }

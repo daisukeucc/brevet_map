@@ -216,5 +216,6 @@
   "rateApp": "评价应用",
   "contactUs": "联系我们",
   "language": "语言",
-  "useSystemLanguage": "使用系统语言"
+  "useSystemLanguage": "使用系统语言",
+  "appSettingsTitle": "设置与其他"
 }

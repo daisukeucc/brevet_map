@@ -216,5 +216,6 @@
   "rateApp": "Valuta l'app",
   "contactUs": "Contattaci",
   "language": "Lingua",
-  "useSystemLanguage": "Lingua di sistema"
+  "useSystemLanguage": "Lingua di sistema",
+  "appSettingsTitle": "Impostazioni e altro"
 }

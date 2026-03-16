@@ -865,6 +865,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'System default'**
   String get useSystemLanguage;
+
+  /// No description provided for @appSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings & More'**
+  String get appSettingsTitle;
 }
 
 class _AppLocalizationsDelegate

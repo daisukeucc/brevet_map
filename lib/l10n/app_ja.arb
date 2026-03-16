@@ -195,5 +195,6 @@
   "rateApp": "アプリを評価する",
   "contactUs": "お問い合わせ",
   "language": "言語",
-  "useSystemLanguage": "システム設定に従う"
+  "useSystemLanguage": "システム設定に従う",
+  "appSettingsTitle": "設定・その他"
 }

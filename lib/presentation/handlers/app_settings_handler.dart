@@ -45,18 +45,18 @@ class _AppSettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final items = [
+      (label: l10n.language, onTap: onLanguageTap),
+      (label: l10n.distanceUnit, onTap: onDistanceUnitTap),
       (label: l10n.locationSharing, onTap: null as VoidCallback?),
+      (label: l10n.contactUs, onTap: null),
       (label: l10n.aboutApp, onTap: null),
       (label: l10n.rateApp, onTap: null),
-      (label: l10n.contactUs, onTap: null),
-      (label: l10n.distanceUnit, onTap: onDistanceUnitTap),
-      (label: l10n.language, onTap: onLanguageTap),
     ];
 
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(l10n.settings, style: AppTextStyles.title),
+        title: Text(l10n.appSettingsTitle, style: AppTextStyles.title),
         centerTitle: true,
         actions: [
           IconButton(

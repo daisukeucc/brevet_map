@@ -427,4 +427,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get useSystemLanguage => 'Idioma del sistema';
+
+  @override
+  String get appSettingsTitle => 'Ajustes y más';
 }

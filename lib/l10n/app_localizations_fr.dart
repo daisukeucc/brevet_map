@@ -429,4 +429,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get useSystemLanguage => 'Langue du système';
+
+  @override
+  String get appSettingsTitle => 'Paramètres & plus';
 }

@@ -424,4 +424,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get useSystemLanguage => 'System default';
+
+  @override
+  String get appSettingsTitle => 'Settings & More';
 }

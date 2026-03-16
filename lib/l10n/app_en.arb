@@ -219,5 +219,6 @@
   "rateApp": "Rate this app",
   "contactUs": "Contact",
   "language": "Language",
-  "useSystemLanguage": "System default"
+  "useSystemLanguage": "System default",
+  "appSettingsTitle": "Settings & More"
 }

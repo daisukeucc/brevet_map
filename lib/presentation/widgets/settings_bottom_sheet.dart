@@ -95,7 +95,7 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
           ListTile(
             leading: const Icon(Icons.settings, color: Colors.black54),
             title: Text(
-              AppLocalizations.of(context)!.settings,
+              AppLocalizations.of(context)!.appSettingsTitle,
               style: const TextStyle(fontSize: 15),
             ),
             onTap: widget.onAppSettingsTap,
