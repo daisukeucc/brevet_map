@@ -421,4 +421,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get appSettingsTitle => '設定・その他';
+
+  @override
+  String get contactFormMailError => 'メールアプリを開けませんでした';
 }

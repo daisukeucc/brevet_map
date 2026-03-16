@@ -415,4 +415,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get appSettingsTitle => '设置与其他';
+
+  @override
+  String get contactFormMailError => '无法打开邮件应用';
 }

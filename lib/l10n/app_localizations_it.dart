@@ -429,4 +429,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get appSettingsTitle => 'Impostazioni e altro';
+
+  @override
+  String get contactFormMailError => 'Impossibile aprire l\'app mail';
 }

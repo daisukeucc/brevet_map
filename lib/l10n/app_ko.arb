@@ -217,5 +217,6 @@
   "contactUs": "문의",
   "language": "언어",
   "useSystemLanguage": "시스템 설정 사용",
-  "appSettingsTitle": "설정 & 기타"
+  "appSettingsTitle": "설정 & 기타",
+  "contactFormMailError": "메일 앱을 열 수 없습니다"
 }

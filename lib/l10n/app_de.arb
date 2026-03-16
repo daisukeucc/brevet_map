@@ -217,5 +217,6 @@
   "contactUs": "Kontakt",
   "language": "Sprache",
   "useSystemLanguage": "Systemsprache",
-  "appSettingsTitle": "Einstellungen & mehr"
+  "appSettingsTitle": "Einstellungen & mehr",
+  "contactFormMailError": "Mail-App konnte nicht geöffnet werden"
 }

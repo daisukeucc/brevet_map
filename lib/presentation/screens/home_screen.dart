@@ -19,7 +19,9 @@ import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
 import '../handlers/app_settings_handler.dart';
+import '../handlers/contact_handler.dart';
 import '../handlers/language_handler.dart';
+import '../handlers/location_sharing_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
 import '../handlers/share_url_handler.dart';
@@ -327,6 +329,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         context,
         onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
         onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+        onLocationSharingTap: () => shareCurrentLocation(context),
+        onContactUsTap: () => openContactEmail(context),
       ),
       onGpxImportTap: () => handleGpxImportTap(context, ref),
       onGpxExportTap: () => handleGpxExportTap(context, ref),
@@ -492,6 +496,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             context,
             onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
             onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+            onLocationSharingTap: () => shareCurrentLocation(context),
+            onContactUsTap: () => openContactEmail(context),
           ),
           onGpxImportTap: () => handleGpxImportTap(context, ref),
           onGpxExportTap: () => handleGpxExportTap(context, ref),

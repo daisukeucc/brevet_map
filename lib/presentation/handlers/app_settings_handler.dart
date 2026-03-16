@@ -8,12 +8,16 @@ void showAppSettingsScreen(
   BuildContext context, {
   required VoidCallback onDistanceUnitTap,
   required VoidCallback onLanguageTap,
+  required VoidCallback onLocationSharingTap,
+  required VoidCallback onContactUsTap,
 }) {
   Navigator.of(context).push(
     PageRouteBuilder<void>(
       pageBuilder: (_, __, ___) => _AppSettingsScreen(
         onDistanceUnitTap: onDistanceUnitTap,
         onLanguageTap: onLanguageTap,
+        onLocationSharingTap: onLocationSharingTap,
+        onContactUsTap: onContactUsTap,
       ),
       transitionDuration: const Duration(milliseconds: 300),
       reverseTransitionDuration: const Duration(milliseconds: 250),
@@ -36,10 +40,14 @@ class _AppSettingsScreen extends StatelessWidget {
   const _AppSettingsScreen({
     required this.onDistanceUnitTap,
     required this.onLanguageTap,
+    required this.onLocationSharingTap,
+    required this.onContactUsTap,
   });
 
   final VoidCallback onDistanceUnitTap;
   final VoidCallback onLanguageTap;
+  final VoidCallback onLocationSharingTap;
+  final VoidCallback onContactUsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -47,8 +55,8 @@ class _AppSettingsScreen extends StatelessWidget {
     final items = [
       (label: l10n.language, onTap: onLanguageTap),
       (label: l10n.distanceUnit, onTap: onDistanceUnitTap),
-      (label: l10n.locationSharing, onTap: null as VoidCallback?),
-      (label: l10n.contactUs, onTap: null),
+      (label: l10n.locationSharing, onTap: onLocationSharingTap),
+      (label: l10n.contactUs, onTap: onContactUsTap),
       (label: l10n.aboutApp, onTap: null),
       (label: l10n.rateApp, onTap: null),
     ];

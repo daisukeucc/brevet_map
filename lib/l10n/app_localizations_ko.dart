@@ -421,4 +421,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get appSettingsTitle => '설정 & 기타';
+
+  @override
+  String get contactFormMailError => '메일 앱을 열 수 없습니다';
 }

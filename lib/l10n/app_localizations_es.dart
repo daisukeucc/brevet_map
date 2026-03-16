@@ -430,4 +430,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get appSettingsTitle => 'Ajustes y más';
+
+  @override
+  String get contactFormMailError => 'No se pudo abrir la aplicación de correo';
 }

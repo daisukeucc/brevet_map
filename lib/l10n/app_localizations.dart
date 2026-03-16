@@ -871,6 +871,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings & More'**
   String get appSettingsTitle;
+
+  /// No description provided for @contactFormMailError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open mail app'**
+  String get contactFormMailError;
 }
 
 class _AppLocalizationsDelegate
