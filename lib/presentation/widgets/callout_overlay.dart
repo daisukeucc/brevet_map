@@ -25,8 +25,12 @@ class CalloutOverlay extends StatelessWidget {
   static const _padding = 12.0;
   static const _bottomPadding = 12.0;
   static const _calloutWidth = 140.0;
-  static const _calloutHeight = 130.0;
-  static const _tailGap = 8.0;
+
+  /// 吹き出しが画面上端に近いか判定するための推定高さ（正確な描画高さ不要）
+  static const _calloutHeightEstimate = 100.0;
+
+  /// しっぽ先端とアイコン中心の間隔
+  static const _tailGap = 4.0;
 
   @override
   Widget build(BuildContext context) {
@@ -41,57 +45,14 @@ class CalloutOverlay extends StatelessWidget {
                 constraints.maxHeight,
               );
 
-              double left;
-              double top;
-              bool tailAtTop;
-              double tailCenterX;
-
               if (text == _readyToStartText) {
                 // ルートから1km以上離れている場合: 地図の中央に表示
-                left = (viewSize.width - _calloutWidth) / 2;
-                top = (viewSize.height - _calloutHeight) / 2;
-                tailAtTop = false;
-                tailCenterX = _calloutWidth / 2;
-              } else {
-                final pointOffset = camera.latLngToScreenOffset(position);
-
-                // デフォルト: ポイントの上に表示（しっぽは下向き）
-                top = pointOffset.dy - _calloutHeight - _tailGap;
-                left = pointOffset.dx - _calloutWidth / 2;
-                tailAtTop = false;
-
-                // 上端に近い場合はポイントの下に表示
-                if (top < _padding) {
-                  top = pointOffset.dy + _tailGap;
-                  tailAtTop = true;
-                }
-                // 下端に近い場合はポイントの上に表示（デフォルトのまま）
-                if (top + _calloutHeight > viewSize.height - _bottomPadding) {
-                  top = viewSize.height - _calloutHeight - _bottomPadding;
-                }
-                if (tailAtTop && top < pointOffset.dy) {
-                  tailAtTop = false;
-                  top = pointOffset.dy - _calloutHeight - _tailGap;
-                }
-
-                // 左右のクランプ
-                left = left.clamp(
-                  _padding,
-                  viewSize.width - _calloutWidth - _padding,
+                final callout = LocationCallout(
+                  mainText: text,
+                  tailAtTop: false,
+                  tailCenterX: _calloutWidth / 2,
+                  hp: hp,
                 );
-
-                // しっぽの先端を現在地に向ける（吹き出し左端からの相対 X）
-                tailCenterX = pointOffset.dx - left;
-              }
-
-              final callout = LocationCallout(
-                mainText: text,
-                tailAtTop: tailAtTop,
-                tailCenterX: tailCenterX,
-                hp: hp,
-              );
-
-              if (text == _readyToStartText) {
                 return Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -105,15 +66,57 @@ class CalloutOverlay extends StatelessWidget {
                 );
               }
 
+              final pointOffset = camera.latLngToScreenOffset(position);
+
+              // 上端に近い場合はポイントの下に表示（しっぽ上向き）
+              final tailAtTop =
+                  pointOffset.dy - _calloutHeightEstimate - _tailGap < _padding;
+
+              // 左右のクランプ
+              final left = (pointOffset.dx - _calloutWidth / 2).clamp(
+                _padding,
+                viewSize.width - _calloutWidth - _padding,
+              );
+
+              // しっぽの先端を現在地に向ける（吹き出し左端からの相対 X）
+              final tailCenterX = pointOffset.dx - left;
+
+              final callout = LocationCallout(
+                mainText: text,
+                tailAtTop: tailAtTop,
+                tailCenterX: tailCenterX,
+                hp: hp,
+              );
+
+              if (tailAtTop) {
+                // アイコン下に配置: top 起点
+                final top = (pointOffset.dy + _tailGap).clamp(
+                  _padding,
+                  viewSize.height - _calloutHeightEstimate - _bottomPadding,
+                );
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned(
+                      left: left,
+                      top: top,
+                      width: _calloutWidth,
+                      child: callout,
+                    ),
+                  ],
+                );
+              }
+
+              // アイコン上に配置: bottom 起点にすることで実際の描画高さに依存せずしっぽ先端がアイコンに合う
+              final bottom = (viewSize.height - pointOffset.dy + _tailGap)
+                  .clamp(_bottomPadding, viewSize.height - _padding);
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
                   Positioned(
                     left: left,
-                    top: top.clamp(
-                      _padding,
-                      viewSize.height - _calloutHeight - _bottomPadding,
-                    ),
+                    bottom: bottom,
+                    width: _calloutWidth,
                     child: callout,
                   ),
                 ],
