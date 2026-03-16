@@ -165,7 +165,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
-    isFirstLaunch().then((first) {
+    isFirstLaunch()
+        .timeout(const Duration(seconds: 5), onTimeout: () => false)
+        .then((first) {
       if (mounted) setState(() => _isFirstLaunch = first);
     });
 
