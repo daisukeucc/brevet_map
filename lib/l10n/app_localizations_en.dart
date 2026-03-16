@@ -406,4 +406,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerAtPosition => 'Add here';
+
+  @override
+  String get locationSharing => 'Location Sharing';
+
+  @override
+  String get aboutApp => 'About this app';
+
+  @override
+  String get rateApp => 'Rate this app';
+
+  @override
+  String get contactUs => 'Contact';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get useSystemLanguage => 'System default';
+
+  @override
+  String get appSettingsTitle => 'Settings & More';
+
+  @override
+  String get contactFormMailError => 'Could not open mail app';
 }

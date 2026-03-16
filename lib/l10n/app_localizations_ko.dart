@@ -400,4 +400,28 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get registerAtPosition => '여기에 추가';
+
+  @override
+  String get locationSharing => '위치 정보 공유';
+
+  @override
+  String get aboutApp => '이 앱에 대해';
+
+  @override
+  String get rateApp => '앱 평가하기';
+
+  @override
+  String get contactUs => '문의';
+
+  @override
+  String get language => '언어';
+
+  @override
+  String get useSystemLanguage => '시스템 설정 사용';
+
+  @override
+  String get appSettingsTitle => '설정 & 기타';
+
+  @override
+  String get contactFormMailError => '메일 앱을 열 수 없습니다';
 }

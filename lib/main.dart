@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'config/tile_config.dart';
 import 'l10n/app_localizations.dart';
+import 'presentation/providers/app_settings_providers.dart';
 import 'presentation/screens/home_screen.dart';
 
 Future<void> main() async {
@@ -18,7 +19,8 @@ Future<void> main() async {
 
   // デコード済みタイル画像のメモリキャッシュを拡張（デフォルト: 100MB / 1000枚）
   // ルート表示・地図回転時のグレー化を軽減する
-  PaintingBinding.instance.imageCache.maximumSizeBytes = 256 * 1024 * 1024; // 256MB
+  PaintingBinding.instance.imageCache.maximumSizeBytes =
+      256 * 1024 * 1024; // 256MB
   PaintingBinding.instance.imageCache.maximumSize = 3000;
 
   try {
@@ -34,14 +36,16 @@ Future<void> main() async {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(localeProvider);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Brevet Map',
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(

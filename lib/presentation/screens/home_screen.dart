@@ -18,6 +18,10 @@ import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
+import '../handlers/app_settings_handler.dart';
+import '../handlers/contact_handler.dart';
+import '../handlers/language_handler.dart';
+import '../handlers/location_sharing_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
 import '../handlers/share_url_handler.dart';
@@ -150,6 +154,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     loadDistanceUnit().then((unit) {
       if (!mounted) return;
       ref.read(distanceUnitProvider.notifier).state = unit;
+    });
+
+    loadLocale().then((code) {
+      if (!mounted) return;
+      if (code != null && code.isNotEmpty) {
+        ref.read(localeProvider.notifier).state = Locale(code);
+      }
     });
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
@@ -314,7 +325,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         restoreBrightness: _sleepTimerController.restoreBrightness,
         restartTimer: _sleepTimerController.restart,
       ),
-      onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
+      onAppSettingsTap: () => showAppSettingsScreen(
+        context,
+        onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
+        onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+        onLocationSharingTap: () => shareCurrentLocation(context),
+        onContactUsTap: () => openContactEmail(context),
+      ),
       onGpxImportTap: () => handleGpxImportTap(context, ref),
       onGpxExportTap: () => handleGpxExportTap(context, ref),
       onOfflineMapTap: () => handleOfflineMapTap(context, ref),
@@ -475,7 +492,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             restoreBrightness: _sleepTimerController.restoreBrightness,
             restartTimer: _sleepTimerController.restart,
           ),
-          onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
+          onAppSettingsTap: () => showAppSettingsScreen(
+            context,
+            onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
+            onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+            onLocationSharingTap: () => shareCurrentLocation(context),
+            onContactUsTap: () => openContactEmail(context),
+          ),
           onGpxImportTap: () => handleGpxImportTap(context, ref),
           onGpxExportTap: () => handleGpxExportTap(context, ref),
           onOfflineMapTap: () => handleOfflineMapTap(context, ref),

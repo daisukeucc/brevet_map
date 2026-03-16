@@ -10,9 +10,13 @@ void showRadioSelectionDialog<T>({
   required T initialValue,
   required void Function(T) onChanged,
 }) {
-  showDialog<void>(
+  showGeneralDialog<void>(
     context: context,
-    builder: (ctx) {
+    barrierDismissible: true,
+    barrierLabel: '',
+    barrierColor: Colors.black54,
+    transitionDuration: Duration.zero,
+    pageBuilder: (ctx, _, __) {
       T selected = initialValue;
       return StatefulBuilder(
         builder: (_, setDialogState) => AlertDialog(
@@ -29,7 +33,7 @@ void showRadioSelectionDialog<T>({
                   onTap: () {
                     setDialogState(() => selected = options[i].$1);
                     onChanged(options[i].$1);
-                    Future.delayed(const Duration(milliseconds: 400), () {
+                    Future.delayed(const Duration(milliseconds: 200), () {
                       if (ctx.mounted) Navigator.pop(ctx);
                     });
                   },
@@ -44,7 +48,7 @@ void showRadioSelectionDialog<T>({
                             if (v == null) return;
                             setDialogState(() => selected = v);
                             onChanged(v);
-                            Future.delayed(const Duration(milliseconds: 400),
+                            Future.delayed(const Duration(milliseconds: 200),
                                 () {
                               if (ctx.mounted) Navigator.pop(ctx);
                             });

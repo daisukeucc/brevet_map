@@ -394,4 +394,28 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get registerAtPosition => '在此添加';
+
+  @override
+  String get locationSharing => '位置共享';
+
+  @override
+  String get aboutApp => '关于本应用';
+
+  @override
+  String get rateApp => '评价应用';
+
+  @override
+  String get contactUs => '联系我们';
+
+  @override
+  String get language => '语言';
+
+  @override
+  String get useSystemLanguage => '使用系统语言';
+
+  @override
+  String get appSettingsTitle => '设置与其他';
+
+  @override
+  String get contactFormMailError => '无法打开邮件应用';
 }

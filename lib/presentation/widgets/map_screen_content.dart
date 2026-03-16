@@ -32,11 +32,11 @@ class MapScreenContent extends StatefulWidget {
     required this.isStreamActive,
     required this.onToggleLocationStream,
     required this.onSleepSettingsTap,
-    required this.onDistanceUnitTap,
     required this.onGpxImportTap,
     required this.onGpxExportTap,
     required this.onOfflineMapTap,
     required this.onAddPoiTap,
+    required this.onAppSettingsTap,
     this.hasUserPois = false,
     this.isDragMode = false,
     this.isMapTapAddMode = false,
@@ -98,9 +98,6 @@ class MapScreenContent extends StatefulWidget {
   /// スリープ設定メニュータップ時のコールバック（フロー全体を実行）
   final VoidCallback onSleepSettingsTap;
 
-  /// 距離単位メニュータップ時のコールバック（フロー全体を実行）
-  final VoidCallback onDistanceUnitTap;
-
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
 
@@ -112,6 +109,9 @@ class MapScreenContent extends StatefulWidget {
 
   /// POI登録コールバック
   final VoidCallback onAddPoiTap;
+
+  /// アプリ設定画面表示コールバック
+  final VoidCallback onAppSettingsTap;
 
   /// ユーザーPOIが1件以上登録されている場合 true
   final bool hasUserPois;
@@ -249,9 +249,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                         onSleepSettingsTap: () =>
                                             popSheetAndCall(context,
                                                 widget.onSleepSettingsTap),
-                                        onDistanceUnitTap: () =>
+                                        onAppSettingsTap: () =>
                                             popSheetAndCall(context,
-                                                widget.onDistanceUnitTap),
+                                                widget.onAppSettingsTap),
                                       ),
                                     ),
                                     customBorder: const CircleBorder(),
