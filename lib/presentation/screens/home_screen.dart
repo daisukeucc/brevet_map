@@ -166,7 +166,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
     isFirstLaunch()
-        .timeout(const Duration(seconds: 5), onTimeout: () => false)
+        .timeout(const Duration(seconds: 3), onTimeout: () => false)
         .then((first) {
       if (mounted) setState(() => _isFirstLaunch = first);
     });
@@ -761,11 +761,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Widget _buildBody(BuildContext context) {
-    if (!_positionFetchCompleted) {
-      return ConnectivityCheckingView(
-        message: AppLocalizations.of(context)!.fetchingLocation,
-      );
-    }
     return _buildMapLayout(context);
   }
 
