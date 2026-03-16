@@ -215,5 +215,6 @@
   "aboutApp": "이 앱에 대해",
   "rateApp": "앱 평가하기",
   "contactUs": "문의",
-  "language": "언어"
+  "language": "언어",
+  "useSystemLanguage": "시스템 설정 사용"
 }

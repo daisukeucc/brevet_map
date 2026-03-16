@@ -415,4 +415,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get language => '언어';
+
+  @override
+  String get useSystemLanguage => '시스템 설정 사용';
 }

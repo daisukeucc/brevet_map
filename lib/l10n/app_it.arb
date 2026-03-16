@@ -215,5 +215,6 @@
   "aboutApp": "Informazioni sull'app",
   "rateApp": "Valuta l'app",
   "contactUs": "Contattaci",
-  "language": "Lingua"
+  "language": "Lingua",
+  "useSystemLanguage": "Lingua di sistema"
 }

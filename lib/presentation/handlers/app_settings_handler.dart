@@ -7,19 +7,39 @@ import '../theme/app_text_styles.dart';
 void showAppSettingsScreen(
   BuildContext context, {
   required VoidCallback onDistanceUnitTap,
+  required VoidCallback onLanguageTap,
 }) {
   Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) =>
-          _AppSettingsScreen(onDistanceUnitTap: onDistanceUnitTap),
+    PageRouteBuilder<void>(
+      pageBuilder: (_, __, ___) => _AppSettingsScreen(
+        onDistanceUnitTap: onDistanceUnitTap,
+        onLanguageTap: onLanguageTap,
+      ),
+      transitionDuration: const Duration(milliseconds: 300),
+      reverseTransitionDuration: const Duration(milliseconds: 250),
+      transitionsBuilder: (_, animation, __, child) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 1),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        )),
+        child: child,
+      ),
     ),
   );
 }
 
 class _AppSettingsScreen extends StatelessWidget {
-  const _AppSettingsScreen({required this.onDistanceUnitTap});
+  const _AppSettingsScreen({
+    required this.onDistanceUnitTap,
+    required this.onLanguageTap,
+  });
 
   final VoidCallback onDistanceUnitTap;
+  final VoidCallback onLanguageTap;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +50,7 @@ class _AppSettingsScreen extends StatelessWidget {
       (label: l10n.rateApp, onTap: null),
       (label: l10n.contactUs, onTap: null),
       (label: l10n.distanceUnit, onTap: onDistanceUnitTap),
-      (label: l10n.language, onTap: null),
+      (label: l10n.language, onTap: onLanguageTap),
     ];
 
     return Scaffold(
@@ -40,7 +60,7 @@ class _AppSettingsScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.close),
+            icon: const Icon(Icons.close, size: 28),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],

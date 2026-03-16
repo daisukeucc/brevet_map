@@ -215,5 +215,6 @@
   "aboutApp": "关于本应用",
   "rateApp": "评价应用",
   "contactUs": "联系我们",
-  "language": "语言"
+  "language": "语言",
+  "useSystemLanguage": "使用系统语言"
 }

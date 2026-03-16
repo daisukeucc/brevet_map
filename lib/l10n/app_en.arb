@@ -218,5 +218,6 @@
   "aboutApp": "About this app",
   "rateApp": "Rate this app",
   "contactUs": "Contact",
-  "language": "Language"
+  "language": "Language",
+  "useSystemLanguage": "System default"
 }

@@ -423,4 +423,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get language => 'Lingua';
+
+  @override
+  String get useSystemLanguage => 'Lingua di sistema';
 }

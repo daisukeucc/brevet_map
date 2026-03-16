@@ -9,6 +9,7 @@ const _keyLocationStreamActive = 'location_stream_active';
 const _keySleepDuration = 'sleep_duration';
 const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
+const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -139,4 +140,16 @@ Future<void> saveSleepInfoDismissed(bool dismissed) async {
 Future<bool> loadSleepInfoDismissed() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keySleepInfoDismissed) ?? false;
+}
+
+/// 言語設定を保存する。'' はシステム設定に従う
+Future<void> saveLocale(String languageCode) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_keyLocale, languageCode);
+}
+
+/// 保存済みの言語設定を返す。未保存なら null、'' はシステム設定に従う
+Future<String?> loadLocale() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_keyLocale);
 }

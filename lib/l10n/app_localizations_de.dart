@@ -423,4 +423,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get language => 'Sprache';
+
+  @override
+  String get useSystemLanguage => 'Systemsprache';
 }

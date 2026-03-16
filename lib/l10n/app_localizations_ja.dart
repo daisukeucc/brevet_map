@@ -415,4 +415,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get language => '言語';
+
+  @override
+  String get useSystemLanguage => 'システム設定に従う';
 }
