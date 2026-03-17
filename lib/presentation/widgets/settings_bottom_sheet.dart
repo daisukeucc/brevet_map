@@ -38,16 +38,16 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
       ),
       (icon: Icons.map, label: l10n.offlineMap, onTap: widget.onOfflineMapTap),
       (
+        icon: Icons.bedtime,
+        label: l10n.sleepSettings,
+        onTap: widget.onSleepSettingsTap
+      ),
+      (
         icon: Icons.add_location_alt,
         label: widget.hasUserPois ? l10n.poiAddEdit : l10n.poiAdd,
         onTap: widget.onAddPoiTap,
       ),
       (icon: Icons.upload, label: l10n.gpxExport, onTap: widget.onGpxExportTap),
-      (
-        icon: Icons.bedtime,
-        label: l10n.sleepSettings,
-        onTap: widget.onSleepSettingsTap
-      ),
       (
         icon: Icons.settings,
         label: l10n.appSettingsTitle,

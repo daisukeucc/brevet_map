@@ -18,11 +18,15 @@ import 'sleep_settings_handler.dart';
 
 /// ボトムシートを閉じ、アニメーション完了後にコールバックを実行する
 /// メニュータップ後のシート閉じ〜処理開始の共通パターン
-/// pop と callback を同時に呼ぶとナビゲーターアニメーション競合でダイアログが
-/// 表示されない問題があるため、pop 後に閉じアニメーション完了分（300ms）を待つ
+/// 150ms: タップフィードバック（グレー表示）を見せてから pop
+/// さらに 350ms: 閉じアニメーション完了を待ってからコールバック実行
+/// ※pop と callback を同時に呼ぶとナビゲーターアニメーション競合でダイアログが表示されない
 void popSheetAndCall(BuildContext context, VoidCallback callback) {
-  Navigator.of(context).pop();
-  Future.delayed(const Duration(milliseconds: 350), callback);
+  final navigator = Navigator.of(context);
+  Future.delayed(const Duration(milliseconds: 150), () {
+    navigator.pop();
+    Future.delayed(const Duration(milliseconds: 350), callback);
+  });
 }
 
 /// GPXインポートメニューがタップされたときのフロー
