@@ -10,6 +10,7 @@ Future<bool> showOfflineMapInfoDialog(BuildContext context) async {
   final l10n = AppLocalizations.of(context)!;
   final result = await showDialog<bool>(
     context: context,
+    barrierDismissible: false,
     barrierColor: Colors.black54,
     builder: (context) {
       var dontShowAgain = false;

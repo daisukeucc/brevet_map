@@ -16,14 +16,13 @@ import 'offline_map_info_dialog.dart';
 import 'sleep_info_dialog.dart';
 import 'sleep_settings_handler.dart';
 
-/// ボトムシートを閉じ、遅延後にコールバックを実行する
+/// ボトムシートを閉じ、アニメーション完了後にコールバックを実行する
 /// メニュータップ後のシート閉じ〜処理開始の共通パターン
+/// pop と callback を同時に呼ぶとナビゲーターアニメーション競合でダイアログが
+/// 表示されない問題があるため、pop 後に閉じアニメーション完了分（300ms）を待つ
 void popSheetAndCall(BuildContext context, VoidCallback callback) {
-  final navigator = Navigator.of(context);
-  Future.delayed(const Duration(milliseconds: 200), () {
-    navigator.pop();
-    callback();
-  });
+  Navigator.of(context).pop();
+  Future.delayed(const Duration(milliseconds: 350), callback);
 }
 
 /// GPXインポートメニューがタップされたときのフロー
