@@ -116,7 +116,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 初回起動時に ConnectivtyGate がオフラインと判定したか
   bool _isConnectivityOffline = false;
 
-  static const double _trackingZoom = 16.0;
+  static const double _trackingZoom = 15.0;
   static const double _defaultZoom = 14.0;
 
   @override
