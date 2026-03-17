@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// 画面下部の再生/停止バーと位置取得中のプログレスバー
 class LocationBottomBar extends StatelessWidget {
   const LocationBottomBar({
     super.key,
@@ -13,8 +12,6 @@ class LocationBottomBar extends StatelessWidget {
   final bool isStreamActive;
   final VoidCallback onTap;
   final ValueNotifier<double>? progressBarValue;
-
-  /// true のときボタンをグレー表示する（LOWモード時）
   final bool isLowMode;
 
   @override
