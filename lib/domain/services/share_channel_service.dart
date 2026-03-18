@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 class ShareChannelService {
   ShareChannelService._();
 
-  static const _channel = MethodChannel('com.example.brevet_map/share');
+  static const _channel = MethodChannel('com.brevetmap/share');
 
   /// 共有されたテキスト（URL）を受信したときのハンドラを登録する。
   static void setMethodCallHandler(void Function(String url) onSharedUrlReceived) {

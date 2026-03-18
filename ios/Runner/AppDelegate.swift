@@ -8,8 +8,8 @@ private let kPendingGpxContentKey = "pending_gpx_content"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
-  private let channelName = "com.example.brevet_map/gpx"
-  private let shareChannelName = "com.example.brevet_map/share"
+  private let channelName = "com.brevetmap/gpx"
+  private let shareChannelName = "com.brevetmap/share"
   private var gpxChannel: FlutterMethodChannel?
   private var shareChannel: FlutterMethodChannel?
   private var pendingGpxContent: String?
