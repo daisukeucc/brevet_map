@@ -83,7 +83,7 @@ class SleepTimerController {
                 child: Padding(
                   padding: const EdgeInsets.all(20),
                   child: Image.asset(
-                    'assets/images/app_icon.png',
+                    'assets/icons/app_icon.png',
                     width: 120,
                     height: 120,
                     errorBuilder: (context, error, stackTrace) => const FlutterLogo(

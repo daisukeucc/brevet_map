@@ -105,6 +105,7 @@ flutter:
   assets:
     # .env のみ必須。env.example はテンプレート用（リポジトリにコミット可）で任意
     - .env
+    - assets/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
