@@ -75,23 +75,14 @@ class SleepTimerController {
           child: ColoredBox(
             color: Colors.black,
             child: Center(
-              child: DecoratedBox(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Image.asset(
-                    'assets/icons/app_icon.png',
-                    width: 120,
-                    height: 120,
-                    errorBuilder: (context, error, stackTrace) => const FlutterLogo(
-                      size: 120,
-                      style: FlutterLogoStyle.markOnly,
-                      textColor: Color(0xFF333333),
-                    ),
-                  ),
+              child: Image.asset(
+                'assets/icons/app_icon_round.png',
+                width: 160,
+                height: 160,
+                errorBuilder: (context, error, stackTrace) => const FlutterLogo(
+                  size: 120,
+                  style: FlutterLogoStyle.markOnly,
+                  textColor: Color(0xFF333333),
                 ),
               ),
             ),
