@@ -4,9 +4,7 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
-	<key>CFBundleDisplayName</key>
-	<string>Brevet Map</string>
-	<key>CFBundleExecutable</key>
+<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
@@ -49,6 +47,8 @@
 	<true/>
 	<key>GoogleMapsApiKey</key>
 	<string>$(GOOGLE_MAPS_API_KEY)</string>
+	<key>CFBundleDisplayName</key>
+	<string>Brevet Map</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>このアプリは地図表示のために位置情報を使用します。</string>
 	<key>NSLocationAlwaysUsageDescription</key>
