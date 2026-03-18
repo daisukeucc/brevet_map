@@ -27,9 +27,16 @@ Future<void> main() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
   await TileConfig.initUserAgentPackageName();
+  // クラッシュ後の ObjectBox DB 不正状態で initialise() が無限待機することがある。
+  // タイムアウトで強制脱出し、キャッシュなしで起動を継続する。
   try {
-    await FMTCObjectBoxBackend().initialise();
-    await const FMTCStore('mapStore').manage.create();
+    await FMTCObjectBoxBackend()
+        .initialise()
+        .timeout(const Duration(seconds: 5));
+    await const FMTCStore('mapStore')
+        .manage
+        .create()
+        .timeout(const Duration(seconds: 3));
   } catch (_) {
     // FMTC 初期化失敗時はキャッシュなしで動作継続
   }
