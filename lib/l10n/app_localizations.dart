@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'Brevet Map'**
   String get appTitle;
 
+  /// Brand name. Do not translate. Always Brevet Map in all locales.
+  ///
+  /// In en, this message translates to:
+  /// **'Brevet Map'**
+  String get appTitleBrand;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:

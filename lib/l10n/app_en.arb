@@ -4,6 +4,10 @@
   "@appTitle": {
     "description": "Do not translate. Use \"Brevet Map\" in all non-Japanese locales."
   },
+  "appTitleBrand": "Brevet Map",
+  "@appTitleBrand": {
+    "description": "Brand name. Do not translate. Always Brevet Map in all locales."
+  },
   "cancel": "Cancel",
   "ok": "OK",
   "ng": "NG",

@@ -12,6 +12,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appTitle => 'ブルベMAP';
 
   @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
   String get cancel => 'キャンセル';
 
   @override
