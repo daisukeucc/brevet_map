@@ -44,10 +44,10 @@
                                 secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="moa-c2-u7t" />
                             <constraint firstItem="YRO-k0-Ey4" firstAttribute="centerY"
                                 secondItem="Ze5-6b-2t3" secondAttribute="centerY" id="Q3B-4y-g5h" />
-                            <constraint firstItem="YRO-k0-Ey4" firstAttribute="width" constant="160"
+                            <constraint firstItem="YRO-k0-Ey4" firstAttribute="width" constant="150"
                                 id="Wf5-wa-mYb" />
                             <constraint firstItem="YRO-k0-Ey4" firstAttribute="height"
-                                constant="160" id="Xjk-nk-p5b" />
+                                constant="150" id="Xjk-nk-p5b" />
                         </constraints>
                     </view>
                 </viewController>

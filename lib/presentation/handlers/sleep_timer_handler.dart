@@ -77,8 +77,8 @@ class SleepTimerController {
             child: Center(
               child: Image.asset(
                 'assets/icons/app_icon_round.png',
-                width: 160,
-                height: 160,
+                width: 150,
+                height: 150,
                 errorBuilder: (context, error, stackTrace) => const FlutterLogo(
                   size: 120,
                   style: FlutterLogoStyle.markOnly,
