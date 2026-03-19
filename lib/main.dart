@@ -12,6 +12,8 @@ import 'presentation/screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // スプラッシュ画面を表示する
+  WidgetsBinding.instance.deferFirstFrame();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
@@ -41,6 +43,8 @@ Future<void> main() async {
     // FMTC 初期化失敗時はキャッシュなしで動作継続
   }
   runApp(const ProviderScope(child: MyApp()));
+  await Future.delayed(const Duration(milliseconds: 500));
+  WidgetsBinding.instance.allowFirstFrame();
 }
 
 class MyApp extends ConsumerWidget {
