@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/services/gpx_channel_service.dart';
@@ -143,8 +142,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (mounted) _fetchPositionInBackground();
     });
 
-    WakelockPlus.enable();
-
     loadSleepDuration().then((minutes) {
       if (!mounted) return;
       ref.read(sleepDurationProvider.notifier).state = minutes;
@@ -238,7 +235,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   void dispose() {
     _sleepTimerController.dispose();
     WidgetsBinding.instance.removeObserver(this);
-    WakelockPlus.disable();
     _volumeZoomHandler.dispose();
     ref.read(locationStreamProvider.notifier).stop();
     ref.read(mapStateProvider.notifier).cancelAnimation();
@@ -557,7 +553,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
-      WakelockPlus.disable();
       ref.read(locationStreamProvider.notifier).stop();
       _sleepTimerController.cancel();
       if (state == AppLifecycleState.paused) return;
@@ -565,7 +560,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     if (state != AppLifecycleState.resumed) return;
 
-    WakelockPlus.enable();
     _sleepTimerController.restart(ref.read(sleepDurationProvider));
 
     // 共有シートから本アプリを選択してフォアグラウンドに戻った場合、
