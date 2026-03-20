@@ -27,11 +27,6 @@ Future<bool> showSleepInfoDialog(BuildContext context) async {
                     l10n.sleepInfoMessage1,
                     style: AppTextStyles.body.copyWith(height: 1.6),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    l10n.sleepInfoMessage2,
-                    style: AppTextStyles.body.copyWith(height: 1.6),
-                  ),
                   const SizedBox(height: 24),
                   Center(
                     child: TextButton(

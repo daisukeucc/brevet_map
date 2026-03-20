@@ -52,11 +52,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get sleepInfoMessage1 =>
-      'Désactive le GPS lors de la mise en veille de l\'écran pour économiser la batterie';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'Pour économiser encore plus de batterie, mettez votre appareil en veille. Le GPS se désactive également';
+      'Le GPS se coupe lors de la mise en veille de l\'écran. Nous recommandons donc d\'activer la mise en veille si vous souhaitez réduire la consommation de la batterie.';
 
   @override
   String get sleepInfoDontShowAgain => 'Ne plus afficher';

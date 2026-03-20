@@ -197,14 +197,8 @@ abstract class AppLocalizations {
   /// No description provided for @sleepInfoMessage1.
   ///
   /// In en, this message translates to:
-  /// **'Turns off GPS when the screen sleeps to save battery'**
+  /// **'GPS turns off when the screen sleeps, so we recommend enabling screen sleep if you want to reduce battery usage'**
   String get sleepInfoMessage1;
-
-  /// No description provided for @sleepInfoMessage2.
-  ///
-  /// In en, this message translates to:
-  /// **'To save even more battery, put your device to sleep. GPS also turns off'**
-  String get sleepInfoMessage2;
 
   /// No description provided for @sleepInfoDontShowAgain.
   ///

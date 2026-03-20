@@ -51,10 +51,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sleepSettings => '屏幕休眠';
 
   @override
-  String get sleepInfoMessage1 => '屏幕休眠时关闭GPS以节省电量';
-
-  @override
-  String get sleepInfoMessage2 => '要进一步节省电量，请将设备置于休眠状态。GPS也会关闭';
+  String get sleepInfoMessage1 => '屏幕休眠时GPS会关闭，因此如果希望减少电量消耗，建议启用屏幕休眠。';
 
   @override
   String get sleepInfoDontShowAgain => '不再显示';

@@ -52,11 +52,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sleepInfoMessage1 =>
-      'Disattiva il GPS quando lo schermo va in sospensione per risparmiare batteria';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'Per risparmiare ancora più batteria, metti il dispositivo in sospensione. Il GPS si disattiva anch\'esso';
+      'Il GPS si disattiva quando lo schermo va in sospensione. Consigliamo quindi di attivare la sospensione dello schermo per ridurre il consumo della batteria.';
 
   @override
   String get sleepInfoDontShowAgain => 'Non mostrare più';

@@ -51,11 +51,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleepSettings => '画面スリープ';
 
   @override
-  String get sleepInfoMessage1 => '画面スリープ時はGPSがOFFになり、バッテリー消費を抑えます';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'さらにバッテリー消費を抑えるためには端末自体をスリープして下さい\n端末スリープでもGPSはOFFになります';
+  String get sleepInfoMessage1 =>
+      '画面スリープ時はGPSがOFFになるため、バッテリー消費を抑えたい場合は、画面スリープを有効にすることをおすすめします';
 
   @override
   String get sleepInfoDontShowAgain => '以後表示しない';

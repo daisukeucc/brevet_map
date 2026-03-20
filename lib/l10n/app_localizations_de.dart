@@ -52,11 +52,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sleepInfoMessage1 =>
-      'Schaltet GPS beim Bildschirmschlaf aus, um Akku zu sparen';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'Um noch mehr Akku zu sparen, legen Sie Ihr Gerät in den Schlaf. GPS wird ebenfalls abgeschaltet';
+      'Das GPS schaltet sich beim Bildschirmschlaf aus. Wir empfehlen daher, den Bildschirmschlaf zu aktivieren, wenn Sie den Akkuverbrauch reduzieren möchten.';
 
   @override
   String get sleepInfoDontShowAgain => 'Nicht mehr anzeigen';

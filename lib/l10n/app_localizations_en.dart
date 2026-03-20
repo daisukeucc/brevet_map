@@ -52,11 +52,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sleepInfoMessage1 =>
-      'Turns off GPS when the screen sleeps to save battery';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'To save even more battery, put your device to sleep. GPS also turns off';
+      'GPS turns off when the screen sleeps, so we recommend enabling screen sleep if you want to reduce battery usage';
 
   @override
   String get sleepInfoDontShowAgain => 'Don\'t show again';

@@ -51,10 +51,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sleepSettings => '화면 절전';
 
   @override
-  String get sleepInfoMessage1 => '화면 절전 시 GPS를 끄고 배터리를 절약합니다';
-
-  @override
-  String get sleepInfoMessage2 => '배터리를 더 절약하려면 기기를 절전 모드로 설정하세요. GPS도 꺼집니다';
+  String get sleepInfoMessage1 =>
+      '화면이 절전 상태가 되면 GPS가 꺼집니다. 배터리 소비를 줄이려면 화면 절전을 활성화하는 것을 권장합니다.';
 
   @override
   String get sleepInfoDontShowAgain => '다시 표시하지 않음';
