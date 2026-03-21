@@ -246,6 +246,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sleepOn => '开启';
 
   @override
+  String get sleepSettingsNote => '请在设备的设置应用中查看屏幕休眠时间';
+
+  @override
+  String get openSettingsApp => '打开设置应用';
+
+  @override
   String get distanceUnit => '距离单位';
 
   @override

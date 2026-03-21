@@ -254,6 +254,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sleepOn => 'ON';
 
   @override
+  String get sleepSettingsNote =>
+      'Controlla la durata della sospensione schermo nell\'app Impostazioni del tuo dispositivo';
+
+  @override
+  String get openSettingsApp => 'Apri l\'app Impostazioni';
+
+  @override
   String get distanceUnit => 'Unità di distanza';
 
   @override

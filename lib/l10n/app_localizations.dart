@@ -572,6 +572,18 @@ abstract class AppLocalizations {
   /// **'ON'**
   String get sleepOn;
 
+  /// No description provided for @sleepSettingsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Check the screen sleep duration in your device\'s Settings app'**
+  String get sleepSettingsNote;
+
+  /// No description provided for @openSettingsApp.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings app'**
+  String get openSettingsApp;
+
   /// No description provided for @distanceUnit.
   ///
   /// In en, this message translates to:

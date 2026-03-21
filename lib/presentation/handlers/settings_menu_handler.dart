@@ -108,17 +108,7 @@ Future<void> showSleepSettingsFlow(
     if (!proceed) return;
   }
 
-  final l10n = AppLocalizations.of(context)!;
-  showRadioSelectionDialog<bool>(
-    context: context,
-    title: l10n.sleepSettings,
-    options: [
-      (true, l10n.sleepOn),
-      (false, l10n.sleepOff),
-    ],
-    initialValue: ref.read(screenSleepProvider),
-    onChanged: (value) => handleScreenSleepChange(context, ref, value),
-  );
+  showSleepSettingsDialog(context, ref);
 }
 
 /// 距離単位メニューがタップされたときのフロー

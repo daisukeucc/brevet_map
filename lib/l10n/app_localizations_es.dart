@@ -253,6 +253,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sleepOn => 'ON';
 
   @override
+  String get sleepSettingsNote =>
+      'Consulte la duración del modo de espera en la aplicación de Ajustes de su dispositivo';
+
+  @override
+  String get openSettingsApp => 'Abrir la app de Ajustes';
+
+  @override
   String get distanceUnit => 'Unidad de distancia';
 
   @override

@@ -253,6 +253,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sleepOn => 'EIN';
 
   @override
+  String get sleepSettingsNote =>
+      'Die Dauer des Bildschirmschlafs finden Sie in der Einstellungs-App Ihres Geräts';
+
+  @override
+  String get openSettingsApp => 'Einstellungs-App öffnen';
+
+  @override
   String get distanceUnit => 'Distanzeinheit';
 
   @override

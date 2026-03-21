@@ -250,6 +250,12 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sleepOn => 'ON';
 
   @override
+  String get sleepSettingsNote => '화면 절전 시간은 기기의 설정 앱에서 확인하세요';
+
+  @override
+  String get openSettingsApp => '설정 앱 열기';
+
+  @override
   String get distanceUnit => '거리 단위';
 
   @override

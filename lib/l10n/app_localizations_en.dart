@@ -252,6 +252,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sleepOn => 'ON';
 
   @override
+  String get sleepSettingsNote =>
+      'Check the screen sleep duration in your device\'s Settings app';
+
+  @override
+  String get openSettingsApp => 'Open Settings app';
+
+  @override
   String get distanceUnit => 'Distance Unit';
 
   @override

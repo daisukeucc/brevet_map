@@ -256,6 +256,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sleepOn => 'ON';
 
   @override
+  String get sleepSettingsNote =>
+      'Consultez la durée de mise en veille dans l\'application Réglages de votre appareil';
+
+  @override
+  String get openSettingsApp => 'Ouvrir l\'app Réglages';
+
+  @override
   String get distanceUnit => 'Unité de distance';
 
   @override

@@ -249,6 +249,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleepOn => 'ON';
 
   @override
+  String get sleepSettingsNote => '画面スリープの時間は、端末設定アプリで確認してください';
+
+  @override
+  String get openSettingsApp => '設定アプリを開く';
+
+  @override
   String get distanceUnit => '距離の単位';
 
   @override
