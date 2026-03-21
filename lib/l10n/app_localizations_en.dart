@@ -240,24 +240,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location permission is set to \"Don\'t ask again\". Please enable it in app settings.';
 
   @override
-  String get sleepOffMessage => 'Screen sleep turned off';
+  String get sleepOffMessage => 'Screen sleep disabled';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return 'Screen sleep set to $minutes minutes';
-  }
+  String get sleepOnMessage => 'Screen sleep enabled';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1min';
-
-  @override
-  String get sleep5min => '5min';
-
-  @override
-  String get sleep10min => '10min';
+  String get sleepOn => 'ON';
 
   @override
   String get distanceUnit => 'Distance Unit';

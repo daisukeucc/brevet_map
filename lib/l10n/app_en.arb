@@ -100,19 +100,10 @@
   "locationPermissionRequired": "Location permission required",
   "locationPermissionDenied": "Location permission was denied. You cannot show your location without permission.",
   "locationPermissionDeniedForever": "Location permission is set to \"Don't ask again\". Please enable it in app settings.",
-  "sleepOffMessage": "Screen sleep turned off",
-  "sleepSetMessage": "Screen sleep set to {minutes} minutes",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOffMessage": "Screen sleep disabled",
+  "sleepOnMessage": "Screen sleep enabled",
   "sleepOff": "OFF",
-  "sleep1min": "1min",
-  "sleep5min": "5min",
-  "sleep10min": "10min",
+  "sleepOn": "ON",
   "distanceUnit": "Distance Unit",
   "unitKm": "km",
   "unitMile": "mile",

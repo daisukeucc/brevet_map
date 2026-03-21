@@ -242,24 +242,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il permesso di localizzazione è impostato su \"Non chiedere più\". Attivalo nelle impostazioni dell\'app.';
 
   @override
-  String get sleepOffMessage => 'Spegnimento schermo disattivato';
+  String get sleepOffMessage => 'Sospensione schermo disattivata';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return 'Spegnimento schermo impostato a $minutes minuti';
-  }
+  String get sleepOnMessage => 'Sospensione schermo attivata';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1 min';
-
-  @override
-  String get sleep5min => '5 min';
-
-  @override
-  String get sleep10min => '10 min';
+  String get sleepOn => 'ON';
 
   @override
   String get distanceUnit => 'Unità di distanza';

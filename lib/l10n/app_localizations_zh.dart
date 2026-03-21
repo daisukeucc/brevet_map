@@ -234,24 +234,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get locationPermissionDeniedForever => '位置权限已设为「不再询问」。请在应用设置中启用。';
 
   @override
-  String get sleepOffMessage => '屏幕休眠已关闭';
+  String get sleepOffMessage => '屏幕休眠已禁用';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return '屏幕休眠已设置为 $minutes 分钟';
-  }
+  String get sleepOnMessage => '屏幕休眠已启用';
 
   @override
   String get sleepOff => '关闭';
 
   @override
-  String get sleep1min => '1分钟';
-
-  @override
-  String get sleep5min => '5分钟';
-
-  @override
-  String get sleep10min => '10分钟';
+  String get sleepOn => '开启';
 
   @override
   String get distanceUnit => '距离单位';

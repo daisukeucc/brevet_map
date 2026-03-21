@@ -94,18 +94,9 @@
   "locationPermissionDenied": "L'autorisation de localisation a été refusée. Vous ne pouvez pas afficher votre position sans autorisation.",
   "locationPermissionDeniedForever": "L'autorisation de localisation est définie sur \"Ne plus demander\". Veuillez l'activer dans les paramètres de l'application.",
   "sleepOffMessage": "Mise en veille désactivée",
-  "sleepSetMessage": "Mise en veille réglée sur {minutes} minutes",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOnMessage": "Mise en veille activée",
   "sleepOff": "OFF",
-  "sleep1min": "1 min",
-  "sleep5min": "5 min",
-  "sleep10min": "10 min",
+  "sleepOn": "ON",
   "distanceUnit": "Unité de distance",
   "unitKm": "km",
   "unitMile": "mile",

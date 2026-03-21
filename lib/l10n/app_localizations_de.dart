@@ -244,21 +244,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sleepOffMessage => 'Bildschirmschlaf deaktiviert';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return 'Bildschirmschlaf auf $minutes Minuten eingestellt';
-  }
+  String get sleepOnMessage => 'Bildschirmschlaf aktiviert';
 
   @override
   String get sleepOff => 'AUS';
 
   @override
-  String get sleep1min => '1 Min';
-
-  @override
-  String get sleep5min => '5 Min';
-
-  @override
-  String get sleep10min => '10 Min';
+  String get sleepOn => 'EIN';
 
   @override
   String get distanceUnit => 'Distanzeinheit';

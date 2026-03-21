@@ -6,7 +6,7 @@ const _keyGpxPois = 'gpx_pois';
 const _keyGpxMetadataName = 'gpx_metadata_name';
 const _keyMapStyleMode = 'map_style_mode';
 const _keyLocationStreamActive = 'location_stream_active';
-const _keySleepDuration = 'sleep_duration';
+const _keyScreenSleep = 'screen_sleep';
 const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
 const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
@@ -92,16 +92,16 @@ Future<bool> loadLocationStreamActive() async {
   return prefs.getBool(_keyLocationStreamActive) ?? false;
 }
 
-/// 画面スリープ設定（分）を保存する。0=OFF
-Future<void> saveSleepDuration(int minutes) async {
+/// 画面スリープ設定を保存する。true=ON（端末スリープに従う）、false=OFF（WakeLockでスリープしない）
+Future<void> saveScreenSleep(bool value) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setInt(_keySleepDuration, minutes);
+  await prefs.setBool(_keyScreenSleep, value);
 }
 
-/// 保存済みの画面スリープ設定を返す。未保存なら 0（OFF）
-Future<int> loadSleepDuration() async {
+/// 保存済みの画面スリープ設定を返す。未保存なら true（ON）
+Future<bool> loadScreenSleep() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getInt(_keySleepDuration) ?? 0;
+  return prefs.getBool(_keyScreenSleep) ?? true;
 }
 
 /// 距離単位を保存。0=km, 1=mile

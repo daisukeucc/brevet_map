@@ -94,18 +94,9 @@
   "locationPermissionDenied": "위치 권한이 거부되었습니다. 권한 없이는 위치를 표시할 수 없습니다.",
   "locationPermissionDeniedForever": "위치 권한이 \"다시 묻지 않음\"으로 설정되어 있습니다. 앱 설정에서 활성화해 주세요.",
   "sleepOffMessage": "화면 절전 꺼짐",
-  "sleepSetMessage": "화면 절전 {minutes}분으로 설정",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOnMessage": "화면 절전 켜짐",
   "sleepOff": "OFF",
-  "sleep1min": "1분",
-  "sleep5min": "5분",
-  "sleep10min": "10분",
+  "sleepOn": "ON",
   "distanceUnit": "거리 단위",
   "unitKm": "km",
   "unitMile": "마일",

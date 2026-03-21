@@ -240,21 +240,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleepOffMessage => '画面スリープをOFFにしました';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return '画面スリープを$minutes分に設定しました';
-  }
+  String get sleepOnMessage => '画面スリープをONにしました';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1分';
-
-  @override
-  String get sleep5min => '5分';
-
-  @override
-  String get sleep10min => '10分';
+  String get sleepOn => 'ON';
 
   @override
   String get distanceUnit => '距離の単位';

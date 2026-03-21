@@ -551,14 +551,14 @@ abstract class AppLocalizations {
   /// No description provided for @sleepOffMessage.
   ///
   /// In en, this message translates to:
-  /// **'Screen sleep turned off'**
+  /// **'Screen sleep disabled'**
   String get sleepOffMessage;
 
-  /// No description provided for @sleepSetMessage.
+  /// No description provided for @sleepOnMessage.
   ///
   /// In en, this message translates to:
-  /// **'Screen sleep set to {minutes} minutes'**
-  String sleepSetMessage(int minutes);
+  /// **'Screen sleep enabled'**
+  String get sleepOnMessage;
 
   /// No description provided for @sleepOff.
   ///
@@ -566,23 +566,11 @@ abstract class AppLocalizations {
   /// **'OFF'**
   String get sleepOff;
 
-  /// No description provided for @sleep1min.
+  /// No description provided for @sleepOn.
   ///
   /// In en, this message translates to:
-  /// **'1min'**
-  String get sleep1min;
-
-  /// No description provided for @sleep5min.
-  ///
-  /// In en, this message translates to:
-  /// **'5min'**
-  String get sleep5min;
-
-  /// No description provided for @sleep10min.
-  ///
-  /// In en, this message translates to:
-  /// **'10min'**
-  String get sleep10min;
+  /// **'ON'**
+  String get sleepOn;
 
   /// No description provided for @distanceUnit.
   ///

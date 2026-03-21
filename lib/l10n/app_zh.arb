@@ -93,19 +93,10 @@
   "locationPermissionRequired": "需要位置权限",
   "locationPermissionDenied": "位置权限被拒绝。未经许可无法显示您的位置。",
   "locationPermissionDeniedForever": "位置权限已设为「不再询问」。请在应用设置中启用。",
-  "sleepOffMessage": "屏幕休眠已关闭",
-  "sleepSetMessage": "屏幕休眠已设置为 {minutes} 分钟",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOffMessage": "屏幕休眠已禁用",
+  "sleepOnMessage": "屏幕休眠已启用",
   "sleepOff": "关闭",
-  "sleep1min": "1分钟",
-  "sleep5min": "5分钟",
-  "sleep10min": "10分钟",
+  "sleepOn": "开启",
   "distanceUnit": "距离单位",
   "unitKm": "公里",
   "unitMile": "英里",

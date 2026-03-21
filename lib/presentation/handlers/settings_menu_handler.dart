@@ -95,10 +95,8 @@ Future<void> handleAddPoiTap(
 /// スリープ設定メニューがタップされたときのフロー
 Future<void> showSleepSettingsFlow(
   BuildContext context,
-  WidgetRef ref, {
-  required VoidCallback restoreBrightness,
-  required void Function(int) restartTimer,
-}) async {
+  WidgetRef ref,
+) async {
   if (!context.mounted) return;
 
   final dismissed = await loadSleepInfoDismissed();
@@ -111,23 +109,15 @@ Future<void> showSleepSettingsFlow(
   }
 
   final l10n = AppLocalizations.of(context)!;
-  showRadioSelectionDialog<int>(
+  showRadioSelectionDialog<bool>(
     context: context,
     title: l10n.sleepSettings,
     options: [
-      (0, l10n.sleepOff),
-      (1, l10n.sleep1min),
-      (5, l10n.sleep5min),
-      (10, l10n.sleep10min),
+      (true, l10n.sleepOn),
+      (false, l10n.sleepOff),
     ],
-    initialValue: ref.read(sleepDurationProvider),
-    onChanged: (minutes) => handleSleepDurationChange(
-      context,
-      ref,
-      minutes,
-      restoreBrightness: restoreBrightness,
-      restartTimer: restartTimer,
-    ),
+    initialValue: ref.read(screenSleepProvider),
+    onChanged: (value) => handleScreenSleepChange(context, ref, value),
   );
 }
 

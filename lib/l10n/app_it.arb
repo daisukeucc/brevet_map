@@ -93,19 +93,10 @@
   "locationPermissionRequired": "Permesso di localizzazione richiesto",
   "locationPermissionDenied": "Il permesso di localizzazione è stato negato. Non puoi mostrare la tua posizione senza permesso.",
   "locationPermissionDeniedForever": "Il permesso di localizzazione è impostato su \"Non chiedere più\". Attivalo nelle impostazioni dell'app.",
-  "sleepOffMessage": "Spegnimento schermo disattivato",
-  "sleepSetMessage": "Spegnimento schermo impostato a {minutes} minuti",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOffMessage": "Sospensione schermo disattivata",
+  "sleepOnMessage": "Sospensione schermo attivata",
   "sleepOff": "OFF",
-  "sleep1min": "1 min",
-  "sleep5min": "5 min",
-  "sleep10min": "10 min",
+  "sleepOn": "ON",
   "distanceUnit": "Unità di distanza",
   "unitKm": "km",
   "unitMile": "miglia",

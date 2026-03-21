@@ -94,18 +94,9 @@
   "locationPermissionDenied": "Standortberechtigung wurde verweigert. Ohne Berechtigung kann Ihr Standort nicht angezeigt werden.",
   "locationPermissionDeniedForever": "Standortberechtigung ist auf \"Nicht erneut fragen\" gesetzt. Bitte aktivieren Sie sie in den App-Einstellungen.",
   "sleepOffMessage": "Bildschirmschlaf deaktiviert",
-  "sleepSetMessage": "Bildschirmschlaf auf {minutes} Minuten eingestellt",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOnMessage": "Bildschirmschlaf aktiviert",
   "sleepOff": "AUS",
-  "sleep1min": "1 Min",
-  "sleep5min": "5 Min",
-  "sleep10min": "10 Min",
+  "sleepOn": "EIN",
   "distanceUnit": "Distanzeinheit",
   "unitKm": "km",
   "unitMile": "Meilen",

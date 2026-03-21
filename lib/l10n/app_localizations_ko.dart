@@ -241,21 +241,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sleepOffMessage => '화면 절전 꺼짐';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return '화면 절전 $minutes분으로 설정';
-  }
+  String get sleepOnMessage => '화면 절전 켜짐';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1분';
-
-  @override
-  String get sleep5min => '5분';
-
-  @override
-  String get sleep10min => '10분';
+  String get sleepOn => 'ON';
 
   @override
   String get distanceUnit => '거리 단위';

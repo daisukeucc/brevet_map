@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/services/gpx_channel_service.dart';
@@ -24,7 +25,6 @@ import '../handlers/location_sharing_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
 import '../handlers/share_url_handler.dart';
-import '../handlers/sleep_timer_handler.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/connectivity_gate.dart'
     show
@@ -96,8 +96,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
   bool _isFirstPositionAfterStreamOn = false;
 
-  late final SleepTimerController _sleepTimerController;
-
   late final VolumeZoomHandler _volumeZoomHandler;
 
   /// 起動時に位置取得に失敗した場合、案内 SnackBar を一度だけ表示したか
@@ -123,13 +121,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
 
-    _sleepTimerController = SleepTimerController(
-      overlayState: Overlay.of(context),
-      ref: ref,
-      getMounted: () => mounted,
-      onPositionUpdate: _onPositionUpdate,
-    );
-
     _volumeZoomHandler = VolumeZoomHandler(
       getController: () => ref.read(cameraControllerProvider),
     );
@@ -142,10 +133,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (mounted) _fetchPositionInBackground();
     });
 
-    loadSleepDuration().then((minutes) {
+    loadScreenSleep().then((value) {
       if (!mounted) return;
-      ref.read(sleepDurationProvider.notifier).state = minutes;
-      _sleepTimerController.restart(minutes);
+      ref.read(screenSleepProvider.notifier).state = value;
+      if (!value) WakelockPlus.enable();
     });
 
     loadDistanceUnit().then((unit) {
@@ -233,7 +224,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   void dispose() {
-    _sleepTimerController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     _volumeZoomHandler.dispose();
     ref.read(locationStreamProvider.notifier).stop();
@@ -241,10 +231,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     super.dispose();
   }
 
-  /// ユーザーがマップ等をタップしたとき（スリープタイマー再開）
   void _onUserInteraction() {
-    _sleepTimerController.restoreBrightness();
-    _sleepTimerController.restart(ref.read(sleepDurationProvider));
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
   }
 
@@ -317,12 +304,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           ref.read(locationStreamProvider.notifier).switchGpsLevel(
                 onPosition: _onPositionUpdate,
               ),
-      onSleepSettingsTap: () => showSleepSettingsFlow(
-        context,
-        ref,
-        restoreBrightness: _sleepTimerController.restoreBrightness,
-        restartTimer: _sleepTimerController.restart,
-      ),
+      onSleepSettingsTap: () => showSleepSettingsFlow(context, ref),
       onAppSettingsTap: () => showAppSettingsScreen(
         context,
         onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
@@ -484,12 +466,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
               ref.read(locationStreamProvider.notifier).switchGpsLevel(
                     onPosition: _onPositionUpdate,
                   ),
-          onSleepSettingsTap: () => showSleepSettingsFlow(
-            context,
-            ref,
-            restoreBrightness: _sleepTimerController.restoreBrightness,
-            restartTimer: _sleepTimerController.restart,
-          ),
+          onSleepSettingsTap: () => showSleepSettingsFlow(context, ref),
           onAppSettingsTap: () => showAppSettingsScreen(
             context,
             onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
@@ -554,13 +531,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         state == AppLifecycleState.inactive) {
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
       ref.read(locationStreamProvider.notifier).stop();
-      _sleepTimerController.cancel();
       if (state == AppLifecycleState.paused) return;
     }
 
     if (state != AppLifecycleState.resumed) return;
-
-    _sleepTimerController.restart(ref.read(sleepDurationProvider));
 
     // 共有シートから本アプリを選択してフォアグラウンドに戻った場合、
     // 共有モードをリセットして吹き出しが残らないようにする

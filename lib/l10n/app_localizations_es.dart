@@ -244,21 +244,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sleepOffMessage => 'Pantalla en espera desactivada';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return 'Pantalla en espera configurada a $minutes minutos';
-  }
+  String get sleepOnMessage => 'Pantalla en espera activada';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1 min';
-
-  @override
-  String get sleep5min => '5 min';
-
-  @override
-  String get sleep10min => '10 min';
+  String get sleepOn => 'ON';
 
   @override
   String get distanceUnit => 'Unidad de distancia';
