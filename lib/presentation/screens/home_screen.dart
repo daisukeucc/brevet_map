@@ -24,6 +24,7 @@ import '../handlers/language_handler.dart';
 import '../handlers/location_sharing_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
+import '../handlers/sleep_settings_handler.dart';
 import '../handlers/share_url_handler.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/connectivity_gate.dart'
@@ -296,17 +297,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       onMapCreated: _onMapCreated,
       onMapStyleTap: _onMapStyleTap,
       onRouteBoundsTap: _onRouteBoundsTap,
-      onMyLocationTap: _moveCameraToCurrentPosition,
-      showMyLocationButton: !locationState.isActive,
+
       isStreamActive: locationState.isActive,
       onToggleLocationStream: _toggleLocationStream,
       progressBarValue: locationState.progressBarValue,
-      isLowMode: locationState.isInLowMode,
-      isStreamAccuracyLow: locationState.isAccuracyLow,
-      onGpsLevelTap: () =>
-          ref.read(locationStreamProvider.notifier).switchGpsLevel(
-                onPosition: _onPositionUpdate,
-              ),
+      isScreenSleepOn: ref.watch(screenSleepProvider),
+      onSleepToggleTap: () {
+        final current = ref.read(screenSleepProvider);
+        handleScreenSleepChange(context, ref, !current);
+      },
       onSleepSettingsTap: () => showSleepSettingsFlow(context, ref),
       onAppSettingsTap: () => showAppSettingsScreen(
         context,
@@ -463,17 +462,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onMapCreated: _onMapCreated,
           onMapStyleTap: _onMapStyleTap,
           onRouteBoundsTap: _onRouteBoundsTap,
-          onMyLocationTap: _moveCameraToCurrentPosition,
-          showMyLocationButton: !locationState.isActive,
+
           isStreamActive: locationState.isActive,
           onToggleLocationStream: _toggleLocationStream,
           progressBarValue: locationState.progressBarValue,
-          isLowMode: locationState.isInLowMode,
-          isStreamAccuracyLow: locationState.isAccuracyLow,
-          onGpsLevelTap: () =>
-              ref.read(locationStreamProvider.notifier).switchGpsLevel(
-                    onPosition: _onPositionUpdate,
-                  ),
+          isScreenSleepOn: ref.watch(screenSleepProvider),
+          onSleepToggleTap: () {
+            final current = ref.read(screenSleepProvider);
+            handleScreenSleepChange(context, ref, !current);
+          },
           onSleepSettingsTap: () => showSleepSettingsFlow(context, ref),
           onAppSettingsTap: () => showAppSettingsScreen(
             context,
@@ -701,15 +698,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     }
 
     return true;
-  }
-
-  Future<void> _moveCameraToCurrentPosition() async {
-    if (!await _checkLocationAndShowError()) return;
-    final position = await getCurrentPositionSilent();
-    if (!mounted || position == null) return;
-    await ref.read(cameraControllerProvider.notifier).animateTo(
-          LatLng(position.latitude, position.longitude),
-        );
   }
 
   Future<void> _toggleLocationStream() async {

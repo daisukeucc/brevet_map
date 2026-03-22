@@ -7,21 +7,15 @@ class LocationBottomBar extends StatelessWidget {
     required this.isStreamActive,
     required this.onTap,
     this.progressBarValue,
-    this.isLowMode = false,
   });
 
   final bool isStreamActive;
   final VoidCallback onTap;
   final ValueNotifier<double>? progressBarValue;
 
-  /// true のときボタンをグレー表示する（LOWモード時）
-  final bool isLowMode;
-
   @override
   Widget build(BuildContext context) {
-    final barColor = isLowMode
-        ? Colors.blueGrey
-        : (isStreamActive ? Colors.blue : Colors.green);
+    final barColor = isStreamActive ? Colors.blue : Colors.green;
 
     return ColoredBox(
       color: barColor,
@@ -53,7 +47,7 @@ class LocationBottomBar extends StatelessWidget {
               height: 3,
               child: Container(
                 width: double.infinity,
-                color: isLowMode ? Colors.blueGrey.shade700 : Colors.blueGrey,
+                color: Colors.blueGrey,
                 child: ClipRect(
                   child: ValueListenableBuilder<double>(
                     valueListenable: progressBarValue!,
