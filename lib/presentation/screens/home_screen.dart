@@ -114,6 +114,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool _isConnectivityOffline = false;
 
   static const double _trackingZoom = 15.0;
+
+  /// ストリームON中にルート拡大・シェアボタンをタップした際、復元用に保存するズームレベル
+  double? _savedStreamZoom;
   static const double _defaultZoom = 14.0;
 
   @override
@@ -357,6 +360,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             _shareHp = shareHp;
           }),
           getMounted: () => mounted,
+          onAfterCameraAnimation: (zoomBefore) {
+            if (ref.read(locationStreamProvider).isActive) {
+              _savedStreamZoom = zoomBefore;
+            }
+          },
         );
       },
     );
@@ -518,6 +526,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                 _shareHp = shareHp;
               }),
               getMounted: () => mounted,
+              onAfterCameraAnimation: (zoomBefore) {
+                if (ref.read(locationStreamProvider).isActive) {
+                  _savedStreamZoom = zoomBefore;
+                }
+              },
             );
           },
         ),
@@ -561,18 +574,27 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (!mounted) return;
     _previousStreamPosition = previous;
     _latestStreamPosition = position;
+    // 共有モード中はカメラを移動しない（スクリーンショット用のルート全体表示を維持する）
+    if (_isShareMode) {
+      setState(() {});
+      return;
+    }
     // 走行中（速度 > 閾値）のみ GPS ベアリングで更新。停止中は最後のベアリングを維持。
     if (previous != null && position.speed > _movingSpeedThreshold) {
       final b = bearingFromPositions(previous, position);
       if (b != null) _lastBearing = b;
     }
-    final zoomToUse = _isFirstPositionAfterStreamOn
-        ? _trackingZoom
-        : (ref.read(cameraControllerProvider)?.camera.zoom ??
-            ref.read(mapStateProvider).savedZoomLevel ??
-            _trackingZoom);
+    final double zoomToUse;
     if (_isFirstPositionAfterStreamOn) {
+      zoomToUse = _trackingZoom;
       _isFirstPositionAfterStreamOn = false;
+    } else if (_savedStreamZoom != null) {
+      zoomToUse = _savedStreamZoom!;
+      _savedStreamZoom = null;
+    } else {
+      zoomToUse = ref.read(cameraControllerProvider)?.camera.zoom ??
+          ref.read(mapStateProvider).savedZoomLevel ??
+          _trackingZoom;
     }
     ref.read(cameraControllerProvider.notifier).animateTo(
           LatLng(position.latitude, position.longitude),
@@ -627,7 +649,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Future<void> _onRouteBoundsTap() async {
     final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
     if (bounds != null) {
+      final isActive = ref.read(locationStreamProvider).isActive;
+      final zoomBefore =
+          ref.read(cameraControllerProvider)?.camera.zoom ?? _trackingZoom;
       await ref.read(cameraControllerProvider.notifier).animateToBounds(bounds);
+      if (isActive) _savedStreamZoom = zoomBefore;
     }
   }
 

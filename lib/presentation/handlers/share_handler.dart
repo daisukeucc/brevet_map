@@ -85,6 +85,7 @@ Future<void> handleShareButtonTap({
   required void Function(bool isShareMode, {double? shareHp})
       onShareModeChanged,
   required bool Function() getMounted,
+  void Function(double zoomBefore)? onAfterCameraAnimation,
 }) async {
   final hp = await showHpSetupDialog(context);
   if (hp == null || !getMounted()) return;
@@ -97,6 +98,7 @@ Future<void> handleShareButtonTap({
       screenshotKey,
       currentPosition: currentPosition,
       previousPosition: previousPosition,
+      onAfterCameraAnimation: onAfterCameraAnimation,
     ).whenComplete(() {
       if (getMounted()) onShareModeChanged(false);
     });
@@ -111,6 +113,7 @@ Future<void> showShareFlow(
   GlobalKey screenshotKey, {
   LatLng? currentPosition,
   LatLng? previousPosition,
+  void Function(double zoomBefore)? onAfterCameraAnimation,
 }) async {
   final boundary = screenshotKey.currentContext?.findRenderObject()
       as RenderRepaintBoundary?;
@@ -123,7 +126,9 @@ Future<void> showShareFlow(
     final bounds = routePoints != null && routePoints.isNotEmpty
         ? boundsFromPoints(routePoints)
         : null;
+    double? zoomBefore;
     if (bounds != null) {
+      zoomBefore = ref.read(cameraControllerProvider)?.camera.zoom ?? 16.0;
       await ref.read(cameraControllerProvider.notifier).animateToBounds(bounds);
       await Future.delayed(const Duration(milliseconds: 500));
     }
@@ -135,6 +140,8 @@ Future<void> showShareFlow(
 
     // 共有用: 1.75 で画質優先（2.0 に近い鮮明さ、やや軽め）
     final image = await boundary.toImage(pixelRatio: 1.75);
+    // スクリーンショット撮影後にズームを復元（GPS 位置更新での zoom 上書きを防ぐため）
+    if (zoomBefore != null) onAfterCameraAnimation?.call(zoomBefore);
     final byteData = await image.toByteData(format: ImageByteFormat.png);
     if (byteData == null || !context.mounted) return;
 
