@@ -10,7 +10,6 @@ class SettingsBottomSheet extends StatefulWidget {
     required this.onOfflineMapTap,
     required this.hasUserPois,
     required this.onAddPoiTap,
-    required this.onSleepSettingsTap,
     required this.onAppSettingsTap,
   });
 
@@ -19,7 +18,6 @@ class SettingsBottomSheet extends StatefulWidget {
   final VoidCallback onOfflineMapTap;
   final bool hasUserPois;
   final VoidCallback onAddPoiTap;
-  final VoidCallback onSleepSettingsTap;
   final VoidCallback onAppSettingsTap;
 
   @override
@@ -37,11 +35,6 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
         onTap: widget.onGpxImportTap
       ),
       (icon: Icons.map, label: l10n.offlineMap, onTap: widget.onOfflineMapTap),
-      (
-        icon: Icons.bedtime,
-        label: l10n.sleepSettings,
-        onTap: widget.onSleepSettingsTap
-      ),
       (
         icon: Icons.add_location_alt,
         label: widget.hasUserPois ? l10n.poiAddEdit : l10n.poiAdd,

@@ -306,7 +306,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         final current = ref.read(screenSleepProvider);
         handleScreenSleepChange(context, ref, !current);
       },
-      onSleepSettingsTap: () => showSleepSettingsFlow(context, ref),
       onAppSettingsTap: () => showAppSettingsScreen(
         context,
         onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
@@ -471,8 +470,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             final current = ref.read(screenSleepProvider);
             handleScreenSleepChange(context, ref, !current);
           },
-          onSleepSettingsTap: () => showSleepSettingsFlow(context, ref),
-          onAppSettingsTap: () => showAppSettingsScreen(
+              onAppSettingsTap: () => showAppSettingsScreen(
             context,
             onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
             onLanguageTap: () => showLanguageSelectionFlow(context, ref),

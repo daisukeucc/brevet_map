@@ -29,7 +29,6 @@ class MapScreenContent extends StatefulWidget {
     required this.onRouteBoundsTap,
     required this.isStreamActive,
     required this.onToggleLocationStream,
-    required this.onSleepSettingsTap,
     required this.onGpxImportTap,
     required this.onGpxExportTap,
     required this.onOfflineMapTap,
@@ -87,9 +86,6 @@ class MapScreenContent extends StatefulWidget {
 
   /// 位置ストリームON中に表示するスリープ切り替えボタンのコールバック
   final VoidCallback? onSleepToggleTap;
-
-  /// スリープ設定メニュータップ時のコールバック（フロー全体を実行）
-  final VoidCallback onSleepSettingsTap;
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
@@ -239,9 +235,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                         hasUserPois: widget.hasUserPois,
                                         onAddPoiTap: () => popSheetAndCall(
                                             context, widget.onAddPoiTap),
-                                        onSleepSettingsTap: () =>
-                                            popSheetAndCall(context,
-                                                widget.onSleepSettingsTap),
                                         onAppSettingsTap: () => popSheetAndCall(
                                             context, widget.onAppSettingsTap),
                                       ),
