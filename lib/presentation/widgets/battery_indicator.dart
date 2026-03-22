@@ -12,7 +12,8 @@ class BatteryIndicator extends StatefulWidget {
   State<BatteryIndicator> createState() => _BatteryIndicatorState();
 }
 
-class _BatteryIndicatorState extends State<BatteryIndicator> {
+class _BatteryIndicatorState extends State<BatteryIndicator>
+    with WidgetsBindingObserver {
   final Battery _battery = Battery();
   int? _level;
   bool _isCharging = false;
@@ -36,9 +37,29 @@ class _BatteryIndicatorState extends State<BatteryIndicator> {
     }
   }
 
+  void _startTimer() {
+    _timer ??= Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _stopTimer();
+    } else if (state == AppLifecycleState.resumed) {
+      _refresh();
+      _startTimer();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _refresh();
     _battery.batteryState.then((state) {
       if (mounted) setState(() => _isCharging = state == BatteryState.charging);
@@ -47,13 +68,14 @@ class _BatteryIndicatorState extends State<BatteryIndicator> {
       if (mounted) setState(() => _isCharging = state == BatteryState.charging);
       _refresh();
     });
-    _timer = Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
+    _startTimer();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _subscription?.cancel();
-    _timer?.cancel();
+    _stopTimer();
     super.dispose();
   }
 
