@@ -121,7 +121,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   double? _savedStreamZoom;
 
   /// ルート拡大モード中は true（現在地追従を停止してルート全体を表示）
-  bool _isRouteBoundsMode = false;
+  bool _isRouteBoundsMode = true;
   static const double _defaultZoom = 12.0;
 
   @override
