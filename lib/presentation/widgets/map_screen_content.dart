@@ -351,11 +351,16 @@ class _MapScreenContentState extends State<MapScreenContent> {
   }
 
   TileLayer _buildTileLayer(String urlTemplate) {
+    // FMTC 初期化失敗時は NetworkTileProvider にフォールバック。
+    // FMTCTileProvider を使うとハング中のバックグラウンド isolate に
+    // タイルリクエストが積まれ、地図が永遠に真っ灰になる。
+    final provider =
+        TileConfig.fmtcReady ? _tileProvider : NetworkTileProvider();
     return TileLayer(
       urlTemplate: urlTemplate,
       userAgentPackageName: TileConfig.userAgentPackageName,
       subdomains: _subdomainsForTemplate(urlTemplate),
-      tileProvider: _tileProvider,
+      tileProvider: provider,
       keepBuffer: 4,
       panBuffer: 2,
     );

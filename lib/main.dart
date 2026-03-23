@@ -39,8 +39,9 @@ Future<void> main() async {
         .manage
         .create()
         .timeout(const Duration(seconds: 3));
+    TileConfig.fmtcReady = true;
   } catch (_) {
-    // FMTC 初期化失敗時はキャッシュなしで動作継続
+    // FMTC 初期化失敗時はキャッシュなしで動作継続（NetworkTileProvider を使用）
   }
   runApp(const ProviderScope(child: MyApp()));
   await Future.delayed(const Duration(milliseconds: 500));
