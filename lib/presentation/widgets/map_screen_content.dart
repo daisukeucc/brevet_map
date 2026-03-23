@@ -26,6 +26,7 @@ class MapScreenContent extends StatefulWidget {
     required this.onMapCreated,
     required this.onMapStyleTap,
     required this.onRouteBoundsTap,
+    this.isRouteBoundsMode = false,
     required this.isStreamActive,
     required this.onToggleLocationStream,
     required this.onGpxImportTap,
@@ -76,6 +77,10 @@ class MapScreenContent extends StatefulWidget {
   final void Function(MapController controller) onMapCreated;
   final VoidCallback onMapStyleTap;
   final VoidCallback onRouteBoundsTap;
+
+  /// true のときルート拡大モード中（MapToolButtons のアイコン切り替えに使用）
+  final bool isRouteBoundsMode;
+
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
@@ -196,7 +201,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                           child: const Icon(
                                             Icons.share,
                                             color: Colors.blueGrey,
-                                            size: 32,
+                                            size: 35,
                                           ),
                                         ),
                                       ),
@@ -270,7 +275,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               right: 16,
                               top: 24,
                               child: MapToolButtons(
-                                  onRouteBoundsTap: widget.onRouteBoundsTap),
+                                onRouteBoundsTap: widget.onRouteBoundsTap,
+                                isRouteBoundsMode: widget.isRouteBoundsMode,
+                              ),
                             ),
                           if (widget.onSleepToggleTap != null &&
                               !widget.isShareMode &&
@@ -305,7 +312,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                           color: widget.isScreenSleepOn
                                               ? Colors.white
                                               : Colors.blueGrey,
-                                          size: 33,
+                                          size: 35,
                                         ),
                                       ),
                                     ),

@@ -116,9 +116,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   static const double _trackingZoom = 15.0;
 
-  /// ストリームON中にルート拡大・シェアボタンをタップした際、復元用に保存するズームレベル
+  /// シェアボタンタップ後にズームを復元するための保存値
   double? _savedStreamZoom;
-  static const double _defaultZoom = 14.0;
+
+  /// ルート拡大モード中は true（現在地追従を停止してルート全体を表示）
+  bool _isRouteBoundsMode = false;
+  static const double _defaultZoom = 12.0;
 
   @override
   void initState() {
@@ -297,7 +300,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       onMapCreated: _onMapCreated,
       onMapStyleTap: _onMapStyleTap,
       onRouteBoundsTap: _onRouteBoundsTap,
-
+      isRouteBoundsMode: _isRouteBoundsMode,
       isStreamActive: locationState.isActive,
       onToggleLocationStream: _toggleLocationStream,
       progressBarValue: locationState.progressBarValue,
@@ -461,7 +464,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onMapCreated: _onMapCreated,
           onMapStyleTap: _onMapStyleTap,
           onRouteBoundsTap: _onRouteBoundsTap,
-
+          isRouteBoundsMode: _isRouteBoundsMode,
           isStreamActive: locationState.isActive,
           onToggleLocationStream: _toggleLocationStream,
           progressBarValue: locationState.progressBarValue,
@@ -470,7 +473,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             final current = ref.read(screenSleepProvider);
             handleScreenSleepChange(context, ref, !current);
           },
-              onAppSettingsTap: () => showAppSettingsScreen(
+          onAppSettingsTap: () => showAppSettingsScreen(
             context,
             onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
             onLanguageTap: () => showLanguageSelectionFlow(context, ref),
@@ -498,7 +501,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onUserInteraction: _onUserInteraction,
           isDragMode: _isDragMode,
           isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
-              isShareMode: _isShareMode,
+          isShareMode: _isShareMode,
           onShareTap: (key) {
             handleShareButtonTap(
               context: context,
@@ -574,6 +577,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       setState(() {});
       return;
     }
+    // ルート拡大モード中はカメラを移動しない（ルート全体表示を維持する）
+    if (_isRouteBoundsMode) {
+      setState(() {});
+      return;
+    }
     // 走行中（速度 > 閾値）のみ GPS ベアリングで更新。停止中は最後のベアリングを維持。
     if (previous != null && position.speed > _movingSpeedThreshold) {
       final b = bearingFromPositions(previous, position);
@@ -642,13 +650,25 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Future<void> _onRouteBoundsTap() async {
-    final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
-    if (bounds != null) {
-      final isActive = ref.read(locationStreamProvider).isActive;
-      final zoomBefore =
-          ref.read(cameraControllerProvider)?.camera.zoom ?? _trackingZoom;
-      await ref.read(cameraControllerProvider.notifier).animateToBounds(bounds);
-      if (isActive) _savedStreamZoom = zoomBefore;
+    if (_isRouteBoundsMode) {
+      setState(() => _isRouteBoundsMode = false);
+      if (ref.read(locationStreamProvider).isActive &&
+          _latestStreamPosition != null) {
+        await ref.read(cameraControllerProvider.notifier).animateTo(
+              LatLng(_latestStreamPosition!.latitude,
+                  _latestStreamPosition!.longitude),
+              zoom: _trackingZoom,
+              bearing: _lastBearing,
+            );
+      }
+    } else {
+      final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
+      if (bounds != null) {
+        setState(() => _isRouteBoundsMode = true);
+        await ref
+            .read(cameraControllerProvider.notifier)
+            .animateToBounds(bounds);
+      }
     }
   }
 
@@ -710,10 +730,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       setState(() {
         _latestStreamPosition = null;
         _previousStreamPosition = null;
+        _isRouteBoundsMode = false;
       });
     } else {
       ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
       _isFirstPositionAfterStreamOn = true;
+      _isRouteBoundsMode = false;
     }
   }
 
