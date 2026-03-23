@@ -662,15 +662,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Future<void> _onRouteBoundsTap() async {
     if (_isRouteBoundsMode) {
       setState(() => _isRouteBoundsMode = false);
-      if (ref.read(locationStreamProvider).isActive &&
-          _latestStreamPosition != null) {
-        await ref.read(cameraControllerProvider.notifier).animateTo(
-              LatLng(_latestStreamPosition!.latitude,
-                  _latestStreamPosition!.longitude),
-              zoom: _trackingZoom,
-              bearing: _lastBearing,
-            );
-      }
+      final knownPos =
+          _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+      await ref.read(cameraControllerProvider.notifier).animateTo(
+            LatLng(knownPos.latitude, knownPos.longitude),
+            zoom: _trackingZoom,
+            bearing: _lastBearing,
+          );
     } else {
       final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
       if (bounds != null) {
