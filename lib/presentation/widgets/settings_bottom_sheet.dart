@@ -10,7 +10,6 @@ class SettingsBottomSheet extends StatefulWidget {
     required this.onOfflineMapTap,
     required this.hasUserPois,
     required this.onAddPoiTap,
-    required this.onSleepSettingsTap,
     required this.onAppSettingsTap,
   });
 
@@ -19,7 +18,6 @@ class SettingsBottomSheet extends StatefulWidget {
   final VoidCallback onOfflineMapTap;
   final bool hasUserPois;
   final VoidCallback onAddPoiTap;
-  final VoidCallback onSleepSettingsTap;
   final VoidCallback onAppSettingsTap;
 
   @override
@@ -29,81 +27,44 @@ class SettingsBottomSheet extends StatefulWidget {
 class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final items = [
+      (
+        icon: Icons.download,
+        label: l10n.gpxImport,
+        onTap: widget.onGpxImportTap
+      ),
+      (icon: Icons.map, label: l10n.offlineMap, onTap: widget.onOfflineMapTap),
+      (
+        icon: Icons.pin_drop,
+        label: widget.hasUserPois ? l10n.poiAddEdit : l10n.poiAdd,
+        onTap: widget.onAddPoiTap,
+      ),
+      (icon: Icons.upload, label: l10n.gpxExport, onTap: widget.onGpxExportTap),
+      (
+        icon: Icons.settings,
+        label: l10n.appSettingsTitle,
+        onTap: widget.onAppSettingsTap
+      ),
+    ];
+
     return SafeArea(
       bottom: false,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const SizedBox(height: 15),
-          ListTile(
-            leading: const Icon(Icons.download, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.gpxImport,
-              style: const TextStyle(fontSize: 15),
+          const SizedBox(height: 20),
+          ...items.map(
+            (item) => ListTile(
+              leading: Icon(item.icon, color: Colors.black54),
+              title: Text(item.label, style: const TextStyle(fontSize: 15)),
+              onTap: item.onTap,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 23),
+              horizontalTitleGap: 20,
+              visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
             ),
-            onTap: widget.onGpxImportTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 22,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
           ),
-          ListTile(
-            leading: const Icon(Icons.map, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.offlineMap,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onOfflineMapTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 22,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          ListTile(
-            leading: const Icon(Icons.add_location_alt, color: Colors.black54),
-            title: Text(
-              widget.hasUserPois
-                  ? AppLocalizations.of(context)!.poiAddEdit
-                  : AppLocalizations.of(context)!.poiAdd,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onAddPoiTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 22,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          ListTile(
-            leading: const Icon(Icons.upload, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.gpxExport,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onGpxExportTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 22,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          ListTile(
-            leading: const Icon(Icons.bedtime, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.sleepSettings,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onSleepSettingsTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 20,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          ListTile(
-            leading: const Icon(Icons.settings, color: Colors.black54),
-            title: Text(
-              AppLocalizations.of(context)!.appSettingsTitle,
-              style: const TextStyle(fontSize: 15),
-            ),
-            onTap: widget.onAppSettingsTap,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-            horizontalTitleGap: 20,
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-          ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 25),
         ],
       ),
     );

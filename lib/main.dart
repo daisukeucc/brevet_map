@@ -12,6 +12,8 @@ import 'presentation/screens/home_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // スプラッシュ画面を表示する
+  WidgetsBinding.instance.deferFirstFrame();
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
@@ -27,13 +29,23 @@ Future<void> main() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
   await TileConfig.initUserAgentPackageName();
+  // クラッシュ後の ObjectBox DB 不正状態で initialise() が無限待機することがある。
+  // タイムアウトで強制脱出し、キャッシュなしで起動を継続する。
   try {
-    await FMTCObjectBoxBackend().initialise();
-    await const FMTCStore('mapStore').manage.create();
+    await FMTCObjectBoxBackend()
+        .initialise()
+        .timeout(const Duration(seconds: 5));
+    await const FMTCStore('mapStore')
+        .manage
+        .create()
+        .timeout(const Duration(seconds: 3));
+    TileConfig.fmtcReady = true;
   } catch (_) {
-    // FMTC 初期化失敗時はキャッシュなしで動作継続
+    // FMTC 初期化失敗時はキャッシュなしで動作継続（NetworkTileProvider を使用）
   }
   runApp(const ProviderScope(child: MyApp()));
+  await Future.delayed(const Duration(milliseconds: 500));
+  WidgetsBinding.instance.allowFirstFrame();
 }
 
 class MyApp extends ConsumerWidget {

@@ -12,9 +12,11 @@ class BatteryIndicator extends StatefulWidget {
   State<BatteryIndicator> createState() => _BatteryIndicatorState();
 }
 
-class _BatteryIndicatorState extends State<BatteryIndicator> {
+class _BatteryIndicatorState extends State<BatteryIndicator>
+    with WidgetsBindingObserver {
   final Battery _battery = Battery();
   int? _level;
+  bool _isCharging = false;
   StreamSubscription<BatteryState>? _subscription;
   Timer? _timer;
 
@@ -35,24 +37,51 @@ class _BatteryIndicatorState extends State<BatteryIndicator> {
     }
   }
 
+  void _startTimer() {
+    _timer ??= Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      _stopTimer();
+    } else if (state == AppLifecycleState.resumed) {
+      _refresh();
+      _startTimer();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _refresh();
-    _subscription = _battery.onBatteryStateChanged.listen((_) => _refresh());
-    _timer = Timer.periodic(const Duration(minutes: 1), (_) => _refresh());
+    _battery.batteryState.then((state) {
+      if (mounted) setState(() => _isCharging = state == BatteryState.charging);
+    });
+    _subscription = _battery.onBatteryStateChanged.listen((state) {
+      if (mounted) setState(() => _isCharging = state == BatteryState.charging);
+      _refresh();
+    });
+    _startTimer();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _subscription?.cancel();
-    _timer?.cancel();
+    _stopTimer();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    const color = Colors.blueGrey;
+    final color = _isCharging ? Colors.red.shade800 : Colors.blueGrey;
 
     return Material(
       color: Colors.white,
@@ -75,7 +104,7 @@ class _BatteryIndicatorState extends State<BatteryIndicator> {
             const SizedBox(width: 5),
             Text(
               _level != null ? '$_level%' : '--%',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: color,

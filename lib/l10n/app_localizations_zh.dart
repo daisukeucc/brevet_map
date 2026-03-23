@@ -12,6 +12,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appTitle => 'Brevet Map';
 
   @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
   String get cancel => '取消';
 
   @override
@@ -48,10 +51,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sleepSettings => '屏幕休眠';
 
   @override
-  String get sleepInfoMessage1 => '屏幕休眠时关闭GPS以节省电量';
-
-  @override
-  String get sleepInfoMessage2 => '要进一步节省电量，请将设备置于休眠状态。GPS也会关闭';
+  String get sleepInfoMessage1 => '屏幕休眠时GPS会关闭，因此如果希望减少电量消耗，建议启用屏幕休眠。';
 
   @override
   String get sleepInfoDontShowAgain => '不再显示';
@@ -234,24 +234,22 @@ class AppLocalizationsZh extends AppLocalizations {
   String get locationPermissionDeniedForever => '位置权限已设为「不再询问」。请在应用设置中启用。';
 
   @override
-  String get sleepOffMessage => '屏幕休眠已关闭';
+  String get sleepOffMessage => '屏幕休眠已禁用';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return '屏幕休眠已设置为 $minutes 分钟';
-  }
+  String get sleepOnMessage => '屏幕休眠已启用';
 
   @override
   String get sleepOff => '关闭';
 
   @override
-  String get sleep1min => '1分钟';
+  String get sleepOn => '开启';
 
   @override
-  String get sleep5min => '5分钟';
+  String get sleepSettingsNote => '请在设备的设置应用中查看屏幕休眠时间';
 
   @override
-  String get sleep10min => '10分钟';
+  String get openSettingsApp => '打开设置应用';
 
   @override
   String get distanceUnit => '距离单位';
@@ -418,4 +416,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get contactFormMailError => '无法打开邮件应用';
+
+  @override
+  String get batteryLevelDisplay => '显示电量';
+
+  @override
+  String get batteryLevelDisplayOn => '显示';
+
+  @override
+  String get batteryLevelDisplayOff => '隐藏';
+
+  @override
+  String get batteryLevelDisplayIosNote => '由于iOS系统限制，电量以5%为单位显示';
 }

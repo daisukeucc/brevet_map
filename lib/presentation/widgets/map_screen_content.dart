@@ -8,7 +8,6 @@ import '../../l10n/app_localizations.dart';
 import '../handlers/settings_menu_handler.dart';
 import 'battery_indicator.dart';
 import 'callout_overlay.dart';
-import 'gps_level_button.dart';
 import 'location_bottom_bar.dart';
 import 'map_style_button.dart';
 import 'map_tool_buttons.dart';
@@ -27,11 +26,9 @@ class MapScreenContent extends StatefulWidget {
     required this.onMapCreated,
     required this.onMapStyleTap,
     required this.onRouteBoundsTap,
-    required this.onMyLocationTap,
-    required this.showMyLocationButton,
+    this.isRouteBoundsMode = false,
     required this.isStreamActive,
     required this.onToggleLocationStream,
-    required this.onSleepSettingsTap,
     required this.onGpxImportTap,
     required this.onGpxExportTap,
     required this.onOfflineMapTap,
@@ -41,9 +38,8 @@ class MapScreenContent extends StatefulWidget {
     this.isDragMode = false,
     this.isMapTapAddMode = false,
     this.progressBarValue,
-    this.isLowMode = false,
-    this.isStreamAccuracyLow = false,
-    this.onGpsLevelTap,
+    this.isScreenSleepOn = true,
+    this.onSleepToggleTap,
     this.onUserInteraction,
     this.offlineCenter,
     this.onShareTap,
@@ -51,10 +47,14 @@ class MapScreenContent extends StatefulWidget {
     this.calloutText,
     this.calloutHp,
     this.isShareMode = false,
+    this.showBatteryLevel = false,
   });
 
   /// 共有モード時 true（スクリーンショット用に四隅ボタン・バッテリーを非表示にする）
   final bool isShareMode;
+
+  /// true のときバッテリー残量インジケーターを表示する
+  final bool showBatteryLevel;
 
   /// 吹き出し表示時の現在地（共有モード用）
   final LatLng? calloutPosition;
@@ -81,22 +81,19 @@ class MapScreenContent extends StatefulWidget {
   final void Function(MapController controller) onMapCreated;
   final VoidCallback onMapStyleTap;
   final VoidCallback onRouteBoundsTap;
-  final VoidCallback onMyLocationTap;
-  final bool showMyLocationButton;
+
+  /// true のときルート拡大モード中（MapToolButtons のアイコン切り替えに使用）
+  final bool isRouteBoundsMode;
+
   final bool isStreamActive;
   final VoidCallback onToggleLocationStream;
   final ValueNotifier<double>? progressBarValue;
 
-  /// true のとき位置情報ストリームボタンをグレー表示する（LOWモード時）
-  final bool isLowMode;
+  /// 画面スリープ設定の現在値。true=ON（通常スリープ）、false=OFF（WakeLock）
+  final bool isScreenSleepOn;
 
-  /// 位置ストリームの精度が low のとき true（GPSボタンのラベルを「LOW」にする）
-  final bool isStreamAccuracyLow;
-
-  final VoidCallback? onGpsLevelTap;
-
-  /// スリープ設定メニュータップ時のコールバック（フロー全体を実行）
-  final VoidCallback onSleepSettingsTap;
+  /// 位置ストリームON中に表示するスリープ切り替えボタンのコールバック
+  final VoidCallback? onSleepToggleTap;
 
   /// GPXファイルインポートコールバック
   final VoidCallback onGpxImportTap;
@@ -122,7 +119,7 @@ class MapScreenContent extends StatefulWidget {
   /// true のとき地図タップでPOI登録モード（全ボタンを非表示にする）
   final bool isMapTapAddMode;
 
-  /// 画面タッチ時（5分無操作LOWモード解除用）
+  /// 画面タッチ時のコールバック
   final VoidCallback? onUserInteraction;
 
   @override
@@ -208,7 +205,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                           child: const Icon(
                                             Icons.share,
                                             color: Colors.blueGrey,
-                                            size: 32,
+                                            size: 35,
                                           ),
                                         ),
                                       ),
@@ -246,12 +243,8 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                         hasUserPois: widget.hasUserPois,
                                         onAddPoiTap: () => popSheetAndCall(
                                             context, widget.onAddPoiTap),
-                                        onSleepSettingsTap: () =>
-                                            popSheetAndCall(context,
-                                                widget.onSleepSettingsTap),
-                                        onAppSettingsTap: () =>
-                                            popSheetAndCall(context,
-                                                widget.onAppSettingsTap),
+                                        onAppSettingsTap: () => popSheetAndCall(
+                                            context, widget.onAppSettingsTap),
                                       ),
                                     ),
                                     customBorder: const CircleBorder(),
@@ -259,16 +252,17 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                       width: 60,
                                       height: 60,
                                       child: Icon(
-                                        Icons.more_vert,
+                                        Icons.menu,
                                         color: Colors.blueGrey,
-                                        size: 32,
+                                        size: 37,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          if (!widget.isShareMode &&
+                          if (widget.showBatteryLevel &&
+                              !widget.isShareMode &&
                               !widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             const Positioned(
@@ -286,9 +280,11 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               right: 16,
                               top: 24,
                               child: MapToolButtons(
-                                  onRouteBoundsTap: widget.onRouteBoundsTap),
+                                onRouteBoundsTap: widget.onRouteBoundsTap,
+                                isRouteBoundsMode: widget.isRouteBoundsMode,
+                              ),
                             ),
-                          if (widget.showMyLocationButton &&
+                          if (widget.onSleepToggleTap != null &&
                               !widget.isShareMode &&
                               !widget.isDragMode &&
                               !widget.isMapTapAddMode)
@@ -296,42 +292,37 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               right: 16,
                               bottom: 24,
                               child: Tooltip(
-                                message: AppLocalizations.of(context)!
-                                    .showMyLocation,
+                                message: widget.isScreenSleepOn
+                                    ? AppLocalizations.of(context)!.sleepOn
+                                    : AppLocalizations.of(context)!.sleepOff,
                                 child: Material(
-                                  color: Colors.white,
+                                  color: widget.isScreenSleepOn
+                                      ? Colors.blueGrey
+                                      : Colors.white,
                                   elevation: 5,
                                   shadowColor: Colors.black26,
                                   shape: const CircleBorder(),
                                   clipBehavior: Clip.antiAlias,
                                   child: InkWell(
-                                    onTap: widget.onMyLocationTap,
+                                    onTap: widget.onSleepToggleTap,
                                     customBorder: const CircleBorder(),
-                                    child: const SizedBox(
+                                    child: SizedBox(
                                       width: 60,
                                       height: 60,
-                                      child: Icon(
-                                        Icons.my_location,
-                                        color: Colors.blueGrey,
-                                        size: 32,
+                                      child: Center(
+                                        child: Icon(
+                                          widget.isScreenSleepOn
+                                              ? Icons.bedtime
+                                              : Icons.bedtime_off,
+                                          color: widget.isScreenSleepOn
+                                              ? Colors.white
+                                              : Colors.blueGrey,
+                                          size: 35,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          if (widget.isStreamActive &&
-                              widget.onGpsLevelTap != null &&
-                              !widget.isShareMode &&
-                              !widget.isDragMode &&
-                              !widget.isMapTapAddMode)
-                            Positioned(
-                              right: 16,
-                              bottom: 24,
-                              child: GpsLevelButton(
-                                isLowMode: widget.isLowMode,
-                                isStreamAccuracyLow: widget.isStreamAccuracyLow,
-                                onTap: widget.onGpsLevelTap!,
                               ),
                             ),
                         ],
@@ -341,7 +332,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                       isStreamActive: widget.isStreamActive,
                       onTap: widget.onToggleLocationStream,
                       progressBarValue: widget.progressBarValue,
-                      isLowMode: widget.isLowMode,
                     ),
                   ],
                 ),
@@ -361,11 +351,16 @@ class _MapScreenContentState extends State<MapScreenContent> {
   }
 
   TileLayer _buildTileLayer(String urlTemplate) {
+    // FMTC 初期化失敗時は NetworkTileProvider にフォールバック。
+    // FMTCTileProvider を使うとハング中のバックグラウンド isolate に
+    // タイルリクエストが積まれ、地図が永遠に真っ灰になる。
+    final provider =
+        TileConfig.fmtcReady ? _tileProvider : NetworkTileProvider();
     return TileLayer(
       urlTemplate: urlTemplate,
       userAgentPackageName: TileConfig.userAgentPackageName,
       subdomains: _subdomainsForTemplate(urlTemplate),
-      tileProvider: _tileProvider,
+      tileProvider: provider,
       keepBuffer: 4,
       panBuffer: 2,
     );

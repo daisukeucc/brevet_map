@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Brevet Map';
 
   @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -49,11 +52,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get sleepInfoMessage1 =>
-      'Turns off GPS when the screen sleeps to save battery';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'To save even more battery, put your device to sleep. GPS also turns off';
+      'GPS turns off when the screen sleeps, so we recommend enabling screen sleep if you want to reduce battery usage';
 
   @override
   String get sleepInfoDontShowAgain => 'Don\'t show again';
@@ -241,24 +240,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'Location permission is set to \"Don\'t ask again\". Please enable it in app settings.';
 
   @override
-  String get sleepOffMessage => 'Screen sleep turned off';
+  String get sleepOffMessage => 'Screen sleep disabled';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return 'Screen sleep set to $minutes minutes';
-  }
+  String get sleepOnMessage => 'Screen sleep enabled';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1min';
+  String get sleepOn => 'ON';
 
   @override
-  String get sleep5min => '5min';
+  String get sleepSettingsNote =>
+      'Check the screen sleep duration in your device\'s Settings app';
 
   @override
-  String get sleep10min => '10min';
+  String get openSettingsApp => 'Open Settings app';
 
   @override
   String get distanceUnit => 'Distance Unit';
@@ -430,4 +428,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contactFormMailError => 'Could not open mail app';
+
+  @override
+  String get batteryLevelDisplay => 'Show battery level';
+
+  @override
+  String get batteryLevelDisplayOn => 'On';
+
+  @override
+  String get batteryLevelDisplayOff => 'Off';
+
+  @override
+  String get batteryLevelDisplayIosNote =>
+      'On iOS, values are shown in 5% increments due to OS limitations';
 }

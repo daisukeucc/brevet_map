@@ -12,7 +12,12 @@ import '../utils/snackbar_utils.dart';
 import '../widgets/confirm_dialog.dart';
 
 /// GPX インポートのフローを実行する。
-Future<void> showGpxImportFlow(BuildContext context, WidgetRef ref) async {
+/// インポート成功時に [onSuccess] を呼ぶ。
+Future<void> showGpxImportFlow(
+  BuildContext context,
+  WidgetRef ref, {
+  VoidCallback? onSuccess,
+}) async {
   final l10n = AppLocalizations.of(context)!;
 
   final confirmed = await showConfirmDialog(
@@ -64,6 +69,7 @@ Future<void> showGpxImportFlow(BuildContext context, WidgetRef ref) async {
 
   if (!context.mounted) return;
   _showGpxApplyErrorSnackBar(context, status);
+  if (status == GpxApplyStatus.success) onSuccess?.call();
 }
 
 /// GPX コンテンツを確認ダイアログ表示後に適用する。
@@ -71,8 +77,9 @@ Future<void> showGpxImportFlow(BuildContext context, WidgetRef ref) async {
 Future<void> showConfirmAndApplyGpx(
   BuildContext context,
   WidgetRef ref,
-  String content,
-) async {
+  String content, {
+  VoidCallback? onSuccess,
+}) async {
   final l10n = AppLocalizations.of(context)!;
   final confirmed = await showConfirmDialog(
     context,
@@ -90,6 +97,7 @@ Future<void> showConfirmAndApplyGpx(
 
   if (!context.mounted) return;
   _showGpxApplyErrorSnackBar(context, status);
+  if (status == GpxApplyStatus.success) onSuccess?.call();
 }
 
 void _showGpxApplyErrorSnackBar(BuildContext context, GpxApplyStatus status) {

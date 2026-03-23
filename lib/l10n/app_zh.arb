@@ -13,8 +13,7 @@
   "shareFailed": "分享失败",
   "showMyLocation": "显示我的位置",
   "sleepSettings": "屏幕休眠",
-  "sleepInfoMessage1": "屏幕休眠时关闭GPS以节省电量",
-  "sleepInfoMessage2": "要进一步节省电量，请将设备置于休眠状态。GPS也会关闭",
+  "sleepInfoMessage1": "屏幕休眠时GPS会关闭，因此如果希望减少电量消耗，建议启用屏幕休眠。",
   "sleepInfoDontShowAgain": "不再显示",
   "switchGpsLevel": "位置精度",
   "gpxImport": "导入 GPX 文件",
@@ -94,19 +93,13 @@
   "locationPermissionRequired": "需要位置权限",
   "locationPermissionDenied": "位置权限被拒绝。未经许可无法显示您的位置。",
   "locationPermissionDeniedForever": "位置权限已设为「不再询问」。请在应用设置中启用。",
-  "sleepOffMessage": "屏幕休眠已关闭",
-  "sleepSetMessage": "屏幕休眠已设置为 {minutes} 分钟",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOffMessage": "屏幕休眠已禁用",
+  "sleepOnMessage": "屏幕休眠已启用",
   "sleepOff": "关闭",
-  "sleep1min": "1分钟",
-  "sleep5min": "5分钟",
-  "sleep10min": "10分钟",
+  "sleepOn": "开启",
+  "sleepSettingsNote": "请在设备的设置应用中查看屏幕休眠时间",
+  "openSettings": "打开设置",
+  "openSettingsApp": "打开设置应用",
   "distanceUnit": "距离单位",
   "unitKm": "公里",
   "unitMile": "英里",
@@ -218,5 +211,9 @@
   "language": "语言",
   "useSystemLanguage": "使用系统语言",
   "appSettingsTitle": "设置与其他",
-  "contactFormMailError": "无法打开邮件应用"
+  "contactFormMailError": "无法打开邮件应用",
+  "batteryLevelDisplay": "显示电量",
+  "batteryLevelDisplayOn": "显示",
+  "batteryLevelDisplayOff": "隐藏",
+  "batteryLevelDisplayIosNote": "由于iOS系统限制，电量以5%为单位显示"
 }

@@ -24,8 +24,9 @@ import '../handlers/language_handler.dart';
 import '../handlers/location_sharing_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
+import '../handlers/battery_display_handler.dart';
+import '../handlers/sleep_settings_handler.dart';
 import '../handlers/share_url_handler.dart';
-import '../handlers/sleep_timer_handler.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/connectivity_gate.dart'
     show
@@ -97,8 +98,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
   bool _isFirstPositionAfterStreamOn = false;
 
-  late final SleepTimerController _sleepTimerController;
-
   late final VolumeZoomHandler _volumeZoomHandler;
 
   /// 起動時に位置取得に失敗した場合、案内 SnackBar を一度だけ表示したか
@@ -116,20 +115,19 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 初回起動時に ConnectivtyGate がオフラインと判定したか
   bool _isConnectivityOffline = false;
 
-  static const double _trackingZoom = 16.0;
-  static const double _defaultZoom = 14.0;
+  static const double _trackingZoom = 15.0;
+
+  /// シェアボタンタップ後にズームを復元するための保存値
+  double? _savedStreamZoom;
+
+  /// ルート拡大モード中は true（現在地追従を停止してルート全体を表示）
+  bool _isRouteBoundsMode = true;
+  static const double _defaultZoom = 12.0;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-
-    _sleepTimerController = SleepTimerController(
-      overlayState: Overlay.of(context),
-      ref: ref,
-      getMounted: () => mounted,
-      onPositionUpdate: _onPositionUpdate,
-    );
 
     _volumeZoomHandler = VolumeZoomHandler(
       getController: () => ref.read(cameraControllerProvider),
@@ -143,12 +141,15 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (mounted) _fetchPositionInBackground();
     });
 
-    WakelockPlus.enable();
-
-    loadSleepDuration().then((minutes) {
+    loadScreenSleep().then((value) {
       if (!mounted) return;
-      ref.read(sleepDurationProvider.notifier).state = minutes;
-      _sleepTimerController.restart(minutes);
+      ref.read(screenSleepProvider.notifier).state = value;
+      if (!value) WakelockPlus.enable();
+    });
+
+    loadBatteryDisplay().then((value) {
+      if (!mounted) return;
+      ref.read(batteryDisplayProvider.notifier).state = value;
     });
 
     loadDistanceUnit().then((unit) {
@@ -176,12 +177,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     });
 
     GpxChannelService.setMethodCallHandler((content) {
-      if (mounted) showConfirmAndApplyGpx(context, ref, content);
+      if (mounted) {
+        showConfirmAndApplyGpx(
+          context,
+          ref,
+          content,
+          onSuccess: () => setState(() => _isRouteBoundsMode = true),
+        );
+      }
     });
     GpxChannelService.getInitialGpxContent().then((content) {
       if (content != null && content.isNotEmpty && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          showConfirmAndApplyGpx(context, ref, content);
+          showConfirmAndApplyGpx(
+            context,
+            ref,
+            content,
+            onSuccess: () => setState(() => _isRouteBoundsMode = true),
+          );
         });
       }
     });
@@ -236,19 +249,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   void dispose() {
-    _sleepTimerController.dispose();
     WidgetsBinding.instance.removeObserver(this);
-    WakelockPlus.disable();
     _volumeZoomHandler.dispose();
     ref.read(locationStreamProvider.notifier).stop();
     ref.read(mapStateProvider.notifier).cancelAnimation();
     super.dispose();
   }
 
-  /// ユーザーがマップ等をタップしたとき（スリープタイマー再開）
   void _onUserInteraction() {
-    _sleepTimerController.restoreBrightness();
-    _sleepTimerController.restart(ref.read(sleepDurationProvider));
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
   }
 
@@ -310,31 +318,28 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       onMapCreated: _onMapCreated,
       onMapStyleTap: _onMapStyleTap,
       onRouteBoundsTap: _onRouteBoundsTap,
-      onMyLocationTap: _moveCameraToCurrentPosition,
-      showMyLocationButton: !locationState.isActive,
+      isRouteBoundsMode: _isRouteBoundsMode,
       isStreamActive: locationState.isActive,
       onToggleLocationStream: _toggleLocationStream,
       progressBarValue: locationState.progressBarValue,
-      isLowMode: locationState.isInLowMode,
-      isStreamAccuracyLow: locationState.isAccuracyLow,
-      onGpsLevelTap: () =>
-          ref.read(locationStreamProvider.notifier).switchGpsLevel(
-                onPosition: _onPositionUpdate,
-              ),
-      onSleepSettingsTap: () => showSleepSettingsFlow(
-        context,
-        ref,
-        restoreBrightness: _sleepTimerController.restoreBrightness,
-        restartTimer: _sleepTimerController.restart,
-      ),
+      isScreenSleepOn: ref.watch(screenSleepProvider),
+      onSleepToggleTap: () {
+        final current = ref.read(screenSleepProvider);
+        handleScreenSleepChange(context, ref, !current);
+      },
       onAppSettingsTap: () => showAppSettingsScreen(
         context,
         onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
         onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+        onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
         onLocationSharingTap: () => shareCurrentLocation(context),
         onContactUsTap: () => openContactEmail(context),
       ),
-      onGpxImportTap: () => handleGpxImportTap(context, ref),
+      onGpxImportTap: () => handleGpxImportTap(
+        context,
+        ref,
+        onSuccess: () => setState(() => _isRouteBoundsMode = true),
+      ),
       onGpxExportTap: () => handleGpxExportTap(context, ref),
       onOfflineMapTap: () => handleOfflineMapTap(context, ref),
       onAddPoiTap: () => handleAddPoiTap(
@@ -355,6 +360,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       onUserInteraction: _onUserInteraction,
       isDragMode: _isDragMode,
       isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
+      showBatteryLevel: ref.watch(batteryDisplayProvider),
       offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
       isShareMode: _isShareMode,
       onShareTap: (key) {
@@ -379,6 +385,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             _shareHp = shareHp;
           }),
           getMounted: () => mounted,
+          onAfterCameraAnimation: (zoomBefore) {
+            if (ref.read(locationStreamProvider).isActive) {
+              _savedStreamZoom = zoomBefore;
+            }
+          },
         );
       },
     );
@@ -477,31 +488,28 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onMapCreated: _onMapCreated,
           onMapStyleTap: _onMapStyleTap,
           onRouteBoundsTap: _onRouteBoundsTap,
-          onMyLocationTap: _moveCameraToCurrentPosition,
-          showMyLocationButton: !locationState.isActive,
+          isRouteBoundsMode: _isRouteBoundsMode,
           isStreamActive: locationState.isActive,
           onToggleLocationStream: _toggleLocationStream,
           progressBarValue: locationState.progressBarValue,
-          isLowMode: locationState.isInLowMode,
-          isStreamAccuracyLow: locationState.isAccuracyLow,
-          onGpsLevelTap: () =>
-              ref.read(locationStreamProvider.notifier).switchGpsLevel(
-                    onPosition: _onPositionUpdate,
-                  ),
-          onSleepSettingsTap: () => showSleepSettingsFlow(
-            context,
-            ref,
-            restoreBrightness: _sleepTimerController.restoreBrightness,
-            restartTimer: _sleepTimerController.restart,
-          ),
+          isScreenSleepOn: ref.watch(screenSleepProvider),
+          onSleepToggleTap: () {
+            final current = ref.read(screenSleepProvider);
+            handleScreenSleepChange(context, ref, !current);
+          },
           onAppSettingsTap: () => showAppSettingsScreen(
             context,
             onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
             onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+            onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
             onLocationSharingTap: () => shareCurrentLocation(context),
             onContactUsTap: () => openContactEmail(context),
           ),
-          onGpxImportTap: () => handleGpxImportTap(context, ref),
+          onGpxImportTap: () => handleGpxImportTap(
+        context,
+        ref,
+        onSuccess: () => setState(() => _isRouteBoundsMode = true),
+      ),
           onGpxExportTap: () => handleGpxExportTap(context, ref),
           onOfflineMapTap: () => handleOfflineMapTap(context, ref),
           onAddPoiTap: () => handleAddPoiTap(
@@ -522,7 +530,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onUserInteraction: _onUserInteraction,
           isDragMode: _isDragMode,
           isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
-              isShareMode: _isShareMode,
+          showBatteryLevel: ref.watch(batteryDisplayProvider),
+          isShareMode: _isShareMode,
           onShareTap: (key) {
             handleShareButtonTap(
               context: context,
@@ -545,6 +554,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                 _shareHp = shareHp;
               }),
               getMounted: () => mounted,
+              onAfterCameraAnimation: (zoomBefore) {
+                if (ref.read(locationStreamProvider).isActive) {
+                  _savedStreamZoom = zoomBefore;
+                }
+              },
             );
           },
         ),
@@ -557,16 +571,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
-      WakelockPlus.disable();
       ref.read(locationStreamProvider.notifier).stop();
-      _sleepTimerController.cancel();
       if (state == AppLifecycleState.paused) return;
     }
 
     if (state != AppLifecycleState.resumed) return;
-
-    WakelockPlus.enable();
-    _sleepTimerController.restart(ref.read(sleepDurationProvider));
 
     // 共有シートから本アプリを選択してフォアグラウンドに戻った場合、
     // 共有モードをリセットして吹き出しが残らないようにする
@@ -593,18 +602,32 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (!mounted) return;
     _previousStreamPosition = previous;
     _latestStreamPosition = position;
+    // 共有モード中はカメラを移動しない（スクリーンショット用のルート全体表示を維持する）
+    if (_isShareMode) {
+      setState(() {});
+      return;
+    }
+    // ルート拡大モード中はカメラを移動しない（ルート全体表示を維持する）
+    if (_isRouteBoundsMode) {
+      setState(() {});
+      return;
+    }
     // 走行中（速度 > 閾値）のみ GPS ベアリングで更新。停止中は最後のベアリングを維持。
     if (previous != null && position.speed > _movingSpeedThreshold) {
       final b = bearingFromPositions(previous, position);
       if (b != null) _lastBearing = b;
     }
-    final zoomToUse = _isFirstPositionAfterStreamOn
-        ? _trackingZoom
-        : (ref.read(cameraControllerProvider)?.camera.zoom ??
-            ref.read(mapStateProvider).savedZoomLevel ??
-            _trackingZoom);
+    final double zoomToUse;
     if (_isFirstPositionAfterStreamOn) {
+      zoomToUse = _trackingZoom;
       _isFirstPositionAfterStreamOn = false;
+    } else if (_savedStreamZoom != null) {
+      zoomToUse = _savedStreamZoom!;
+      _savedStreamZoom = null;
+    } else {
+      zoomToUse = ref.read(cameraControllerProvider)?.camera.zoom ??
+          ref.read(mapStateProvider).savedZoomLevel ??
+          _trackingZoom;
     }
     ref.read(cameraControllerProvider.notifier).animateTo(
           LatLng(position.latitude, position.longitude),
@@ -657,9 +680,23 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Future<void> _onRouteBoundsTap() async {
-    final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
-    if (bounds != null) {
-      await ref.read(cameraControllerProvider.notifier).animateToBounds(bounds);
+    if (_isRouteBoundsMode) {
+      setState(() => _isRouteBoundsMode = false);
+      final knownPos =
+          _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+      await ref.read(cameraControllerProvider.notifier).animateTo(
+            LatLng(knownPos.latitude, knownPos.longitude),
+            zoom: _trackingZoom,
+            bearing: _lastBearing,
+          );
+    } else {
+      final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
+      if (bounds != null) {
+        setState(() => _isRouteBoundsMode = true);
+        await ref
+            .read(cameraControllerProvider.notifier)
+            .animateToBounds(bounds);
+      }
     }
   }
 
@@ -707,15 +744,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     }
 
     return true;
-  }
-
-  Future<void> _moveCameraToCurrentPosition() async {
-    if (!await _checkLocationAndShowError()) return;
-    final position = await getCurrentPositionSilent();
-    if (!mounted || position == null) return;
-    await ref.read(cameraControllerProvider.notifier).animateTo(
-          LatLng(position.latitude, position.longitude),
-        );
   }
 
   Future<void> _toggleLocationStream() async {

@@ -4,6 +4,10 @@
   "@appTitle": {
     "description": "Do not translate. Use \"Brevet Map\" in all non-Japanese locales."
   },
+  "appTitleBrand": "Brevet Map",
+  "@appTitleBrand": {
+    "description": "Brand name. Do not translate. Always Brevet Map in all locales."
+  },
   "cancel": "Cancel",
   "ok": "OK",
   "ng": "NG",
@@ -16,8 +20,7 @@
   "shareFailed": "Share failed",
   "showMyLocation": "Show my location",
   "sleepSettings": "Screen Sleep",
-  "sleepInfoMessage1": "Turns off GPS when the screen sleeps to save battery",
-  "sleepInfoMessage2": "To save even more battery, put your device to sleep. GPS also turns off",
+  "sleepInfoMessage1": "GPS turns off when the screen sleeps, so we recommend enabling screen sleep if you want to reduce battery usage",
   "sleepInfoDontShowAgain": "Don't show again",
   "switchGpsLevel": "Location accuracy",
   "gpxImport": "Import GPX file",
@@ -97,19 +100,13 @@
   "locationPermissionRequired": "Location permission required",
   "locationPermissionDenied": "Location permission was denied. You cannot show your location without permission.",
   "locationPermissionDeniedForever": "Location permission is set to \"Don't ask again\". Please enable it in app settings.",
-  "sleepOffMessage": "Screen sleep turned off",
-  "sleepSetMessage": "Screen sleep set to {minutes} minutes",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOffMessage": "Screen sleep disabled",
+  "sleepOnMessage": "Screen sleep enabled",
   "sleepOff": "OFF",
-  "sleep1min": "1min",
-  "sleep5min": "5min",
-  "sleep10min": "10min",
+  "sleepOn": "ON",
+  "sleepSettingsNote": "Check the screen sleep duration in your device's Settings app",
+  "openSettings": "Open settings",
+  "openSettingsApp": "Open Settings app",
   "distanceUnit": "Distance Unit",
   "unitKm": "km",
   "unitMile": "mile",
@@ -221,5 +218,9 @@
   "language": "Language",
   "useSystemLanguage": "System default",
   "appSettingsTitle": "Settings & More",
-  "contactFormMailError": "Could not open mail app"
+  "contactFormMailError": "Could not open mail app",
+  "batteryLevelDisplay": "Show battery level",
+  "batteryLevelDisplayOn": "On",
+  "batteryLevelDisplayOff": "Off",
+  "batteryLevelDisplayIosNote": "On iOS, values are shown in 5% increments due to OS limitations"
 }

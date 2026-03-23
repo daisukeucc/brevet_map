@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 class GpxChannelService {
   GpxChannelService._();
 
-  static const _channel = MethodChannel('com.example.brevet_map/gpx');
+  static const _channel = MethodChannel('com.brevetmap/gpx');
 
   /// ネイティブから GPX が渡されたときに呼ばれるハンドラを登録する。
   static void setMethodCallHandler(void Function(String content) onGpxReceived) {

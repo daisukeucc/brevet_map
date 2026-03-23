@@ -116,6 +116,12 @@ abstract class AppLocalizations {
   /// **'Brevet Map'**
   String get appTitle;
 
+  /// Brand name. Do not translate. Always Brevet Map in all locales.
+  ///
+  /// In en, this message translates to:
+  /// **'Brevet Map'**
+  String get appTitleBrand;
+
   /// No description provided for @cancel.
   ///
   /// In en, this message translates to:
@@ -191,14 +197,8 @@ abstract class AppLocalizations {
   /// No description provided for @sleepInfoMessage1.
   ///
   /// In en, this message translates to:
-  /// **'Turns off GPS when the screen sleeps to save battery'**
+  /// **'GPS turns off when the screen sleeps, so we recommend enabling screen sleep if you want to reduce battery usage'**
   String get sleepInfoMessage1;
-
-  /// No description provided for @sleepInfoMessage2.
-  ///
-  /// In en, this message translates to:
-  /// **'To save even more battery, put your device to sleep. GPS also turns off'**
-  String get sleepInfoMessage2;
 
   /// No description provided for @sleepInfoDontShowAgain.
   ///
@@ -551,14 +551,14 @@ abstract class AppLocalizations {
   /// No description provided for @sleepOffMessage.
   ///
   /// In en, this message translates to:
-  /// **'Screen sleep turned off'**
+  /// **'Screen sleep disabled'**
   String get sleepOffMessage;
 
-  /// No description provided for @sleepSetMessage.
+  /// No description provided for @sleepOnMessage.
   ///
   /// In en, this message translates to:
-  /// **'Screen sleep set to {minutes} minutes'**
-  String sleepSetMessage(int minutes);
+  /// **'Screen sleep enabled'**
+  String get sleepOnMessage;
 
   /// No description provided for @sleepOff.
   ///
@@ -566,23 +566,23 @@ abstract class AppLocalizations {
   /// **'OFF'**
   String get sleepOff;
 
-  /// No description provided for @sleep1min.
+  /// No description provided for @sleepOn.
   ///
   /// In en, this message translates to:
-  /// **'1min'**
-  String get sleep1min;
+  /// **'ON'**
+  String get sleepOn;
 
-  /// No description provided for @sleep5min.
+  /// No description provided for @sleepSettingsNote.
   ///
   /// In en, this message translates to:
-  /// **'5min'**
-  String get sleep5min;
+  /// **'Check the screen sleep duration in your device\'s Settings app'**
+  String get sleepSettingsNote;
 
-  /// No description provided for @sleep10min.
+  /// No description provided for @openSettingsApp.
   ///
   /// In en, this message translates to:
-  /// **'10min'**
-  String get sleep10min;
+  /// **'Open Settings app'**
+  String get openSettingsApp;
 
   /// No description provided for @distanceUnit.
   ///
@@ -877,6 +877,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open mail app'**
   String get contactFormMailError;
+
+  /// No description provided for @batteryLevelDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Show battery level'**
+  String get batteryLevelDisplay;
+
+  /// No description provided for @batteryLevelDisplayOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get batteryLevelDisplayOn;
+
+  /// No description provided for @batteryLevelDisplayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get batteryLevelDisplayOff;
+
+  /// No description provided for @batteryLevelDisplayIosNote.
+  ///
+  /// In en, this message translates to:
+  /// **'On iOS, values are shown in 5% increments due to OS limitations'**
+  String get batteryLevelDisplayIosNote;
 }
 
 class _AppLocalizationsDelegate

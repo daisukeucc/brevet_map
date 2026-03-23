@@ -13,8 +13,7 @@
   "shareFailed": "Teilen fehlgeschlagen",
   "showMyLocation": "Meinen Standort anzeigen",
   "sleepSettings": "Bildschirmschlaf",
-  "sleepInfoMessage1": "Schaltet GPS beim Bildschirmschlaf aus, um Akku zu sparen",
-  "sleepInfoMessage2": "Um noch mehr Akku zu sparen, legen Sie Ihr Gerät in den Schlaf. GPS wird ebenfalls abgeschaltet",
+  "sleepInfoMessage1": "Das GPS schaltet sich beim Bildschirmschlaf aus. Wir empfehlen daher, den Bildschirmschlaf zu aktivieren, wenn Sie den Akkuverbrauch reduzieren möchten.",
   "sleepInfoDontShowAgain": "Nicht mehr anzeigen",
   "switchGpsLevel": "Standortgenauigkeit",
   "gpxImport": "GPX-Datei importieren",
@@ -95,18 +94,12 @@
   "locationPermissionDenied": "Standortberechtigung wurde verweigert. Ohne Berechtigung kann Ihr Standort nicht angezeigt werden.",
   "locationPermissionDeniedForever": "Standortberechtigung ist auf \"Nicht erneut fragen\" gesetzt. Bitte aktivieren Sie sie in den App-Einstellungen.",
   "sleepOffMessage": "Bildschirmschlaf deaktiviert",
-  "sleepSetMessage": "Bildschirmschlaf auf {minutes} Minuten eingestellt",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOnMessage": "Bildschirmschlaf aktiviert",
   "sleepOff": "AUS",
-  "sleep1min": "1 Min",
-  "sleep5min": "5 Min",
-  "sleep10min": "10 Min",
+  "sleepOn": "EIN",
+  "sleepSettingsNote": "Die Dauer des Bildschirmschlafs finden Sie in der Einstellungs-App Ihres Geräts",
+  "openSettings": "Einstellungen öffnen",
+  "openSettingsApp": "Einstellungs-App öffnen",
   "distanceUnit": "Distanzeinheit",
   "unitKm": "km",
   "unitMile": "Meilen",
@@ -218,5 +211,9 @@
   "language": "Sprache",
   "useSystemLanguage": "Systemsprache",
   "appSettingsTitle": "Einstellungen & mehr",
-  "contactFormMailError": "Mail-App konnte nicht geöffnet werden"
+  "contactFormMailError": "Mail-App konnte nicht geöffnet werden",
+  "batteryLevelDisplay": "Akkustand anzeigen",
+  "batteryLevelDisplayOn": "Anzeigen",
+  "batteryLevelDisplayOff": "Ausblenden",
+  "batteryLevelDisplayIosNote": "Auf iOS werden die Werte aufgrund von Betriebssystemeinschränkungen in 5%-Schritten angezeigt"
 }

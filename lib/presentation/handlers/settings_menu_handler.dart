@@ -16,19 +16,26 @@ import 'offline_map_info_dialog.dart';
 import 'sleep_info_dialog.dart';
 import 'sleep_settings_handler.dart';
 
-/// ボトムシートを閉じ、遅延後にコールバックを実行する
+/// ボトムシートを閉じ、アニメーション完了後にコールバックを実行する
 /// メニュータップ後のシート閉じ〜処理開始の共通パターン
+/// 150ms: タップフィードバック（グレー表示）を見せてから pop
+/// さらに 350ms: 閉じアニメーション完了を待ってからコールバック実行
+/// ※pop と callback を同時に呼ぶとナビゲーターアニメーション競合でダイアログが表示されない
 void popSheetAndCall(BuildContext context, VoidCallback callback) {
   final navigator = Navigator.of(context);
-  Future.delayed(const Duration(milliseconds: 200), () {
+  Future.delayed(const Duration(milliseconds: 150), () {
     navigator.pop();
-    callback();
+    Future.delayed(const Duration(milliseconds: 500), callback);
   });
 }
 
 /// GPXインポートメニューがタップされたときのフロー
-Future<void> handleGpxImportTap(BuildContext context, WidgetRef ref) async {
-  await showGpxImportFlow(context, ref);
+Future<void> handleGpxImportTap(
+  BuildContext context,
+  WidgetRef ref, {
+  VoidCallback? onSuccess,
+}) async {
+  await showGpxImportFlow(context, ref, onSuccess: onSuccess);
 }
 
 /// GPXエクスポートメニューがタップされたときのフロー
@@ -92,10 +99,8 @@ Future<void> handleAddPoiTap(
 /// スリープ設定メニューがタップされたときのフロー
 Future<void> showSleepSettingsFlow(
   BuildContext context,
-  WidgetRef ref, {
-  required VoidCallback restoreBrightness,
-  required void Function(int) restartTimer,
-}) async {
+  WidgetRef ref,
+) async {
   if (!context.mounted) return;
 
   final dismissed = await loadSleepInfoDismissed();
@@ -107,25 +112,7 @@ Future<void> showSleepSettingsFlow(
     if (!proceed) return;
   }
 
-  final l10n = AppLocalizations.of(context)!;
-  showRadioSelectionDialog<int>(
-    context: context,
-    title: l10n.sleepSettings,
-    options: [
-      (0, l10n.sleepOff),
-      (1, l10n.sleep1min),
-      (5, l10n.sleep5min),
-      (10, l10n.sleep10min),
-    ],
-    initialValue: ref.read(sleepDurationProvider),
-    onChanged: (minutes) => handleSleepDurationChange(
-      context,
-      ref,
-      minutes,
-      restoreBrightness: restoreBrightness,
-      restartTimer: restartTimer,
-    ),
-  );
+  showSleepSettingsDialog(context, ref);
 }
 
 /// 距離単位メニューがタップされたときのフロー

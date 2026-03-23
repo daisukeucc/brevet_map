@@ -12,6 +12,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get appTitle => 'Brevet Map';
 
   @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
   String get cancel => 'Annulla';
 
   @override
@@ -49,11 +52,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get sleepInfoMessage1 =>
-      'Disattiva il GPS quando lo schermo va in sospensione per risparmiare batteria';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'Per risparmiare ancora più batteria, metti il dispositivo in sospensione. Il GPS si disattiva anch\'esso';
+      'Il GPS si disattiva quando lo schermo va in sospensione. Consigliamo quindi di attivare la sospensione dello schermo per ridurre il consumo della batteria.';
 
   @override
   String get sleepInfoDontShowAgain => 'Non mostrare più';
@@ -243,24 +242,23 @@ class AppLocalizationsIt extends AppLocalizations {
       'Il permesso di localizzazione è impostato su \"Non chiedere più\". Attivalo nelle impostazioni dell\'app.';
 
   @override
-  String get sleepOffMessage => 'Spegnimento schermo disattivato';
+  String get sleepOffMessage => 'Sospensione schermo disattivata';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return 'Spegnimento schermo impostato a $minutes minuti';
-  }
+  String get sleepOnMessage => 'Sospensione schermo attivata';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1 min';
+  String get sleepOn => 'ON';
 
   @override
-  String get sleep5min => '5 min';
+  String get sleepSettingsNote =>
+      'Controlla la durata della sospensione schermo nell\'app Impostazioni del tuo dispositivo';
 
   @override
-  String get sleep10min => '10 min';
+  String get openSettingsApp => 'Apri l\'app Impostazioni';
 
   @override
   String get distanceUnit => 'Unità di distanza';
@@ -432,4 +430,17 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get contactFormMailError => 'Impossibile aprire l\'app mail';
+
+  @override
+  String get batteryLevelDisplay => 'Mostra livello batteria';
+
+  @override
+  String get batteryLevelDisplayOn => 'Mostra';
+
+  @override
+  String get batteryLevelDisplayOff => 'Nascondi';
+
+  @override
+  String get batteryLevelDisplayIosNote =>
+      'Su iOS, i valori vengono mostrati in incrementi del 5% a causa delle limitazioni del sistema operativo';
 }

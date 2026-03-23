@@ -13,8 +13,7 @@
   "shareFailed": "Error al compartir",
   "showMyLocation": "Mostrar mi ubicación",
   "sleepSettings": "Pantalla en espera",
-  "sleepInfoMessage1": "Apaga el GPS cuando la pantalla entra en reposo para ahorrar batería",
-  "sleepInfoMessage2": "Para ahorrar aún más batería, pon tu dispositivo en suspensión. El GPS también se apaga",
+  "sleepInfoMessage1": "El GPS se apaga cuando la pantalla entra en reposo, por lo que recomendamos activar la suspensión de pantalla si deseas reducir el consumo de batería.",
   "sleepInfoDontShowAgain": "No mostrar de nuevo",
   "switchGpsLevel": "Precisión de ubicación",
   "gpxImport": "Importar archivo GPX",
@@ -95,18 +94,12 @@
   "locationPermissionDenied": "Se denegó el permiso de ubicación. No puede mostrar su ubicación sin permiso.",
   "locationPermissionDeniedForever": "El permiso de ubicación está en \"No volver a preguntar\". Por favor actívelo en la configuración de la aplicación.",
   "sleepOffMessage": "Pantalla en espera desactivada",
-  "sleepSetMessage": "Pantalla en espera configurada a {minutes} minutos",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOnMessage": "Pantalla en espera activada",
   "sleepOff": "OFF",
-  "sleep1min": "1 min",
-  "sleep5min": "5 min",
-  "sleep10min": "10 min",
+  "sleepOn": "ON",
+  "sleepSettingsNote": "Consulte la duración del modo de espera en la aplicación de Ajustes de su dispositivo",
+  "openSettings": "Abrir ajustes",
+  "openSettingsApp": "Abrir la app de Ajustes",
   "distanceUnit": "Unidad de distancia",
   "unitKm": "km",
   "unitMile": "millas",
@@ -218,5 +211,9 @@
   "language": "Idioma",
   "useSystemLanguage": "Idioma del sistema",
   "appSettingsTitle": "Ajustes y más",
-  "contactFormMailError": "No se pudo abrir la aplicación de correo"
+  "contactFormMailError": "No se pudo abrir la aplicación de correo",
+  "batteryLevelDisplay": "Mostrar nivel de batería",
+  "batteryLevelDisplayOn": "Mostrar",
+  "batteryLevelDisplayOff": "Ocultar",
+  "batteryLevelDisplayIosNote": "En iOS, los valores se muestran en incrementos del 5% debido a las limitaciones del sistema operativo"
 }

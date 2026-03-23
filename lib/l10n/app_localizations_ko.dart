@@ -12,6 +12,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appTitle => 'Brevet Map';
 
   @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
   String get cancel => '취소';
 
   @override
@@ -48,10 +51,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sleepSettings => '화면 절전';
 
   @override
-  String get sleepInfoMessage1 => '화면 절전 시 GPS를 끄고 배터리를 절약합니다';
-
-  @override
-  String get sleepInfoMessage2 => '배터리를 더 절약하려면 기기를 절전 모드로 설정하세요. GPS도 꺼집니다';
+  String get sleepInfoMessage1 =>
+      '화면이 절전 상태가 되면 GPS가 꺼집니다. 배터리 소비를 줄이려면 화면 절전을 활성화하는 것을 권장합니다.';
 
   @override
   String get sleepInfoDontShowAgain => '다시 표시하지 않음';
@@ -240,21 +241,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sleepOffMessage => '화면 절전 꺼짐';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return '화면 절전 $minutes분으로 설정';
-  }
+  String get sleepOnMessage => '화면 절전 켜짐';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1분';
+  String get sleepOn => 'ON';
 
   @override
-  String get sleep5min => '5분';
+  String get sleepSettingsNote => '화면 절전 시간은 기기의 설정 앱에서 확인하세요';
 
   @override
-  String get sleep10min => '10분';
+  String get openSettingsApp => '설정 앱 열기';
 
   @override
   String get distanceUnit => '거리 단위';
@@ -424,4 +423,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get contactFormMailError => '메일 앱을 열 수 없습니다';
+
+  @override
+  String get batteryLevelDisplay => '배터리 잔량 표시';
+
+  @override
+  String get batteryLevelDisplayOn => '표시';
+
+  @override
+  String get batteryLevelDisplayOff => '숨김';
+
+  @override
+  String get batteryLevelDisplayIosNote => 'iOS에서는 OS 제한으로 인해 5% 단위로 표시됩니다';
 }

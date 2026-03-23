@@ -13,8 +13,7 @@
   "shareFailed": "Échec du partage",
   "showMyLocation": "Afficher ma position",
   "sleepSettings": "Mise en veille",
-  "sleepInfoMessage1": "Désactive le GPS lors de la mise en veille de l'écran pour économiser la batterie",
-  "sleepInfoMessage2": "Pour économiser encore plus de batterie, mettez votre appareil en veille. Le GPS se désactive également",
+  "sleepInfoMessage1": "Le GPS se coupe lors de la mise en veille de l'écran. Nous recommandons donc d'activer la mise en veille si vous souhaitez réduire la consommation de la batterie.",
   "sleepInfoDontShowAgain": "Ne plus afficher",
   "switchGpsLevel": "Précision de localisation",
   "gpxImport": "Importer un fichier GPX",
@@ -95,18 +94,12 @@
   "locationPermissionDenied": "L'autorisation de localisation a été refusée. Vous ne pouvez pas afficher votre position sans autorisation.",
   "locationPermissionDeniedForever": "L'autorisation de localisation est définie sur \"Ne plus demander\". Veuillez l'activer dans les paramètres de l'application.",
   "sleepOffMessage": "Mise en veille désactivée",
-  "sleepSetMessage": "Mise en veille réglée sur {minutes} minutes",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOnMessage": "Mise en veille activée",
   "sleepOff": "OFF",
-  "sleep1min": "1 min",
-  "sleep5min": "5 min",
-  "sleep10min": "10 min",
+  "sleepOn": "ON",
+  "sleepSettingsNote": "Consultez la durée de mise en veille dans l'application Réglages de votre appareil",
+  "openSettings": "Ouvrir les paramètres",
+  "openSettingsApp": "Ouvrir l'app Réglages",
   "distanceUnit": "Unité de distance",
   "unitKm": "km",
   "unitMile": "mile",
@@ -218,5 +211,9 @@
   "language": "Langue",
   "useSystemLanguage": "Langue du système",
   "appSettingsTitle": "Paramètres & plus",
-  "contactFormMailError": "Impossible d'ouvrir l'application mail"
+  "contactFormMailError": "Impossible d'ouvrir l'application mail",
+  "batteryLevelDisplay": "Afficher le niveau de batterie",
+  "batteryLevelDisplayOn": "Afficher",
+  "batteryLevelDisplayOff": "Masquer",
+  "batteryLevelDisplayIosNote": "Sur iOS, les valeurs sont affichées par incréments de 5% en raison des limitations du système d'exploitation"
 }

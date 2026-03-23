@@ -12,6 +12,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get appTitle => 'Brevet Map';
 
   @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
   String get cancel => 'Abbrechen';
 
   @override
@@ -49,11 +52,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sleepInfoMessage1 =>
-      'Schaltet GPS beim Bildschirmschlaf aus, um Akku zu sparen';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'Um noch mehr Akku zu sparen, legen Sie Ihr Gerät in den Schlaf. GPS wird ebenfalls abgeschaltet';
+      'Das GPS schaltet sich beim Bildschirmschlaf aus. Wir empfehlen daher, den Bildschirmschlaf zu aktivieren, wenn Sie den Akkuverbrauch reduzieren möchten.';
 
   @override
   String get sleepInfoDontShowAgain => 'Nicht mehr anzeigen';
@@ -245,21 +244,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sleepOffMessage => 'Bildschirmschlaf deaktiviert';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return 'Bildschirmschlaf auf $minutes Minuten eingestellt';
-  }
+  String get sleepOnMessage => 'Bildschirmschlaf aktiviert';
 
   @override
   String get sleepOff => 'AUS';
 
   @override
-  String get sleep1min => '1 Min';
+  String get sleepOn => 'EIN';
 
   @override
-  String get sleep5min => '5 Min';
+  String get sleepSettingsNote =>
+      'Die Dauer des Bildschirmschlafs finden Sie in der Einstellungs-App Ihres Geräts';
 
   @override
-  String get sleep10min => '10 Min';
+  String get openSettingsApp => 'Einstellungs-App öffnen';
 
   @override
   String get distanceUnit => 'Distanzeinheit';
@@ -432,4 +430,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get contactFormMailError => 'Mail-App konnte nicht geöffnet werden';
+
+  @override
+  String get batteryLevelDisplay => 'Akkustand anzeigen';
+
+  @override
+  String get batteryLevelDisplayOn => 'Anzeigen';
+
+  @override
+  String get batteryLevelDisplayOff => 'Ausblenden';
+
+  @override
+  String get batteryLevelDisplayIosNote =>
+      'Auf iOS werden die Werte aufgrund von Betriebssystemeinschränkungen in 5%-Schritten angezeigt';
 }

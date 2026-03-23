@@ -116,7 +116,7 @@ Future<void> showGpxExportFlow(
 
       var success = false;
       try {
-        const channel = MethodChannel('com.example.brevet_map/gpx');
+        const channel = MethodChannel('com.brevetmap/gpx');
         success = await channel.invokeMethod<bool?>(
               'saveFileToDownloads',
               {'filePath': tempFile.path, 'fileName': displayFilename},

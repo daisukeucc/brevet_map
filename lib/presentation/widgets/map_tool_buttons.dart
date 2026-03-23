@@ -7,15 +7,19 @@ class MapToolButtons extends StatelessWidget {
   const MapToolButtons({
     super.key,
     required this.onRouteBoundsTap,
+    this.isRouteBoundsMode = false,
   });
 
   final VoidCallback onRouteBoundsTap;
+
+  /// true のときルート拡大モード中（アイコンを切り替える）
+  final bool isRouteBoundsMode;
 
   @override
   Widget build(BuildContext context) {
     return _CircleIconButton(
       tooltip: AppLocalizations.of(context)!.showFullRoute,
-      icon: Icons.zoom_out_map,
+      icon: isRouteBoundsMode ? Icons.zoom_out_map : Icons.zoom_in_map,
       onTap: onRouteBoundsTap,
     );
   }
@@ -48,7 +52,7 @@ class _CircleIconButton extends StatelessWidget {
           child: SizedBox(
             width: 60,
             height: 60,
-            child: Icon(icon, color: Colors.blueGrey, size: 32),
+            child: Icon(icon, color: Colors.blueGrey, size: 35),
           ),
         ),
       ),

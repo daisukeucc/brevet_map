@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../l10n/app_localizations.dart';
 
@@ -38,13 +37,10 @@ class MapStyleButton extends StatelessWidget {
             width: 60,
             height: 60,
             child: Center(
-              child: Transform.translate(
-                offset: const Offset(0, -2),
-                child: FaIcon(
-                  FontAwesomeIcons.mapMarkedAlt,
-                  color: iconColor,
-                  size: 28,
-                ),
+              child: Icon(
+                Icons.map,
+                color: iconColor,
+                size: 40,
               ),
             ),
           ),

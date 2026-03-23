@@ -12,6 +12,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appTitle => 'ブルベMAP';
 
   @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
   String get cancel => 'キャンセル';
 
   @override
@@ -48,11 +51,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleepSettings => '画面スリープ';
 
   @override
-  String get sleepInfoMessage1 => '画面スリープ時はGPSがOFFになり、バッテリー消費を抑えます';
-
-  @override
-  String get sleepInfoMessage2 =>
-      'さらにバッテリー消費を抑えるためには端末自体をスリープして下さい\n端末スリープでもGPSはOFFになります';
+  String get sleepInfoMessage1 =>
+      '画面スリープ時はGPSがOFFになるため、バッテリー消費を抑えたい場合は、画面スリープを有効にすることをおすすめします';
 
   @override
   String get sleepInfoDontShowAgain => '以後表示しない';
@@ -240,21 +240,19 @@ class AppLocalizationsJa extends AppLocalizations {
   String get sleepOffMessage => '画面スリープをOFFにしました';
 
   @override
-  String sleepSetMessage(int minutes) {
-    return '画面スリープを$minutes分に設定しました';
-  }
+  String get sleepOnMessage => '画面スリープをONにしました';
 
   @override
   String get sleepOff => 'OFF';
 
   @override
-  String get sleep1min => '1分';
+  String get sleepOn => 'ON';
 
   @override
-  String get sleep5min => '5分';
+  String get sleepSettingsNote => '画面スリープの時間は、端末設定アプリで確認してください';
 
   @override
-  String get sleep10min => '10分';
+  String get openSettingsApp => '設定アプリを開く';
 
   @override
   String get distanceUnit => '距離の単位';
@@ -424,4 +422,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get contactFormMailError => 'メールアプリを開けませんでした';
+
+  @override
+  String get batteryLevelDisplay => 'バッテリー残量表示';
+
+  @override
+  String get batteryLevelDisplayOn => '表示';
+
+  @override
+  String get batteryLevelDisplayOff => '非表示';
+
+  @override
+  String get batteryLevelDisplayIosNote => 'OSの制限のため、iOSは5%毎の表示になります';
 }

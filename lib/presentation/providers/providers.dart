@@ -15,7 +15,7 @@ final cameraControllerProvider =
     NotifierProvider<CameraControllerNotifier, MapController?>(
         CameraControllerNotifier.new);
 
-/// 位置ストリームの状態を管理する（ON/OFF、精度、LOWモード）
+/// 位置ストリームの状態を管理する（ON/OFF）
 final locationStreamProvider =
     NotifierProvider<LocationStreamNotifier, LocationStreamState>(
         LocationStreamNotifier.new);

@@ -7,75 +7,69 @@ class LocationBottomBar extends StatelessWidget {
     required this.isStreamActive,
     required this.onTap,
     this.progressBarValue,
-    this.isLowMode = false,
   });
 
   final bool isStreamActive;
   final VoidCallback onTap;
   final ValueNotifier<double>? progressBarValue;
 
-  /// true のときボタンをグレー表示する（LOWモード時）
-  final bool isLowMode;
-
   @override
   Widget build(BuildContext context) {
-    final barColor = isLowMode
-        ? Colors.blueGrey
-        : (isStreamActive ? Colors.red : Colors.green);
+    final barColor = isStreamActive ? Colors.blue : Colors.green;
 
     return ColoredBox(
       color: barColor,
       child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            GestureDetector(
-              onTapDown: (_) => onTap(),
-              child: ColoredBox(
-                color: barColor,
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 80,
-                  child: Center(
-                    child: Icon(
-                      isStreamActive ? Icons.stop : Icons.play_arrow,
-                      color: Colors.white,
-                      size: 48,
-                    ),
+        clipBehavior: Clip.none,
+        children: [
+          GestureDetector(
+            onTapDown: (_) => onTap(),
+            child: ColoredBox(
+              color: barColor,
+              child: SizedBox(
+                width: double.infinity,
+                height: 80,
+                child: Center(
+                  child: Icon(
+                    isStreamActive ? Icons.stop : Icons.play_arrow,
+                    color: Colors.white,
+                    size: 48,
                   ),
                 ),
               ),
             ),
-            if (isStreamActive && progressBarValue != null)
-              Positioned(
-                left: 0,
-                right: 0,
-                top: 0,
-                height: 3,
-                child: Container(
-                  width: double.infinity,
-                  color: isLowMode ? Colors.blueGrey.shade900 : Colors.red.shade900,
-                  child: ClipRect(
-                    child: ValueListenableBuilder<double>(
-                      valueListenable: progressBarValue!,
-                      builder: (context, value, child) {
-                        return LayoutBuilder(
-                          builder: (context, constraints) {
-                        const barWidth = 80.0;
-                        final left =
-                            (value * (constraints.maxWidth + barWidth)) -
-                                barWidth;
-                        return Stack(
-                          children: [
-                            Positioned(
-                              left: left,
-                              top: 0,
-                              child: Container(
-                                width: barWidth,
-                                height: 3,
-                                color: Colors.white,
+          ),
+          if (isStreamActive && progressBarValue != null)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 3,
+              child: Container(
+                width: double.infinity,
+                color: Colors.blueGrey,
+                child: ClipRect(
+                  child: ValueListenableBuilder<double>(
+                    valueListenable: progressBarValue!,
+                    builder: (context, value, child) {
+                      return LayoutBuilder(
+                        builder: (context, constraints) {
+                          const barWidth = 80.0;
+                          final left =
+                              (value * (constraints.maxWidth + barWidth)) -
+                                  barWidth;
+                          return Stack(
+                            children: [
+                              Positioned(
+                                left: left,
+                                top: 0,
+                                child: Container(
+                                  width: barWidth,
+                                  height: 3,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
                           );
                         },
                       );
@@ -84,8 +78,8 @@ class LocationBottomBar extends StatelessWidget {
                 ),
               ),
             ),
-          ],
-        ),
+        ],
+      ),
     );
   }
 }

@@ -38,10 +38,15 @@ class TileConfig {
   static String userAgent =
       'BrevetMap/$_fallbackVersion ($_fallbackPackageSlug)';
 
+  /// FMTC（タイルキャッシュ）の初期化に成功したかどうか。
+  /// main() で true にセットされる。false のときは NetworkTileProvider を使う。
+  static bool fmtcReady = false;
+
   /// アプリのパッケージ名・バージョンで userAgentPackageName と userAgent を初期化。
   static Future<void> initUserAgentPackageName() async {
     try {
-      final info = await PackageInfo.fromPlatform();
+      final info = await PackageInfo.fromPlatform()
+          .timeout(const Duration(seconds: 3));
       userAgentPackageName = info.packageName;
       userAgent = 'BrevetMap/${info.version} ($userAgentPackageName)';
     } catch (_) {}

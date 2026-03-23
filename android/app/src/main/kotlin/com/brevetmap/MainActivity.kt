@@ -1,4 +1,4 @@
-package com.example.brevet_map
+package com.brevetmap
 
 import android.annotation.TargetApi
 import android.content.ContentValues
@@ -16,8 +16,8 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 
 class MainActivity : FlutterAndroidVolumeKeydownActivity() {
-    private val channelName = "com.example.brevet_map/gpx"
-    private val shareChannelName = "com.example.brevet_map/share"
+    private val channelName = "com.brevetmap/gpx"
+    private val shareChannelName = "com.brevetmap/share"
     private var pendingGpxUri: Uri? = null
     private var pendingSharedUrl: String? = null
     private var gpxMethodChannel: MethodChannel? = null

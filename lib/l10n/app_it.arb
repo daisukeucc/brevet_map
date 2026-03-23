@@ -13,8 +13,7 @@
   "shareFailed": "Condivisione non riuscita",
   "showMyLocation": "Mostra la mia posizione",
   "sleepSettings": "Spegnimento schermo",
-  "sleepInfoMessage1": "Disattiva il GPS quando lo schermo va in sospensione per risparmiare batteria",
-  "sleepInfoMessage2": "Per risparmiare ancora più batteria, metti il dispositivo in sospensione. Il GPS si disattiva anch'esso",
+  "sleepInfoMessage1": "Il GPS si disattiva quando lo schermo va in sospensione. Consigliamo quindi di attivare la sospensione dello schermo per ridurre il consumo della batteria.",
   "sleepInfoDontShowAgain": "Non mostrare più",
   "switchGpsLevel": "Precisione posizione",
   "gpxImport": "Importa file GPX",
@@ -94,19 +93,13 @@
   "locationPermissionRequired": "Permesso di localizzazione richiesto",
   "locationPermissionDenied": "Il permesso di localizzazione è stato negato. Non puoi mostrare la tua posizione senza permesso.",
   "locationPermissionDeniedForever": "Il permesso di localizzazione è impostato su \"Non chiedere più\". Attivalo nelle impostazioni dell'app.",
-  "sleepOffMessage": "Spegnimento schermo disattivato",
-  "sleepSetMessage": "Spegnimento schermo impostato a {minutes} minuti",
-  "@sleepSetMessage": {
-    "placeholders": {
-      "minutes": {
-        "type": "int"
-      }
-    }
-  },
+  "sleepOffMessage": "Sospensione schermo disattivata",
+  "sleepOnMessage": "Sospensione schermo attivata",
   "sleepOff": "OFF",
-  "sleep1min": "1 min",
-  "sleep5min": "5 min",
-  "sleep10min": "10 min",
+  "sleepOn": "ON",
+  "sleepSettingsNote": "Controlla la durata della sospensione schermo nell'app Impostazioni del tuo dispositivo",
+  "openSettings": "Apri impostazioni",
+  "openSettingsApp": "Apri l'app Impostazioni",
   "distanceUnit": "Unità di distanza",
   "unitKm": "km",
   "unitMile": "miglia",
@@ -218,5 +211,9 @@
   "language": "Lingua",
   "useSystemLanguage": "Lingua di sistema",
   "appSettingsTitle": "Impostazioni e altro",
-  "contactFormMailError": "Impossibile aprire l'app mail"
+  "contactFormMailError": "Impossibile aprire l'app mail",
+  "batteryLevelDisplay": "Mostra livello batteria",
+  "batteryLevelDisplayOn": "Mostra",
+  "batteryLevelDisplayOff": "Nascondi",
+  "batteryLevelDisplayIosNote": "Su iOS, i valori vengono mostrati in incrementi del 5% a causa delle limitazioni del sistema operativo"
 }
