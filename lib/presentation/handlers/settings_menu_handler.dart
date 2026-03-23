@@ -25,7 +25,7 @@ void popSheetAndCall(BuildContext context, VoidCallback callback) {
   final navigator = Navigator.of(context);
   Future.delayed(const Duration(milliseconds: 150), () {
     navigator.pop();
-    Future.delayed(const Duration(milliseconds: 350), callback);
+    Future.delayed(const Duration(milliseconds: 500), callback);
   });
 }
 

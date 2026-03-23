@@ -226,7 +226,7 @@ Future<void> showOfflineMapDownloadFlow(
     ];
     final counts = await Future.wait(
       regions.map((r) => FMTCStore('mapStore').download.countTiles(r)),
-    );
+    ).timeout(const Duration(seconds: 15), onTimeout: () => [0, 0, 0]);
     estimatedMBList = [
       (counts[0] * bytesPerTile) / (1024 * 1024),
       (counts[1] * bytesPerTile) / (1024 * 1024),
