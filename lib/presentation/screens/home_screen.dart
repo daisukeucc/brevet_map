@@ -177,12 +177,24 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     });
 
     GpxChannelService.setMethodCallHandler((content) {
-      if (mounted) showConfirmAndApplyGpx(context, ref, content);
+      if (mounted) {
+        showConfirmAndApplyGpx(
+          context,
+          ref,
+          content,
+          onSuccess: () => setState(() => _isRouteBoundsMode = true),
+        );
+      }
     });
     GpxChannelService.getInitialGpxContent().then((content) {
       if (content != null && content.isNotEmpty && mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          showConfirmAndApplyGpx(context, ref, content);
+          showConfirmAndApplyGpx(
+            context,
+            ref,
+            content,
+            onSuccess: () => setState(() => _isRouteBoundsMode = true),
+          );
         });
       }
     });
@@ -323,7 +335,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         onLocationSharingTap: () => shareCurrentLocation(context),
         onContactUsTap: () => openContactEmail(context),
       ),
-      onGpxImportTap: () => handleGpxImportTap(context, ref),
+      onGpxImportTap: () => handleGpxImportTap(
+        context,
+        ref,
+        onSuccess: () => setState(() => _isRouteBoundsMode = true),
+      ),
       onGpxExportTap: () => handleGpxExportTap(context, ref),
       onOfflineMapTap: () => handleOfflineMapTap(context, ref),
       onAddPoiTap: () => handleAddPoiTap(
@@ -489,7 +505,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             onLocationSharingTap: () => shareCurrentLocation(context),
             onContactUsTap: () => openContactEmail(context),
           ),
-          onGpxImportTap: () => handleGpxImportTap(context, ref),
+          onGpxImportTap: () => handleGpxImportTap(
+        context,
+        ref,
+        onSuccess: () => setState(() => _isRouteBoundsMode = true),
+      ),
           onGpxExportTap: () => handleGpxExportTap(context, ref),
           onOfflineMapTap: () => handleOfflineMapTap(context, ref),
           onAddPoiTap: () => handleAddPoiTap(

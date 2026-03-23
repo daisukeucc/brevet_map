@@ -30,8 +30,12 @@ void popSheetAndCall(BuildContext context, VoidCallback callback) {
 }
 
 /// GPXインポートメニューがタップされたときのフロー
-Future<void> handleGpxImportTap(BuildContext context, WidgetRef ref) async {
-  await showGpxImportFlow(context, ref);
+Future<void> handleGpxImportTap(
+  BuildContext context,
+  WidgetRef ref, {
+  VoidCallback? onSuccess,
+}) async {
+  await showGpxImportFlow(context, ref, onSuccess: onSuccess);
 }
 
 /// GPXエクスポートメニューがタップされたときのフロー
