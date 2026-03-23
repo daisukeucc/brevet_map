@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -244,9 +243,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                       width: 60,
                                       height: 60,
                                       child: Icon(
-                                        Icons.more_vert,
+                                        Icons.menu,
                                         color: Colors.blueGrey,
-                                        size: 32,
+                                        size: 35,
                                       ),
                                     ),
                                   ),
@@ -299,30 +298,15 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                       width: 60,
                                       height: 60,
                                       child: Center(
-                                        child: widget.isScreenSleepOn
-                                            ? const FaIcon(
-                                                FontAwesomeIcons.solidMoon,
-                                                color: Colors.white,
-                                                size: 28,
-                                              )
-                                            : Stack(
-                                                alignment: Alignment.center,
-                                                children: [
-                                                  const FaIcon(
-                                                    FontAwesomeIcons.solidMoon,
-                                                    color: Colors.blueGrey,
-                                                    size: 28,
-                                                  ),
-                                                  Transform.rotate(
-                                                    angle: 0.785,
-                                                    child: Container(
-                                                      width: 36,
-                                                      height: 3,
-                                                      color: Colors.blueGrey,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
+                                        child: Icon(
+                                          widget.isScreenSleepOn
+                                              ? Icons.bedtime
+                                              : Icons.bedtime_off,
+                                          color: widget.isScreenSleepOn
+                                              ? Colors.white
+                                              : Colors.blueGrey,
+                                          size: 33,
+                                        ),
                                       ),
                                     ),
                                   ),
