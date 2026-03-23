@@ -730,12 +730,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       setState(() {
         _latestStreamPosition = null;
         _previousStreamPosition = null;
-        _isRouteBoundsMode = false;
       });
     } else {
       ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
       _isFirstPositionAfterStreamOn = true;
-      _isRouteBoundsMode = false;
     }
   }
 
