@@ -422,4 +422,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get contactFormMailError => 'メールアプリを開けませんでした';
+
+  @override
+  String get batteryLevelDisplay => 'バッテリー残量表示';
+
+  @override
+  String get batteryLevelDisplayOn => '表示';
+
+  @override
+  String get batteryLevelDisplayOff => '非表示';
+
+  @override
+  String get batteryLevelDisplayIosNote => 'OSの制限のため、iOSは5%毎の表示になります';
 }

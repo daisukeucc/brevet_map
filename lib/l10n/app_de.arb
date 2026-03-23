@@ -211,5 +211,9 @@
   "language": "Sprache",
   "useSystemLanguage": "Systemsprache",
   "appSettingsTitle": "Einstellungen & mehr",
-  "contactFormMailError": "Mail-App konnte nicht geöffnet werden"
+  "contactFormMailError": "Mail-App konnte nicht geöffnet werden",
+  "batteryLevelDisplay": "Akkustand anzeigen",
+  "batteryLevelDisplayOn": "Anzeigen",
+  "batteryLevelDisplayOff": "Ausblenden",
+  "batteryLevelDisplayIosNote": "Auf iOS werden die Werte aufgrund von Betriebssystemeinschränkungen in 5%-Schritten angezeigt"
 }

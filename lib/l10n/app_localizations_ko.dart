@@ -423,4 +423,16 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get contactFormMailError => '메일 앱을 열 수 없습니다';
+
+  @override
+  String get batteryLevelDisplay => '배터리 잔량 표시';
+
+  @override
+  String get batteryLevelDisplayOn => '표시';
+
+  @override
+  String get batteryLevelDisplayOff => '숨김';
+
+  @override
+  String get batteryLevelDisplayIosNote => 'iOS에서는 OS 제한으로 인해 5% 단위로 표시됩니다';
 }

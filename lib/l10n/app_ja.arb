@@ -197,5 +197,9 @@
   "language": "言語",
   "useSystemLanguage": "システム設定に従う",
   "appSettingsTitle": "設定・その他",
-  "contactFormMailError": "メールアプリを開けませんでした"
+  "contactFormMailError": "メールアプリを開けませんでした",
+  "batteryLevelDisplay": "バッテリー残量表示",
+  "batteryLevelDisplayOn": "表示",
+  "batteryLevelDisplayOff": "非表示",
+  "batteryLevelDisplayIosNote": "OSの制限のため、iOSは5%毎の表示になります"
 }

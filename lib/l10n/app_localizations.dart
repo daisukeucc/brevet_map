@@ -877,6 +877,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open mail app'**
   String get contactFormMailError;
+
+  /// No description provided for @batteryLevelDisplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Show battery level'**
+  String get batteryLevelDisplay;
+
+  /// No description provided for @batteryLevelDisplayOn.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get batteryLevelDisplayOn;
+
+  /// No description provided for @batteryLevelDisplayOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get batteryLevelDisplayOff;
+
+  /// No description provided for @batteryLevelDisplayIosNote.
+  ///
+  /// In en, this message translates to:
+  /// **'On iOS, values are shown in 5% increments due to OS limitations'**
+  String get batteryLevelDisplayIosNote;
 }
 
 class _AppLocalizationsDelegate

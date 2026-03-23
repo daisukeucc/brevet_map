@@ -24,6 +24,7 @@ import '../handlers/language_handler.dart';
 import '../handlers/location_sharing_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
+import '../handlers/battery_display_handler.dart';
 import '../handlers/sleep_settings_handler.dart';
 import '../handlers/share_url_handler.dart';
 import '../utils/snackbar_utils.dart';
@@ -144,6 +145,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (!mounted) return;
       ref.read(screenSleepProvider.notifier).state = value;
       if (!value) WakelockPlus.enable();
+    });
+
+    loadBatteryDisplay().then((value) {
+      if (!mounted) return;
+      ref.read(batteryDisplayProvider.notifier).state = value;
     });
 
     loadDistanceUnit().then((unit) {
@@ -313,6 +319,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         context,
         onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
         onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+        onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
         onLocationSharingTap: () => shareCurrentLocation(context),
         onContactUsTap: () => openContactEmail(context),
       ),
@@ -337,6 +344,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       onUserInteraction: _onUserInteraction,
       isDragMode: _isDragMode,
       isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
+      showBatteryLevel: ref.watch(batteryDisplayProvider),
       offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
       isShareMode: _isShareMode,
       onShareTap: (key) {
@@ -477,6 +485,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
             context,
             onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
             onLanguageTap: () => showLanguageSelectionFlow(context, ref),
+            onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
             onLocationSharingTap: () => shareCurrentLocation(context),
             onContactUsTap: () => openContactEmail(context),
           ),
@@ -501,6 +510,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
           onUserInteraction: _onUserInteraction,
           isDragMode: _isDragMode,
           isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
+          showBatteryLevel: ref.watch(batteryDisplayProvider),
           isShareMode: _isShareMode,
           onShareTap: (key) {
             handleShareButtonTap(

@@ -10,6 +10,7 @@ const _keyScreenSleep = 'screen_sleep';
 const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
 const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
+const _keyBatteryDisplay = 'battery_display'; // true=表示, false=非表示
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -152,4 +153,16 @@ Future<void> saveLocale(String languageCode) async {
 Future<String?> loadLocale() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getString(_keyLocale);
+}
+
+/// バッテリー残量表示設定を保存する。true=表示、false=非表示
+Future<void> saveBatteryDisplay(bool value) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_keyBatteryDisplay, value);
+}
+
+/// 保存済みのバッテリー残量表示設定を返す。未保存なら false（非表示）
+Future<bool> loadBatteryDisplay() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool(_keyBatteryDisplay) ?? false;
 }

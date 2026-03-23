@@ -211,5 +211,9 @@
   "language": "语言",
   "useSystemLanguage": "使用系统语言",
   "appSettingsTitle": "设置与其他",
-  "contactFormMailError": "无法打开邮件应用"
+  "contactFormMailError": "无法打开邮件应用",
+  "batteryLevelDisplay": "显示电量",
+  "batteryLevelDisplayOn": "显示",
+  "batteryLevelDisplayOff": "隐藏",
+  "batteryLevelDisplayIosNote": "由于iOS系统限制，电量以5%为单位显示"
 }

@@ -416,4 +416,16 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get contactFormMailError => '无法打开邮件应用';
+
+  @override
+  String get batteryLevelDisplay => '显示电量';
+
+  @override
+  String get batteryLevelDisplayOn => '显示';
+
+  @override
+  String get batteryLevelDisplayOff => '隐藏';
+
+  @override
+  String get batteryLevelDisplayIosNote => '由于iOS系统限制，电量以5%为单位显示';
 }

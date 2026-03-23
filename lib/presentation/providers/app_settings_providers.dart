@@ -9,3 +9,6 @@ final distanceUnitProvider = StateProvider<int>((ref) => 0);
 
 /// ロケール。null=システム設定に従う
 final localeProvider = StateProvider<Locale?>((ref) => null);
+
+/// バッテリー残量表示。true=表示、false=非表示（デフォルト）
+final batteryDisplayProvider = StateProvider<bool>((ref) => false);

@@ -8,6 +8,7 @@ void showAppSettingsScreen(
   BuildContext context, {
   required VoidCallback onDistanceUnitTap,
   required VoidCallback onLanguageTap,
+  required VoidCallback onBatteryDisplayTap,
   required VoidCallback onLocationSharingTap,
   required VoidCallback onContactUsTap,
 }) {
@@ -16,6 +17,7 @@ void showAppSettingsScreen(
       pageBuilder: (_, __, ___) => _AppSettingsScreen(
         onDistanceUnitTap: onDistanceUnitTap,
         onLanguageTap: onLanguageTap,
+        onBatteryDisplayTap: onBatteryDisplayTap,
         onLocationSharingTap: onLocationSharingTap,
         onContactUsTap: onContactUsTap,
       ),
@@ -40,12 +42,14 @@ class _AppSettingsScreen extends StatelessWidget {
   const _AppSettingsScreen({
     required this.onDistanceUnitTap,
     required this.onLanguageTap,
+    required this.onBatteryDisplayTap,
     required this.onLocationSharingTap,
     required this.onContactUsTap,
   });
 
   final VoidCallback onDistanceUnitTap;
   final VoidCallback onLanguageTap;
+  final VoidCallback onBatteryDisplayTap;
   final VoidCallback onLocationSharingTap;
   final VoidCallback onContactUsTap;
 
@@ -55,6 +59,7 @@ class _AppSettingsScreen extends StatelessWidget {
     final items = [
       (label: l10n.language, onTap: onLanguageTap),
       (label: l10n.distanceUnit, onTap: onDistanceUnitTap),
+      (label: l10n.batteryLevelDisplay, onTap: onBatteryDisplayTap),
       (label: l10n.locationSharing, onTap: onLocationSharingTap),
       (label: l10n.contactUs, onTap: onContactUsTap),
       (label: l10n.aboutApp, onTap: null),

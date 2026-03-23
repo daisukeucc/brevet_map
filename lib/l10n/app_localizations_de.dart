@@ -430,4 +430,17 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get contactFormMailError => 'Mail-App konnte nicht geöffnet werden';
+
+  @override
+  String get batteryLevelDisplay => 'Akkustand anzeigen';
+
+  @override
+  String get batteryLevelDisplayOn => 'Anzeigen';
+
+  @override
+  String get batteryLevelDisplayOff => 'Ausblenden';
+
+  @override
+  String get batteryLevelDisplayIosNote =>
+      'Auf iOS werden die Werte aufgrund von Betriebssystemeinschränkungen in 5%-Schritten angezeigt';
 }

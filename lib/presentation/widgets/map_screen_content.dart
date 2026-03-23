@@ -47,10 +47,14 @@ class MapScreenContent extends StatefulWidget {
     this.calloutText,
     this.calloutHp,
     this.isShareMode = false,
+    this.showBatteryLevel = false,
   });
 
   /// 共有モード時 true（スクリーンショット用に四隅ボタン・バッテリーを非表示にする）
   final bool isShareMode;
+
+  /// true のときバッテリー残量インジケーターを表示する
+  final bool showBatteryLevel;
 
   /// 吹き出し表示時の現在地（共有モード用）
   final LatLng? calloutPosition;
@@ -257,7 +261,8 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                 ),
                               ),
                             ),
-                          if (!widget.isShareMode &&
+                          if (widget.showBatteryLevel &&
+                              !widget.isShareMode &&
                               !widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             const Positioned(

@@ -211,5 +211,9 @@
   "language": "언어",
   "useSystemLanguage": "시스템 설정 사용",
   "appSettingsTitle": "설정 & 기타",
-  "contactFormMailError": "메일 앱을 열 수 없습니다"
+  "contactFormMailError": "메일 앱을 열 수 없습니다",
+  "batteryLevelDisplay": "배터리 잔량 표시",
+  "batteryLevelDisplayOn": "표시",
+  "batteryLevelDisplayOff": "숨김",
+  "batteryLevelDisplayIosNote": "iOS에서는 OS 제한으로 인해 5% 단위로 표시됩니다"
 }

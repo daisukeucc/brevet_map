@@ -211,5 +211,9 @@
   "language": "Idioma",
   "useSystemLanguage": "Idioma del sistema",
   "appSettingsTitle": "Ajustes y más",
-  "contactFormMailError": "No se pudo abrir la aplicación de correo"
+  "contactFormMailError": "No se pudo abrir la aplicación de correo",
+  "batteryLevelDisplay": "Mostrar nivel de batería",
+  "batteryLevelDisplayOn": "Mostrar",
+  "batteryLevelDisplayOff": "Ocultar",
+  "batteryLevelDisplayIosNote": "En iOS, los valores se muestran en incrementos del 5% debido a las limitaciones del sistema operativo"
 }
