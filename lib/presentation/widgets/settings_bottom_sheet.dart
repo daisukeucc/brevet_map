@@ -36,7 +36,7 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
       ),
       (icon: Icons.map, label: l10n.offlineMap, onTap: widget.onOfflineMapTap),
       (
-        icon: Icons.add_location_alt,
+        icon: Icons.pin_drop,
         label: widget.hasUserPois ? l10n.poiAddEdit : l10n.poiAdd,
         onTap: widget.onAddPoiTap,
       ),
