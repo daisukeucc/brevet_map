@@ -250,7 +250,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                       child: Icon(
                                         Icons.menu,
                                         color: Colors.blueGrey,
-                                        size: 35,
+                                        size: 37,
                                       ),
                                     ),
                                   ),
