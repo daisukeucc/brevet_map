@@ -2,11 +2,8 @@ part of 'home_screen.dart';
 
 /// 位置情報ストリーム関連の状態・ロジックをまとめた mixin。
 /// [_MyHomePageState] に mix-in して使用する。
-mixin _LocationStreamMixin on ConsumerState<MyHomePage> {
+mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
   // ── _MyHomePageState から参照する abstract メンバー ────────────────────────
-
-  /// 共有モード中かどうか（_MyHomePageState が実装）
-  bool get _isShareMode;
 
   /// オフライン状態かどうか（_MyHomePageState が実装）
   bool get _isConnectivityOffline;

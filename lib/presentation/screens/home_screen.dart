@@ -35,10 +35,10 @@ import '../widgets/connectivity_gate.dart'
         ConnectivityCheckingView,
         OfflinePlaceholderView;
 import '../widgets/map_screen_content.dart';
-import '../widgets/pulsing_location_marker.dart';
 import 'map_markers.dart';
 import '../widgets/poi_detail_sheet.dart';
 
+part 'home_screen_share.dart';
 part 'home_screen_location.dart';
 part 'home_screen_build.dart';
 
@@ -67,31 +67,12 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage>
-    with WidgetsBindingObserver, _LocationStreamMixin, _BuildMixin {
+    with WidgetsBindingObserver, _ShareUrlMixin, _LocationStreamMixin, _BuildMixin {
   @override
   bool _isDragMode = false;
 
   @override
   bool _isMapTapAddMode = false;
-
-  /// 共有リンクから取得した座標。非 null のときプレビューマーカー表示・登録確認UI表示
-  @override
-  LatLng? _pendingSharedPosition;
-
-  /// 共有リンクから取得した施設名。POI登録時のタイトル初期値に使用
-  String? _pendingSharedPlaceName;
-
-  /// 共有プレビュー用の現在地風アイコン
-  @override
-  Widget? _sharePreviewIcon;
-
-  /// 共有モード中（吹き出し表示中）は true
-  @override
-  bool _isShareMode = false;
-
-  /// 共有モード時のHP値（0.0〜1.0）。ダイアログで設定
-  @override
-  double? _shareHp;
 
   late final VolumeZoomHandler _volumeZoomHandler;
 
@@ -150,9 +131,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (mounted) setState(() => _isFirstLaunch = first);
     });
 
-    createSharePreviewMarkerIcon().then((icon) {
-      if (mounted) setState(() => _sharePreviewIcon = icon);
-    });
+    _initShareFlow();
 
     GpxChannelService.setMethodCallHandler((content) {
       if (mounted) {
@@ -177,52 +156,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       }
     });
 
-    ShareChannelService.setMethodCallHandler(_onSharedUrlReceived);
-    ShareChannelService.getInitialSharedUrl().then((url) {
-      if (url != null && url.isNotEmpty && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _onSharedUrlReceived(url);
-        });
-      }
-    });
-  }
-
-  Future<void> _onSharedUrlReceived(String url) async {
-    if (!mounted) return;
-    await handleSharedUrlReceived(context, ref, url,
-        onParsed: (position, placeName) {
-      if (!mounted) return;
-      setState(() {
-        _pendingSharedPosition = position;
-        _pendingSharedPlaceName = placeName;
-      });
-    });
-  }
-
-  void _onCancelSharePreview() {
-    setState(() {
-      _pendingSharedPosition = null;
-      _pendingSharedPlaceName = null;
-    });
-  }
-
-  Future<void> _onConfirmSharePreview() async {
-    final position = _pendingSharedPosition;
-    if (position == null || !mounted) return;
-    final placeName = _pendingSharedPlaceName;
-    await handleConfirmSharePreview(
-      context,
-      ref,
-      position,
-      placeName,
-      onClear: () {
-        if (!mounted) return;
-        setState(() {
-          _pendingSharedPosition = null;
-          _pendingSharedPlaceName = null;
-        });
-      },
-    );
   }
 
   @override

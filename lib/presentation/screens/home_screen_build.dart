@@ -2,24 +2,16 @@ part of 'home_screen.dart';
 
 /// build() 補助メソッド・マップイベントハンドラをまとめた mixin。
 /// [_MyHomePageState] に mix-in して使用する。
-mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin {
+mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlMixin {
   // ── _MyHomePageState から参照する abstract メンバー ────────────────────────
+  // _pendingSharedPosition / _sharePreviewIcon / _isShareMode / _shareHp は
+  // _ShareUrlMixin が保有するため abstract 宣言不要。
 
   bool get _isDragMode;
   set _isDragMode(bool v);
 
   bool get _isMapTapAddMode;
   set _isMapTapAddMode(bool v);
-
-  LatLng? get _pendingSharedPosition;
-
-  Widget? get _sharePreviewIcon;
-
-  double? get _shareHp;
-  set _shareHp(double? v);
-
-  /// _isShareMode の getter は _LocationStreamMixin が宣言。setter はここで宣言。
-  set _isShareMode(bool v);
 
   // ── 定数 ─────────────────────────────────────────────────────────────────
 
