@@ -38,6 +38,8 @@ import '../widgets/map_screen_content.dart';
 import '../widgets/pulsing_location_marker.dart';
 import '../widgets/poi_detail_sheet.dart';
 
+part 'home_screen_location.dart';
+
 /// 位置情報が取得できない場合のフォールバック位置（東京駅）
 Position _defaultPosition() {
   return Position(
@@ -63,15 +65,8 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage>
-    with WidgetsBindingObserver {
-  /// 初期表示位置。null の間はローディング、非 null で地図表示
-  Position? _initialPosition;
-  bool _expectingReturnFromSettings = false;
-  double _lastBearing = 0.0;
+    with WidgetsBindingObserver, _LocationStreamMixin {
   bool _isDragMode = false;
-
-  /// 停止判定の速度閾値（m/s）。これ以下では GPS ベアリングを更新しない。≒5.4 km/h
-  static const double _movingSpeedThreshold = 1.5;
   bool _isMapTapAddMode = false;
 
   /// 共有リンクから取得した座標。非 null のときプレビューマーカー表示・登録確認UI表示
@@ -83,45 +78,22 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   /// 共有プレビュー用の現在地風アイコン
   Widget? _sharePreviewIcon;
 
-  /// 位置ストリームON時の最新位置（現在地マーカー表示用）
-  Position? _latestStreamPosition;
-
-  /// 直前の位置（bearing による往路/復路判定用）
-  Position? _previousStreamPosition;
-
   /// 共有モード中（吹き出し表示中）は true
+  @override
   bool _isShareMode = false;
 
   /// 共有モード時のHP値（0.0〜1.0）。ダイアログで設定
   double? _shareHp;
 
-  /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
-  bool _isFirstPositionAfterStreamOn = false;
-
   late final VolumeZoomHandler _volumeZoomHandler;
-
-  /// 起動時に位置取得に失敗した場合、案内 SnackBar を一度だけ表示したか
-  bool _hasShownLocationUnavailableHint = false;
-
-  /// 初回ルート取得を実行したか（addPostFrameCallback の多重登録防止）
-  bool _hasTriggeredInitialRouteFetch = false;
-
-  /// 位置取得の試行が完了したか（成功・失敗・タイムアウト問わず）
-  bool _positionFetchCompleted = false;
 
   /// 初回インストールか（null=未取得、true=初回、false=2回目以降）
   bool? _isFirstLaunch;
 
-  /// 初回起動時に ConnectivtyGate がオフラインと判定したか
+  /// 初回起動時に ConnectivityGate がオフラインと判定したか
+  @override
   bool _isConnectivityOffline = false;
 
-  static const double _trackingZoom = 15.0;
-
-  /// シェアボタンタップ後にズームを復元するための保存値
-  double? _savedStreamZoom;
-
-  /// ルート拡大モード中は true（現在地追従を停止してルート全体を表示）
-  bool _isRouteBoundsMode = true;
   static const double _defaultZoom = 12.0;
 
   @override
@@ -258,47 +230,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   void _onUserInteraction() {
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  }
-
-  void _fetchPositionInBackground() {
-    getPositionWithPermission(
-      context,
-      onOpenSettings: () => _expectingReturnFromSettings = true,
-    ).timeout(const Duration(seconds: 20), onTimeout: () => null).then((pos) {
-      if (!mounted) return;
-      final position = pos ?? _defaultPosition();
-      setState(() {
-        if (pos != null) _initialPosition = pos;
-        _positionFetchCompleted = true;
-      });
-      if (pos == null &&
-          !_hasShownLocationUnavailableHint &&
-          !_isConnectivityOffline) {
-        _hasShownLocationUnavailableHint = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          showAppSnackBar(
-            context,
-            AppLocalizations.of(context)!.locationUnavailableWithRetry,
-            action: SnackBarAction(
-              label: AppLocalizations.of(context)!.openSettings,
-              onPressed: () => Geolocator.openAppSettings(),
-            ),
-          );
-        });
-      }
-      _hasTriggeredInitialRouteFetch = true;
-      ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
-        position,
-        animateCamera: (bounds) async {
-          if (bounds != null) {
-            await ref
-                .read(cameraControllerProvider.notifier)
-                .animateToBounds(bounds);
-          }
-        },
-      );
-    });
   }
 
   Widget _buildOfflineLayout(BuildContext context, VoidCallback onRetry) {
@@ -593,45 +524,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     }
   }
 
-  void _onPositionUpdate(Position position, Position? previous) {
-    if (!mounted) return;
-    _previousStreamPosition = previous;
-    _latestStreamPosition = position;
-    // 共有モード中はカメラを移動しない（スクリーンショット用のルート全体表示を維持する）
-    if (_isShareMode) {
-      setState(() {});
-      return;
-    }
-    // ルート拡大モード中はカメラを移動しない（ルート全体表示を維持する）
-    if (_isRouteBoundsMode) {
-      setState(() {});
-      return;
-    }
-    // 走行中（速度 > 閾値）のみ GPS ベアリングで更新。停止中は最後のベアリングを維持。
-    if (previous != null && position.speed > _movingSpeedThreshold) {
-      final b = bearingFromPositions(previous, position);
-      if (b != null) _lastBearing = b;
-    }
-    final double zoomToUse;
-    if (_isFirstPositionAfterStreamOn) {
-      zoomToUse = _trackingZoom;
-      _isFirstPositionAfterStreamOn = false;
-    } else if (_savedStreamZoom != null) {
-      zoomToUse = _savedStreamZoom!;
-      _savedStreamZoom = null;
-    } else {
-      zoomToUse = ref.read(cameraControllerProvider)?.camera.zoom ??
-          ref.read(mapStateProvider).savedZoomLevel ??
-          _trackingZoom;
-    }
-    ref.read(cameraControllerProvider.notifier).animateTo(
-          LatLng(position.latitude, position.longitude),
-          zoom: zoomToUse,
-          bearing: _lastBearing,
-        );
-    setState(() {});
-  }
-
   Future<void> _onCameraIdle() async {
     final controller = ref.read(cameraControllerProvider);
     if (controller == null) return;
@@ -672,92 +564,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   Future<void> _onMapStyleTap() async {
     final controller = ref.read(cameraControllerProvider);
     await ref.read(mapStateProvider.notifier).toggleMapStyle(controller);
-  }
-
-  Future<void> _onRouteBoundsTap() async {
-    if (_isRouteBoundsMode) {
-      setState(() => _isRouteBoundsMode = false);
-      final knownPos =
-          _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
-      await ref.read(cameraControllerProvider.notifier).animateTo(
-            LatLng(knownPos.latitude, knownPos.longitude),
-            zoom: _trackingZoom,
-            bearing: _lastBearing,
-          );
-    } else {
-      final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
-      if (bounds != null) {
-        setState(() => _isRouteBoundsMode = true);
-        await ref
-            .read(cameraControllerProvider.notifier)
-            .animateToBounds(bounds);
-      }
-    }
-  }
-
-  /// 位置情報サービスと権限をチェックし、不可の場合は SnackBar を表示して false を返す。
-  Future<bool> _checkLocationAndShowError() async {
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      if (!mounted) return false;
-      final l10n = AppLocalizations.of(context)!;
-      showAppSnackBar(
-        context,
-        l10n.locationServiceOff,
-        action: SnackBarAction(
-          label: l10n.openSettings,
-          textColor: Colors.white,
-          onPressed: Geolocator.openLocationSettings,
-        ),
-      );
-      return false;
-    }
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (!mounted) return false;
-    final l10n = AppLocalizations.of(context)!;
-
-    if (permission == LocationPermission.deniedForever) {
-      showAppSnackBar(
-        context,
-        l10n.locationPermissionDeniedForever,
-        action: SnackBarAction(
-          label: l10n.openSettings,
-          textColor: Colors.white,
-          onPressed: Geolocator.openAppSettings,
-        ),
-      );
-      return false;
-    }
-
-    if (permission == LocationPermission.denied) {
-      showAppSnackBar(context, l10n.locationPermissionDenied);
-      return false;
-    }
-
-    return true;
-  }
-
-  Future<void> _toggleLocationStream() async {
-    final wasActive = ref.read(locationStreamProvider).isActive;
-    if (!wasActive) {
-      if (!await _checkLocationAndShowError()) return;
-    }
-    await ref.read(locationStreamProvider.notifier).toggle(
-          onPosition: _onPositionUpdate,
-        );
-    if (wasActive) {
-      setState(() {
-        _latestStreamPosition = null;
-        _previousStreamPosition = null;
-      });
-    } else {
-      ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
-      _isFirstPositionAfterStreamOn = true;
-    }
   }
 
   Future<void> _onCancelDragMode() async {
