@@ -2,16 +2,10 @@ part of 'home_screen.dart';
 
 /// build() 補助メソッド・マップイベントハンドラをまとめた mixin。
 /// [_MyHomePageState] に mix-in して使用する。
-mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlMixin {
-  // ── _MyHomePageState から参照する abstract メンバー ────────────────────────
-  // _pendingSharedPosition / _sharePreviewIcon / _isShareMode / _shareHp は
-  // _ShareUrlMixin が保有するため abstract 宣言不要。
-
-  bool get _isDragMode;
-  set _isDragMode(bool v);
-
-  bool get _isMapTapAddMode;
-  set _isMapTapAddMode(bool v);
+mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlMixin, _PoiModeMixin {
+  // _isDragMode / _isMapTapAddMode は _PoiModeMixin が保有。
+  // _pendingSharedPosition / _sharePreviewIcon / _isShareMode / _shareHp は _ShareUrlMixin が保有。
+  // abstract 宣言は不要。
 
   // ── 定数 ─────────────────────────────────────────────────────────────────
 
@@ -307,29 +301,6 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
   Future<void> _onMapStyleTap() async {
     final controller = ref.read(cameraControllerProvider);
     await ref.read(mapStateProvider.notifier).toggleMapStyle(controller);
-  }
-
-  Future<void> _onCancelDragMode() async {
-    await ref.read(mapStateProvider.notifier).stopPoiDrag();
-    if (!mounted) return;
-    setState(() => _isDragMode = false);
-  }
-
-  Future<void> _onCancelMapTapAddMode() async {
-    if (!mounted) return;
-    setState(() => _isMapTapAddMode = false);
-  }
-
-  Future<void> _onConfirmMapTapPosition() async {
-    final center = ref.read(cameraControllerProvider)?.camera.center;
-    if (center == null || !mounted) return;
-    await handleMapLongPressPoiAdd(
-      context,
-      ref,
-      center,
-      initialTitle: null,
-      onComplete: () => setState(() => _isMapTapAddMode = false),
-    );
   }
 
   Widget _buildBody(BuildContext context) {
