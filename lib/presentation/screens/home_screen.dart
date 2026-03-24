@@ -590,12 +590,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       _expectingReturnFromSettings = false;
       if (!mounted) return;
       _fetchPositionInBackground();
-      return;
     }
-
-    ref.read(locationStreamProvider.notifier).restoreFromSaved(
-          onPosition: _onPositionUpdate,
-        );
   }
 
   void _onPositionUpdate(Position position, Position? previous) {
