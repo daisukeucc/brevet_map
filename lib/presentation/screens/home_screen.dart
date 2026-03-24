@@ -68,7 +68,12 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage>
-    with WidgetsBindingObserver, _ShareUrlMixin, _PoiModeMixin, _LocationStreamMixin, _BuildMixin {
+    with
+        WidgetsBindingObserver,
+        _ShareUrlMixin,
+        _PoiModeMixin,
+        _LocationStreamMixin,
+        _BuildMixin {
   late final VolumeZoomHandler _volumeZoomHandler;
 
   /// 初回インストールか（null=未取得、true=初回、false=2回目以降）
@@ -150,7 +155,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         });
       }
     });
-
   }
 
   @override
@@ -167,7 +171,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
-      ref.read(locationStreamProvider.notifier).stop();
+      // 共有シート表示中は Android でもアプリが paused/inactive に遷移するが、
+      // 位置情報ストリームは停止しない（iOS との挙動を統一する）
+      if (!_isShareMode) {
+        ref.read(locationStreamProvider.notifier).stop();
+      }
       if (state == AppLifecycleState.paused) return;
     }
 
@@ -179,6 +187,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       setState(() {
         _isShareMode = false;
         _shareHp = null;
+        _isRouteBoundsMode = true;
       });
     }
 

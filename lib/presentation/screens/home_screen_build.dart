@@ -100,6 +100,7 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
           onShareModeChanged: (isShareMode, {shareHp}) => setState(() {
             _isShareMode = isShareMode;
             _shareHp = shareHp;
+            if (isShareMode) _isRouteBoundsMode = true;
           }),
           getMounted: () => mounted,
           onAfterCameraAnimation: (zoomBefore) {
@@ -247,6 +248,7 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
               onShareModeChanged: (isShareMode, {shareHp}) => setState(() {
                 _isShareMode = isShareMode;
                 _shareHp = shareHp;
+                if (isShareMode) _isRouteBoundsMode = true;
               }),
               getMounted: () => mounted,
               onAfterCameraAnimation: (zoomBefore) {
