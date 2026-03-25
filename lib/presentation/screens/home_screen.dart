@@ -35,8 +35,13 @@ import '../widgets/connectivity_gate.dart'
         ConnectivityCheckingView,
         OfflinePlaceholderView;
 import '../widgets/map_screen_content.dart';
-import '../widgets/pulsing_location_marker.dart';
+import 'map_markers.dart';
 import '../widgets/poi_detail_sheet.dart';
+
+part 'home_screen_share.dart';
+part 'home_screen_poi.dart';
+part 'home_screen_location.dart';
+part 'home_screen_build.dart';
 
 /// 位置情報が取得できない場合のフォールバック位置（東京駅）
 Position _defaultPosition() {
@@ -63,66 +68,16 @@ class MyHomePage extends ConsumerStatefulWidget {
 }
 
 class _MyHomePageState extends ConsumerState<MyHomePage>
-    with WidgetsBindingObserver {
-  /// 初期表示位置。null の間はローディング、非 null で地図表示
-  Position? _initialPosition;
-  bool _expectingReturnFromSettings = false;
-  double _lastBearing = 0.0;
-  bool _isDragMode = false;
-
-  /// 停止判定の速度閾値（m/s）。これ以下では GPS ベアリングを更新しない。≒5.4 km/h
-  static const double _movingSpeedThreshold = 1.5;
-  bool _isMapTapAddMode = false;
-
-  /// 共有リンクから取得した座標。非 null のときプレビューマーカー表示・登録確認UI表示
-  LatLng? _pendingSharedPosition;
-
-  /// 共有リンクから取得した施設名。POI登録時のタイトル初期値に使用
-  String? _pendingSharedPlaceName;
-
-  /// 共有プレビュー用の現在地風アイコン
-  Widget? _sharePreviewIcon;
-
-  /// 位置ストリームON時の最新位置（現在地マーカー表示用）
-  Position? _latestStreamPosition;
-
-  /// 直前の位置（bearing による往路/復路判定用）
-  Position? _previousStreamPosition;
-
-  /// 共有モード中（吹き出し表示中）は true
-  bool _isShareMode = false;
-
-  /// 共有モード時のHP値（0.0〜1.0）。ダイアログで設定
-  double? _shareHp;
-
-  /// 位置ストリームON直後の初回位置更新か（初回はデフォルトズーム、以降は現在表示ズームを維持）
-  bool _isFirstPositionAfterStreamOn = false;
-
+    with
+        WidgetsBindingObserver,
+        _ShareUrlMixin,
+        _PoiModeMixin,
+        _LocationStreamMixin,
+        _BuildMixin {
   late final VolumeZoomHandler _volumeZoomHandler;
 
-  /// 起動時に位置取得に失敗した場合、案内 SnackBar を一度だけ表示したか
-  bool _hasShownLocationUnavailableHint = false;
-
-  /// 初回ルート取得を実行したか（addPostFrameCallback の多重登録防止）
-  bool _hasTriggeredInitialRouteFetch = false;
-
-  /// 位置取得の試行が完了したか（成功・失敗・タイムアウト問わず）
-  bool _positionFetchCompleted = false;
-
-  /// 初回インストールか（null=未取得、true=初回、false=2回目以降）
+  /// 初回インストールか（null=確認中、true=初回、false=2回目以降）
   bool? _isFirstLaunch;
-
-  /// 初回起動時に ConnectivtyGate がオフラインと判定したか
-  bool _isConnectivityOffline = false;
-
-  static const double _trackingZoom = 15.0;
-
-  /// シェアボタンタップ後にズームを復元するための保存値
-  double? _savedStreamZoom;
-
-  /// ルート拡大モード中は true（現在地追従を停止してルート全体を表示）
-  bool _isRouteBoundsMode = true;
-  static const double _defaultZoom = 12.0;
 
   @override
   void initState() {
@@ -166,15 +121,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
+    // 初回インストール判定（例外・タイムアウト時は false にフォールバック）
     isFirstLaunch()
         .timeout(const Duration(seconds: 3), onTimeout: () => false)
         .then((first) {
       if (mounted) setState(() => _isFirstLaunch = first);
+    }).catchError((_) {
+      if (mounted) setState(() => _isFirstLaunch = false);
     });
 
-    createSharePreviewMarkerIcon().then((icon) {
-      if (mounted) setState(() => _sharePreviewIcon = icon);
-    });
+    _initShareFlow();
 
     GpxChannelService.setMethodCallHandler((content) {
       if (mounted) {
@@ -198,53 +154,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         });
       }
     });
-
-    ShareChannelService.setMethodCallHandler(_onSharedUrlReceived);
-    ShareChannelService.getInitialSharedUrl().then((url) {
-      if (url != null && url.isNotEmpty && mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _onSharedUrlReceived(url);
-        });
-      }
-    });
-  }
-
-  Future<void> _onSharedUrlReceived(String url) async {
-    if (!mounted) return;
-    await handleSharedUrlReceived(context, ref, url,
-        onParsed: (position, placeName) {
-      if (!mounted) return;
-      setState(() {
-        _pendingSharedPosition = position;
-        _pendingSharedPlaceName = placeName;
-      });
-    });
-  }
-
-  void _onCancelSharePreview() {
-    setState(() {
-      _pendingSharedPosition = null;
-      _pendingSharedPlaceName = null;
-    });
-  }
-
-  Future<void> _onConfirmSharePreview() async {
-    final position = _pendingSharedPosition;
-    if (position == null || !mounted) return;
-    final placeName = _pendingSharedPlaceName;
-    await handleConfirmSharePreview(
-      context,
-      ref,
-      position,
-      placeName,
-      onClear: () {
-        if (!mounted) return;
-        setState(() {
-          _pendingSharedPosition = null;
-          _pendingSharedPlaceName = null;
-        });
-      },
-    );
   }
 
   @override
@@ -256,322 +165,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     super.dispose();
   }
 
-  void _onUserInteraction() {
-    ScaffoldMessenger.of(context).hideCurrentSnackBar();
-  }
-
-  void _fetchPositionInBackground() {
-    getPositionWithPermission(
-      context,
-      onOpenSettings: () => _expectingReturnFromSettings = true,
-    ).timeout(const Duration(seconds: 20), onTimeout: () => null).then((pos) {
-      if (!mounted) return;
-      final position = pos ?? _defaultPosition();
-      setState(() {
-        if (pos != null) _initialPosition = pos;
-        _positionFetchCompleted = true;
-      });
-      if (pos == null &&
-          !_hasShownLocationUnavailableHint &&
-          !_isConnectivityOffline) {
-        _hasShownLocationUnavailableHint = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          showAppSnackBar(
-            context,
-            AppLocalizations.of(context)!.locationUnavailableWithRetry,
-            action: SnackBarAction(
-              label: AppLocalizations.of(context)!.openSettings,
-              onPressed: () => Geolocator.openAppSettings(),
-            ),
-          );
-        });
-      }
-      _hasTriggeredInitialRouteFetch = true;
-      ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
-        position,
-        animateCamera: (bounds) async {
-          if (bounds != null) {
-            await ref
-                .read(cameraControllerProvider.notifier)
-                .animateToBounds(bounds);
-          }
-        },
-      );
-    });
-  }
-
-  Widget _buildOfflineLayout(BuildContext context, VoidCallback onRetry) {
-    final mapState = ref.watch(mapStateProvider);
-    final locationState = ref.watch(locationStreamProvider);
-    final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
-    final position = _initialPosition ?? _defaultPosition();
-
-    return MapScreenContent(
-      key: ValueKey(tileProviderKey),
-      initialPosition: LatLng(position.latitude, position.longitude),
-      initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
-      polylines: mapState.routePolylines,
-      markers: mapState.routeMarkers,
-      mapStyleMode: mapState.mapStyleMode,
-      onCameraIdle: _onCameraIdle,
-      onMapCreated: _onMapCreated,
-      onMapStyleTap: _onMapStyleTap,
-      onRouteBoundsTap: _onRouteBoundsTap,
-      isRouteBoundsMode: _isRouteBoundsMode,
-      isStreamActive: locationState.isActive,
-      onToggleLocationStream: _toggleLocationStream,
-      progressBarValue: locationState.progressBarValue,
-      isScreenSleepOn: ref.watch(screenSleepProvider),
-      onSleepToggleTap: () {
-        final current = ref.read(screenSleepProvider);
-        handleScreenSleepChange(context, ref, !current);
-      },
-      onAppSettingsTap: () => showAppSettingsScreen(
-        context,
-        onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
-        onLanguageTap: () => showLanguageSelectionFlow(context, ref),
-        onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
-        onLocationSharingTap: () => shareCurrentLocation(context),
-        onContactUsTap: () => openContactEmail(context),
-      ),
-      onGpxImportTap: () => handleGpxImportTap(
-        context,
-        ref,
-        onSuccess: () => setState(() => _isRouteBoundsMode = true),
-      ),
-      onGpxExportTap: () => handleGpxExportTap(context, ref),
-      onOfflineMapTap: () => handleOfflineMapTap(context, ref),
-      onAddPoiTap: () => handleAddPoiTap(
-        context,
-        ref,
-        getMounted: () => mounted,
-        onStartMapTapAddMode: () => setState(() => _isMapTapAddMode = true),
-        onStartDragMode: () => setState(() => _isDragMode = true),
-        onDragEnd: (p, latLng) => handlePoiDragEnd(
-          context,
-          ref,
-          p,
-          latLng,
-          onStopDragMode: () => setState(() => _isDragMode = false),
-        ),
-      ),
-      hasUserPois: mapState.userPois.isNotEmpty,
-      onUserInteraction: _onUserInteraction,
-      isDragMode: _isDragMode,
-      isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
-      showBatteryLevel: ref.watch(batteryDisplayProvider),
-      offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
-      isShareMode: _isShareMode,
-      onShareTap: (key) {
-        handleShareButtonTap(
-          context: context,
-          ref: ref,
-          screenshotKey: key,
-          currentPosition: _latestStreamPosition != null
-              ? LatLng(
-                  _latestStreamPosition!.latitude,
-                  _latestStreamPosition!.longitude,
-                )
-              : null,
-          previousPosition: _previousStreamPosition != null
-              ? LatLng(
-                  _previousStreamPosition!.latitude,
-                  _previousStreamPosition!.longitude,
-                )
-              : null,
-          onShareModeChanged: (isShareMode, {shareHp}) => setState(() {
-            _isShareMode = isShareMode;
-            _shareHp = shareHp;
-          }),
-          getMounted: () => mounted,
-          onAfterCameraAnimation: (zoomBefore) {
-            if (ref.read(locationStreamProvider).isActive) {
-              _savedStreamZoom = zoomBefore;
-            }
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildMapLayout(BuildContext context) {
-    final mapState = ref.watch(mapStateProvider);
-    final locationState = ref.watch(locationStreamProvider);
-    final distanceUnit = ref.watch(distanceUnitProvider);
-    final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
-    final position = _initialPosition ?? _defaultPosition();
-
-    // 位置取得が完了してからルート作成（ネットワークチェックでオンライン表示が先になる場合の対策）
-    if (_positionFetchCompleted && !_hasTriggeredInitialRouteFetch) {
-      _hasTriggeredInitialRouteFetch = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
-          position,
-          animateCamera: (bounds) async {
-            if (bounds != null) {
-              await ref
-                  .read(cameraControllerProvider.notifier)
-                  .animateToBounds(bounds);
-            }
-          },
-        );
-      });
-    }
-
-    var markers = mapState.routeMarkers;
-    if (_pendingSharedPosition != null) {
-      markers = [
-        ...markers,
-        Marker(
-          point: _pendingSharedPosition!,
-          width: 72,
-          height: 72,
-          alignment: Alignment.center,
-          child: _sharePreviewIcon ??
-              Icon(Icons.place, color: Colors.orange, size: 48),
-        ),
-      ];
-    }
-    if (locationState.isActive) {
-      final pos =
-          _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
-      final posLatLng = LatLng(pos.latitude, pos.longitude);
-      markers = [
-        ...markers,
-        Marker(
-          point: posLatLng,
-          width: 72,
-          height: 72,
-          alignment: Alignment.center,
-          child: PulsingLocationMarker(
-            size: 72,
-            isDarkMode: mapState.mapStyleMode == 2,
-          ),
-        ),
-      ];
-    }
-
-    final calloutData = computeCalloutData(
-      isShareMode: _isShareMode,
-      hasPosition: locationState.isActive ||
-          _latestStreamPosition != null ||
-          _initialPosition != null,
-      currentPosition: () {
-        final pos =
-            _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
-        return LatLng(pos.latitude, pos.longitude);
-      }(),
-      previousPosition: _previousStreamPosition != null
-          ? LatLng(
-              _previousStreamPosition!.latitude,
-              _previousStreamPosition!.longitude,
-            )
-          : null,
-      routePoints: mapState.fullRoutePoints ?? mapState.savedRoutePoints,
-      distanceUnit: distanceUnit,
-    );
-
-    return Stack(
-      children: [
-        MapScreenContent(
-          key: ValueKey(tileProviderKey),
-          initialPosition: LatLng(position.latitude, position.longitude),
-          initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
-          polylines: mapState.routePolylines,
-          markers: markers,
-          calloutPosition: calloutData.position,
-          calloutText: calloutData.text,
-          calloutHp: _shareHp,
-          mapStyleMode: mapState.mapStyleMode,
-          onCameraIdle: _onCameraIdle,
-          onMapCreated: _onMapCreated,
-          onMapStyleTap: _onMapStyleTap,
-          onRouteBoundsTap: _onRouteBoundsTap,
-          isRouteBoundsMode: _isRouteBoundsMode,
-          isStreamActive: locationState.isActive,
-          onToggleLocationStream: _toggleLocationStream,
-          progressBarValue: locationState.progressBarValue,
-          isScreenSleepOn: ref.watch(screenSleepProvider),
-          onSleepToggleTap: () {
-            final current = ref.read(screenSleepProvider);
-            handleScreenSleepChange(context, ref, !current);
-          },
-          onAppSettingsTap: () => showAppSettingsScreen(
-            context,
-            onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
-            onLanguageTap: () => showLanguageSelectionFlow(context, ref),
-            onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
-            onLocationSharingTap: () => shareCurrentLocation(context),
-            onContactUsTap: () => openContactEmail(context),
-          ),
-          onGpxImportTap: () => handleGpxImportTap(
-        context,
-        ref,
-        onSuccess: () => setState(() => _isRouteBoundsMode = true),
-      ),
-          onGpxExportTap: () => handleGpxExportTap(context, ref),
-          onOfflineMapTap: () => handleOfflineMapTap(context, ref),
-          onAddPoiTap: () => handleAddPoiTap(
-            context,
-            ref,
-            getMounted: () => mounted,
-            onStartMapTapAddMode: () => setState(() => _isMapTapAddMode = true),
-            onStartDragMode: () => setState(() => _isDragMode = true),
-            onDragEnd: (p, latLng) => handlePoiDragEnd(
-              context,
-              ref,
-              p,
-              latLng,
-              onStopDragMode: () => setState(() => _isDragMode = false),
-            ),
-          ),
-          hasUserPois: mapState.userPois.isNotEmpty,
-          onUserInteraction: _onUserInteraction,
-          isDragMode: _isDragMode,
-          isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
-          showBatteryLevel: ref.watch(batteryDisplayProvider),
-          isShareMode: _isShareMode,
-          onShareTap: (key) {
-            handleShareButtonTap(
-              context: context,
-              ref: ref,
-              screenshotKey: key,
-              currentPosition: _latestStreamPosition != null
-                  ? LatLng(
-                      _latestStreamPosition!.latitude,
-                      _latestStreamPosition!.longitude,
-                    )
-                  : null,
-              previousPosition: _previousStreamPosition != null
-                  ? LatLng(
-                      _previousStreamPosition!.latitude,
-                      _previousStreamPosition!.longitude,
-                    )
-                  : null,
-              onShareModeChanged: (isShareMode, {shareHp}) => setState(() {
-                _isShareMode = isShareMode;
-                _shareHp = shareHp;
-              }),
-              getMounted: () => mounted,
-              onAfterCameraAnimation: (zoomBefore) {
-                if (ref.read(locationStreamProvider).isActive) {
-                  _savedStreamZoom = zoomBefore;
-                }
-              },
-            );
-          },
-        ),
-      ],
-    );
-  }
-
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
-      ref.read(locationStreamProvider.notifier).stop();
+      // 共有シート表示中は Android でもアプリが paused/inactive に遷移するが、
+      // 位置情報ストリームは停止しない（iOS との挙動を統一する）
+      if (!_isShareMode) {
+        ref.read(locationStreamProvider.notifier).stop();
+      }
       if (state == AppLifecycleState.paused) return;
     }
 
@@ -583,6 +186,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       setState(() {
         _isShareMode = false;
         _shareHp = null;
+        _isRouteBoundsMode = true;
       });
     }
 
@@ -590,206 +194,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       _expectingReturnFromSettings = false;
       if (!mounted) return;
       _fetchPositionInBackground();
-      return;
     }
-
-    ref.read(locationStreamProvider.notifier).restoreFromSaved(
-          onPosition: _onPositionUpdate,
-        );
-  }
-
-  void _onPositionUpdate(Position position, Position? previous) {
-    if (!mounted) return;
-    _previousStreamPosition = previous;
-    _latestStreamPosition = position;
-    // 共有モード中はカメラを移動しない（スクリーンショット用のルート全体表示を維持する）
-    if (_isShareMode) {
-      setState(() {});
-      return;
-    }
-    // ルート拡大モード中はカメラを移動しない（ルート全体表示を維持する）
-    if (_isRouteBoundsMode) {
-      setState(() {});
-      return;
-    }
-    // 走行中（速度 > 閾値）のみ GPS ベアリングで更新。停止中は最後のベアリングを維持。
-    if (previous != null && position.speed > _movingSpeedThreshold) {
-      final b = bearingFromPositions(previous, position);
-      if (b != null) _lastBearing = b;
-    }
-    final double zoomToUse;
-    if (_isFirstPositionAfterStreamOn) {
-      zoomToUse = _trackingZoom;
-      _isFirstPositionAfterStreamOn = false;
-    } else if (_savedStreamZoom != null) {
-      zoomToUse = _savedStreamZoom!;
-      _savedStreamZoom = null;
-    } else {
-      zoomToUse = ref.read(cameraControllerProvider)?.camera.zoom ??
-          ref.read(mapStateProvider).savedZoomLevel ??
-          _trackingZoom;
-    }
-    ref.read(cameraControllerProvider.notifier).animateTo(
-          LatLng(position.latitude, position.longitude),
-          zoom: zoomToUse,
-          bearing: _lastBearing,
-        );
-    setState(() {});
-  }
-
-  Future<void> _onCameraIdle() async {
-    final controller = ref.read(cameraControllerProvider);
-    if (controller == null) return;
-    await ref.read(mapStateProvider.notifier).onCameraIdle(controller);
-  }
-
-  Future<void> _onMapCreated(MapController controller) async {
-    ref.read(cameraControllerProvider.notifier).setController(controller);
-    ref.read(mapStateProvider.notifier).setPoiTapHandler((poi) {
-      showPoiDetailSheet(context, name: poi.name, description: poi.description);
-    });
-    ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
-      final l10n = AppLocalizations.of(context)!;
-      final unit = ref.read(distanceUnitProvider);
-      final prefix = poi.km != null ? '${formatDistance(poi.km!, unit)}：' : '';
-      final title = poi.title.isEmpty ? l10n.titleNone : poi.title;
-      showPoiDetailSheet(
-        context,
-        name: '$prefix$title',
-        description: poi.body,
-      );
-    });
-    await ref.read(mapStateProvider.notifier).onMapCreated(
-          controller,
-          animateCamera: (bounds) => ref
-              .read(cameraControllerProvider.notifier)
-              .animateToBounds(bounds),
-        );
-    // 共有URLから起動した場合、地図作成後に該当座標へズーム（起動直後はcontroller未設定のためここで実行）
-    if (_pendingSharedPosition != null && mounted) {
-      await ref.read(cameraControllerProvider.notifier).animateTo(
-            _pendingSharedPosition!,
-            zoom: 18.0,
-          );
-    }
-  }
-
-  Future<void> _onMapStyleTap() async {
-    final controller = ref.read(cameraControllerProvider);
-    await ref.read(mapStateProvider.notifier).toggleMapStyle(controller);
-  }
-
-  Future<void> _onRouteBoundsTap() async {
-    if (_isRouteBoundsMode) {
-      setState(() => _isRouteBoundsMode = false);
-      final knownPos =
-          _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
-      await ref.read(cameraControllerProvider.notifier).animateTo(
-            LatLng(knownPos.latitude, knownPos.longitude),
-            zoom: _trackingZoom,
-            bearing: _lastBearing,
-          );
-    } else {
-      final bounds = ref.read(mapStateProvider.notifier).getRouteBounds();
-      if (bounds != null) {
-        setState(() => _isRouteBoundsMode = true);
-        await ref
-            .read(cameraControllerProvider.notifier)
-            .animateToBounds(bounds);
-      }
-    }
-  }
-
-  /// 位置情報サービスと権限をチェックし、不可の場合は SnackBar を表示して false を返す。
-  Future<bool> _checkLocationAndShowError() async {
-    if (!await Geolocator.isLocationServiceEnabled()) {
-      if (!mounted) return false;
-      final l10n = AppLocalizations.of(context)!;
-      showAppSnackBar(
-        context,
-        l10n.locationServiceOff,
-        action: SnackBarAction(
-          label: l10n.openSettings,
-          textColor: Colors.white,
-          onPressed: Geolocator.openLocationSettings,
-        ),
-      );
-      return false;
-    }
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (!mounted) return false;
-    final l10n = AppLocalizations.of(context)!;
-
-    if (permission == LocationPermission.deniedForever) {
-      showAppSnackBar(
-        context,
-        l10n.locationPermissionDeniedForever,
-        action: SnackBarAction(
-          label: l10n.openSettings,
-          textColor: Colors.white,
-          onPressed: Geolocator.openAppSettings,
-        ),
-      );
-      return false;
-    }
-
-    if (permission == LocationPermission.denied) {
-      showAppSnackBar(context, l10n.locationPermissionDenied);
-      return false;
-    }
-
-    return true;
-  }
-
-  Future<void> _toggleLocationStream() async {
-    final wasActive = ref.read(locationStreamProvider).isActive;
-    if (!wasActive) {
-      if (!await _checkLocationAndShowError()) return;
-    }
-    await ref.read(locationStreamProvider.notifier).toggle(
-          onPosition: _onPositionUpdate,
-        );
-    if (wasActive) {
-      setState(() {
-        _latestStreamPosition = null;
-        _previousStreamPosition = null;
-      });
-    } else {
-      ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
-      _isFirstPositionAfterStreamOn = true;
-    }
-  }
-
-  Future<void> _onCancelDragMode() async {
-    await ref.read(mapStateProvider.notifier).stopPoiDrag();
-    if (!mounted) return;
-    setState(() => _isDragMode = false);
-  }
-
-  Future<void> _onCancelMapTapAddMode() async {
-    if (!mounted) return;
-    setState(() => _isMapTapAddMode = false);
-  }
-
-  Future<void> _onConfirmMapTapPosition() async {
-    final center = ref.read(cameraControllerProvider)?.camera.center;
-    if (center == null || !mounted) return;
-    await handleMapLongPressPoiAdd(
-      context,
-      ref,
-      center,
-      initialTitle: null,
-      onComplete: () => setState(() => _isMapTapAddMode = false),
-    );
-  }
-
-  Widget _buildBody(BuildContext context) {
-    return _buildMapLayout(context);
   }
 
   @override
@@ -798,9 +203,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       children: [
         Scaffold(
           body: _isFirstLaunch == null
-              ? ConnectivityCheckingView(
-                  message: AppLocalizations.of(context)!.fetchingLocation,
-                )
+              ? const ConnectivityCheckingView()
               : _isFirstLaunch!
                   ? ConnectivityGate(
                       onOnline: () {
@@ -812,211 +215,20 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                             .read(mapStateProvider.notifier)
                             .resetInitialRouteFetchForRetry();
                       },
-                      onOffline: () {
-                        _isConnectivityOffline = true;
-                      },
                       builder: (context, gateState, onRetry) {
                         if (gateState == ConnectivityGateState.checking) {
                           return const ConnectivityCheckingView();
                         }
                         if (gateState == ConnectivityGateState.offline) {
-                          return _buildOfflineLayout(context, onRetry);
+                          return OfflinePlaceholderView(onRetry: onRetry);
                         }
                         return _buildBody(context);
                       },
                     )
                   : _buildBody(context),
         ),
-        if (_isDragMode) ...[
-          const Positioned.fill(
-            child: IgnorePointer(
-              child: ColoredBox(color: Color(0x66000000)),
-            ),
-          ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top,
-            bottom: 80,
-            left: 0,
-            right: 0,
-            child: const IgnorePointer(
-              child: Center(
-                child: Icon(
-                  Icons.my_location,
-                  size: 56,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ColoredBox(
-              color: Colors.black.withValues(alpha: 0.6),
-              child: SafeArea(
-                top: false,
-                bottom: false,
-                child: SizedBox(
-                  height: 96,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () {
-                            final center = ref
-                                .read(cameraControllerProvider)
-                                ?.camera
-                                .center;
-                            if (center == null) return;
-                            ref
-                                .read(mapStateProvider.notifier)
-                                .confirmPoiDrag(center);
-                          },
-                          child: Text(
-                            AppLocalizations.of(context)!.changePoiPosition,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
-                            ),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: _onCancelDragMode,
-                          child: Text(
-                            AppLocalizations.of(context)!.cancel,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              color: Colors.white,
-                              decoration: TextDecoration.none,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-        if (_isMapTapAddMode || _pendingSharedPosition != null) ...[
-          const Positioned.fill(
-            child: IgnorePointer(
-              child: ColoredBox(color: Color(0x66000000)),
-            ),
-          ),
-          if (_isMapTapAddMode && _pendingSharedPosition == null)
-            Positioned(
-              top: MediaQuery.of(context).padding.top,
-              bottom: 80,
-              left: 0,
-              right: 0,
-              child: const IgnorePointer(
-                child: Center(
-                  child: Icon(
-                    Icons.my_location,
-                    size: 56,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ColoredBox(
-              color: Colors.grey.shade800,
-              child: SafeArea(
-                top: false,
-                bottom: false,
-                child: SizedBox(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 25,
-                      vertical: 15,
-                    ),
-                    child: Row(
-                      children: [
-                        if (_pendingSharedPosition != null) ...[
-                          Expanded(
-                            child: Text(
-                              AppLocalizations.of(context)!
-                                  .registerThisPlaceAsPoi,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                height: 1.6,
-                                fontWeight: FontWeight.normal,
-                                color: Colors.white,
-                                decoration: TextDecoration.none,
-                              ),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          TextButton(
-                            onPressed: _onCancelSharePreview,
-                            child: Text(
-                              AppLocalizations.of(context)!.cancel,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _onConfirmSharePreview,
-                            child: Text(
-                              AppLocalizations.of(context)!.ok,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                          ),
-                        ] else ...[
-                          const Spacer(),
-                          TextButton(
-                            onPressed: _onConfirmMapTapPosition,
-                            child: Text(
-                              AppLocalizations.of(context)!.registerAtPosition,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _onCancelMapTapAddMode,
-                            child: Text(
-                              AppLocalizations.of(context)!.cancel,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Colors.white,
-                                decoration: TextDecoration.none,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
+        ..._buildDragModeOverlays(context),
+        ..._buildPoiAddModeOverlays(context),
       ],
     );
   }

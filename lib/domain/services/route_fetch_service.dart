@@ -55,6 +55,7 @@ Future<List<LatLng>?> fetchOrLoadRoute(
       waypoints: waypoints,
     );
     if (result == null || result.points.isEmpty) return null;
+    // API 成功時のみ初回フラグを立てる（失敗時は次回起動でも再取得を試みる）
     await saveRouteEncoded(result.encoded);
     await markInitialRouteShown();
     return result.points;
