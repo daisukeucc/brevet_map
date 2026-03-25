@@ -76,12 +76,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         _BuildMixin {
   late final VolumeZoomHandler _volumeZoomHandler;
 
-  /// 初回インストールか（null=未取得、true=初回、false=2回目以降）
+  /// 初回インストールか（null=確認中、true=初回、false=2回目以降）
   bool? _isFirstLaunch;
-
-  /// 初回起動時に ConnectivityGate がオフラインと判定したか
-  @override
-  bool _isConnectivityOffline = false;
 
   @override
   void initState() {
@@ -125,10 +121,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
+    // 初回インストール判定（例外・タイムアウト時は false にフォールバック）
     isFirstLaunch()
         .timeout(const Duration(seconds: 3), onTimeout: () => false)
         .then((first) {
       if (mounted) setState(() => _isFirstLaunch = first);
+    }).catchError((_) {
+      if (mounted) setState(() => _isFirstLaunch = false);
     });
 
     _initShareFlow();
@@ -204,9 +203,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       children: [
         Scaffold(
           body: _isFirstLaunch == null
-              ? ConnectivityCheckingView(
-                  message: AppLocalizations.of(context)!.fetchingLocation,
-                )
+              ? const ConnectivityCheckingView()
               : _isFirstLaunch!
                   ? ConnectivityGate(
                       onOnline: () {
@@ -218,15 +215,12 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
                             .read(mapStateProvider.notifier)
                             .resetInitialRouteFetchForRetry();
                       },
-                      onOffline: () {
-                        _isConnectivityOffline = true;
-                      },
                       builder: (context, gateState, onRetry) {
                         if (gateState == ConnectivityGateState.checking) {
                           return const ConnectivityCheckingView();
                         }
                         if (gateState == ConnectivityGateState.offline) {
-                          return _buildOfflineLayout(context, onRetry);
+                          return OfflinePlaceholderView(onRetry: onRetry);
                         }
                         return _buildBody(context);
                       },

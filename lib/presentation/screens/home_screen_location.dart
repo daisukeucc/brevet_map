@@ -3,11 +3,6 @@ part of 'home_screen.dart';
 /// 位置情報ストリーム関連の状態・ロジックをまとめた mixin。
 /// [_MyHomePageState] に mix-in して使用する。
 mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
-  // ── _MyHomePageState から参照する abstract メンバー ────────────────────────
-
-  /// オフライン状態かどうか（_MyHomePageState が実装）
-  bool get _isConnectivityOffline;
-
   // ── このmixinが所有するstate ──────────────────────────────────────────────
 
   /// 初期表示位置。null の間はローディング、非 null で地図表示
@@ -64,9 +59,7 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
         if (pos != null) _initialPosition = pos;
         _positionFetchCompleted = true;
       });
-      if (pos == null &&
-          !_hasShownLocationUnavailableHint &&
-          !_isConnectivityOffline) {
+      if (pos == null && !_hasShownLocationUnavailableHint) {
         _hasShownLocationUnavailableHint = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;

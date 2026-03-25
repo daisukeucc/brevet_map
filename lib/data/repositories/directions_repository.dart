@@ -37,7 +37,9 @@ Future<FetchDirectionsResult?> fetchDirections({
   final uri = Uri.parse(path);
 
   try {
-    final response = await http.get(uri);
+    final response = await http
+        .get(uri)
+        .timeout(const Duration(seconds: 30));
     if (response.statusCode != 200) return null;
 
     final json = jsonDecode(response.body) as Map<String, dynamic>;

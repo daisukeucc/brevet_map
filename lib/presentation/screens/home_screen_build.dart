@@ -18,101 +18,6 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
   }
 
-  Widget _buildOfflineLayout(BuildContext context, VoidCallback onRetry) {
-    final mapState = ref.watch(mapStateProvider);
-    final locationState = ref.watch(locationStreamProvider);
-    final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
-    final position = _initialPosition ?? _defaultPosition();
-
-    return MapScreenContent(
-      key: ValueKey(tileProviderKey),
-      initialPosition: LatLng(position.latitude, position.longitude),
-      initialZoom: mapState.savedZoomLevel ?? _defaultZoom,
-      polylines: mapState.routePolylines,
-      markers: mapState.routeMarkers,
-      mapStyleMode: mapState.mapStyleMode,
-      onCameraIdle: _onCameraIdle,
-      onMapCreated: _onMapCreated,
-      onMapStyleTap: _onMapStyleTap,
-      onRouteBoundsTap: _onRouteBoundsTap,
-      isRouteBoundsMode: _isRouteBoundsMode,
-      isStreamActive: locationState.isActive,
-      onToggleLocationStream: _toggleLocationStream,
-      progressBarValue: locationState.progressBarValue,
-      isScreenSleepOn: ref.watch(screenSleepProvider),
-      onSleepToggleTap: () {
-        final current = ref.read(screenSleepProvider);
-        handleScreenSleepChange(context, ref, !current);
-      },
-      onAppSettingsTap: () => showAppSettingsScreen(
-        context,
-        onDistanceUnitTap: () => showDistanceUnitFlow(context, ref),
-        onLanguageTap: () => showLanguageSelectionFlow(context, ref),
-        onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
-        onLocationSharingTap: () => shareCurrentLocation(context),
-        onContactUsTap: () => openContactEmail(context),
-      ),
-      onGpxImportTap: () => handleGpxImportTap(
-        context,
-        ref,
-        onSuccess: () => setState(() => _isRouteBoundsMode = true),
-      ),
-      onGpxExportTap: () => handleGpxExportTap(context, ref),
-      onOfflineMapTap: () => handleOfflineMapTap(context, ref),
-      onAddPoiTap: () => handleAddPoiTap(
-        context,
-        ref,
-        getMounted: () => mounted,
-        onStartMapTapAddMode: () => setState(() => _isMapTapAddMode = true),
-        onStartDragMode: () => setState(() => _isDragMode = true),
-        onDragEnd: (p, latLng) => handlePoiDragEnd(
-          context,
-          ref,
-          p,
-          latLng,
-          onStopDragMode: () => setState(() => _isDragMode = false),
-        ),
-      ),
-      hasUserPois: mapState.userPois.isNotEmpty,
-      onUserInteraction: _onUserInteraction,
-      isDragMode: _isDragMode,
-      isMapTapAddMode: _isMapTapAddMode || _pendingSharedPosition != null,
-      showBatteryLevel: ref.watch(batteryDisplayProvider),
-      offlineCenter: OfflinePlaceholderView(onRetry: onRetry),
-      isShareMode: _isShareMode,
-      onShareTap: (key) {
-        handleShareButtonTap(
-          context: context,
-          ref: ref,
-          screenshotKey: key,
-          currentPosition: _latestStreamPosition != null
-              ? LatLng(
-                  _latestStreamPosition!.latitude,
-                  _latestStreamPosition!.longitude,
-                )
-              : null,
-          previousPosition: _previousStreamPosition != null
-              ? LatLng(
-                  _previousStreamPosition!.latitude,
-                  _previousStreamPosition!.longitude,
-                )
-              : null,
-          onShareModeChanged: (isShareMode, {shareHp}) => setState(() {
-            _isShareMode = isShareMode;
-            _shareHp = shareHp;
-            if (isShareMode) _isRouteBoundsMode = true;
-          }),
-          getMounted: () => mounted,
-          onAfterCameraAnimation: (zoomBefore) {
-            if (ref.read(locationStreamProvider).isActive) {
-              _savedStreamZoom = zoomBefore;
-            }
-          },
-        );
-      },
-    );
-  }
-
   Widget _buildMapLayout(BuildContext context) {
     final mapState = ref.watch(mapStateProvider);
     final locationState = ref.watch(locationStreamProvider);
@@ -120,7 +25,7 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
     final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
     final position = _initialPosition ?? _defaultPosition();
 
-    // 位置取得が完了してからルート作成（ネットワークチェックでオンライン表示が先になる場合の対策）
+    // 位置取得が完了してからルート作成（_fetchPositionInBackground が先に完了した場合はそちらで実行済み）
     if (_positionFetchCompleted && !_hasTriggeredInitialRouteFetch) {
       _hasTriggeredInitialRouteFetch = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
