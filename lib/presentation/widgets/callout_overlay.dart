@@ -8,14 +8,17 @@ import 'location_callout.dart';
 const String _readyToStartText = '@--km';
 
 /// 吹き出しを画面上の適切な位置にオーバーレイ表示。端に隠れないよう配置を調整する。
+/// FlutterMap の外側の Stack に配置できるよう [mapController] を使って座標変換する。
 class CalloutOverlay extends StatelessWidget {
   const CalloutOverlay({
     super.key,
+    required this.mapController,
     required this.position,
     required this.text,
     this.hp,
   });
 
+  final MapController mapController;
   final LatLng position;
   final String text;
 
@@ -35,9 +38,15 @@ class CalloutOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: Builder(
-        builder: (context) {
-          final camera = MapCamera.of(context);
+      child: StreamBuilder<MapEvent>(
+        stream: mapController.mapEventStream,
+        builder: (context, _) {
+          MapCamera camera;
+          try {
+            camera = mapController.camera;
+          } catch (_) {
+            return const SizedBox.shrink();
+          }
           return LayoutBuilder(
             builder: (context, constraints) {
               final viewSize = Size(
@@ -128,3 +137,4 @@ class CalloutOverlay extends StatelessWidget {
     );
   }
 }
+
