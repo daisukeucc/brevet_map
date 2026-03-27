@@ -319,6 +319,17 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                 ),
                               ),
                             ),
+                          if (widget.calloutPosition != null &&
+                              widget.calloutText != null &&
+                              widget.offlineCenter == null)
+                            Positioned.fill(
+                              child: CalloutOverlay(
+                                mapController: _mapController,
+                                position: widget.calloutPosition!,
+                                text: widget.calloutText!,
+                                hp: widget.calloutHp,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -478,14 +489,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                   },
                 ),
         ),
-        if (widget.calloutPosition != null &&
-            widget.calloutText != null &&
-            widget.offlineCenter == null)
-          CalloutOverlay(
-            position: widget.calloutPosition!,
-            text: widget.calloutText!,
-            hp: widget.calloutHp,
-          ),
       ],
     );
     return map;
