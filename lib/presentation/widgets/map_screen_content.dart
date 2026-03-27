@@ -165,8 +165,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                             Positioned.fill(child: widget.offlineCenter!)
                           else
                             _buildMap(),
-                          if (!widget.isShareMode &&
-                              !widget.isDragMode &&
+                          if (!widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             Positioned(
                               left: 16,
@@ -178,7 +177,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                             ),
                           if (widget.isStreamActive &&
                               widget.onShareTap != null &&
-                              !widget.isShareMode &&
                               !widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             Positioned(
@@ -215,7 +213,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               ),
                             ),
                           if (!widget.isStreamActive &&
-                              !widget.isShareMode &&
                               !widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             Positioned(
@@ -262,7 +259,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               ),
                             ),
                           if (widget.showBatteryLevel &&
-                              !widget.isShareMode &&
                               !widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             const Positioned(
@@ -273,8 +269,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                 child: BatteryIndicator(),
                               ),
                             ),
-                          if (!widget.isShareMode &&
-                              !widget.isDragMode &&
+                          if (!widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             Positioned(
                               right: 16,
@@ -285,7 +280,6 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               ),
                             ),
                           if (widget.onSleepToggleTap != null &&
-                              !widget.isShareMode &&
                               !widget.isDragMode &&
                               !widget.isMapTapAddMode)
                             Positioned(
