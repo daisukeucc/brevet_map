@@ -90,9 +90,9 @@ flutter_launcher_icons:
 
 flutter_native_splash:
   color: "#222222"
-  image: "assets/icons/app_icon_round.png"
+  image: "assets/icons/app_icon_splash.png"
   android_12:
-    image: "assets/icons/app_icon_round_padded.png"
+    image: "assets/icons/app_icon_splash.png"
     color: "#222222"
 
 # For information on the generic Dart part of this file, see the
