@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
@@ -9,6 +12,15 @@ import 'config/tile_config.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/providers/app_settings_providers.dart';
 import 'presentation/screens/home_screen.dart';
+
+Future<void> _initRevenueCat() async {
+  final apiKey = Platform.isIOS
+      ? dotenv.env['REVENUECAT_IOS_API_KEY'] ?? ''
+      : dotenv.env['REVENUECAT_ANDROID_API_KEY'] ?? '';
+  if (apiKey.isEmpty) return;
+  await Purchases.setLogLevel(LogLevel.debug);
+  await Purchases.configure(PurchasesConfiguration(apiKey));
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +40,9 @@ Future<void> main() async {
   try {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
+
+  await _initRevenueCat();
+
   await TileConfig.initUserAgentPackageName();
   // クラッシュ後の ObjectBox DB 不正状態で initialise() が無限待機することがある。
   // タイムアウトで強制脱出し、キャッシュなしで起動を継続する。

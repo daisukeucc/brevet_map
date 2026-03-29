@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/models/user_poi.dart';
@@ -68,6 +69,8 @@ Future<void> handleAddPoiTap(
   required VoidCallback onStartDragMode,
   required void Function(UserPoi poi, LatLng newLatLng) onDragEnd,
 }) async {
+  if (!getMounted()) return;
+  await RevenueCatUI.presentPaywall();
   if (!getMounted()) return;
   final result = await showPoiManagementDialog(context, ref);
   if (result == null || !getMounted()) return;

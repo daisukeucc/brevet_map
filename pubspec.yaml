@@ -73,6 +73,7 @@ dependencies:
   url_launcher: ^6.3.0
   android_intent_plus: ^5.1.0
   purchases_flutter: ^8.4.0
+  purchases_ui_flutter: ^8.4.0
 
 dev_dependencies:
   flutter_test:
