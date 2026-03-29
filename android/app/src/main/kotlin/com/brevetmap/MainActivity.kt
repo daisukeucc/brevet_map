@@ -8,14 +8,28 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.view.KeyEvent
+import dev.darttools.flutter_android_volume_keydown.FlutterAndroidVolumeKeydownPlugin
+import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import dev.darttools.flutter_android_volume_keydown.FlutterAndroidVolumeKeydownActivity
 import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
 
-class MainActivity : FlutterAndroidVolumeKeydownActivity() {
+class MainActivity : FlutterFragmentActivity() {
+    override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
+        val sink = FlutterAndroidVolumeKeydownPlugin.eventSink
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN && sink != null) {
+            sink.success(true)
+            return true
+        }
+        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && sink != null) {
+            sink.success(false)
+            return true
+        }
+        return super.onKeyDown(keyCode, event)
+    }
     private val channelName = "com.brevetmap/gpx"
     private val shareChannelName = "com.brevetmap/share"
     private var pendingGpxUri: Uri? = null
