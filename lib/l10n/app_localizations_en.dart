@@ -441,4 +441,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get batteryLevelDisplayIosNote =>
       'On iOS, values are shown in 5% increments due to OS limitations';
+
+  @override
+  String get trialInfoClose => 'Close';
+
+  @override
+  String get trialInfoSubscribe => 'Subscription';
+
+  @override
+  String get trialInfoMessage =>
+      'Try POI adding and GPX export features free for 30 days.';
+
+  @override
+  String trialInfoRemainingDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: '$days days remaining',
+      one: '1 day remaining',
+    );
+    return '$_temp0';
+  }
 }

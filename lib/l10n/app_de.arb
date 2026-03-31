@@ -215,5 +215,14 @@
   "batteryLevelDisplay": "Akkustand anzeigen",
   "batteryLevelDisplayOn": "Anzeigen",
   "batteryLevelDisplayOff": "Ausblenden",
-  "batteryLevelDisplayIosNote": "Auf iOS werden die Werte aufgrund von Betriebssystemeinschränkungen in 5%-Schritten angezeigt"
+  "batteryLevelDisplayIosNote": "Auf iOS werden die Werte aufgrund von Betriebssystemeinschränkungen in 5%-Schritten angezeigt",
+  "trialInfoClose": "Schließen",
+  "trialInfoSubscribe": "Abonnement",
+  "trialInfoMessage": "Testen Sie das Hinzufügen von POIs und den GPX-Export 30 Tage lang kostenlos.",
+  "trialInfoRemainingDays": "{days, plural, =1{Noch 1 Tag} other{Noch {days} Tage}}",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  }
 }

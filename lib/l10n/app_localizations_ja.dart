@@ -434,4 +434,18 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get batteryLevelDisplayIosNote => 'OSの制限のため、iOSは5%毎の表示になります';
+
+  @override
+  String get trialInfoClose => '閉じる';
+
+  @override
+  String get trialInfoSubscribe => '定期購入';
+
+  @override
+  String get trialInfoMessage => 'POIの追加、GPXファイルのエクスポート機能は、30日間無料でお試しいただけます！';
+
+  @override
+  String trialInfoRemainingDays(int days) {
+    return '残り$days日';
+  }
 }

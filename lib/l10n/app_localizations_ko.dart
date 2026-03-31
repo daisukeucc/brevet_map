@@ -435,4 +435,18 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get batteryLevelDisplayIosNote => 'iOS에서는 OS 제한으로 인해 5% 단위로 표시됩니다';
+
+  @override
+  String get trialInfoClose => '닫기';
+
+  @override
+  String get trialInfoSubscribe => '구독';
+
+  @override
+  String get trialInfoMessage => 'POI 추가 및 GPX 내보내기 기능을 30일간 무료로 이용하실 수 있습니다!';
+
+  @override
+  String trialInfoRemainingDays(int days) {
+    return '남은 기간: $days일';
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
@@ -16,6 +17,7 @@ import 'poi_management_handler.dart';
 import 'offline_map_info_dialog.dart';
 import 'sleep_info_dialog.dart';
 import 'sleep_settings_handler.dart';
+import 'trial_info_dialog.dart';
 
 /// ボトムシートを閉じ、アニメーション完了後にコールバックを実行する
 /// メニュータップ後のシート閉じ〜処理開始の共通パターン
@@ -39,8 +41,36 @@ Future<void> handleGpxImportTap(
   await showGpxImportFlow(context, ref, onSuccess: onSuccess);
 }
 
+/// トライアル期間中はダイアログを表示し、期間終了後はペイウォールを表示する共通処理。
+/// 「定期購入」タップ時は true を返す（呼び出し側で次のダイアログをスキップする）。
+Future<bool> _showTrialOrPaywall(BuildContext context) async {
+  const trialPeriod = 30;
+  try {
+    final customerInfo = await Purchases.getCustomerInfo();
+    final firstSeen = DateTime.tryParse(customerInfo.firstSeen);
+    assert(() {
+      debugPrint('[Trial] firstSeen: $firstSeen');
+      return true;
+    }());
+    if (firstSeen != null) {
+      final elapsed = DateTime.now().difference(firstSeen).inDays;
+      if (elapsed < trialPeriod) {
+        if (!context.mounted) return false;
+        return await showTrialInfoDialog(context,
+            remainingDays: trialPeriod - elapsed);
+      }
+    }
+  } catch (_) {}
+  if (!context.mounted) return false;
+  await RevenueCatUI.presentPaywallIfNeeded('premium');
+  return true;
+}
+
 /// GPXエクスポートメニューがタップされたときのフロー
 Future<void> handleGpxExportTap(BuildContext context, WidgetRef ref) async {
+  if (!context.mounted) return;
+  final subscribed = await _showTrialOrPaywall(context);
+  if (!context.mounted || subscribed) return;
   await showGpxExportFlow(context, ref);
 }
 
@@ -70,8 +100,8 @@ Future<void> handleAddPoiTap(
   required void Function(UserPoi poi, LatLng newLatLng) onDragEnd,
 }) async {
   if (!getMounted()) return;
-  await RevenueCatUI.presentPaywall();
-  if (!getMounted()) return;
+  final subscribed = await _showTrialOrPaywall(context);
+  if (!getMounted() || subscribed) return;
   final result = await showPoiManagementDialog(context, ref);
   if (result == null || !getMounted()) return;
 
