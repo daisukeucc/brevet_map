@@ -224,5 +224,7 @@
     "placeholders": {
       "days": { "type": "int" }
     }
-  }
+  },
+  "poiPremiumMessage": "订阅 Brevet MAP 高级版，即可编辑和删除 POI！",
+  "poiPremiumViewPlans": "查看方案"
 }

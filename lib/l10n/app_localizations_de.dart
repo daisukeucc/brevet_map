@@ -464,4 +464,11 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get poiPremiumMessage =>
+      'Mit Brevet MAP Premium können Sie POIs bearbeiten und löschen!';
+
+  @override
+  String get poiPremiumViewPlans => 'Pläne anzeigen';
 }

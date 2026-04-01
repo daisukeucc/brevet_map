@@ -442,4 +442,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String trialInfoRemainingDays(int days) {
     return '剩余 $days 天';
   }
+
+  @override
+  String get poiPremiumMessage => '订阅 Brevet MAP 高级版，即可编辑和删除 POI！';
+
+  @override
+  String get poiPremiumViewPlans => '查看方案';
 }

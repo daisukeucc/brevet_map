@@ -224,5 +224,7 @@
     "placeholders": {
       "days": { "type": "int" }
     }
-  }
+  },
+  "poiPremiumMessage": "¡Suscríbete a Brevet MAP Premium para editar y eliminar POIs!",
+  "poiPremiumViewPlans": "Ver planes"
 }

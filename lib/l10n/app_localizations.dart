@@ -925,6 +925,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{days, plural, =1{1 day remaining} other{{days} days remaining}}'**
   String trialInfoRemainingDays(int days);
+
+  /// No description provided for @poiPremiumMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to Brevet MAP Premium to edit and delete POIs!'**
+  String get poiPremiumMessage;
+
+  /// No description provided for @poiPremiumViewPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'View Plans'**
+  String get poiPremiumViewPlans;
 }
 
 class _AppLocalizationsDelegate

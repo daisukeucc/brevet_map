@@ -448,4 +448,10 @@ class AppLocalizationsJa extends AppLocalizations {
   String trialInfoRemainingDays(int days) {
     return '残り$days日';
   }
+
+  @override
+  String get poiPremiumMessage => 'ブルベMAPプレミアムへの加入で、POIの編集・削除ができる！';
+
+  @override
+  String get poiPremiumViewPlans => 'プラン確認';
 }

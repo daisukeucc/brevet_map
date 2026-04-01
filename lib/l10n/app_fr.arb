@@ -224,5 +224,7 @@
     "placeholders": {
       "days": { "type": "int" }
     }
-  }
+  },
+  "poiPremiumMessage": "Abonnez-vous à Brevet MAP Premium pour modifier et supprimer des POIs !",
+  "poiPremiumViewPlans": "Voir les offres"
 }

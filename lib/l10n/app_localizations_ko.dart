@@ -449,4 +449,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String trialInfoRemainingDays(int days) {
     return '남은 기간: $days일';
   }
+
+  @override
+  String get poiPremiumMessage => 'Brevet MAP 프리미엄에 가입하여 POI를 편집하고 삭제하세요!';
+
+  @override
+  String get poiPremiumViewPlans => '플랜 보기';
 }

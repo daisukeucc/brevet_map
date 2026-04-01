@@ -210,5 +210,7 @@
     "placeholders": {
       "days": { "type": "int" }
     }
-  }
+  },
+  "poiPremiumMessage": "ブルベMAPプレミアムへの加入で、POIの編集・削除ができる！",
+  "poiPremiumViewPlans": "プラン確認"
 }

@@ -224,5 +224,7 @@
     "placeholders": {
       "days": { "type": "int" }
     }
-  }
+  },
+  "poiPremiumMessage": "Brevet MAP 프리미엄에 가입하여 POI를 편집하고 삭제하세요!",
+  "poiPremiumViewPlans": "플랜 보기"
 }

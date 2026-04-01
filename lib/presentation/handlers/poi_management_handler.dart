@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
@@ -452,17 +454,74 @@ class PoiManagementDialog extends ConsumerStatefulWidget {
 class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  bool _isPremium = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadPremiumStatus();
+  }
+
+  Future<void> _loadPremiumStatus() async {
+    try {
+      final info = await Purchases.getCustomerInfo();
+      if (!mounted) return;
+      setState(() {
+        _isPremium = info.entitlements.active.containsKey('premium');
+      });
+    } catch (_) {}
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _onTabTap(int index) async {
+    if (index != 1 || _isPremium) return;
+    await _showPoiPremiumDialog();
+  }
+
+  Future<void> _showPoiPremiumDialog() async {
+    if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final viewPlans = await showDialog<bool>(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(l10n.poiPremiumMessage, style: AppTextStyles.body),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, false),
+                    child: Text(l10n.trialInfoClose, style: AppTextStyles.button),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(ctx, true),
+                    child: Text(l10n.poiPremiumViewPlans, style: AppTextStyles.button),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (viewPlans == true && mounted) {
+      await RevenueCatUI.presentPaywall();
+    }
   }
 
   Widget _buildAddTab() {
@@ -578,18 +637,26 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                     minimumSize: const Size(36, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: () => _onEditTap(poi),
-                  child: Text(AppLocalizations.of(context)!.edit,
-                      style: AppTextStyles.buttonSmall),
+                  onPressed: _isPremium ? () => _onEditTap(poi) : null,
+                  child: Text(
+                    AppLocalizations.of(context)!.edit,
+                    style: AppTextStyles.buttonSmall.copyWith(
+                      color: _isPremium ? null : Colors.black26,
+                    ),
+                  ),
                 ),
                 TextButton(
                   style: TextButton.styleFrom(
                     minimumSize: const Size(36, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: () => _onDeleteTap(poi),
-                  child: Text(AppLocalizations.of(context)!.delete,
-                      style: AppTextStyles.buttonSmall),
+                  onPressed: _isPremium ? () => _onDeleteTap(poi) : null,
+                  child: Text(
+                    AppLocalizations.of(context)!.delete,
+                    style: AppTextStyles.buttonSmall.copyWith(
+                      color: _isPremium ? null : Colors.black26,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -614,6 +681,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
               controller: _tabController,
               indicatorSize: TabBarIndicatorSize.tab,
               labelStyle: AppTextStyles.bodySmall,
+              onTap: _onTabTap,
               tabs: [
                 Tab(text: AppLocalizations.of(context)!.poiTabAdd),
                 Tab(text: AppLocalizations.of(context)!.poiTabEdit),

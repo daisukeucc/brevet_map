@@ -465,4 +465,11 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get poiPremiumMessage =>
+      '¡Suscríbete a Brevet MAP Premium para editar y eliminar POIs!';
+
+  @override
+  String get poiPremiumViewPlans => 'Ver planes';
 }
