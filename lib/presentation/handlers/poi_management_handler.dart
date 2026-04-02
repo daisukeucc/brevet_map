@@ -506,11 +506,13 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                 children: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, false),
-                    child: Text(l10n.trialInfoClose, style: AppTextStyles.button),
+                    child:
+                        Text(l10n.trialInfoClose, style: AppTextStyles.button),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(ctx, true),
-                    child: Text(l10n.poiPremiumViewPlans, style: AppTextStyles.button),
+                    child: Text(l10n.poiPremiumViewPlans,
+                        style: AppTextStyles.button),
                   ),
                 ],
               ),
@@ -521,6 +523,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
     );
     if (viewPlans == true && mounted) {
       await RevenueCatUI.presentPaywall();
+      await _loadPremiumStatus();
     }
   }
 
