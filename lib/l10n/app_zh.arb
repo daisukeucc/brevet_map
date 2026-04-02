@@ -215,5 +215,16 @@
   "batteryLevelDisplay": "显示电量",
   "batteryLevelDisplayOn": "显示",
   "batteryLevelDisplayOff": "隐藏",
-  "batteryLevelDisplayIosNote": "由于iOS系统限制，电量以5%为单位显示"
+  "batteryLevelDisplayIosNote": "由于iOS系统限制，电量以5%为单位显示",
+  "trialInfoClose": "关闭",
+  "trialInfoSubscribe": "订阅",
+  "trialInfoMessage": "POI 添加和 GPX 导出功能可免费试用 30 天！",
+  "trialInfoRemainingDays": "剩余 {days} 天",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "订阅 Brevet MAP 高级版，即可编辑和删除 POI！",
+  "poiPremiumViewPlans": "查看方案"
 }

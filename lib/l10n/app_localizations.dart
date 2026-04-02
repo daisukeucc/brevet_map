@@ -901,6 +901,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On iOS, values are shown in 5% increments due to OS limitations'**
   String get batteryLevelDisplayIosNote;
+
+  /// No description provided for @trialInfoClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get trialInfoClose;
+
+  /// No description provided for @trialInfoSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get trialInfoSubscribe;
+
+  /// No description provided for @trialInfoMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Try POI adding and GPX export features free for 30 days.'**
+  String get trialInfoMessage;
+
+  /// No description provided for @trialInfoRemainingDays.
+  ///
+  /// In en, this message translates to:
+  /// **'{days, plural, =1{1 day remaining} other{{days} days remaining}}'**
+  String trialInfoRemainingDays(int days);
+
+  /// No description provided for @poiPremiumMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe to Brevet MAP Premium to edit and delete POIs!'**
+  String get poiPremiumMessage;
+
+  /// No description provided for @poiPremiumViewPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'View Plans'**
+  String get poiPremiumViewPlans;
 }
 
 class _AppLocalizationsDelegate

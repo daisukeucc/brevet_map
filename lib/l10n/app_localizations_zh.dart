@@ -428,4 +428,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get batteryLevelDisplayIosNote => '由于iOS系统限制，电量以5%为单位显示';
+
+  @override
+  String get trialInfoClose => '关闭';
+
+  @override
+  String get trialInfoSubscribe => '订阅';
+
+  @override
+  String get trialInfoMessage => 'POI 添加和 GPX 导出功能可免费试用 30 天！';
+
+  @override
+  String trialInfoRemainingDays(int days) {
+    return '剩余 $days 天';
+  }
+
+  @override
+  String get poiPremiumMessage => '订阅 Brevet MAP 高级版，即可编辑和删除 POI！';
+
+  @override
+  String get poiPremiumViewPlans => '查看方案';
 }

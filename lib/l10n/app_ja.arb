@@ -201,5 +201,16 @@
   "batteryLevelDisplay": "バッテリー残量表示",
   "batteryLevelDisplayOn": "表示",
   "batteryLevelDisplayOff": "非表示",
-  "batteryLevelDisplayIosNote": "OSの制限のため、iOSは5%毎の表示になります"
+  "batteryLevelDisplayIosNote": "OSの制限のため、iOSは5%毎の表示になります",
+  "trialInfoClose": "閉じる",
+  "trialInfoSubscribe": "定期購入",
+  "trialInfoMessage": "POIの追加、GPXファイルのエクスポート機能は、30日間無料でお試しいただけます！",
+  "trialInfoRemainingDays": "残り{days}日",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "ブルベMAPプレミアムへの加入で、POIの編集・削除ができる！",
+  "poiPremiumViewPlans": "プラン確認"
 }

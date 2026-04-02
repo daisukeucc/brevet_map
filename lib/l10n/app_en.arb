@@ -222,5 +222,16 @@
   "batteryLevelDisplay": "Show battery level",
   "batteryLevelDisplayOn": "On",
   "batteryLevelDisplayOff": "Off",
-  "batteryLevelDisplayIosNote": "On iOS, values are shown in 5% increments due to OS limitations"
+  "batteryLevelDisplayIosNote": "On iOS, values are shown in 5% increments due to OS limitations",
+  "trialInfoClose": "Close",
+  "trialInfoSubscribe": "Subscription",
+  "trialInfoMessage": "Try POI adding and GPX export features free for 30 days.",
+  "trialInfoRemainingDays": "{days, plural, =1{1 day remaining} other{{days} days remaining}}",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "Subscribe to Brevet MAP Premium to edit and delete POIs!",
+  "poiPremiumViewPlans": "View Plans"
 }

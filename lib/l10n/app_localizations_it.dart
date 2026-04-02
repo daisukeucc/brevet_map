@@ -443,4 +443,32 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get batteryLevelDisplayIosNote =>
       'Su iOS, i valori vengono mostrati in incrementi del 5% a causa delle limitazioni del sistema operativo';
+
+  @override
+  String get trialInfoClose => 'Chiudi';
+
+  @override
+  String get trialInfoSubscribe => 'Abbonamento';
+
+  @override
+  String get trialInfoMessage =>
+      'Prova gratuitamente le funzioni di aggiunta POI ed esportazione GPX per 30 giorni.';
+
+  @override
+  String trialInfoRemainingDays(int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      days,
+      locale: localeName,
+      other: 'Rimangono $days giorni',
+      one: 'Rimane 1 giorno',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get poiPremiumMessage =>
+      'Abbonati a Brevet MAP Premium per modificare ed eliminare i POI!';
+
+  @override
+  String get poiPremiumViewPlans => 'Vedi piani';
 }

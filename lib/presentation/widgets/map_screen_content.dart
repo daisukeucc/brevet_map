@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
-
 import '../../config/tile_config.dart';
 import '../../l10n/app_localizations.dart';
 import '../handlers/settings_menu_handler.dart';
@@ -131,6 +130,25 @@ class _MapScreenContentState extends State<MapScreenContent> {
   late final FMTCTileProvider _tileProvider;
   final GlobalKey _screenshotKey = GlobalKey();
 
+  void _onMenuTap() {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(),
+      builder: (_) => SettingsBottomSheet(
+        onGpxImportTap: () =>
+            popSheetAndCall(context, widget.onGpxImportTap),
+        onGpxExportTap: () =>
+            popSheetAndCall(context, widget.onGpxExportTap),
+        onOfflineMapTap: () =>
+            popSheetAndCall(context, widget.onOfflineMapTap),
+        hasUserPois: widget.hasUserPois,
+        onAddPoiTap: () => popSheetAndCall(context, widget.onAddPoiTap),
+        onAppSettingsTap: () =>
+            popSheetAndCall(context, widget.onAppSettingsTap),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -227,23 +245,7 @@ class _MapScreenContentState extends State<MapScreenContent> {
                                   shape: const CircleBorder(),
                                   clipBehavior: Clip.antiAlias,
                                   child: InkWell(
-                                    onTap: () => showModalBottomSheet<void>(
-                                      context: context,
-                                      shape: const RoundedRectangleBorder(),
-                                      builder: (_) => SettingsBottomSheet(
-                                        onGpxImportTap: () => popSheetAndCall(
-                                            context, widget.onGpxImportTap),
-                                        onGpxExportTap: () => popSheetAndCall(
-                                            context, widget.onGpxExportTap),
-                                        onOfflineMapTap: () => popSheetAndCall(
-                                            context, widget.onOfflineMapTap),
-                                        hasUserPois: widget.hasUserPois,
-                                        onAddPoiTap: () => popSheetAndCall(
-                                            context, widget.onAddPoiTap),
-                                        onAppSettingsTap: () => popSheetAndCall(
-                                            context, widget.onAppSettingsTap),
-                                      ),
-                                    ),
+                                    onTap: _onMenuTap,
                                     customBorder: const CircleBorder(),
                                     child: const SizedBox(
                                       width: 60,

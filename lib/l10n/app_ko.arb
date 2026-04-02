@@ -215,5 +215,16 @@
   "batteryLevelDisplay": "배터리 잔량 표시",
   "batteryLevelDisplayOn": "표시",
   "batteryLevelDisplayOff": "숨김",
-  "batteryLevelDisplayIosNote": "iOS에서는 OS 제한으로 인해 5% 단위로 표시됩니다"
+  "batteryLevelDisplayIosNote": "iOS에서는 OS 제한으로 인해 5% 단위로 표시됩니다",
+  "trialInfoClose": "닫기",
+  "trialInfoSubscribe": "구독",
+  "trialInfoMessage": "POI 추가 및 GPX 내보내기 기능을 30일간 무료로 이용하실 수 있습니다!",
+  "trialInfoRemainingDays": "남은 기간: {days}일",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "Brevet MAP 프리미엄에 가입하여 POI를 편집하고 삭제하세요!",
+  "poiPremiumViewPlans": "플랜 보기"
 }
