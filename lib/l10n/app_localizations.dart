@@ -937,6 +937,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View Plans'**
   String get poiPremiumViewPlans;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @restorePurchasesSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases restored'**
+  String get restorePurchasesSuccess;
+
+  /// No description provided for @subscriptionAccountId.
+  ///
+  /// In en, this message translates to:
+  /// **'Account ID: {id}'**
+  String subscriptionAccountId(String id);
+
+  /// No description provided for @subscriptionExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires: {date}'**
+  String subscriptionExpiry(String date);
+
+  /// No description provided for @subscriptionNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Not subscribed'**
+  String get subscriptionNotActive;
+
+  /// No description provided for @subscriptionTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Terms'**
+  String get subscriptionTerms;
+
+  /// No description provided for @manageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get manageSubscription;
 }
 
 class _AppLocalizationsDelegate

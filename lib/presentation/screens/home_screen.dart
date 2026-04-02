@@ -27,6 +27,7 @@ import '../handlers/share_handler.dart';
 import '../handlers/battery_display_handler.dart';
 import '../handlers/sleep_settings_handler.dart';
 import '../handlers/share_url_handler.dart';
+import '../handlers/subscription_handler.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/connectivity_gate.dart'
     show

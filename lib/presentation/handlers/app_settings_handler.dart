@@ -11,6 +11,7 @@ void showAppSettingsScreen(
   required VoidCallback onBatteryDisplayTap,
   required VoidCallback onLocationSharingTap,
   required VoidCallback onContactUsTap,
+  required VoidCallback onSubscriptionTap,
 }) {
   Navigator.of(context).push(
     PageRouteBuilder<void>(
@@ -20,6 +21,7 @@ void showAppSettingsScreen(
         onBatteryDisplayTap: onBatteryDisplayTap,
         onLocationSharingTap: onLocationSharingTap,
         onContactUsTap: onContactUsTap,
+        onSubscriptionTap: onSubscriptionTap,
       ),
       transitionDuration: const Duration(milliseconds: 300),
       reverseTransitionDuration: const Duration(milliseconds: 250),
@@ -38,13 +40,14 @@ void showAppSettingsScreen(
   );
 }
 
-class _AppSettingsScreen extends StatelessWidget {
+class _AppSettingsScreen extends StatefulWidget {
   const _AppSettingsScreen({
     required this.onDistanceUnitTap,
     required this.onLanguageTap,
     required this.onBatteryDisplayTap,
     required this.onLocationSharingTap,
     required this.onContactUsTap,
+    required this.onSubscriptionTap,
   });
 
   final VoidCallback onDistanceUnitTap;
@@ -52,21 +55,31 @@ class _AppSettingsScreen extends StatelessWidget {
   final VoidCallback onBatteryDisplayTap;
   final VoidCallback onLocationSharingTap;
   final VoidCallback onContactUsTap;
+  final VoidCallback onSubscriptionTap;
 
+  @override
+  State<_AppSettingsScreen> createState() => _AppSettingsScreenState();
+}
+
+class _AppSettingsScreenState extends State<_AppSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final items = [
-      (label: l10n.language, onTap: onLanguageTap),
-      (label: l10n.distanceUnit, onTap: onDistanceUnitTap),
-      (label: l10n.batteryLevelDisplay, onTap: onBatteryDisplayTap),
-      (label: l10n.locationSharing, onTap: onLocationSharingTap),
-      (label: l10n.contactUs, onTap: onContactUsTap),
+      (label: l10n.language, onTap: widget.onLanguageTap),
+      (label: l10n.distanceUnit, onTap: widget.onDistanceUnitTap),
+      (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
+      (label: l10n.locationSharing, onTap: widget.onLocationSharingTap),
+      (label: l10n.subscription, onTap: widget.onSubscriptionTap),
+      (label: l10n.contactUs, onTap: widget.onContactUsTap),
       (label: l10n.aboutApp, onTap: null),
       (label: l10n.rateApp, onTap: null),
     ];
 
-    return Scaffold(
+    return GestureDetector(
+      onTap: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
+      behavior: HitTestBehavior.translucent,
+      child: Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(l10n.appSettingsTitle, style: AppTextStyles.title),
@@ -92,6 +105,7 @@ class _AppSettingsScreen extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

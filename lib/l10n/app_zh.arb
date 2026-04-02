@@ -226,5 +226,23 @@
     }
   },
   "poiPremiumMessage": "订阅 Brevet MAP 高级版，即可编辑和删除 POI！",
-  "poiPremiumViewPlans": "查看方案"
+  "poiPremiumViewPlans": "查看方案",
+  "subscription": "订阅",
+  "restorePurchases": "恢复购买",
+  "restorePurchasesSuccess": "购买已恢复",
+  "subscriptionAccountId": "账户ID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "到期日: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "未订阅",
+  "subscriptionTerms": "订阅条款",
+  "manageSubscription": "管理订阅"
 }

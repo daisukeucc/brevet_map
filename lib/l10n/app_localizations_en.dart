@@ -469,4 +469,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'View Plans';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get restorePurchases => 'Restore Purchases';
+
+  @override
+  String get restorePurchasesSuccess => 'Purchases restored';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'Account ID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return 'Expires: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => 'Not subscribed';
+
+  @override
+  String get subscriptionTerms => 'Subscription Terms';
+
+  @override
+  String get manageSubscription => 'Manage Subscription';
 }

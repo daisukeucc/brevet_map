@@ -448,4 +448,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => '查看方案';
+
+  @override
+  String get subscription => '订阅';
+
+  @override
+  String get restorePurchases => '恢复购买';
+
+  @override
+  String get restorePurchasesSuccess => '购买已恢复';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return '账户ID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return '到期日: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => '未订阅';
+
+  @override
+  String get subscriptionTerms => '订阅条款';
+
+  @override
+  String get manageSubscription => '管理订阅';
 }

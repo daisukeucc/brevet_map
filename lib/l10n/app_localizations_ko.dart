@@ -455,4 +455,32 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => '플랜 보기';
+
+  @override
+  String get subscription => '구독';
+
+  @override
+  String get restorePurchases => '구매 복원';
+
+  @override
+  String get restorePurchasesSuccess => '구매가 복원되었습니다';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return '계정 ID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return '만료일: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => '미가입';
+
+  @override
+  String get subscriptionTerms => '구독 약관';
+
+  @override
+  String get manageSubscription => '구독 관리';
 }

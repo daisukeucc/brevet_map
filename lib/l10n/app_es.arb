@@ -226,5 +226,23 @@
     }
   },
   "poiPremiumMessage": "¡Suscríbete a Brevet MAP Premium para editar y eliminar POIs!",
-  "poiPremiumViewPlans": "Ver planes"
+  "poiPremiumViewPlans": "Ver planes",
+  "subscription": "Suscripción",
+  "restorePurchases": "Restaurar compras",
+  "restorePurchasesSuccess": "Compras restauradas",
+  "subscriptionAccountId": "ID de cuenta: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Vencimiento: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "No suscrito",
+  "subscriptionTerms": "Términos de suscripción",
+  "manageSubscription": "Administrar suscripción"
 }

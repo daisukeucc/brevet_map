@@ -212,5 +212,23 @@
     }
   },
   "poiPremiumMessage": "ブルベMAPプレミアムへの加入で、POIの編集・削除ができる！",
-  "poiPremiumViewPlans": "プラン確認"
+  "poiPremiumViewPlans": "プラン確認",
+  "subscription": "定期購入",
+  "restorePurchases": "購入履歴の復元",
+  "restorePurchasesSuccess": "購入を復元しました",
+  "subscriptionAccountId": "アカウントID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "有効期限: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "未加入",
+  "subscriptionTerms": "購読規約",
+  "manageSubscription": "サブスクリプションを管理"
 }

@@ -105,6 +105,7 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
             onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
             onLocationSharingTap: () => shareCurrentLocation(context),
             onContactUsTap: () => openContactEmail(context),
+            onSubscriptionTap: () => showSubscriptionDialog(context),
           ),
           onGpxImportTap: () => handleGpxImportTap(
             context,

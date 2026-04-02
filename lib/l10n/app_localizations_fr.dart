@@ -474,4 +474,32 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'Voir les offres';
+
+  @override
+  String get subscription => 'Abonnement';
+
+  @override
+  String get restorePurchases => 'Restaurer les achats';
+
+  @override
+  String get restorePurchasesSuccess => 'Achats restaurés';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'ID de compte: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return 'Expiration: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => 'Non abonné';
+
+  @override
+  String get subscriptionTerms => 'Conditions d\'abonnement';
+
+  @override
+  String get manageSubscription => 'Gérer l\'abonnement';
 }

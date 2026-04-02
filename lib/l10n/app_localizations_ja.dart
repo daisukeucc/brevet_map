@@ -454,4 +454,32 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'プラン確認';
+
+  @override
+  String get subscription => '定期購入';
+
+  @override
+  String get restorePurchases => '購入履歴の復元';
+
+  @override
+  String get restorePurchasesSuccess => '購入を復元しました';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'アカウントID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return '有効期限: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => '未加入';
+
+  @override
+  String get subscriptionTerms => '購読規約';
+
+  @override
+  String get manageSubscription => 'サブスクリプションを管理';
 }

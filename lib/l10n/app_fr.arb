@@ -226,5 +226,23 @@
     }
   },
   "poiPremiumMessage": "Abonnez-vous à Brevet MAP Premium pour modifier et supprimer des POIs !",
-  "poiPremiumViewPlans": "Voir les offres"
+  "poiPremiumViewPlans": "Voir les offres",
+  "subscription": "Abonnement",
+  "restorePurchases": "Restaurer les achats",
+  "restorePurchasesSuccess": "Achats restaurés",
+  "subscriptionAccountId": "ID de compte: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Expiration: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "Non abonné",
+  "subscriptionTerms": "Conditions d'abonnement",
+  "manageSubscription": "Gérer l'abonnement"
 }
