@@ -118,11 +118,11 @@ class MapStateNotifier extends Notifier<MapState> {
   Polyline? _secondHalfPolyline;
   // 折り返し距離（m）。前半・後半の境界
   double _halfRouteDistanceM = 0;
-  // 累積距離キャッシュ（インデックス i → スタートからの距離 m）。along-track 距離の O(n) 再計算を避ける
-  List<double> _cumulativeDistances = [];
+  // 前半/後半判定用ダウンサンプル済みルート（最大500点）と累積距離キャッシュ
+  List<LatLng> _sampledRoutePoints = [];
+  List<double> _sampledCumulativeDistances = [];
   // 直前の表示状態。新ルート読み込み時は null にリセットして強制更新を保証する
   bool? _currentDisplayIsSecondHalf;
-
 
   @override
   MapState build() => const MapState();
@@ -218,7 +218,8 @@ class MapStateNotifier extends Notifier<MapState> {
     required Future<void> Function(LatLngBounds) animateCamera,
     String? importFilename,
   }) async {
-    final result = await parseAndSaveGpx(gpxContent, importFilename: importFilename);
+    final result =
+        await parseAndSaveGpx(gpxContent, importFilename: importFilename);
     if (result == null) {
       if (gpxContent.trim().isNotEmpty) return GpxApplyStatus.parseError;
       return GpxApplyStatus.success;
@@ -395,14 +396,25 @@ class MapStateNotifier extends Notifier<MapState> {
     _firstHalfPolyline = null;
     _secondHalfPolyline = null;
     _currentDisplayIsSecondHalf = null;
-    // 累積距離を事前計算してキャッシュ（位置更新ごとの O(n) 再計算を O(1) 参照に変える）
-    _cumulativeDistances = List<double>.filled(fullPoints.length, 0);
-    for (var i = 1; i < fullPoints.length; i++) {
-      _cumulativeDistances[i] =
-          _cumulativeDistances[i - 1] + distanceBetweenLatLng(fullPoints[i - 1], fullPoints[i]);
+    // 前半/後半判定用に最大500点にダウンサンプリングし、累積距離をキャッシュする。
+    // 1000点超のルートでも位置更新ごとの最近傍検索を O(500) に抑える。
+    const maxSamples = 500;
+    final step = fullPoints.length <= maxSamples
+        ? 1
+        : (fullPoints.length / maxSamples).ceil();
+    final sampled = <LatLng>[];
+    for (var i = 0; i < fullPoints.length; i += step) {
+      sampled.add(fullPoints[i]);
     }
-    _halfRouteDistanceM =
-        _cumulativeDistances.isNotEmpty ? _cumulativeDistances.last / 2 : 0;
+    if (sampled.last != fullPoints.last) sampled.add(fullPoints.last);
+    final cumDist = List<double>.filled(sampled.length, 0);
+    for (var i = 1; i < sampled.length; i++) {
+      cumDist[i] =
+          cumDist[i - 1] + distanceBetweenLatLng(sampled[i - 1], sampled[i]);
+    }
+    _sampledRoutePoints = sampled;
+    _sampledCumulativeDistances = cumDist;
+    _halfRouteDistanceM = cumDist.isNotEmpty ? cumDist.last / 2 : 0;
     state = state.copyWith(fullRoutePoints: fullPoints);
     await _refreshRouteMarkers(fullPoints);
     await _routeAnimationRunner.start(
@@ -434,6 +446,64 @@ class MapStateNotifier extends Notifier<MapState> {
     state = state.copyWith(routePolylines: polylines);
   }
 
+  /// ダウンサンプル済みルート（最大500点）を使って現在地のalong-track距離を返す。
+  /// ベアリングが分かる場合は進行方向が一致する候補を優先し、
+  /// 往復ルートで往路・復路が近接していても正しく判定できる。
+  /// 常に O(500) で動作し、元のルート点数に依存しない。
+  double computeAlongTrackM(LatLng current, {LatLng? previous}) {
+    final sampled = _sampledRoutePoints;
+    final cumDist = _sampledCumulativeDistances;
+    if (sampled.isEmpty) return 0;
+
+    // 最近傍点と同距離 +50m 以内の候補を収集する
+    const candidateEpsilonM = 50.0;
+    var minDist = double.infinity;
+    for (var i = 0; i < sampled.length; i++) {
+      final d = distanceBetweenLatLng(sampled[i], current);
+      if (d < minDist) minDist = d;
+    }
+    final candidates = <({int index, double cumM})>[];
+    for (var i = 0; i < sampled.length; i++) {
+      if (distanceBetweenLatLng(sampled[i], current) <=
+          minDist + candidateEpsilonM) {
+        candidates.add((index: i, cumM: cumDist[i]));
+      }
+    }
+    if (candidates.length == 1 || previous == null) {
+      return candidates.first.cumM;
+    }
+
+    // ベアリングで候補を絞る：進行方向とルートの向きが最も近い候補を選ぶ
+    final userBearing = bearingBetweenLatLng(previous, current);
+    if (userBearing == null) return candidates.first.cumM;
+
+    var bestCumM = candidates.first.cumM;
+    var bestDiff = 180.0;
+    for (final c in candidates) {
+      final idx = c.index;
+      final LatLng from;
+      final LatLng to;
+      if (idx == 0 && sampled.length > 1) {
+        from = sampled[0];
+        to = sampled[1];
+      } else if (idx == sampled.length - 1 && sampled.length > 1) {
+        from = sampled[idx - 1];
+        to = sampled[idx];
+      } else {
+        from = sampled[idx - 1];
+        to = sampled[idx];
+      }
+      final routeBearing = bearingBetweenLatLng(from, to);
+      if (routeBearing == null) continue;
+      var diff = (userBearing - routeBearing).abs();
+      if (diff > 180) diff = 360 - diff;
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestCumM = c.cumM;
+      }
+    }
+    return bestCumM;
+  }
+
   double get halfRouteDistanceM => _halfRouteDistanceM;
-  List<double> get cumulativeDistances => _cumulativeDistances;
 }

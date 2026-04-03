@@ -101,19 +101,12 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
       final routePoints = ref.read(mapStateProvider).savedRoutePoints;
       if (routePoints != null && routePoints.isNotEmpty) {
         final notifier = ref.read(mapStateProvider.notifier);
-        // キャッシュ済み累積距離を使って最近傍点を O(n) で検索し、along-track 距離は O(1) で参照する
-        final cumDist = notifier.cumulativeDistances;
-        final currentLatLng = LatLng(position.latitude, position.longitude);
-        var bestIndex = 0;
-        var bestDist = distanceBetweenLatLng(routePoints[0], currentLatLng);
-        for (var i = 1; i < routePoints.length; i++) {
-          final d = distanceBetweenLatLng(routePoints[i], currentLatLng);
-          if (d < bestDist) {
-            bestDist = d;
-            bestIndex = i;
-          }
-        }
-        final alongM = cumDist.isNotEmpty ? cumDist[bestIndex] : 0.0;
+        final alongM = notifier.computeAlongTrackM(
+          LatLng(position.latitude, position.longitude),
+          previous: previous != null
+              ? LatLng(previous.latitude, previous.longitude)
+              : null,
+        );
         final isSecondHalf = alongM >= notifier.halfRouteDistanceM;
         notifier.updateHalfDisplay(isSecondHalf);
       }
