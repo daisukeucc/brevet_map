@@ -130,6 +130,11 @@ Future<void> showShareFlow(
     if (bounds != null) {
       zoomBefore = ref.read(cameraControllerProvider)?.camera.zoom ?? 16.0;
       await ref.read(cameraControllerProvider.notifier).animateToBounds(bounds);
+      // animateToBounds 後の実際のズームを savedZoomLevel に反映する（ズーム表示の更新）
+      final zoomAfter = ref.read(cameraControllerProvider)?.camera.zoom;
+      if (zoomAfter != null) {
+        ref.read(mapStateProvider.notifier).overrideSavedZoom(zoomAfter);
+      }
       await Future.delayed(const Duration(milliseconds: 500));
     }
     if (!context.mounted) return;

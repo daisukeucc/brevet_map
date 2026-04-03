@@ -208,7 +208,6 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
         _previousStreamPosition = null;
       });
     } else {
-      ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
       _isFirstPositionAfterStreamOn = true;
     }
   }
