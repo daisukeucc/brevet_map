@@ -29,6 +29,9 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
   /// 起動時に位置取得に失敗した場合、案内 SnackBar を一度だけ表示したか
   bool _hasShownLocationUnavailableHint = false;
 
+  /// 往復コースの現在区間（往路/復路）。区間変化時のみポリライン描画順を更新する
+  RouteLeg? _currentRouteLeg;
+
   /// 初回ルート取得を実行したか（addPostFrameCallback の多重登録防止）
   bool _hasTriggeredInitialRouteFetch = false;
 
@@ -94,6 +97,25 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
     if (!mounted) return;
     _previousStreamPosition = previous;
     _latestStreamPosition = position;
+
+    // 往復コースのみ：現在区間（往路/復路）を判定してポリライン描画順を更新
+    if (ref.read(mapStateProvider).routePolylines.length == 2) {
+      final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+      if (routePoints != null && routePoints.isNotEmpty) {
+        final result = getRouteLegWithBearing(
+          routePoints,
+          LatLng(position.latitude, position.longitude),
+          previousPosition: previous != null
+              ? LatLng(previous.latitude, previous.longitude)
+              : null,
+        );
+        if (result.leg != RouteLeg.ambiguous &&
+            result.leg != _currentRouteLeg) {
+          _currentRouteLeg = result.leg;
+          ref.read(mapStateProvider.notifier).updateRouteLegDisplay(result.leg);
+        }
+      }
+    }
     // 共有モード中はカメラを移動しない（スクリーンショット用のルート全体表示を維持する）
     if (_isShareMode) {
       setState(() {});

@@ -113,6 +113,10 @@ class MapStateNotifier extends Notifier<MapState> {
   UserPoi? _draggingPoi;
   void Function(LatLng)? _onPoiDragEnd;
 
+  // 往復コースの往路・復路ポリライン（往復判定済みのときのみ非 null）
+  Polyline? _outboundPolyline;
+  Polyline? _returnPolyline;
+
   @override
   MapState build() => const MapState();
 
@@ -381,6 +385,9 @@ class MapStateNotifier extends Notifier<MapState> {
     List<LatLng> fullPoints, {
     bool animate = true,
   }) async {
+    // 新ルート読み込み時は往復分割をリセット
+    _outboundPolyline = null;
+    _returnPolyline = null;
     state = state.copyWith(fullRoutePoints: fullPoints);
     await _refreshRouteMarkers(fullPoints);
     await _routeAnimationRunner.start(
@@ -389,9 +396,29 @@ class MapStateNotifier extends Notifier<MapState> {
       animate: animate,
       onPolyline: (p) {
         state = state.copyWith(routePolylines: p);
+        // 往復コースは2本のポリラインで構成される（往路=緑、復路=赤）
+        if (p.length == 2) {
+          _outboundPolyline = p[0];
+          _returnPolyline = p[1];
+        }
       },
       onMarkers: (_) {},
       mounted: () => true,
     );
+  }
+
+  /// 現在の走行区間（往路/復路）に応じてポリラインの描画順を切り替える。
+  /// flutter_map はリストの後方が前面に描画されるため、現在走行中の区間を後方に置く。
+  /// 往復コース以外では何もしない。
+  void updateRouteLegDisplay(RouteLeg leg) {
+    final outbound = _outboundPolyline;
+    final returnPoly = _returnPolyline;
+    if (outbound == null || returnPoly == null) return;
+    // 往路中：緑（往路）を前面 → [赤(復路), 緑(往路)]
+    // 復路中：赤（復路）を前面 → [緑(往路), 赤(復路)]
+    final polylines = leg == RouteLeg.returnRoute
+        ? [outbound, returnPoly]
+        : [returnPoly, outbound];
+    state = state.copyWith(routePolylines: polylines);
   }
 }
