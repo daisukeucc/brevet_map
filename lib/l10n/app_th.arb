@@ -1,0 +1,249 @@
+{
+  "@@locale": "th",
+  "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
+  "cancel": "ยกเลิก",
+  "ok": "ตกลง",
+  "ng": "NG",
+  "delete": "ลบ",
+  "edit": "แก้ไข",
+  "change": "เปลี่ยน",
+  "add": "เพิ่ม",
+  "settings": "การตั้งค่า",
+  "share": "แชร์",
+  "shareFailed": "แชร์ล้มเหลว",
+  "showMyLocation": "แสดงตำแหน่งของฉัน",
+  "sleepSettings": "หน้าจอพักหน้าจอ",
+  "sleepInfoMessage1": "GPS จะปิดเมื่อหน้าจอพัก ดังนั้นแนะนำให้เปิดใช้งานการพักหน้าจอหากต้องการประหยัดแบตเตอรี่",
+  "sleepInfoDontShowAgain": "ไม่แสดงอีก",
+  "switchGpsLevel": "ความแม่นยำของตำแหน่ง",
+  "gpxImport": "นำเข้าไฟล์ GPX",
+  "gpxExport": "ส่งออกไฟล์ GPX",
+  "gpxExportDialogTitle": "ชื่อไฟล์",
+  "gpxExportFilenameHint": "ป้อนชื่อไฟล์ (ใช้วันที่/เวลาหากว่างเปล่า)",
+  "gpxExportComplete": "บันทึก {filename} แล้ว",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "gpxExportFailed": "ส่งออกล้มเหลว",
+  "gpxExportPermissionDenied": "ไม่มีสิทธิ์บันทึกไฟล์",
+  "poiAdd": "เพิ่ม POI",
+  "poiAddEdit": "เพิ่มหรือแก้ไข POI",
+  "poiAddByDistance": "เพิ่ม POI ตามระยะทาง",
+  "poiAddByMapTap": "เพิ่ม POI จากแผนที่",
+  "poiTabAdd": "เพิ่ม POI",
+  "poiTabEdit": "แก้ไขหรือลบ POI",
+  "poiType": "ประเภท POI",
+  "checkpoint": "จุดตรวจ",
+  "information": "ข้อมูล",
+  "title": "ชื่อเรื่อง",
+  "body": "เนื้อหา",
+  "distance": "ระยะทาง",
+  "titleNone": "(ไม่มีชื่อ)",
+  "kmRequired": "ต้องระบุระยะทาง",
+  "offRoute": "ออกนอกเส้นทาง",
+  "kmPoint": "จุด {km} กม.",
+  "poiAtKmPoint": "POI ที่ {kmLabel}",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "poiOffRoutePoi": "แก้ไข POI",
+  "@kmPoint": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "changePoiPosition": "ตั้งตำแหน่งนี้",
+  "poiRegistered": "เพิ่ม POI แล้ว",
+  "poiAddedFromShare": "เพิ่ม POI จากลิงก์ที่แชร์แล้ว",
+  "shareUrlInvalid": "ไม่สามารถดึงพิกัดจากลิงก์ที่แชร์ได้",
+  "registerThisPlaceAsPoi": "เพิ่ม POI ที่ตำแหน่งนี้",
+  "poiUpdated": "อัปเดต POI แล้ว",
+  "poiDeleted": "ลบ POI แล้ว",
+  "poiPositionChanged": "เปลี่ยนตำแหน่ง POI แล้ว",
+  "changePoiText": "เปลี่ยนชื่อและเนื้อหา POI",
+  "changePoiPositionTitle": "เปลี่ยนตำแหน่ง POI",
+  "deletePoiConfirm": "ลบ POI นี้?",
+  "noPoiRegistered": "ไม่มี POI ที่ลงทะเบียน",
+  "changePoiTextTitle": "เปลี่ยนเนื้อหา POI",
+  "routeOverwrite": "เขียนทับเส้นทางปัจจุบัน",
+  "selectGpxFile": "กรุณาเลือกไฟล์ GPX",
+  "routeNotLoaded": "ยังไม่ได้โหลดเส้นทาง",
+  "kmPointNotFound": "ไม่พบจุด กม. ที่ระบุ",
+  "kmExceedsRoute": "เกินระยะทางรวมของเส้นทาง",
+  "gpxInvalidFormat": "ไฟล์นี้ไม่ใช่รูปแบบ GPX",
+  "gpxNoRouteOrWaypoint": "GPX ไม่มีเส้นทางหรือ waypoint",
+  "locationFailed": "ไม่สามารถรับตำแหน่งได้",
+  "mapStyleNormal": "แสดงแผนที่ในโหมดปกติ",
+  "mapStyleDark": "แสดงแผนที่ในโหมดมืด",
+  "showFullRoute": "แสดงเส้นทางทั้งหมด",
+  "locationUnavailable": "ไม่สามารถระบุตำแหน่งได้",
+  "locationUnavailableWithRetry": "ไม่สามารถระบุตำแหน่งได้ แตะ \"แสดงตำแหน่งของฉัน\" เพื่อลองใหม่ หรืออนุญาตการเข้าถึงตำแหน่งในการตั้งค่า",
+  "openSettings": "เปิดการตั้งค่า",
+  "locationInvalid": "ตำแหน่งไม่ถูกต้อง",
+  "locationServiceOff": "บริการตำแหน่งปิดอยู่ กรุณาเปิดในการตั้งค่าอุปกรณ์",
+  "locationPermissionRequired": "ต้องการสิทธิ์ตำแหน่ง",
+  "locationPermissionDenied": "สิทธิ์ตำแหน่งถูกปฏิเสธ ไม่สามารถแสดงตำแหน่งของคุณได้หากไม่มีสิทธิ์",
+  "locationPermissionDeniedForever": "สิทธิ์ตำแหน่งถูกตั้งเป็น \"ไม่ถามอีก\" กรุณาเปิดใช้งานในการตั้งค่าแอป",
+  "sleepOffMessage": "ปิดการพักหน้าจอแล้ว",
+  "sleepOnMessage": "เปิดการพักหน้าจอแล้ว",
+  "sleepOff": "ปิด",
+  "sleepOn": "เปิด",
+  "sleepSettingsNote": "ตรวจสอบระยะเวลาพักหน้าจอในแอปการตั้งค่าของอุปกรณ์",
+  "openSettingsApp": "เปิดแอปการตั้งค่า",
+  "distanceUnit": "หน่วยระยะทาง",
+  "unitKm": "กม.",
+  "unitMile": "ไมล์",
+  "distanceUnitSetToKm": "ตั้งหน่วยระยะทางเป็น กม. แล้ว",
+  "distanceUnitSetToMile": "ตั้งหน่วยระยะทางเป็น ไมล์ แล้ว",
+  "checkingConnectivity": "กำลังตรวจสอบการเชื่อมต่อ...",
+  "fetchingLocation": "กำลังรับตำแหน่ง...",
+  "offline": "ออฟไลน์",
+  "retryConnectivity": "ลองใหม่",
+  "offlineMap": "แผนที่ออฟไลน์",
+  "offlineMapMinimalMap": "ซูมสูงสุด: 15",
+  "offlineMapStandardMap": "ซูมสูงสุด: 16",
+  "offlineMapMinimalMapWithSize": "ซูมสูงสุด: 15 ({size})",
+  "offlineMapStandardMapWithSize": "ซูมสูงสุด: 16 ({size})",
+  "offlineMapHighResMap": "ซูมสูงสุด: 17",
+  "offlineMapHighResMapWithSize": "ซูมสูงสุด: 17 ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapZoomSmall": "ซูม: จำกัด",
+  "offlineMapZoomMedium": "ซูม: มาตรฐาน",
+  "offlineMapZoomLarge": "ซูม: ขยาย",
+  "offlineMapZoomSmallWithSize": "ซูม: จำกัด ({size})",
+  "offlineMapZoomMediumWithSize": "ซูม: มาตรฐาน ({size})",
+  "offlineMapZoomLargeWithSize": "ซูม: ขยาย ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapRequiresNetwork": "ต้องการการเชื่อมต่อเครือข่ายเพื่อดาวน์โหลดแผนที่ออฟไลน์",
+  "offlineMapNoRoute": "ยังไม่ได้โหลดเส้นทาง กรุณานำเข้าไฟล์ GPX ก่อน",
+  "offlineMapDownloading": "กำลังดาวน์โหลด... ",
+  "offlineMapCancel": "ยกเลิก",
+  "offlineMapDownloadComplete": "ดาวน์โหลดแผนที่ออฟไลน์เสร็จสมบูรณ์",
+  "offlineMapDownloadFailed": "ดาวน์โหลดล้มเหลว",
+  "offlineMapDownloadCancelled": "ยกเลิกการดาวน์โหลดแล้ว",
+  "offlineMapWifiRecommendation": "แนะนำให้ดาวน์โหลดผ่าน Wi-Fi เนื่องจากข้อมูลมีขนาดใหญ่",
+  "offlineMapWifiRecommendationWithSize": "แนะนำให้ดาวน์โหลดผ่าน Wi-Fi เนื่องจากข้อมูลมีขนาดใหญ่\n\nขนาดโดยประมาณ: ~{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCurrentStorage": "จัดเก็บแล้ว: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClearWithSize": "ล้างแคช ({size})",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClear": "ล้างแคช",
+  "offlineMapCacheClearConfirmMessage": "เมื่อข้อมูลแคช (รวมถึงแผนที่ออฟไลน์) เพิ่มขึ้น การแสดงแผนที่อาจช้าลง\n\nขั้นตอนการแสดงแผนที่:\n\n1. ค้นหาแคช\n2-1. หากมีแคช:\nไม่เข้าถึงเครือข่าย\n2-2. หากไม่มีแคช:\nเข้าถึงเครือข่ายและบันทึกลงแคช\n3. แสดงแผนที่\n\nขั้นตอนที่ 1 ใช้เวลานานขึ้นเมื่อข้อมูลมีขนาดใหญ่ ดังนั้นหากแผนที่ช้าลงหรือคุณบันทึกแผนที่ออฟไลน์ขนาดใหญ่ไว้ แนะนำให้ลบแคช",
+  "offlineMapCacheClearConfirmButton": "ลบ",
+  "offlineMapCacheCleared": "ล้างแคชแล้ว",
+  "offlineMapInfoMessage1": "แผนที่ออฟไลน์ช่วยลดการเข้าถึงเครือข่ายและประหยัดแบตเตอรี่แม้ขณะออนไลน์",
+  "offlineMapInfoMessage2": "เพื่อให้แอปทำงานได้อย่างราบรื่น แนะนำให้ลบแผนที่ที่ดาวน์โหลดไว้เมื่อไม่ต้องการแล้ว",
+  "offlineMapInfoButton": "ดาวน์โหลด",
+  "registerAtPosition": "เพิ่มที่นี่",
+  "locationSharing": "แชร์ตำแหน่ง",
+  "aboutApp": "เกี่ยวกับแอปนี้",
+  "rateApp": "ให้คะแนนแอปนี้",
+  "contactUs": "ติดต่อ",
+  "language": "ภาษา",
+  "useSystemLanguage": "ค่าเริ่มต้นของระบบ",
+  "appSettingsTitle": "การตั้งค่าและอื่นๆ",
+  "contactFormMailError": "ไม่สามารถเปิดแอปเมลได้",
+  "batteryLevelDisplay": "แสดงระดับแบตเตอรี่",
+  "batteryLevelDisplayOn": "เปิด",
+  "batteryLevelDisplayOff": "ปิด",
+  "batteryLevelDisplayIosNote": "บน iOS ค่าจะแสดงเป็นขั้น 5% เนื่องจากข้อจำกัดของ OS",
+  "trialInfoClose": "ปิด",
+  "trialInfoSubscribe": "สมัครสมาชิก",
+  "trialInfoMessage": "ลองใช้ฟีเจอร์เพิ่ม POI และส่งออก GPX ฟรี 30 วัน",
+  "trialInfoRemainingDays": "{days, plural, =1{เหลือ 1 วัน} other{เหลือ {days} วัน}}",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "สมัคร Brevet MAP Premium เพื่อแก้ไขและลบ POI!",
+  "poiPremiumViewPlans": "ดูแผน",
+  "subscription": "สมัครสมาชิก",
+  "restorePurchases": "กู้คืนการซื้อ",
+  "restorePurchasesSuccess": "กู้คืนการซื้อแล้ว",
+  "subscriptionAccountId": "รหัสบัญชี: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "หมดอายุ: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "ยังไม่ได้สมัครสมาชิก",
+  "subscriptionTerms": "เงื่อนไขการสมัครสมาชิก",
+  "manageSubscription": "จัดการการสมัครสมาชิก"
+}

@@ -18,6 +18,7 @@ void showLanguageSelectionFlow(BuildContext context, WidgetRef ref) {
       ('', l10n.useSystemLanguage),
       ('en', 'English'),
       ('ja', '日本語'),
+      ('th', 'ภาษาไทย'),
       ('ko', '한국어'),
       ('zh', '中文'),
       ('fr', 'Français'),
