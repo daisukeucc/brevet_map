@@ -79,6 +79,7 @@
   "selectGpxFile": "Veuillez sélectionner un fichier GPX",
   "routeNotLoaded": "L'itinéraire n'est pas chargé",
   "kmPointNotFound": "Point km spécifié introuvable",
+  "kmExceedsRoute": "Dépasse la distance totale de l'itinéraire",
   "gpxInvalidFormat": "Ce fichier n'est pas au format GPX",
   "gpxNoRouteOrWaypoint": "Le fichier GPX ne contient pas d'itinéraire ou de waypoints",
   "locationFailed": "Échec de l'obtention de la position",

@@ -195,6 +195,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get kmPointNotFound => 'Punto km especificado no encontrado';
 
   @override
+  String get kmExceedsRoute => 'Supera la distancia total de la ruta';
+
+  @override
   String get gpxInvalidFormat => 'Este archivo no está en formato GPX';
 
   @override

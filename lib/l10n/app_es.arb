@@ -79,6 +79,7 @@
   "selectGpxFile": "Por favor seleccione un archivo GPX",
   "routeNotLoaded": "La ruta no está cargada",
   "kmPointNotFound": "Punto km especificado no encontrado",
+  "kmExceedsRoute": "Supera la distancia total de la ruta",
   "gpxInvalidFormat": "Este archivo no está en formato GPX",
   "gpxNoRouteOrWaypoint": "El GPX no contiene ruta ni waypoints",
   "locationFailed": "Error al obtener la ubicación",

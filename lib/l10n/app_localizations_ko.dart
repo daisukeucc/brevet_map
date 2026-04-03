@@ -193,6 +193,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get kmPointNotFound => '지정한 km 지점을 찾을 수 없습니다';
 
   @override
+  String get kmExceedsRoute => '루트 총 거리를 초과했습니다';
+
+  @override
   String get gpxInvalidFormat => '이 파일은 GPX 형식이 아닙니다';
 
   @override

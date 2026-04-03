@@ -65,6 +65,7 @@
   "selectGpxFile": "GPXファイルを選択してください",
   "routeNotLoaded": "ルートが読み込まれていません",
   "kmPointNotFound": "指定したkm地点が見つかりません",
+  "kmExceedsRoute": "ルートの総距離を超えています",
   "gpxInvalidFormat": "このファイルはGPX形式ではありません",
   "gpxNoRouteOrWaypoint": "GPXにルートまたはウェイポイントが含まれていません",
   "locationFailed": "位置情報の取得に失敗しました",

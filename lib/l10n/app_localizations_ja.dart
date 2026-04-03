@@ -193,6 +193,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get kmPointNotFound => '指定したkm地点が見つかりません';
 
   @override
+  String get kmExceedsRoute => 'ルートの総距離を超えています';
+
+  @override
   String get gpxInvalidFormat => 'このファイルはGPX形式ではありません';
 
   @override

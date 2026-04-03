@@ -464,6 +464,12 @@ abstract class AppLocalizations {
   /// **'Specified km point not found'**
   String get kmPointNotFound;
 
+  /// No description provided for @kmExceedsRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceeds the total route distance'**
+  String get kmExceedsRoute;
+
   /// No description provided for @gpxInvalidFormat.
   ///
   /// In en, this message translates to:

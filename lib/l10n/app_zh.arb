@@ -79,6 +79,7 @@
   "selectGpxFile": "请选择 GPX 文件",
   "routeNotLoaded": "路线未加载",
   "kmPointNotFound": "未找到指定的 km 点",
+  "kmExceedsRoute": "超过路线总距离",
   "gpxInvalidFormat": "此文件不是 GPX 格式",
   "gpxNoRouteOrWaypoint": "GPX 不包含路线或航点",
   "locationFailed": "获取位置失败",

@@ -192,6 +192,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kmPointNotFound => '未找到指定的 km 点';
 
   @override
+  String get kmExceedsRoute => '超过路线总距离';
+
+  @override
   String get gpxInvalidFormat => '此文件不是 GPX 格式';
 
   @override
