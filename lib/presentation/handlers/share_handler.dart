@@ -170,16 +170,6 @@ Future<void> showShareFlow(
         ? Rect.fromPoints(const Offset(0, 0), const Offset(1, 1))
         : null;
 
-    final l10n = AppLocalizations.of(context)!;
-    final shareTextParts = <String>[];
-    if (gpxName != null && gpxName.trim().isNotEmpty) {
-      shareTextParts.add(gpxName.trim());
-    }
-    if (l10n.appTitle != l10n.appTitleBrand) {
-      shareTextParts.add(l10n.appTitle);
-    }
-    shareTextParts.add(l10n.appTitleBrand);
-
     await Share.shareXFiles(
       [
         XFile(
@@ -188,7 +178,11 @@ Future<void> showShareFlow(
           name: fileName,
         ),
       ],
-      text: shareTextParts.join('\n'),
+      text: [
+        if (gpxName != null && gpxName.trim().isNotEmpty) '#${gpxName.trim()}',
+        '#Brevet Map',
+        '@BrevetMap',
+      ].join('\n'),
       sharePositionOrigin: sharePositionOrigin,
     );
   } catch (e) {
