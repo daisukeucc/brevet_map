@@ -2,7 +2,12 @@ part of 'home_screen.dart';
 
 /// build() 補助メソッド・マップイベントハンドラをまとめた mixin。
 /// [_MyHomePageState] に mix-in して使用する。
-mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlMixin, _PoiModeMixin {
+mixin _BuildMixin
+    on
+        ConsumerState<MyHomePage>,
+        _LocationStreamMixin,
+        _ShareUrlMixin,
+        _PoiModeMixin {
   // _isDragMode / _isMapTapAddMode は _PoiModeMixin が保有。
   // _pendingSharedPosition / _sharePreviewIcon / _isShareMode / _shareHp は _ShareUrlMixin が保有。
   // abstract 宣言は不要。
@@ -10,7 +15,7 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
   // ── 定数 ─────────────────────────────────────────────────────────────────
 
   /// デフォルトズームレベル
-  double get _defaultZoom => 12.0;
+  double get _defaultZoom => 9.0;
 
   // ── メソッド ─────────────────────────────────────────────────────────────
 
@@ -165,6 +170,15 @@ mixin _BuildMixin on ConsumerState<MyHomePage>, _LocationStreamMixin, _ShareUrlM
             );
           },
         ),
+        if (mapState.isFetchingRoute)
+          const Positioned.fill(
+            child: ColoredBox(
+              color: Color(0x80000000),
+              child: Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            ),
+          ),
       ],
     );
   }

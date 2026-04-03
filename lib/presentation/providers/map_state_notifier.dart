@@ -32,6 +32,7 @@ class MapState {
     this.hasStartedInitialRouteFetch = false,
     this.lastRoutePointsForMarkers,
     this.lastShowDistanceMarkers,
+    this.isFetchingRoute = false,
   });
 
   final List<Polyline> routePolylines;
@@ -59,6 +60,9 @@ class MapState {
   final List<LatLng>? lastRoutePointsForMarkers;
   final bool? lastShowDistanceMarkers;
 
+  /// 初回ルート取得中かどうか（ローディング表示用）
+  final bool isFetchingRoute;
+
   MapState copyWith({
     List<Polyline>? routePolylines,
     List<Marker>? routeMarkers,
@@ -71,6 +75,7 @@ class MapState {
     bool? hasStartedInitialRouteFetch,
     List<LatLng>? lastRoutePointsForMarkers,
     bool? lastShowDistanceMarkers,
+    bool? isFetchingRoute,
     bool clearSavedRoutePoints = false,
     bool clearFullRoutePoints = false,
     bool clearSavedZoomLevel = false,
@@ -95,6 +100,7 @@ class MapState {
           lastRoutePointsForMarkers ?? this.lastRoutePointsForMarkers,
       lastShowDistanceMarkers:
           lastShowDistanceMarkers ?? this.lastShowDistanceMarkers,
+      isFetchingRoute: isFetchingRoute ?? this.isFetchingRoute,
     );
   }
 }
@@ -279,7 +285,13 @@ class MapStateNotifier extends Notifier<MapState> {
     required Future<void> Function(LatLngBounds?) animateCamera,
   }) async {
     if (state.hasStartedInitialRouteFetch) return;
-    state = state.copyWith(hasStartedInitialRouteFetch: true);
+    // 保存済みルートがない場合（初回インストール相当）のみローディングを表示する
+    final hasSavedRoute = state.savedRoutePoints != null &&
+        state.savedRoutePoints!.isNotEmpty;
+    state = state.copyWith(
+      hasStartedInitialRouteFetch: true,
+      isFetchingRoute: !hasSavedRoute,
+    );
 
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -287,6 +299,7 @@ class MapStateNotifier extends Notifier<MapState> {
       position,
       savedRoutePoints: state.savedRoutePoints,
     );
+    state = state.copyWith(isFetchingRoute: false);
     if (points == null || points.isEmpty) return;
 
     state = state.copyWith(savedRoutePoints: points);
