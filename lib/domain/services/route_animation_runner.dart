@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -34,38 +33,16 @@ class RouteAnimationRunner {
       if (markers != null) onMarkers(markers);
     }
 
-    // アニメーション対象（500点以下）は同期処理で十分高速。
-    // 大規模ルート（500点超）はバックグラウンドで解析し、先に赤で即時表示する。
-    final useAnimation = animate &&
-        fullPoints.length > _initialPoints &&
-        fullPoints.length <= 500;
-
-    late final bool isOutAndBack;
-    late final int turnaroundIdx;
-
-    if (!useAnimation) {
-      // 大規模ルート：先に全区間を赤で仮表示してからバックグラウンド解析
-      // （解析完了後に正しい色へ更新される）
-      onPolyline([
-        Polyline(points: fullPoints, color: Colors.red, strokeWidth: 5),
-      ]); // 解析完了前の仮表示
-      final analysis = await compute(analyzeRoute, fullPoints);
-      if (!mounted()) return;
-      isOutAndBack = analysis.type == RouteType.outAndBack;
-      turnaroundIdx = analysis.turnaroundIdx;
-    } else {
-      // 小規模ルート：同期解析（ポイント数が少ないので高速）
-      final analysis = analyzeRoute(fullPoints);
-      isOutAndBack = analysis.type == RouteType.outAndBack;
-      turnaroundIdx = analysis.turnaroundIdx;
-    }
+    // 総距離の50%地点でルートを前半（緑）・後半（赤）に分割する。
+    // ルートタイプ（往復・周遊・地点間）に関わらず全ルートに適用。
+    final turnaroundIdx = findTurnaroundIndex(fullPoints);
 
     List<Polyline> buildPolylines(int count) {
-      if (!isOutAndBack || count <= turnaroundIdx) {
+      if (count <= turnaroundIdx) {
         return [
           Polyline(
             points: fullPoints.sublist(0, count),
-            color: isOutAndBack ? Colors.green : Colors.red,
+            color: Colors.green,
             strokeWidth: 5,
           ),
         ];
@@ -83,6 +60,10 @@ class RouteAnimationRunner {
         ),
       ];
     }
+
+    final useAnimation = animate &&
+        fullPoints.length > _initialPoints &&
+        fullPoints.length <= 500;
 
     if (!useAnimation) {
       onPolyline(buildPolylines(fullPoints.length));

@@ -29,8 +29,6 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
   /// 起動時に位置取得に失敗した場合、案内 SnackBar を一度だけ表示したか
   bool _hasShownLocationUnavailableHint = false;
 
-  /// 往復コースの現在区間（往路/復路）。区間変化時のみポリライン描画順を更新する
-  RouteLeg? _currentRouteLeg;
 
   /// 初回ルート取得を実行したか（addPostFrameCallback の多重登録防止）
   bool _hasTriggeredInitialRouteFetch = false;
@@ -98,24 +96,29 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
     _previousStreamPosition = previous;
     _latestStreamPosition = position;
 
-    // 往復コースのみ：現在区間（往路/復路）を判定してポリライン描画順を更新
+    // ルートが前半・後半に分割されている場合、現在地の進捗で描画順を更新
     if (ref.read(mapStateProvider).routePolylines.length == 2) {
       final routePoints = ref.read(mapStateProvider).savedRoutePoints;
       if (routePoints != null && routePoints.isNotEmpty) {
-        final result = getRouteLegWithBearing(
-          routePoints,
-          LatLng(position.latitude, position.longitude),
-          previousPosition: previous != null
-              ? LatLng(previous.latitude, previous.longitude)
-              : null,
-        );
-        if (result.leg != RouteLeg.ambiguous &&
-            result.leg != _currentRouteLeg) {
-          _currentRouteLeg = result.leg;
-          ref.read(mapStateProvider.notifier).updateRouteLegDisplay(result.leg);
+        final notifier = ref.read(mapStateProvider.notifier);
+        // キャッシュ済み累積距離を使って最近傍点を O(n) で検索し、along-track 距離は O(1) で参照する
+        final cumDist = notifier.cumulativeDistances;
+        final currentLatLng = LatLng(position.latitude, position.longitude);
+        var bestIndex = 0;
+        var bestDist = distanceBetweenLatLng(routePoints[0], currentLatLng);
+        for (var i = 1; i < routePoints.length; i++) {
+          final d = distanceBetweenLatLng(routePoints[i], currentLatLng);
+          if (d < bestDist) {
+            bestDist = d;
+            bestIndex = i;
+          }
         }
+        final alongM = cumDist.isNotEmpty ? cumDist[bestIndex] : 0.0;
+        final isSecondHalf = alongM >= notifier.halfRouteDistanceM;
+        notifier.updateHalfDisplay(isSecondHalf);
       }
     }
+
     // 共有モード中はカメラを移動しない（スクリーンショット用のルート全体表示を維持する）
     if (_isShareMode) {
       setState(() {});

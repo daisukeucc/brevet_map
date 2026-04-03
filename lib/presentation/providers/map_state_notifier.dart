@@ -113,9 +113,16 @@ class MapStateNotifier extends Notifier<MapState> {
   UserPoi? _draggingPoi;
   void Function(LatLng)? _onPoiDragEnd;
 
-  // 往復コースの往路・復路ポリライン（往復判定済みのときのみ非 null）
-  Polyline? _outboundPolyline;
-  Polyline? _returnPolyline;
+  // 前半・後半ポリライン（ルート読み込み後に設定）
+  Polyline? _firstHalfPolyline;
+  Polyline? _secondHalfPolyline;
+  // 折り返し距離（m）。前半・後半の境界
+  double _halfRouteDistanceM = 0;
+  // 累積距離キャッシュ（インデックス i → スタートからの距離 m）。along-track 距離の O(n) 再計算を避ける
+  List<double> _cumulativeDistances = [];
+  // 直前の表示状態。新ルート読み込み時は null にリセットして強制更新を保証する
+  bool? _currentDisplayIsSecondHalf;
+
 
   @override
   MapState build() => const MapState();
@@ -385,9 +392,17 @@ class MapStateNotifier extends Notifier<MapState> {
     List<LatLng> fullPoints, {
     bool animate = true,
   }) async {
-    // 新ルート読み込み時は往復分割をリセット
-    _outboundPolyline = null;
-    _returnPolyline = null;
+    _firstHalfPolyline = null;
+    _secondHalfPolyline = null;
+    _currentDisplayIsSecondHalf = null;
+    // 累積距離を事前計算してキャッシュ（位置更新ごとの O(n) 再計算を O(1) 参照に変える）
+    _cumulativeDistances = List<double>.filled(fullPoints.length, 0);
+    for (var i = 1; i < fullPoints.length; i++) {
+      _cumulativeDistances[i] =
+          _cumulativeDistances[i - 1] + distanceBetweenLatLng(fullPoints[i - 1], fullPoints[i]);
+    }
+    _halfRouteDistanceM =
+        _cumulativeDistances.isNotEmpty ? _cumulativeDistances.last / 2 : 0;
     state = state.copyWith(fullRoutePoints: fullPoints);
     await _refreshRouteMarkers(fullPoints);
     await _routeAnimationRunner.start(
@@ -396,10 +411,9 @@ class MapStateNotifier extends Notifier<MapState> {
       animate: animate,
       onPolyline: (p) {
         state = state.copyWith(routePolylines: p);
-        // 往復コースは2本のポリラインで構成される（往路=緑、復路=赤）
         if (p.length == 2) {
-          _outboundPolyline = p[0];
-          _returnPolyline = p[1];
+          _firstHalfPolyline = p[0];
+          _secondHalfPolyline = p[1];
         }
       },
       onMarkers: (_) {},
@@ -407,18 +421,19 @@ class MapStateNotifier extends Notifier<MapState> {
     );
   }
 
-  /// 現在の走行区間（往路/復路）に応じてポリラインの描画順を切り替える。
-  /// flutter_map はリストの後方が前面に描画されるため、現在走行中の区間を後方に置く。
-  /// 往復コース以外では何もしない。
-  void updateRouteLegDisplay(RouteLeg leg) {
-    final outbound = _outboundPolyline;
-    final returnPoly = _returnPolyline;
-    if (outbound == null || returnPoly == null) return;
-    // 往路中：緑（往路）を前面 → [赤(復路), 緑(往路)]
-    // 復路中：赤（復路）を前面 → [緑(往路), 赤(復路)]
-    final polylines = leg == RouteLeg.returnRoute
-        ? [outbound, returnPoly]
-        : [returnPoly, outbound];
+  /// 現在地がルートの前半・後半どちらにいるかに応じてポリラインの描画順を切り替える。
+  /// flutter_map はリストの後方が前面に描画される。
+  /// 前半中：緑を前面 → [赤, 緑]　後半中：赤を前面 → [緑, 赤]
+  void updateHalfDisplay(bool isSecondHalf) {
+    if (isSecondHalf == _currentDisplayIsSecondHalf) return;
+    final first = _firstHalfPolyline;
+    final second = _secondHalfPolyline;
+    if (first == null || second == null) return;
+    _currentDisplayIsSecondHalf = isSecondHalf;
+    final polylines = isSecondHalf ? [first, second] : [second, first];
     state = state.copyWith(routePolylines: polylines);
   }
+
+  double get halfRouteDistanceM => _halfRouteDistanceM;
+  List<double> get cumulativeDistances => _cumulativeDistances;
 }
