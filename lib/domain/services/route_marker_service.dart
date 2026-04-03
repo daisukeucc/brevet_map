@@ -8,16 +8,16 @@ import '../../utils/map_utils.dart';
 import 'marker_icon_service.dart';
 
 /// 距離マーカーを表示するズームレベルの閾値。この値以上で拡大しているときに表示する。
-const double distanceMarkerZoomThreshold = 9.0;
+const double distanceMarkerZoomThreshold = 8.0;
 
 /// ルート総距離（メートル）に応じて km 単位のインターバルを決定する。
-/// - 総距離 < 50km  → 10km 毎
-/// - 50km ≤ 総距離 < 400km → 50km 毎
-/// - 400km ≤ 総距離 → 100km 毎
+/// - 総距離 < 110km  → 10km 毎
+/// - 110km ≤ 総距離 < 600km → 50km 毎
+/// - 600km ≤ 総距離 → 100km 毎
 double _resolveKmIntervalMeters(double totalMeters) {
   final totalKm = totalMeters / 1000;
-  if (totalKm < 55) return 10000.0;
-  if (totalKm < 410) return 50000.0;
+  if (totalKm < 110) return 10000.0;
+  if (totalKm < 610) return 50000.0;
   return 100000.0;
 }
 
@@ -47,7 +47,7 @@ Future<List<Marker>> buildRouteMarkers({
   int distanceUnit = 0,
 }) async {
   final showDistanceMarkers =
-      zoomLevel == null || zoomLevel >= distanceMarkerZoomThreshold;
+      zoomLevel != null && zoomLevel >= distanceMarkerZoomThreshold;
   final markers = <Marker>[];
   Widget? startIcon;
   Widget? goalIcon;

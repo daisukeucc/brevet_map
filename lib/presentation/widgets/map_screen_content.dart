@@ -384,7 +384,10 @@ class _MapScreenContentState extends State<MapScreenContent> {
         initialZoom: widget.initialZoom,
         onMapReady: () {},
         onMapEvent: (event) {
-          if (event is MapEventMoveEnd) {
+          if (event is MapEventMoveEnd ||
+              event is MapEventFlingAnimationEnd ||
+              event is MapEventDoubleTapZoomEnd ||
+              event is MapEventScrollWheelZoom) {
             widget.onCameraIdle();
           }
         },

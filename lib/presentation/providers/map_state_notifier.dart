@@ -198,6 +198,9 @@ class MapStateNotifier extends Notifier<MapState> {
   }) async {
     await loadAndApplyMapStyle(controller);
 
+    // 初期ズームを保存しておく（savedZoomLevel が null だと距離マーカーの閾値判定が機能しないため）
+    state = state.copyWith(savedZoomLevel: controller.camera.zoom);
+
     final initialRoute = state.savedRoutePoints ?? _emptyRoute;
     await _refreshRouteMarkers(initialRoute);
 
@@ -205,6 +208,8 @@ class MapStateNotifier extends Notifier<MapState> {
       final bounds = boundsFromPoints(state.savedRoutePoints!);
       if (bounds != null) {
         await animateCamera(bounds);
+        // アニメーション後の実際のズームレベルで savedZoomLevel を更新する
+        state = state.copyWith(savedZoomLevel: controller.camera.zoom);
         await _startRouteAnimation(state.savedRoutePoints!);
       }
     }
