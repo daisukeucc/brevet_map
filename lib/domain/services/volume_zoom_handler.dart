@@ -15,13 +15,17 @@ class VolumeZoomHandler {
   static const _zoomAmountDown = 1.0;
   static const _debounce = Duration(milliseconds: 400);
 
+  /// iOS: 常にこの音量に復元する。差分がほぼ0なら復元コールバックとみなしスキップ。
+  static const _anchorVolume = 0.5;
+  /// iOSの音量ステップは 1/16≒0.0625。復元後のわずかなズレを吸収するため 0.03 に設定。
+  static const _threshold = 0.03;
+
   StreamSubscription<double>? _volumeSubscription;
   StreamSubscription<HardwareButton>? _volumeKeySubscription;
-  double? _previousVolume;
   DateTime? _lastKeyTime;
   HardwareButton? _lastKeyButton;
   DateTime? _lastChangeTime;
-  bool? _lastChangeUp;
+  bool _iosInitialized = false;
 
   void start() {
     if (Platform.isAndroid) {
@@ -47,47 +51,43 @@ class VolumeZoomHandler {
       });
       return;
     }
+
+    // iOS: fetchInitialVolume:true で最初のコールバックを初期化に使い、
+    // その後 setVolume でアンカーに固定する。Timerを使わないためズレが起きない。
     VolumeController.instance.showSystemUI = false;
+
     _volumeSubscription = VolumeController.instance.addListener((volume) {
-      if (_previousVolume == null) {
-        _previousVolume = volume;
+      // 最初のコールバックは現在音量の取得。アンカーにセットして初期化完了。
+      if (!_iosInitialized) {
+        _iosInitialized = true;
+        VolumeController.instance.setVolume(_anchorVolume);
         return;
       }
+
+      final diff = volume - _anchorVolume;
+      // アンカーとの差が閾値以下 = 復元コールバックなので無視
+      if (diff.abs() < _threshold) return;
+
+      // アンカーに戻す（このコールバックは diff≈0 で自然にスキップされる）
+      VolumeController.instance.setVolume(_anchorVolume);
+
+      // デバウンス
       final now = DateTime.now();
-      final isUp = volume > _previousVolume!;
-      final isDown = volume < _previousVolume!;
+      if (_lastChangeTime != null &&
+          now.difference(_lastChangeTime!) < _debounce) {
+        return;
+      }
+      _lastChangeTime = now;
+
       final controller = getController();
-      if (isUp && controller != null) {
-        if (_lastChangeTime != null &&
-            _lastChangeUp == true &&
-            now.difference(_lastChangeTime!) < _debounce) {
-          VolumeController.instance.setVolume(_previousVolume!);
-          return;
-        }
-        _lastChangeTime = now;
-        _lastChangeUp = true;
-        final center = controller.camera.center;
-        final zoom = controller.camera.zoom;
+      if (controller == null) return;
+      final center = controller.camera.center;
+      final zoom = controller.camera.zoom;
+      if (diff > 0) {
         controller.move(center, zoom + _zoomAmountUp);
-        VolumeController.instance.setVolume(_previousVolume!);
-        return;
-      }
-      if (isDown && controller != null) {
-        if (_lastChangeTime != null &&
-            _lastChangeUp == false &&
-            now.difference(_lastChangeTime!) < _debounce) {
-          VolumeController.instance.setVolume(_previousVolume!);
-          return;
-        }
-        _lastChangeTime = now;
-        _lastChangeUp = false;
-        final center = controller.camera.center;
-        final zoom = controller.camera.zoom;
+      } else {
         controller.move(center, (zoom - _zoomAmountDown).clamp(0.0, 22.0));
-        VolumeController.instance.setVolume(_previousVolume!);
-        return;
       }
-      _previousVolume = volume;
     }, fetchInitialVolume: true);
   }
 
