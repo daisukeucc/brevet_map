@@ -105,7 +105,7 @@ Future<Widget> createPoiInfoMarkerIcon() async {
   final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
 
   final circlePaint = Paint()
-    ..color = Colors.orange
+    ..color = Colors.orange.shade600
     ..style = PaintingStyle.fill;
   canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
 
