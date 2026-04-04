@@ -9,7 +9,6 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'config/tile_config.dart';
-import 'utils/connectivity_check.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/providers/app_settings_providers.dart';
 import 'presentation/screens/home_screen.dart';
@@ -42,12 +41,11 @@ Future<void> main() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
 
-  if (await checkConnectivity()) {
-    await _initRevenueCat().timeout(
-      const Duration(seconds: 5),
-      onTimeout: () {},
-    );
-  }
+  // RevenueCat は await せず起動をブロックしない（fire-and-forget）。
+  // await すると Android でスプラッシュ画面が固まることがある。
+  // また、await なしで常に configure を呼ぶことで、オフライン時も SDK が初期化済みになり
+  // Purchases.getCustomerInfo() 呼び出し時のネイティブクラッシュを防ぐ。
+  _initRevenueCat();
 
   await TileConfig.initUserAgentPackageName();
   // クラッシュ後の ObjectBox DB 不正状態で initialise() が無限待機することがある。
