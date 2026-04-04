@@ -34,7 +34,8 @@ class GpxImportResult {
 }
 
 /// GpxPoi を UserPoi に変換する。
-/// - type: <type>/<cmt> が control/checkpoint なら 0、 else 1
+/// - type: `<cmt>` が `control` ならチェックポイント(0)、それ以外はインフォメーション(1)
+/// - gpxCmt / gpxType: `<cmt>` `<type>` の文字列をそのまま保持（エクスポートで同じタグに出力）
 /// - km: <name> 先頭に「Nkm：」があれば N、なければ null
 /// - title: <name> から距離プレフィックスを除去した実質的なタイトル
 /// - body: <desc>
@@ -48,6 +49,8 @@ UserPoi _gpxPoiToUserPoi(GpxPoi poi) {
     body: poi.description ?? '',
     lat: poi.lat,
     lng: poi.lng,
+    gpxCmt: poi.cmt,
+    gpxType: poi.type,
   );
 }
 

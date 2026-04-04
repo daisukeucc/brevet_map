@@ -9,6 +9,10 @@ class UserPoi {
     required this.body,
     required this.lat,
     required this.lng,
+    /// GPX インポート時の `cmt` 要素の値（手動追加 POI では null）
+    this.gpxCmt,
+    /// GPX インポート時の `type` 要素の値（手動追加 POI では null）
+    this.gpxType,
   });
 
   /// 0=チェックポイント, 1=インフォメーション
@@ -21,6 +25,12 @@ class UserPoi {
   final double lat;
   final double lng;
 
+  /// GPX の `cmt` をエクスポートでそのまま出すため保持
+  final String? gpxCmt;
+
+  /// GPX の `type` をエクスポートでそのまま出すため保持
+  final String? gpxType;
+
   LatLng get position => LatLng(lat, lng);
 
   bool get isCheckpoint => type == 0;
@@ -32,6 +42,8 @@ class UserPoi {
         'body': body,
         'lat': lat,
         'lng': lng,
+        if (gpxCmt != null) 'gpxCmt': gpxCmt,
+        if (gpxType != null) 'gpxType': gpxType,
       };
 
   static UserPoi fromJson(Map<String, dynamic> json) => UserPoi(
@@ -41,5 +53,7 @@ class UserPoi {
         body: json['body'] as String? ?? '',
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
+        gpxCmt: json['gpxCmt'] as String?,
+        gpxType: json['gpxType'] as String?,
       );
 }

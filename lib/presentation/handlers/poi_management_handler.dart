@@ -184,6 +184,8 @@ Future<void> handleEditPoiText(
     body: data.body,
     lat: coord?.latitude ?? poi.lat,
     lng: coord?.longitude ?? poi.lng,
+    gpxCmt: poi.gpxCmt,
+    gpxType: poi.gpxType,
   );
   await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
   if (!context.mounted) return;
@@ -239,6 +241,8 @@ Future<void> handlePoiDragEnd(
     body: poi.body,
     lat: newLatLng.latitude,
     lng: newLatLng.longitude,
+    gpxCmt: poi.gpxCmt,
+    gpxType: poi.gpxType,
   );
   await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
   if (!context.mounted) return;

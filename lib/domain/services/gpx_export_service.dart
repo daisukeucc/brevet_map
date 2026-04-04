@@ -50,12 +50,20 @@ String buildGpxXml({
       final name = poi.km != null
           ? '${formatDistance(poi.km!, 0)}：${poi.title}'
           : (poi.title.isEmpty ? null : poi.title);
+      // GPX から保持した <cmt>/<type> があればそのまま。手動追加・編集のみの POI は下記既定値
+      // チェックポイント: cmt=control, type=checkpoint / インフォ: cmt=generic, type=generic
+      final cmtOut = (poi.gpxCmt != null && poi.gpxCmt!.isNotEmpty)
+          ? poi.gpxCmt!
+          : (poi.isCheckpoint ? 'control' : 'generic');
+      final typeOut = (poi.gpxType != null && poi.gpxType!.isNotEmpty)
+          ? poi.gpxType!
+          : (poi.isCheckpoint ? 'checkpoint' : 'generic');
       _addWpt(builder, poi.lat, poi.lng,
           name: name,
           desc: body,
           sym: 'Dot',
-          cmt: poi.isCheckpoint ? 'control' : 'generic',
-          type: poi.isCheckpoint ? 'checkpoint' : 'generic');
+          cmt: cmtOut,
+          type: typeOut);
     }
 
     // trk
