@@ -33,6 +33,7 @@ class MapScreenContent extends StatefulWidget {
     required this.onOfflineMapTap,
     required this.onAddPoiTap,
     required this.onAppSettingsTap,
+    this.onDebugWelcomeTap,
     this.hasUserPois = false,
     this.isDragMode = false,
     this.isMapTapAddMode = false,
@@ -109,6 +110,9 @@ class MapScreenContent extends StatefulWidget {
   /// アプリ設定画面表示コールバック
   final VoidCallback onAppSettingsTap;
 
+  /// [Debug] Welcomeダイアログ表示コールバック
+  final VoidCallback? onDebugWelcomeTap;
+
   /// ユーザーPOIが1件以上登録されている場合 true
   final bool hasUserPois;
 
@@ -145,6 +149,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
         onAddPoiTap: () => popSheetAndCall(context, widget.onAddPoiTap),
         onAppSettingsTap: () =>
             popSheetAndCall(context, widget.onAppSettingsTap),
+        onDebugWelcomeTap: widget.onDebugWelcomeTap != null
+            ? () => popSheetAndCall(context, widget.onDebugWelcomeTap!)
+            : null,
       ),
     );
   }

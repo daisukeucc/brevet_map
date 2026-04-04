@@ -231,5 +231,6 @@
   },
   "subscriptionNotActive": "未加入",
   "subscriptionTerms": "購読規約",
-  "manageSubscription": "サブスクリプションを管理"
+  "manageSubscription": "サブスクリプションを管理",
+"sampleRouteDialogMessage": "地図上のルートはサンプルルートのため、実際に使用する場合は、サイクリングアプリからエクスポートしたGPXファイルや、イベントで提供されるGPXファイルをインポートして使用してください。"
 }

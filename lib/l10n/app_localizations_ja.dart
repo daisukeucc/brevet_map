@@ -485,4 +485,8 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get manageSubscription => 'サブスクリプションを管理';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      '地図上のルートはサンプルルートのため、実際に使用する場合は、サイクリングアプリからエクスポートしたGPXファイルや、イベントで提供されるGPXファイルをインポートして使用してください。';
 }

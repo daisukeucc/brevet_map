@@ -502,4 +502,8 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get manageSubscription => 'Gestisci abbonamento';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'Il percorso mostrato sulla mappa è un percorso di esempio. Per uso reale, importa e utilizza un file GPX esportato da un\'app di ciclismo o fornito da un evento.';
 }

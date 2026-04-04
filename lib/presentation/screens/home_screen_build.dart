@@ -35,15 +35,16 @@ mixin _BuildMixin
       _hasTriggeredInitialRouteFetch = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
-          position,
-          animateCamera: (bounds) async {
-            if (bounds != null) {
-              await ref
-                  .read(cameraControllerProvider.notifier)
-                  .animateToBounds(bounds);
-            }
-          },
-        );
+              position,
+              animateCamera: (bounds) async {
+                if (bounds != null) {
+                  await ref
+                      .read(cameraControllerProvider.notifier)
+                      .animateToBounds(bounds);
+                }
+              },
+              onFirstRouteShown: () => _showSampleRouteDialog(context),
+            );
       });
     }
 
@@ -133,6 +134,7 @@ mixin _BuildMixin
               onStopDragMode: () => setState(() => _isDragMode = false),
             ),
           ),
+          onDebugWelcomeTap: () => _showSampleRouteDialog(context),
           hasUserPois: mapState.userPois.isNotEmpty,
           onUserInteraction: _onUserInteraction,
           isDragMode: _isDragMode,
@@ -227,5 +229,49 @@ mixin _BuildMixin
 
   Widget _buildBody(BuildContext context) {
     return _buildMapLayout(context);
+  }
+
+  void _showSampleRouteDialog(BuildContext context) {
+    if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: const RoundedRectangleBorder(),
+        titlePadding: const EdgeInsets.fromLTRB(30, 30, 30, 15),
+        title: const Text(
+          'Welcome to Brevet Map!',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF444444),
+          ),
+          textAlign: TextAlign.center,
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(30, 0, 30, 20),
+        content: Text(
+          l10n.sampleRouteDialogMessage,
+          style: AppTextStyles.body.copyWith(height: 2),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(30, 0, 30, 30),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          TextButton(
+            style: ButtonStyle(
+              minimumSize: WidgetStateProperty.all(Size.zero),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text(
+              'Get Started',
+              style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black45),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

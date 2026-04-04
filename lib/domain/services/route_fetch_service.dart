@@ -38,14 +38,14 @@ Future<List<LatLng>?> loadSavedRoute() async {
 }
 
 /// 初回起動時のサンプル POI を生成して返す。
-/// ルート上の 20/40/60/80km 地点に配置する。
+/// ルート上の 10/20/40/60/80km 地点に配置する。
 List<UserPoi> buildSamplePois(List<LatLng> routePoints) {
   const specs = [
-    (km: 10.0, type: 1, title: 'Info', body: 'Details'),
-    (km: 20.0, type: 0, title: 'CP1', body: 'Details'),
-    (km: 40.0, type: 0, title: 'CP2', body: 'Details'),
-    (km: 60.0, type: 1, title: 'Info', body: 'Details'),
-    (km: 80.0, type: 0, title: 'CP3', body: 'Details'),
+    (km: 10.0, type: 1, title: 'Info'),
+    (km: 20.0, type: 0, title: 'CP1'),
+    (km: 40.0, type: 0, title: 'CP2'),
+    (km: 60.0, type: 1, title: 'Info'),
+    (km: 80.0, type: 0, title: 'CP3'),
   ];
   final pois = <UserPoi>[];
   for (final spec in specs) {
@@ -55,7 +55,7 @@ List<UserPoi> buildSamplePois(List<LatLng> routePoints) {
       type: spec.type,
       km: spec.km,
       title: spec.title,
-      body: spec.body,
+      body: 'Details',
       lat: coord.latitude,
       lng: coord.longitude,
     ));

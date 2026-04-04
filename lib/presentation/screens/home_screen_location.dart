@@ -3,6 +3,7 @@ part of 'home_screen.dart';
 /// 位置情報ストリーム関連の状態・ロジックをまとめた mixin。
 /// [_MyHomePageState] に mix-in して使用する。
 mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
+  void _showSampleRouteDialog(BuildContext context);
   // ── このmixinが所有するstate ──────────────────────────────────────────────
 
   /// 初期表示位置。null の間はローディング、非 null で地図表示
@@ -86,6 +87,7 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
                 .animateToBounds(bounds);
           }
         },
+        onFirstRouteShown: () => _showSampleRouteDialog(context),
       );
     });
   }

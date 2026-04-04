@@ -500,4 +500,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get manageSubscription => 'Manage Subscription';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'The route shown on the map is a sample route. For actual use, please import and use a GPX file exported from a cycling app or provided by an event.';
 }

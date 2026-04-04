@@ -505,4 +505,8 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get manageSubscription => 'Gérer l\'abonnement';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'L\'itinéraire affiché sur la carte est un itinéraire d\'exemple. Pour une utilisation réelle, veuillez importer et utiliser un fichier GPX exporté depuis une application de cyclisme ou fourni par un événement.';
 }

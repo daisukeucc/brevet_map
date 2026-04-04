@@ -283,6 +283,7 @@ class MapStateNotifier extends Notifier<MapState> {
   Future<void> fetchOrLoadRouteIfNeeded(
     Position position, {
     required Future<void> Function(LatLngBounds?) animateCamera,
+    VoidCallback? onFirstRouteShown,
   }) async {
     if (state.hasStartedInitialRouteFetch) return;
     // 保存済みルートがない場合（初回インストール相当）のみローディングを表示する
@@ -317,6 +318,11 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     final bounds = boundsFromPoints(points);
     await animateCamera(bounds);
+
+    // 初回インストール時のみサンプルルート表示完了後にコールバックを呼ぶ
+    if (!hasSavedRoute) {
+      onFirstRouteShown?.call();
+    }
   }
 
   /// ルート全体のバウンドを返す（animateToRouteBounds 用）

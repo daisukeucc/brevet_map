@@ -500,4 +500,8 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get manageSubscription => 'จัดการการสมัครสมาชิก';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'เส้นทางที่แสดงบนแผนที่เป็นเส้นทางตัวอย่าง สำหรับการใช้งานจริง กรุณานำเข้าและใช้ไฟล์ GPX ที่ส่งออกจากแอปจักรยานหรือที่ได้รับจากกิจกรรม';
 }

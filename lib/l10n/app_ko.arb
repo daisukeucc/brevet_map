@@ -245,5 +245,6 @@
   },
   "subscriptionNotActive": "미가입",
   "subscriptionTerms": "구독 약관",
-  "manageSubscription": "구독 관리"
+  "manageSubscription": "구독 관리",
+"sampleRouteDialogMessage": "지도에 표시된 경로는 샘플 경로입니다. 실제로 사용하려면 사이클링 앱에서 내보낸 GPX 파일이나 이벤트에서 제공된 GPX 파일을 가져와 사용해 주세요."
 }

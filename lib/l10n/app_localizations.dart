@@ -993,6 +993,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Manage Subscription'**
   String get manageSubscription;
+
+  /// No description provided for @sampleRouteDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The route shown on the map is a sample route. For actual use, please import and use a GPX file exported from a cycling app or provided by an event.'**
+  String get sampleRouteDialogMessage;
 }
 
 class _AppLocalizationsDelegate

@@ -479,4 +479,8 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get manageSubscription => '管理订阅';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      '地图上显示的路线是示例路线。实际使用时，请导入并使用从骑行应用导出的GPX文件或活动提供的GPX文件。';
 }
