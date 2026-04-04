@@ -246,5 +246,5 @@
   "subscriptionNotActive": "No suscrito",
   "subscriptionTerms": "Términos de suscripción",
   "manageSubscription": "Administrar suscripción",
-"sampleRouteDialogMessage": "La ruta mostrada en el mapa es una ruta de ejemplo. Para uso real, importe y utilice un archivo GPX exportado desde una aplicación de ciclismo o proporcionado por un evento."
+  "sampleRouteDialogMessage": "La ruta mostrada en el mapa es una ruta de ejemplo. Para uso real, importe y utilice un archivo GPX exportado de una aplicación de ciclismo o proporcionado por un evento."
 }

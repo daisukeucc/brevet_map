@@ -246,5 +246,5 @@
   "subscriptionNotActive": "Nicht abonniert",
   "subscriptionTerms": "Abonnementbedingungen",
   "manageSubscription": "Abonnement verwalten",
-"sampleRouteDialogMessage": "Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei, die aus einer Radsport-App exportiert oder von einer Veranstaltung bereitgestellt wurde."
+  "sampleRouteDialogMessage": "Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei aus einer Radsport-App oder von einer Veranstaltung."
 }

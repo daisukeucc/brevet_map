@@ -505,5 +505,5 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get sampleRouteDialogMessage =>
-      'Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei, die aus einer Radsport-App exportiert oder von einer Veranstaltung bereitgestellt wurde.';
+      'Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei aus einer Radsport-App oder von einer Veranstaltung.';
 }
