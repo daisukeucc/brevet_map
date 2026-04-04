@@ -56,7 +56,12 @@ Future<void> handleOfflineMapTap(BuildContext context, WidgetRef ref) async {
     if (!proceed) return;
   }
 
-  await showOfflineMapDownloadFlow(context, ref);
+  try {
+    await showOfflineMapDownloadFlow(context, ref);
+  } catch (_) {
+    // showOfflineMapDownloadFlow 内の予期しない例外をサイレントに握り潰す
+    // （ネイティブ例外等によるクラッシュ防止）
+  }
 }
 
 /// POI追加・編集メニューがタップされたときのフロー

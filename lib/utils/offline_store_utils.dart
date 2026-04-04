@@ -7,10 +7,12 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 Future<String> getOfflineStoreSizeFormatted(String storeName) async {
   try {
     final store = FMTCStore(storeName);
-    final exists = await store.manage.ready;
+    final exists = await store.manage.ready
+        .timeout(const Duration(seconds: 2), onTimeout: () => false);
     if (!exists) return '0 B';
 
-    final stats = await store.stats.all;
+    final stats = await store.stats.all
+        .timeout(const Duration(seconds: 2), onTimeout: () => throw Exception());
     final bytes = stats.size * 1024; // KiB → bytes
     return _formatBytes(bytes);
   } catch (_) {
