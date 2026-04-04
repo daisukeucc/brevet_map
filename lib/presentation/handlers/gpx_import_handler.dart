@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -29,48 +28,33 @@ Future<void> showGpxImportFlow(
   );
   if (confirmed != true || !context.mounted) return;
 
-  // withData: iOS の「ファイル」等では path が null になり得るが bytes は取れる
-  final result = await FilePicker.platform.pickFiles(
-    type: FileType.any,
-    withData: true,
-  );
-  if (result == null || result.files.isEmpty || !context.mounted) return;
-
-  final picked = result.files.single;
-  final rawFilename = picked.path != null
-      ? picked.path!.split(RegExp(r'[/\\]')).last
-      : picked.name;
-
-  if (!rawFilename.toLowerCase().endsWith('.gpx')) {
+  final result = await FilePicker.platform.pickFiles(type: FileType.any);
+  if (result == null || result.files.single.path == null || !context.mounted) {
+    return;
+  }
+  final path = result.files.single.path!;
+  if (!path.toLowerCase().endsWith('.gpx')) {
     if (!context.mounted) return;
     showAppSnackBar(context, l10n.selectGpxFile);
     return;
   }
 
   // ファイル名の全角（ローマ字・数字・スペース）を半角に変換してから読み込む
+  final sourceFile = File(path);
+  final rawFilename = path.split(RegExp(r'[/\\]')).last;
+  final normalizedFilename = toHalfwidthAscii(rawFilename);
   String content;
-  if (picked.path != null) {
-    final path = picked.path!;
-    final sourceFile = File(path);
-    final normalizedFilename = toHalfwidthAscii(rawFilename);
-    if (normalizedFilename == rawFilename) {
-      content = await sourceFile.readAsString();
-    } else {
-      final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/$normalizedFilename');
-      await sourceFile.copy(tempFile.path);
-      try {
-        content = await tempFile.readAsString();
-      } finally {
-        tempFile.deleteSync();
-      }
-    }
-  } else if (picked.bytes != null) {
-    content = utf8.decode(picked.bytes!, allowMalformed: true);
+  if (normalizedFilename == rawFilename) {
+    content = await sourceFile.readAsString();
   } else {
-    if (!context.mounted) return;
-    showAppSnackBar(context, l10n.selectGpxFile);
-    return;
+    final tempDir = await getTemporaryDirectory();
+    final tempFile = File('${tempDir.path}/$normalizedFilename');
+    await sourceFile.copy(tempFile.path);
+    try {
+      content = await tempFile.readAsString();
+    } finally {
+      tempFile.deleteSync();
+    }
   }
   if (!context.mounted) return;
 

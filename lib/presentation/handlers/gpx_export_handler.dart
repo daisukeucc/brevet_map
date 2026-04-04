@@ -114,10 +114,10 @@ Future<void> showGpxExportFlow(
   // インポートしたGPXのmetadata/nameがあればデフォルトに使用
   final savedMetadataName = await loadGpxMetadataName();
   if (!context.mounted) return;
-  final defaultFilename = (savedMetadataName != null &&
-          savedMetadataName.trim().isNotEmpty)
-      ? _sanitizeFilename(savedMetadataName)
-      : _defaultGpxFilename();
+  final defaultFilename =
+      (savedMetadataName != null && savedMetadataName.trim().isNotEmpty)
+          ? _sanitizeFilename(savedMetadataName)
+          : _defaultGpxFilename();
 
   // ファイル名入力フォーム
   final filename = await showDialog<String>(
