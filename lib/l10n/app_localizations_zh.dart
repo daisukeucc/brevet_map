@@ -92,7 +92,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiAddByDistance => '按距离添加POI';
 
   @override
-  String get poiAddByMapTap => '从地图添加POI';
+  String get poiAddByMapTap => '通过点击地图添加POI';
 
   @override
   String get poiTabAdd => '添加 POI';

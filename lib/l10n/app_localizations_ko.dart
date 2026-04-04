@@ -93,7 +93,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiAddByDistance => '거리로 POI 추가';
 
   @override
-  String get poiAddByMapTap => '지도에서 POI 추가';
+  String get poiAddByMapTap => '지도에서 탭하여 POI 추가';
 
   @override
   String get poiTabAdd => 'POI 추가';

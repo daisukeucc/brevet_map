@@ -34,7 +34,7 @@
   "poiAdd": "เพิ่ม POI",
   "poiAddEdit": "เพิ่มหรือแก้ไข POI",
   "poiAddByDistance": "เพิ่ม POI ตามระยะทาง",
-  "poiAddByMapTap": "เพิ่ม POI จากแผนที่",
+  "poiAddByMapTap": "เพิ่ม POI จากการแตะแผนที่",
   "poiTabAdd": "เพิ่ม POI",
   "poiTabEdit": "แก้ไขหรือลบ POI",
   "poiType": "ประเภท POI",

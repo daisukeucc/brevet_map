@@ -277,7 +277,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiAddByMapTap.
   ///
   /// In en, this message translates to:
-  /// **'Add POI from map'**
+  /// **'Add POI from map tap'**
   String get poiAddByMapTap;
 
   /// No description provided for @poiTabAdd.

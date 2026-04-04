@@ -94,7 +94,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get poiAddByDistance => 'เพิ่ม POI ตามระยะทาง';
 
   @override
-  String get poiAddByMapTap => 'เพิ่ม POI จากแผนที่';
+  String get poiAddByMapTap => 'เพิ่ม POI จากการแตะแผนที่';
 
   @override
   String get poiTabAdd => 'เพิ่ม POI';

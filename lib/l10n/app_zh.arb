@@ -33,7 +33,7 @@
   "poiAdd": "添加 POI",
   "poiAddEdit": "添加或编辑POI",
   "poiAddByDistance": "按距离添加POI",
-  "poiAddByMapTap": "从地图添加POI",
+  "poiAddByMapTap": "通过点击地图添加POI",
   "poiTabAdd": "添加 POI",
   "poiTabEdit": "编辑或删除POI",
   "poiType": "POI 类型",

@@ -33,7 +33,7 @@
   "poiAdd": "Ajouter un POI",
   "poiAddEdit": "Ajouter ou modifier un POI",
   "poiAddByDistance": "Ajouter un POI à distance",
-  "poiAddByMapTap": "Ajouter un POI depuis la carte",
+  "poiAddByMapTap": "Ajouter un POI en appuyant sur la carte",
   "poiTabAdd": "Ajouter POI",
   "poiTabEdit": "Modifier ou supprimer un POI",
   "poiType": "Type de POI",

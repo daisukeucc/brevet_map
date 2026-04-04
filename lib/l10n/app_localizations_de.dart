@@ -94,7 +94,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get poiAddByDistance => 'POI bei Distanz hinzufügen';
 
   @override
-  String get poiAddByMapTap => 'POI von Karte hinzufügen';
+  String get poiAddByMapTap => 'POI durch Tippen auf die Karte hinzufügen';
 
   @override
   String get poiTabAdd => 'POI hinzufügen';
