@@ -84,6 +84,10 @@ class AppLocalizationsKo extends AppLocalizations {
   String get gpxExportPermissionDenied => '파일 저장 권한이 거부되었습니다';
 
   @override
+  String get gpxExportSaveLocationMessage =>
+      '기본적으로 내보낸 파일은 다음 위치에 저장됩니다.\n\niOS:\n[나의 iPhone] > [Brevet MAP]\n\nAndroid:\n[파일] > [다운로드]';
+
+  @override
   String get poiAdd => 'POI 추가';
 
   @override

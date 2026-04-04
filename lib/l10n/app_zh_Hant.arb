@@ -31,6 +31,7 @@
   },
   "gpxExportFailed": "匯出失敗",
   "gpxExportPermissionDenied": "檔案儲存權限被拒絕",
+  "gpxExportSaveLocationMessage": "預設情況下，匯出的檔案將儲存在以下位置：\n\niOS：\n[我的 iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下載]",
   "poiAdd": "添加 POI",
   "poiAddEdit": "添加或編輯 POI",
   "poiAddByDistance": "依距離添加 POI",

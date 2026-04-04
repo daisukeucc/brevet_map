@@ -31,6 +31,7 @@
   },
   "gpxExportFailed": "ส่งออกล้มเหลว",
   "gpxExportPermissionDenied": "ไม่มีสิทธิ์บันทึกไฟล์",
+  "gpxExportSaveLocationMessage": "โดยค่าเริ่มต้น ไฟล์ที่ส่งออกจะถูกบันทึกตามตำแหน่งต่อไปนี้\n\niOS:\n[iPhone ของฉัน] > [Brevet MAP]\n\nAndroid:\n[Files] > [ดาวน์โหลด]",
   "poiAdd": "เพิ่ม POI",
   "poiAddEdit": "เพิ่มหรือแก้ไข POI",
   "poiAddByDistance": "เพิ่ม POI ตามระยะทาง",

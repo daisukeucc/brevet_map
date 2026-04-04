@@ -22,19 +22,17 @@ class GpxPoi {
   /// GPXの <cmt>（コメント）
   final String? cmt;
 
-  /// GPXの <type>（種別）。"control" / "checkpoint" 等でコントロールポイント判定に使用
+  /// GPX の `<type>`（種別）。インポート時はそのまま保持してエクスポートに使う
   final String? type;
 
   LatLng get position => LatLng(lat, lng);
 
-  /// コントロールポイントかどうか
-  /// <type> が "control" / "checkpoint" / "generic"、
-  /// もしくは <cmt> が "control" / "generic" のとき true
+  /// チェックポイントとして扱うか（`UserPoi.type` 0 用）
+  /// `<cmt>` が `control`（前後空白を除き大文字小文字は無視）のときだけ true。
+  /// `<cmt>` が無い・空・それ以外はインフォメーション。
   bool get isControl {
-    final t = type?.trim().toLowerCase();
-    if (t == 'control' || t == 'checkpoint' || t == 'generic') return true;
     final c = cmt?.trim().toLowerCase();
-    return c == 'control' || c == 'generic';
+    return c == 'control';
   }
 
   Map<String, dynamic> toJson() => {

@@ -68,6 +68,38 @@ Future<void> showGpxExportFlow(
     return;
   }
 
+  if (!context.mounted) return;
+
+  final compactButtonStyle = ButtonStyle(
+    minimumSize: WidgetStateProperty.all(Size.zero),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  );
+
+  final acknowledged = await showDialog<bool>(
+    context: context,
+    barrierDismissible: true,
+    builder: (ctx) => AlertDialog(
+      shape: const RoundedRectangleBorder(),
+      contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+      content: SingleChildScrollView(
+        child: Text(
+          l10n.gpxExportSaveLocationMessage,
+          style: AppTextStyles.body,
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      actions: [
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+      ],
+    ),
+  );
+
+  if (acknowledged != true || !context.mounted) return;
+
   // パーミッション確認
   final hasPermission = await _requestStoragePermission();
   if (!hasPermission && context.mounted) {
@@ -81,10 +113,11 @@ Future<void> showGpxExportFlow(
 
   // インポートしたGPXのmetadata/nameがあればデフォルトに使用
   final savedMetadataName = await loadGpxMetadataName();
-  final defaultFilename = (savedMetadataName != null &&
-          savedMetadataName.trim().isNotEmpty)
-      ? _sanitizeFilename(savedMetadataName)
-      : _defaultGpxFilename();
+  if (!context.mounted) return;
+  final defaultFilename =
+      (savedMetadataName != null && savedMetadataName.trim().isNotEmpty)
+          ? _sanitizeFilename(savedMetadataName)
+          : _defaultGpxFilename();
 
   // ファイル名入力フォーム
   final filename = await showDialog<String>(

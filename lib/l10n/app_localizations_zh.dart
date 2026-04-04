@@ -83,6 +83,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gpxExportPermissionDenied => '文件保存权限被拒绝';
 
   @override
+  String get gpxExportSaveLocationMessage =>
+      '默认情况下，导出的文件将保存在以下位置：\n\niOS：\n[我的iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下载]';
+
+  @override
   String get poiAdd => '添加 POI';
 
   @override
@@ -565,6 +569,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get gpxExportPermissionDenied => '檔案儲存權限被拒絕';
+
+  @override
+  String get gpxExportSaveLocationMessage =>
+      '預設情況下，匯出的檔案將儲存在以下位置：\n\niOS：\n[我的 iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下載]';
 
   @override
   String get poiAdd => '添加 POI';
