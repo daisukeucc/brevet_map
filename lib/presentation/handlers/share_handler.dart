@@ -10,7 +10,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/map_utils.dart';
+import '../../utils/map_utils.dart' hide getRouteLegWithBearing;
 import '../providers/providers.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/hp_setup_dialog.dart';
@@ -19,33 +19,24 @@ import '../widgets/hp_setup_dialog.dart';
 const double _onRouteThresholdM = 1000;
 
 /// 吹き出し用のメインテキストを取得する。
-/// 吹き出し表示や共有時に使用。routePoints, currentPosition, unit が揃っている場合に利用。
+/// [computeAlong] はダウンサンプル済みの alongTrackM と toRouteM を返す関数。
+/// [totalRouteM] はルート総距離（メートル）。
 String getLocationCalloutMainText({
-  required List<LatLng>? routePoints,
   required LatLng? currentPosition,
-  LatLng? previousPosition,
+  required ({double alongTrackM, double toRouteM}) Function(LatLng) computeAlong,
+  required double totalRouteM,
   required int unit,
 }) {
-  if (routePoints == null || routePoints.isEmpty || currentPosition == null) {
-    return '@--km';
-  }
-  final result = getRouteLegWithBearing(
-    routePoints,
-    currentPosition,
-    previousPosition: previousPosition,
-  );
+  if (currentPosition == null) return '@--km';
+  final result = computeAlong(currentPosition);
   if (result.toRouteM >= _onRouteThresholdM) {
     return '@--km';
   }
   final distKm = result.alongTrackM / 1000;
-  final totalM = distanceAlongTrackFromStart(
-    routePoints,
-    routePoints.length - 1,
-  );
   if (result.alongTrackM < 500) {
     return 'Start!';
   }
-  if (totalM > 0 && (totalM - result.alongTrackM) < 500) {
+  if (totalRouteM > 0 && (totalRouteM - result.alongTrackM) < 500) {
     return 'Goal!';
   }
   return '@${formatDistance(distKm, unit)}!';
@@ -58,7 +49,8 @@ String getLocationCalloutMainText({
   required bool hasPosition,
   required LatLng? currentPosition,
   LatLng? previousPosition,
-  required List<LatLng>? routePoints,
+  required ({double alongTrackM, double toRouteM}) Function(LatLng) computeAlong,
+  required double totalRouteM,
   required int distanceUnit,
 }) {
   if (!isShareMode || !hasPosition || currentPosition == null) {
@@ -67,9 +59,9 @@ String getLocationCalloutMainText({
   return (
     position: currentPosition,
     text: getLocationCalloutMainText(
-      routePoints: routePoints,
       currentPosition: currentPosition,
-      previousPosition: previousPosition,
+      computeAlong: computeAlong,
+      totalRouteM: totalRouteM,
       unit: distanceUnit,
     ),
   );

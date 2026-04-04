@@ -483,10 +483,11 @@ class MapStateNotifier extends Notifier<MapState> {
   /// ベアリングが分かる場合は進行方向が一致する候補を優先し、
   /// 往復ルートで往路・復路が近接していても正しく判定できる。
   /// 常に O(500) で動作し、元のルート点数に依存しない。
-  double computeAlongTrackM(LatLng current, {LatLng? previous}) {
+  /// [alongTrackM]: ルート先頭からの距離、[toRouteM]: ルートへの最近傍距離
+  ({double alongTrackM, double toRouteM}) computeAlongTrackM(LatLng current, {LatLng? previous}) {
     final sampled = _sampledRoutePoints;
     final cumDist = _sampledCumulativeDistances;
-    if (sampled.isEmpty) return 0;
+    if (sampled.isEmpty) return (alongTrackM: 0, toRouteM: double.infinity);
 
     // 最近傍点と同距離 +50m 以内の候補を収集する
     const candidateEpsilonM = 50.0;
@@ -503,12 +504,14 @@ class MapStateNotifier extends Notifier<MapState> {
       }
     }
     if (candidates.length == 1 || previous == null) {
-      return candidates.first.cumM;
+      return (alongTrackM: candidates.first.cumM, toRouteM: minDist);
     }
 
     // ベアリングで候補を絞る：進行方向とルートの向きが最も近い候補を選ぶ
     final userBearing = bearingBetweenLatLng(previous, current);
-    if (userBearing == null) return candidates.first.cumM;
+    if (userBearing == null) {
+      return (alongTrackM: candidates.first.cumM, toRouteM: minDist);
+    }
 
     var bestCumM = candidates.first.cumM;
     var bestDiff = 180.0;
@@ -535,7 +538,7 @@ class MapStateNotifier extends Notifier<MapState> {
         bestCumM = c.cumM;
       }
     }
-    return bestCumM;
+    return (alongTrackM: bestCumM, toRouteM: minDist);
   }
 
   double get halfRouteDistanceM => _halfRouteDistanceM;

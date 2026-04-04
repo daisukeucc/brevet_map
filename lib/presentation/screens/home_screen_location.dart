@@ -103,13 +103,13 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
       final routePoints = ref.read(mapStateProvider).savedRoutePoints;
       if (routePoints != null && routePoints.isNotEmpty) {
         final notifier = ref.read(mapStateProvider.notifier);
-        final alongM = notifier.computeAlongTrackM(
+        final result = notifier.computeAlongTrackM(
           LatLng(position.latitude, position.longitude),
           previous: previous != null
               ? LatLng(previous.latitude, previous.longitude)
               : null,
         );
-        final isSecondHalf = alongM >= notifier.halfRouteDistanceM;
+        final isSecondHalf = result.alongTrackM >= notifier.halfRouteDistanceM;
         notifier.updateHalfDisplay(isSecondHalf);
       }
     }

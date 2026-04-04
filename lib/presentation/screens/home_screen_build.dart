@@ -59,6 +59,14 @@ mixin _BuildMixin
       isDarkMode: mapState.mapStyleMode == 2,
     );
 
+    final notifier = ref.read(mapStateProvider.notifier);
+    final previousPos = _previousStreamPosition != null
+        ? LatLng(
+            _previousStreamPosition!.latitude,
+            _previousStreamPosition!.longitude,
+          )
+        : null;
+    final totalRouteM = notifier.halfRouteDistanceM * 2;
     final calloutData = computeCalloutData(
       isShareMode: _isShareMode,
       hasPosition: locationState.isActive ||
@@ -69,13 +77,8 @@ mixin _BuildMixin
             _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
         return LatLng(pos.latitude, pos.longitude);
       }(),
-      previousPosition: _previousStreamPosition != null
-          ? LatLng(
-              _previousStreamPosition!.latitude,
-              _previousStreamPosition!.longitude,
-            )
-          : null,
-      routePoints: mapState.fullRoutePoints ?? mapState.savedRoutePoints,
+      computeAlong: (pos) => notifier.computeAlongTrackM(pos, previous: previousPos),
+      totalRouteM: totalRouteM,
       distanceUnit: distanceUnit,
     );
 
