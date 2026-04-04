@@ -509,4 +509,8 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get sampleRouteDialogMessage =>
       'L\'itinéraire affiché sur la carte est un itinéraire d\'exemple. Pour une utilisation réelle, veuillez importer et utiliser un fichier GPX exporté depuis une application de cyclisme ou fourni par un événement.';
+
+  @override
+  String get volumeButtonTutorial =>
+      'Vous pouvez ajuster le niveau de zoom de la carte avec les boutons de volume de l\'appareil';
 }

@@ -483,4 +483,7 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get sampleRouteDialogMessage =>
       '地图上显示的路线是示例路线。实际使用时，请导入并使用从骑行应用导出的GPX文件或活动提供的GPX文件。';
+
+  @override
+  String get volumeButtonTutorial => '您可以使用设备的音量键调整地图缩放级别';
 }

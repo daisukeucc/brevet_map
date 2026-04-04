@@ -999,6 +999,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The route shown on the map is a sample route. For actual use, please import and use a GPX file exported from a cycling app or provided by an event.'**
   String get sampleRouteDialogMessage;
+
+  /// No description provided for @volumeButtonTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'You can adjust the map zoom level using the device\'s volume buttons'**
+  String get volumeButtonTutorial;
 }
 
 class _AppLocalizationsDelegate

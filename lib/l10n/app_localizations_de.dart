@@ -506,4 +506,8 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get sampleRouteDialogMessage =>
       'Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei aus einer Radsport-App oder von einer Veranstaltung.';
+
+  @override
+  String get volumeButtonTutorial =>
+      'Sie können den Kartenzoom mit den Lautstärketasten des Geräts anpassen';
 }

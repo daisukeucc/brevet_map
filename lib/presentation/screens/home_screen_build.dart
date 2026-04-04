@@ -272,6 +272,74 @@ mixin _BuildMixin
           ),
         ],
       ),
+    ).then((_) {
+      if (mounted) _showVolumeButtonTutorial(context);
+    });
+  }
+
+  void _showVolumeButtonTutorial(BuildContext context) {
+    if (!context.mounted) return;
+    final message = AppLocalizations.of(context)!.volumeButtonTutorial;
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.transparent,
+      pageBuilder: (ctx, _, __) => GestureDetector(
+        onTap: () => Navigator.of(ctx).pop(),
+        child: Material(
+          color: Colors.transparent,
+          child: CustomPaint(
+            painter: _VolumeCutoutPainter(),
+            child: SizedBox.expand(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 48),
+                  child: Text(
+                    message,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      height: 1.9,
+                      decoration: TextDecoration.none,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
+}
+
+class _VolumeCutoutPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = const Color(0xCC000000);
+
+    final fullPath = ui.Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+
+    // ボリュームボタンの概算位置: 上から20〜42%の範囲、左右端から10pxのくり抜き
+    final top = size.height * 0.20;
+    final bottom = size.height * 0.45;
+    const depth = 10.0;
+
+    final cutoutPath = ui.Path();
+    // 左側（iOSのボリュームボタン位置）
+    cutoutPath.addRect(Rect.fromLTRB(0, top, depth, bottom));
+    // 右側（Androidのボリュームボタン位置）
+    cutoutPath
+        .addRect(Rect.fromLTRB(size.width - depth, top, size.width, bottom));
+
+    final finalPath =
+        ui.Path.combine(ui.PathOperation.difference, fullPath, cutoutPath);
+    canvas.drawPath(finalPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(_VolumeCutoutPainter oldDelegate) => false;
 }

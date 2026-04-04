@@ -489,4 +489,7 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get sampleRouteDialogMessage =>
       '地図上のルートはサンプルルートのため、実際に使用する場合は、サイクリングアプリからエクスポートしたGPXファイルや、イベントで提供されるGPXファイルをインポートして使用してください。';
+
+  @override
+  String get volumeButtonTutorial => '端末のボリュームボタンで地図のズームレベルを調節可能です';
 }

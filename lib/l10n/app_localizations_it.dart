@@ -506,4 +506,8 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get sampleRouteDialogMessage =>
       'Il percorso mostrato sulla mappa è un percorso di esempio. Per uso reale, si consiglia di importare e utilizzare un file GPX esportato da un\'app di ciclismo o fornito da un evento.';
+
+  @override
+  String get volumeButtonTutorial =>
+      'È possibile regolare il livello di zoom della mappa con i pulsanti del volume del dispositivo';
 }
