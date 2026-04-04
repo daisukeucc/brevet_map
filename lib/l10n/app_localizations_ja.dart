@@ -193,6 +193,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get kmPointNotFound => '指定したkm地点が見つかりません';
 
   @override
+  String get kmExceedsRoute => 'ルートの総距離を超えています';
+
+  @override
   String get gpxInvalidFormat => 'このファイルはGPX形式ではありません';
 
   @override
@@ -454,4 +457,39 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'プラン確認';
+
+  @override
+  String get subscription => '定期購入';
+
+  @override
+  String get restorePurchases => '購入履歴の復元';
+
+  @override
+  String get restorePurchasesSuccess => '購入を復元しました';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'アカウントID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return '有効期限: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => '未加入';
+
+  @override
+  String get subscriptionTerms => '購読規約';
+
+  @override
+  String get manageSubscription => 'サブスクリプションを管理';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      '地図上のルートはサンプルルートのため、実際に使用する場合は、サイクリングアプリからエクスポートしたGPXファイルや、イベントで提供されるGPXファイルをインポートして使用してください。';
+
+  @override
+  String get volumeButtonTutorial => '端末のボリュームボタンで地図のズームレベルを調節可能です';
 }

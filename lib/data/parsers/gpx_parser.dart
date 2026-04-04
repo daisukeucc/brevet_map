@@ -28,12 +28,13 @@ class GpxPoi {
   LatLng get position => LatLng(lat, lng);
 
   /// コントロールポイントかどうか
-  /// <type> が "control" または "checkpoint"、もしくは <cmt> が "control" のとき true
+  /// <type> が "control" / "checkpoint" / "generic"、
+  /// もしくは <cmt> が "control" / "generic" のとき true
   bool get isControl {
     final t = type?.trim().toLowerCase();
-    if (t == 'control' || t == 'checkpoint') return true;
+    if (t == 'control' || t == 'checkpoint' || t == 'generic') return true;
     final c = cmt?.trim().toLowerCase();
-    return c == 'control';
+    return c == 'control' || c == 'generic';
   }
 
   Map<String, dynamic> toJson() => {

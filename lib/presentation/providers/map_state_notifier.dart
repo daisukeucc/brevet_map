@@ -32,6 +32,7 @@ class MapState {
     this.hasStartedInitialRouteFetch = false,
     this.lastRoutePointsForMarkers,
     this.lastShowDistanceMarkers,
+    this.isFetchingRoute = false,
   });
 
   final List<Polyline> routePolylines;
@@ -59,6 +60,9 @@ class MapState {
   final List<LatLng>? lastRoutePointsForMarkers;
   final bool? lastShowDistanceMarkers;
 
+  /// 初回ルート取得中かどうか（ローディング表示用）
+  final bool isFetchingRoute;
+
   MapState copyWith({
     List<Polyline>? routePolylines,
     List<Marker>? routeMarkers,
@@ -71,6 +75,7 @@ class MapState {
     bool? hasStartedInitialRouteFetch,
     List<LatLng>? lastRoutePointsForMarkers,
     bool? lastShowDistanceMarkers,
+    bool? isFetchingRoute,
     bool clearSavedRoutePoints = false,
     bool clearFullRoutePoints = false,
     bool clearSavedZoomLevel = false,
@@ -95,6 +100,7 @@ class MapState {
           lastRoutePointsForMarkers ?? this.lastRoutePointsForMarkers,
       lastShowDistanceMarkers:
           lastShowDistanceMarkers ?? this.lastShowDistanceMarkers,
+      isFetchingRoute: isFetchingRoute ?? this.isFetchingRoute,
     );
   }
 }
@@ -112,6 +118,17 @@ class MapStateNotifier extends Notifier<MapState> {
   // ドラッグ編集中のユーザー POI
   UserPoi? _draggingPoi;
   void Function(LatLng)? _onPoiDragEnd;
+
+  // 前半・後半ポリライン（ルート読み込み後に設定）
+  Polyline? _firstHalfPolyline;
+  Polyline? _secondHalfPolyline;
+  // 折り返し距離（m）。前半・後半の境界
+  double _halfRouteDistanceM = 0;
+  // 前半/後半判定用ダウンサンプル済みルート（最大500点）と累積距離キャッシュ
+  List<LatLng> _sampledRoutePoints = [];
+  List<double> _sampledCumulativeDistances = [];
+  // 直前の表示状態。新ルート読み込み時は null にリセットして強制更新を保証する
+  bool? _currentDisplayIsSecondHalf;
 
   @override
   MapState build() => const MapState();
@@ -187,13 +204,21 @@ class MapStateNotifier extends Notifier<MapState> {
   }) async {
     await loadAndApplyMapStyle(controller);
 
-    final initialRoute = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(initialRoute);
+    // 初期ズームを保存しておく（savedZoomLevel が null だと距離マーカーの閾値判定が機能しないため）
+    state = state.copyWith(savedZoomLevel: controller.camera.zoom);
 
-    if (state.savedRoutePoints != null && state.savedRoutePoints!.isNotEmpty) {
+    final initialRoute = state.savedRoutePoints ?? _emptyRoute;
+    final hasRoute =
+        state.savedRoutePoints != null && state.savedRoutePoints!.isNotEmpty;
+    // ルートがある場合は直後にアニメーション開始するため、userPois を除いてマーカーを構築する
+    await _refreshRouteMarkers(initialRoute, includeUserPois: !hasRoute);
+
+    if (hasRoute) {
       final bounds = boundsFromPoints(state.savedRoutePoints!);
       if (bounds != null) {
         await animateCamera(bounds);
+        // アニメーション後の実際のズームレベルで savedZoomLevel を更新する
+        state = state.copyWith(savedZoomLevel: controller.camera.zoom);
         await _startRouteAnimation(state.savedRoutePoints!);
       }
     }
@@ -207,7 +232,8 @@ class MapStateNotifier extends Notifier<MapState> {
     required Future<void> Function(LatLngBounds) animateCamera,
     String? importFilename,
   }) async {
-    final result = await parseAndSaveGpx(gpxContent, importFilename: importFilename);
+    final result =
+        await parseAndSaveGpx(gpxContent, importFilename: importFilename);
     if (result == null) {
       if (gpxContent.trim().isNotEmpty) return GpxApplyStatus.parseError;
       return GpxApplyStatus.success;
@@ -260,9 +286,16 @@ class MapStateNotifier extends Notifier<MapState> {
   Future<void> fetchOrLoadRouteIfNeeded(
     Position position, {
     required Future<void> Function(LatLngBounds?) animateCamera,
+    VoidCallback? onFirstRouteShown,
   }) async {
     if (state.hasStartedInitialRouteFetch) return;
-    state = state.copyWith(hasStartedInitialRouteFetch: true);
+    // 保存済みルートがない場合（初回インストール相当）のみローディングを表示する
+    final hasSavedRoute =
+        state.savedRoutePoints != null && state.savedRoutePoints!.isNotEmpty;
+    state = state.copyWith(
+      hasStartedInitialRouteFetch: true,
+      isFetchingRoute: !hasSavedRoute,
+    );
 
     await Future.delayed(const Duration(milliseconds: 300));
 
@@ -270,11 +303,25 @@ class MapStateNotifier extends Notifier<MapState> {
       position,
       savedRoutePoints: state.savedRoutePoints,
     );
+    state = state.copyWith(isFetchingRoute: false);
     if (points == null || points.isEmpty) return;
+
+    // 初回インストール時のみサンプル POI を生成して保存する
+    if (!hasSavedRoute) {
+      final samplePois = buildSamplePois(points);
+      if (samplePois.isNotEmpty) {
+        await saveUserPois(samplePois);
+        state = state.copyWith(userPois: samplePois);
+      }
+    }
 
     state = state.copyWith(savedRoutePoints: points);
     if (state.routePolylines.isEmpty) {
-      await _startRouteAnimation(points);
+      // 初回インストール時のみアニメーション完了後にコールバックを呼ぶ
+      await _startRouteAnimation(
+        points,
+        onAnimationComplete: !hasSavedRoute ? onFirstRouteShown : null,
+      );
     }
     final bounds = boundsFromPoints(points);
     await animateCamera(bounds);
@@ -354,7 +401,11 @@ class MapStateNotifier extends Notifier<MapState> {
   // --- 内部メソッド ---
 
   /// スタート・ゴール・POI マーカーを再構築して state を更新する
-  Future<void> _refreshRouteMarkers(List<LatLng> routePoints) async {
+  /// [includeUserPois] が false の場合、userPois マーカーを含めない（アニメーション中の表示制御用）
+  Future<void> _refreshRouteMarkers(
+    List<LatLng> routePoints, {
+    bool includeUserPois = true,
+  }) async {
     final onPoiTap = _onPoiTap ?? (_) {};
     final onUserPoiTap = _onUserPoiTap;
     final distanceUnit = ref.read(distanceUnitProvider);
@@ -362,7 +413,7 @@ class MapStateNotifier extends Notifier<MapState> {
       routePoints: routePoints,
       pois: state.gpxPois,
       onPoiTap: onPoiTap,
-      userPois: state.userPois,
+      userPois: includeUserPois ? state.userPois : const [],
       onUserPoiTap: onUserPoiTap,
       zoomLevel: state.savedZoomLevel,
       draggingPoi: _draggingPoi,
@@ -380,18 +431,131 @@ class MapStateNotifier extends Notifier<MapState> {
   Future<void> _startRouteAnimation(
     List<LatLng> fullPoints, {
     bool animate = true,
+    VoidCallback? onAnimationComplete,
   }) async {
+    _firstHalfPolyline = null;
+    _secondHalfPolyline = null;
+    _currentDisplayIsSecondHalf = null;
+    // 前半/後半判定用に最大500点にダウンサンプリングし、累積距離をキャッシュする。
+    // 1000点超のルートでも位置更新ごとの最近傍検索を O(500) に抑える。
+    const maxSamples = 500;
+    final step = fullPoints.length <= maxSamples
+        ? 1
+        : (fullPoints.length / maxSamples).ceil();
+    final sampled = <LatLng>[];
+    for (var i = 0; i < fullPoints.length; i += step) {
+      sampled.add(fullPoints[i]);
+    }
+    if (sampled.last != fullPoints.last) sampled.add(fullPoints.last);
+    final cumDist = List<double>.filled(sampled.length, 0);
+    for (var i = 1; i < sampled.length; i++) {
+      cumDist[i] =
+          cumDist[i - 1] + distanceBetweenLatLng(sampled[i - 1], sampled[i]);
+    }
+    _sampledRoutePoints = sampled;
+    _sampledCumulativeDistances = cumDist;
+    _halfRouteDistanceM = cumDist.isNotEmpty ? cumDist.last / 2 : 0;
     state = state.copyWith(fullRoutePoints: fullPoints);
-    await _refreshRouteMarkers(fullPoints);
+    // アニメーション中は userPois を非表示にし、完了後に表示する
+    await _refreshRouteMarkers(fullPoints, includeUserPois: !animate);
     await _routeAnimationRunner.start(
       fullPoints,
       buildMarkers: false,
       animate: animate,
       onPolyline: (p) {
         state = state.copyWith(routePolylines: p);
+        if (p.length == 2) {
+          _firstHalfPolyline = p[0];
+          _secondHalfPolyline = p[1];
+        }
       },
       onMarkers: (_) {},
       mounted: () => true,
+      onComplete: animate
+          ? () async {
+              await _refreshRouteMarkers(fullPoints);
+              await Future.delayed(const Duration(milliseconds: 400));
+              onAnimationComplete?.call();
+            }
+          : null,
     );
   }
+
+  /// 現在地がルートの前半・後半どちらにいるかに応じてポリラインの描画順を切り替える。
+  /// flutter_map はリストの後方が前面に描画される。
+  /// 前半中：緑を前面 → [赤, 緑]　後半中：赤を前面 → [緑, 赤]
+  void updateHalfDisplay(bool isSecondHalf) {
+    if (isSecondHalf == _currentDisplayIsSecondHalf) return;
+    final first = _firstHalfPolyline;
+    final second = _secondHalfPolyline;
+    if (first == null || second == null) return;
+    _currentDisplayIsSecondHalf = isSecondHalf;
+    final polylines = isSecondHalf ? [first, second] : [second, first];
+    state = state.copyWith(routePolylines: polylines);
+  }
+
+  /// ダウンサンプル済みルート（最大500点）を使って現在地のalong-track距離を返す。
+  /// ベアリングが分かる場合は進行方向が一致する候補を優先し、
+  /// 往復ルートで往路・復路が近接していても正しく判定できる。
+  /// 常に O(500) で動作し、元のルート点数に依存しない。
+  /// [alongTrackM]: ルート先頭からの距離、[toRouteM]: ルートへの最近傍距離
+  ({double alongTrackM, double toRouteM}) computeAlongTrackM(LatLng current,
+      {LatLng? previous}) {
+    final sampled = _sampledRoutePoints;
+    final cumDist = _sampledCumulativeDistances;
+    if (sampled.isEmpty) return (alongTrackM: 0, toRouteM: double.infinity);
+
+    // 最近傍点と同距離 +50m 以内の候補を収集する
+    const candidateEpsilonM = 50.0;
+    var minDist = double.infinity;
+    for (var i = 0; i < sampled.length; i++) {
+      final d = distanceBetweenLatLng(sampled[i], current);
+      if (d < minDist) minDist = d;
+    }
+    final candidates = <({int index, double cumM})>[];
+    for (var i = 0; i < sampled.length; i++) {
+      if (distanceBetweenLatLng(sampled[i], current) <=
+          minDist + candidateEpsilonM) {
+        candidates.add((index: i, cumM: cumDist[i]));
+      }
+    }
+    if (candidates.length == 1 || previous == null) {
+      return (alongTrackM: candidates.first.cumM, toRouteM: minDist);
+    }
+
+    // ベアリングで候補を絞る：進行方向とルートの向きが最も近い候補を選ぶ
+    final userBearing = bearingBetweenLatLng(previous, current);
+    if (userBearing == null) {
+      return (alongTrackM: candidates.first.cumM, toRouteM: minDist);
+    }
+
+    var bestCumM = candidates.first.cumM;
+    var bestDiff = 180.0;
+    for (final c in candidates) {
+      final idx = c.index;
+      final LatLng from;
+      final LatLng to;
+      if (idx == 0 && sampled.length > 1) {
+        from = sampled[0];
+        to = sampled[1];
+      } else if (idx == sampled.length - 1 && sampled.length > 1) {
+        from = sampled[idx - 1];
+        to = sampled[idx];
+      } else {
+        from = sampled[idx - 1];
+        to = sampled[idx];
+      }
+      final routeBearing = bearingBetweenLatLng(from, to);
+      if (routeBearing == null) continue;
+      var diff = (userBearing - routeBearing).abs();
+      if (diff > 180) diff = 360 - diff;
+      if (diff < bestDiff) {
+        bestDiff = diff;
+        bestCumM = c.cumM;
+      }
+    }
+    return (alongTrackM: bestCumM, toRouteM: minDist);
+  }
+
+  double get halfRouteDistanceM => _halfRouteDistanceM;
 }

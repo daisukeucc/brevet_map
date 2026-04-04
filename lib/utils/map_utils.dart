@@ -255,6 +255,115 @@ LatLng? coordAtKm(List<LatLng> trackPoints, double targetKm) {
   return trackPoints.last;
 }
 
+/// ルートの種類
+enum RouteType {
+  /// 往復（同じ道を行って戻る）
+  outAndBack,
+
+  /// 周遊（ループして戻る）
+  loop,
+
+  /// 地点間（スタートとゴールが異なる）
+  pointToPoint,
+}
+
+/// ルートが往復・周遊・地点間のどれかを判定する。
+///
+/// 判定手順:
+/// 1. スタート〜ゴール間の距離が総距離の15%超かつ3km超 → 地点間
+/// 2. 前半と後半の重複率が30%超 → 往復（「ほぼ往復」も含む）
+/// 3. それ以外 → 周遊
+RouteType detectRouteType(List<LatLng> points) {
+  if (points.length < 10) return RouteType.pointToPoint;
+
+  // 累積距離を事前計算（O(n)、以降の計算で再利用）
+  final cumDist = List<double>.filled(points.length, 0);
+  for (var i = 1; i < points.length; i++) {
+    cumDist[i] = cumDist[i - 1] + distanceBetweenLatLng(points[i - 1], points[i]);
+  }
+  final totalDist = cumDist.last;
+  if (totalDist == 0) return RouteType.pointToPoint;
+
+  final startEndDist = distanceBetweenLatLng(points.first, points.last);
+  final startEndThreshold = math.max(totalDist * 0.15, 3000);
+  if (startEndDist > startEndThreshold) {
+    return RouteType.pointToPoint;
+  }
+
+  // ルートの自己重複を検出して往復判定する。
+  // 折り返し位置や回数に依存せず、ルート上の任意の点が
+  // 「ルート距離で100km以上離れた他の地点と500m以内に近接するか」を検査する。
+  // 往復なら往路の点と復路の点が近接するため自己重複率が高くなる。
+  const nSamples = 40;
+  const overlapThresholdM = 1500.0;
+  // 近すぎる区間同士の誤マッチを防ぐ最小ルート距離差。
+  // 短いルートでも機能するよう総距離の20%（最低2km）を使用する。
+  final minRouteSeparationM = math.max(totalDist * 0.2, 2000.0);
+
+  // 二分探索で目標距離に最も近いインデックスを返す
+  int indexAtDist(double target) {
+    var lo = 0;
+    var hi = points.length - 1;
+    while (lo < hi) {
+      final m = (lo + hi) ~/ 2;
+      if (cumDist[m] < target) {
+        lo = m + 1;
+      } else {
+        hi = m;
+      }
+    }
+    return lo;
+  }
+
+  final sampleInterval = totalDist / (nSamples + 1);
+  final samples = <({double routeDist, LatLng pos})>[];
+  for (var s = 1; s <= nSamples; s++) {
+    final d = s * sampleInterval;
+    samples.add((routeDist: d, pos: points[indexAtDist(d)]));
+  }
+
+  var selfMatchCount = 0;
+  for (var i = 0; i < samples.length; i++) {
+    final a = samples[i];
+    for (var j = 0; j < samples.length; j++) {
+      if (i == j) continue;
+      final b = samples[j];
+      if ((a.routeDist - b.routeDist).abs() < minRouteSeparationM) continue;
+      if (distanceBetweenLatLng(a.pos, b.pos) < overlapThresholdM) {
+        selfMatchCount++;
+        break;
+      }
+    }
+  }
+
+  final overlapRatio = selfMatchCount / nSamples;
+  return overlapRatio > 0.3 ? RouteType.outAndBack : RouteType.loop;
+}
+
+/// ルートタイプと折り返しインデックスをまとめて返す。
+/// [compute] でバックグラウンド実行できるようトップレベル関数として定義。
+({RouteType type, int turnaroundIdx}) analyzeRoute(List<LatLng> points) {
+  final routeType = detectRouteType(points);
+  final turnaroundIdx = routeType == RouteType.outAndBack
+      ? findTurnaroundIndex(points)
+      : points.length;
+  return (type: routeType, turnaroundIdx: turnaroundIdx);
+}
+
+/// 往復ルートの折り返し点インデックスを返す（累積距離が総距離の半分を超えた最初のインデックス）。
+int findTurnaroundIndex(List<LatLng> points) {
+  if (points.length < 2) return 0;
+  final totalDist = distanceAlongTrackFromStart(points, points.length - 1);
+  final halfDist = totalDist / 2;
+  var accumulated = 0.0;
+  for (var i = 0; i < points.length - 1; i++) {
+    final d = distanceBetweenLatLng(points[i], points[i + 1]);
+    if (accumulated + d >= halfDist) return i + 1;
+    accumulated += d;
+  }
+  return points.length ~/ 2;
+}
+
 /// 2点間の進行方向を度（0=北、90=東）で返す。移動が短い（3m未満）場合は null。
 double? bearingBetweenLatLng(LatLng from, LatLng to) {
   final dist = Geolocator.distanceBetween(

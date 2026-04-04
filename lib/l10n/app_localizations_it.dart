@@ -94,7 +94,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get poiAddByDistance => 'Aggiungi POI alla distanza';
 
   @override
-  String get poiAddByMapTap => 'Aggiungi POI dalla mappa';
+  String get poiAddByMapTap => 'Aggiungi POI toccando la mappa';
 
   @override
   String get poiTabAdd => 'Aggiungi POI';
@@ -193,6 +193,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get kmPointNotFound => 'Punto km specificato non trovato';
+
+  @override
+  String get kmExceedsRoute => 'Supera la distanza totale del percorso';
 
   @override
   String get gpxInvalidFormat => 'Questo file non è in formato GPX';
@@ -471,4 +474,40 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'Vedi piani';
+
+  @override
+  String get subscription => 'Abbonamento';
+
+  @override
+  String get restorePurchases => 'Ripristina acquisti';
+
+  @override
+  String get restorePurchasesSuccess => 'Acquisti ripristinati';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'ID account: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return 'Scadenza: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => 'Non abbonato';
+
+  @override
+  String get subscriptionTerms => 'Termini di abbonamento';
+
+  @override
+  String get manageSubscription => 'Gestisci abbonamento';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'Il percorso mostrato sulla mappa è un percorso di esempio. Per uso reale, si consiglia di importare e utilizzare un file GPX esportato da un\'app di ciclismo o fornito da un evento.';
+
+  @override
+  String get volumeButtonTutorial =>
+      'È possibile regolare il livello di zoom della mappa con i pulsanti del volume del dispositivo';
 }

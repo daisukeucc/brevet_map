@@ -1,6 +1,7 @@
 {
   "@@locale": "zh",
   "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
   "cancel": "取消",
   "ok": "确定",
   "ng": "NG",
@@ -33,7 +34,7 @@
   "poiAdd": "添加 POI",
   "poiAddEdit": "添加或编辑POI",
   "poiAddByDistance": "按距离添加POI",
-  "poiAddByMapTap": "从地图添加POI",
+  "poiAddByMapTap": "通过点击地图添加POI",
   "poiTabAdd": "添加 POI",
   "poiTabEdit": "编辑或删除POI",
   "poiType": "POI 类型",
@@ -79,6 +80,7 @@
   "selectGpxFile": "请选择 GPX 文件",
   "routeNotLoaded": "路线未加载",
   "kmPointNotFound": "未找到指定的 km 点",
+  "kmExceedsRoute": "超过路线总距离",
   "gpxInvalidFormat": "此文件不是 GPX 格式",
   "gpxNoRouteOrWaypoint": "GPX 不包含路线或航点",
   "locationFailed": "获取位置失败",
@@ -226,5 +228,25 @@
     }
   },
   "poiPremiumMessage": "订阅 Brevet MAP 高级版，即可编辑和删除 POI！",
-  "poiPremiumViewPlans": "查看方案"
+  "poiPremiumViewPlans": "查看方案",
+  "subscription": "订阅",
+  "restorePurchases": "恢复购买",
+  "restorePurchasesSuccess": "购买已恢复",
+  "subscriptionAccountId": "账户ID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "到期日: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "未订阅",
+  "subscriptionTerms": "订阅条款",
+  "manageSubscription": "管理订阅",
+  "sampleRouteDialogMessage": "地图上显示的路线是示例路线。实际使用时，请导入并使用从骑行应用导出的GPX文件或活动提供的GPX文件。",
+  "volumeButtonTutorial": "您可以使用设备的音量键调整地图缩放级别"
 }

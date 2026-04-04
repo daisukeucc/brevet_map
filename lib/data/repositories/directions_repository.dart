@@ -1,17 +1,29 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 
-/// 緯度1度あたりの距離（km）。北方向の概算に使用
+/// 緯度1度あたりの距離（km）
 const double _kmPerDegreeLat = 111.32;
 
-/// 現在地をスタート兼ゴールとした約100kmの往復ルート用に、北へ約50kmの経由地1つを返す
-/// 経路: 現在地 → 経由地(北) → 現在地（行きと帰りは同じ道）
+/// 現在地をスタート兼ゴールとした約100kmのルート用に経由地2つを返す
+/// 北北東→北北西と経由することで、行きと帰りが一部異なる道を通る細長いループになる
+/// 経路: 現在地 → 経由地1(北北東・約45km) → 経由地2(北北西・約45km) → 現在地
 List<LatLng> computeWaypointsFor100kmLoop(double lat, double lng) {
-  const distanceKm = 50.0;
-  final w1 = LatLng(lat + distanceKm / _kmPerDegreeLat, lng);
-  return [w1];
+  const northKm = 45.0;
+  const eastWestKm = 8.0;
+  final kmPerDegreeLng = _kmPerDegreeLat * cos(lat * pi / 180);
+
+  final w1 = LatLng(
+    lat + northKm / _kmPerDegreeLat,
+    lng + eastWestKm / kmPerDegreeLng,
+  );
+  final w2 = LatLng(
+    lat + northKm / _kmPerDegreeLat,
+    lng - eastWestKm / kmPerDegreeLng,
+  );
+  return [w1, w2];
 }
 
 /// Directions API の取得成功時の戻り値。保存用の [encoded] と描画用の [points] を含む

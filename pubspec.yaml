@@ -91,11 +91,11 @@ flutter_launcher_icons:
   adaptive_icon_background: "assets/icons/app_icon_background.png"
 
 flutter_native_splash:
-  color: "#222222"
+  color: "#3d3d3d"
   image: "assets/icons/app_icon_splash.png"
   android_12:
     image: "assets/icons/app_icon_splash.png"
-    color: "#222222"
+    color: "#3d3d3d"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

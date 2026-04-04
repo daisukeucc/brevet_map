@@ -1,6 +1,7 @@
 {
   "@@locale": "es",
   "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
   "cancel": "Cancelar",
   "ok": "OK",
   "ng": "NG",
@@ -33,7 +34,7 @@
   "poiAdd": "Añadir POI",
   "poiAddEdit": "Agregar o editar POI",
   "poiAddByDistance": "Agregar POI por distancia",
-  "poiAddByMapTap": "Agregar POI desde el mapa",
+  "poiAddByMapTap": "Agregar POI tocando el mapa",
   "poiTabAdd": "Añadir POI",
   "poiTabEdit": "Editar o eliminar POI",
   "poiType": "Tipo de POI",
@@ -79,6 +80,7 @@
   "selectGpxFile": "Por favor seleccione un archivo GPX",
   "routeNotLoaded": "La ruta no está cargada",
   "kmPointNotFound": "Punto km especificado no encontrado",
+  "kmExceedsRoute": "Supera la distancia total de la ruta",
   "gpxInvalidFormat": "Este archivo no está en formato GPX",
   "gpxNoRouteOrWaypoint": "El GPX no contiene ruta ni waypoints",
   "locationFailed": "Error al obtener la ubicación",
@@ -226,5 +228,25 @@
     }
   },
   "poiPremiumMessage": "¡Suscríbete a Brevet MAP Premium para editar y eliminar POIs!",
-  "poiPremiumViewPlans": "Ver planes"
+  "poiPremiumViewPlans": "Ver planes",
+  "subscription": "Suscripción",
+  "restorePurchases": "Restaurar compras",
+  "restorePurchasesSuccess": "Compras restauradas",
+  "subscriptionAccountId": "ID de cuenta: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Vencimiento: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "No suscrito",
+  "subscriptionTerms": "Términos de suscripción",
+  "manageSubscription": "Administrar suscripción",
+  "sampleRouteDialogMessage": "La ruta mostrada en el mapa es una ruta de ejemplo. Para uso real, importe y utilice un archivo GPX exportado de una aplicación de ciclismo o proporcionado por un evento.",
+  "volumeButtonTutorial": "Puede ajustar el nivel de zoom del mapa con los botones de volumen del dispositivo"
 }

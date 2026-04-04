@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../utils/map_utils.dart';
 import 'marker_icon_service.dart';
 
 /// ルートを描画し、スタート・ゴールマーカーを更新する。[start] で開始、[cancel] でタイマー解除。
@@ -23,6 +24,7 @@ class RouteAnimationRunner {
     required bool Function() mounted,
     bool animate = true,
     bool buildMarkers = true,
+    VoidCallback? onComplete,
   }) async {
     _timer?.cancel();
     if (fullPoints.isEmpty) return;
@@ -32,31 +34,47 @@ class RouteAnimationRunner {
       if (markers != null) onMarkers(markers);
     }
 
+    // 総距離の50%地点でルートを前半（緑）・後半（赤）に分割する。
+    // ルートタイプ（往復・周遊・地点間）に関わらず全ルートに適用。
+    final turnaroundIdx = findTurnaroundIndex(fullPoints);
+
+    List<Polyline> buildPolylines(int count) {
+      if (count <= turnaroundIdx) {
+        return [
+          Polyline(
+            points: fullPoints.sublist(0, count),
+            color: Colors.green,
+            strokeWidth: 5,
+          ),
+        ];
+      }
+      return [
+        Polyline(
+          points: fullPoints.sublist(0, turnaroundIdx + 1),
+          color: Colors.green,
+          strokeWidth: 5,
+        ),
+        Polyline(
+          points: fullPoints.sublist(turnaroundIdx, count),
+          color: Colors.red,
+          strokeWidth: 5,
+        ),
+      ];
+    }
+
     final useAnimation = animate &&
         fullPoints.length > _initialPoints &&
         fullPoints.length <= 500;
 
     if (!useAnimation) {
-      onPolyline([
-        Polyline(
-          points: fullPoints,
-          color: Colors.red,
-          strokeWidth: 5,
-        ),
-      ]);
+      onPolyline(buildPolylines(fullPoints.length));
+      onComplete?.call();
       return;
     }
 
-    final startPoints = fullPoints.sublist(0, _initialPoints);
-    onPolyline([
-      Polyline(
-        points: startPoints,
-        color: Colors.red,
-        strokeWidth: 5,
-      ),
-    ]);
+    onPolyline(buildPolylines(_initialPoints));
 
-    var animatedCount = startPoints.length;
+    var animatedCount = _initialPoints;
     _timer = Timer.periodic(_interval, (t) {
       if (!mounted() || fullPoints.isEmpty) {
         t.cancel();
@@ -64,17 +82,12 @@ class RouteAnimationRunner {
       }
       final nextCount =
           (animatedCount + _pointsPerFrame).clamp(0, fullPoints.length);
-      onPolyline([
-        Polyline(
-          points: fullPoints.sublist(0, nextCount),
-          color: Colors.red,
-          strokeWidth: 5,
-        ),
-      ]);
+      onPolyline(buildPolylines(nextCount));
       animatedCount = nextCount;
       if (nextCount >= fullPoints.length) {
         t.cancel();
         _timer = null;
+        onComplete?.call();
       }
     });
   }
@@ -103,9 +116,8 @@ class RouteAnimationRunner {
     if (!mounted()) return null;
     final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
         (start.longitude - goal.longitude).abs() < 1e-6;
-    final startPoint = isSamePoint
-        ? LatLng(start.latitude + 0.00008, start.longitude)
-        : start;
+    final startPoint =
+        isSamePoint ? LatLng(start.latitude + 0.00008, start.longitude) : start;
     // スタートを上に表示するため、ゴールを先に追加してスタートを後に描画
     return [
       Marker(

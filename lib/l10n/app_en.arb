@@ -40,7 +40,7 @@
   "poiAdd": "Add POI",
   "poiAddEdit": "Add or Edit POI",
   "poiAddByDistance": "Add POI at distance",
-  "poiAddByMapTap": "Add POI from map",
+  "poiAddByMapTap": "Add POI from map tap",
   "poiTabAdd": "Add POI",
   "poiTabEdit": "Edit or Delete POI",
   "poiType": "POI type",
@@ -86,6 +86,7 @@
   "selectGpxFile": "Please select a GPX file",
   "routeNotLoaded": "Route is not loaded",
   "kmPointNotFound": "Specified km point not found",
+  "kmExceedsRoute": "Exceeds the total route distance",
   "gpxInvalidFormat": "This file is not in GPX format",
   "gpxNoRouteOrWaypoint": "GPX does not contain route or waypoints",
   "locationFailed": "Failed to get location",
@@ -233,5 +234,25 @@
     }
   },
   "poiPremiumMessage": "Subscribe to Brevet MAP Premium to edit and delete POIs!",
-  "poiPremiumViewPlans": "View Plans"
+  "poiPremiumViewPlans": "View Plans",
+  "subscription": "Subscription",
+  "restorePurchases": "Restore Purchases",
+  "restorePurchasesSuccess": "Purchases restored",
+  "subscriptionAccountId": "Account ID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Expires: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "Not subscribed",
+  "subscriptionTerms": "Subscription Terms",
+  "manageSubscription": "Manage Subscription",
+"sampleRouteDialogMessage": "The route shown on the map is a sample route. For actual use, please import and use a GPX file exported from a cycling app or provided by an event.",
+  "volumeButtonTutorial": "You can adjust the map zoom level using the device's volume buttons"
 }

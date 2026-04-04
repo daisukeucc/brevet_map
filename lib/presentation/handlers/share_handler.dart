@@ -10,7 +10,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/map_utils.dart';
+import '../../utils/map_utils.dart' hide getRouteLegWithBearing;
 import '../providers/providers.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/hp_setup_dialog.dart';
@@ -19,33 +19,24 @@ import '../widgets/hp_setup_dialog.dart';
 const double _onRouteThresholdM = 1000;
 
 /// 吹き出し用のメインテキストを取得する。
-/// 吹き出し表示や共有時に使用。routePoints, currentPosition, unit が揃っている場合に利用。
+/// [computeAlong] はダウンサンプル済みの alongTrackM と toRouteM を返す関数。
+/// [totalRouteM] はルート総距離（メートル）。
 String getLocationCalloutMainText({
-  required List<LatLng>? routePoints,
   required LatLng? currentPosition,
-  LatLng? previousPosition,
+  required ({double alongTrackM, double toRouteM}) Function(LatLng) computeAlong,
+  required double totalRouteM,
   required int unit,
 }) {
-  if (routePoints == null || routePoints.isEmpty || currentPosition == null) {
-    return '@--km';
-  }
-  final result = getRouteLegWithBearing(
-    routePoints,
-    currentPosition,
-    previousPosition: previousPosition,
-  );
+  if (currentPosition == null) return '@--km';
+  final result = computeAlong(currentPosition);
   if (result.toRouteM >= _onRouteThresholdM) {
     return '@--km';
   }
   final distKm = result.alongTrackM / 1000;
-  final totalM = distanceAlongTrackFromStart(
-    routePoints,
-    routePoints.length - 1,
-  );
   if (result.alongTrackM < 500) {
     return 'Start!';
   }
-  if (totalM > 0 && (totalM - result.alongTrackM) < 500) {
+  if (totalRouteM > 0 && (totalRouteM - result.alongTrackM) < 500) {
     return 'Goal!';
   }
   return '@${formatDistance(distKm, unit)}!';
@@ -58,7 +49,8 @@ String getLocationCalloutMainText({
   required bool hasPosition,
   required LatLng? currentPosition,
   LatLng? previousPosition,
-  required List<LatLng>? routePoints,
+  required ({double alongTrackM, double toRouteM}) Function(LatLng) computeAlong,
+  required double totalRouteM,
   required int distanceUnit,
 }) {
   if (!isShareMode || !hasPosition || currentPosition == null) {
@@ -67,9 +59,9 @@ String getLocationCalloutMainText({
   return (
     position: currentPosition,
     text: getLocationCalloutMainText(
-      routePoints: routePoints,
       currentPosition: currentPosition,
-      previousPosition: previousPosition,
+      computeAlong: computeAlong,
+      totalRouteM: totalRouteM,
       unit: distanceUnit,
     ),
   );
@@ -130,6 +122,11 @@ Future<void> showShareFlow(
     if (bounds != null) {
       zoomBefore = ref.read(cameraControllerProvider)?.camera.zoom ?? 16.0;
       await ref.read(cameraControllerProvider.notifier).animateToBounds(bounds);
+      // animateToBounds 後の実際のズームを savedZoomLevel に反映する（ズーム表示の更新）
+      final zoomAfter = ref.read(cameraControllerProvider)?.camera.zoom;
+      if (zoomAfter != null) {
+        ref.read(mapStateProvider.notifier).overrideSavedZoom(zoomAfter);
+      }
       await Future.delayed(const Duration(milliseconds: 500));
     }
     if (!context.mounted) return;
@@ -165,16 +162,6 @@ Future<void> showShareFlow(
         ? Rect.fromPoints(const Offset(0, 0), const Offset(1, 1))
         : null;
 
-    final l10n = AppLocalizations.of(context)!;
-    final shareTextParts = <String>[];
-    if (gpxName != null && gpxName.trim().isNotEmpty) {
-      shareTextParts.add(gpxName.trim());
-    }
-    if (l10n.appTitle != l10n.appTitleBrand) {
-      shareTextParts.add(l10n.appTitle);
-    }
-    shareTextParts.add(l10n.appTitleBrand);
-
     await Share.shareXFiles(
       [
         XFile(
@@ -183,7 +170,11 @@ Future<void> showShareFlow(
           name: fileName,
         ),
       ],
-      text: shareTextParts.join('\n'),
+      text: [
+        if (gpxName != null && gpxName.trim().isNotEmpty) '#${gpxName.trim()}',
+        '#Brevet Map',
+        '@BrevetMap',
+      ].join('\n'),
       sharePositionOrigin: sharePositionOrigin,
     );
   } catch (e) {

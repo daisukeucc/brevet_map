@@ -19,13 +19,13 @@ import 'sleep_settings_handler.dart';
 /// ボトムシートを閉じ、アニメーション完了後にコールバックを実行する
 /// メニュータップ後のシート閉じ〜処理開始の共通パターン
 /// 150ms: タップフィードバック（グレー表示）を見せてから pop
-/// さらに 350ms: 閉じアニメーション完了を待ってからコールバック実行
-/// ※pop と callback を同時に呼ぶとナビゲーターアニメーション競合でダイアログが表示されない
+/// pop の Future 完了（アニメーション終了）を await してからコールバックを実行することで
+/// Navigator アニメーション競合によるダイアログ未表示を防ぐ
 void popSheetAndCall(BuildContext context, VoidCallback callback) {
   final navigator = Navigator.of(context);
-  Future.delayed(const Duration(milliseconds: 150), () {
-    navigator.pop();
-    Future.delayed(const Duration(milliseconds: 500), callback);
+  Future.delayed(const Duration(milliseconds: 150), () async {
+    await navigator.maybePop();
+    callback();
   });
 }
 
@@ -56,7 +56,12 @@ Future<void> handleOfflineMapTap(BuildContext context, WidgetRef ref) async {
     if (!proceed) return;
   }
 
-  await showOfflineMapDownloadFlow(context, ref);
+  try {
+    await showOfflineMapDownloadFlow(context, ref);
+  } catch (_) {
+    // showOfflineMapDownloadFlow 内の予期しない例外をサイレントに握り潰す
+    // （ネイティブ例外等によるクラッシュ防止）
+  }
 }
 
 /// POI追加・編集メニューがタップされたときのフロー

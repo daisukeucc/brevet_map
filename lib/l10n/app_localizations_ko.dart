@@ -93,7 +93,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiAddByDistance => '거리로 POI 추가';
 
   @override
-  String get poiAddByMapTap => '지도에서 POI 추가';
+  String get poiAddByMapTap => '지도에서 탭하여 POI 추가';
 
   @override
   String get poiTabAdd => 'POI 추가';
@@ -191,6 +191,9 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get kmPointNotFound => '지정한 km 지점을 찾을 수 없습니다';
+
+  @override
+  String get kmExceedsRoute => '루트 총 거리를 초과했습니다';
 
   @override
   String get gpxInvalidFormat => '이 파일은 GPX 형식이 아닙니다';
@@ -455,4 +458,39 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => '플랜 보기';
+
+  @override
+  String get subscription => '구독';
+
+  @override
+  String get restorePurchases => '구매 복원';
+
+  @override
+  String get restorePurchasesSuccess => '구매가 복원되었습니다';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return '계정 ID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return '만료일: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => '미가입';
+
+  @override
+  String get subscriptionTerms => '구독 약관';
+
+  @override
+  String get manageSubscription => '구독 관리';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      '지도에 표시된 경로는 샘플 경로입니다. 실제로 사용하려면 사이클링 앱에서 내보낸 GPX 파일이나 이벤트에서 제공된 GPX 파일을 가져와 사용해 주세요.';
+
+  @override
+  String get volumeButtonTutorial => '기기의 볼륨 버튼으로 지도 줌 레벨을 조절할 수 있습니다';
 }

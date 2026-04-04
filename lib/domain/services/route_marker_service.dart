@@ -8,15 +8,29 @@ import '../../utils/map_utils.dart';
 import 'marker_icon_service.dart';
 
 /// 距離マーカーを表示するズームレベルの閾値。この値以上で拡大しているときに表示する。
-const double distanceMarkerZoomThreshold = 9.0;
+const double distanceMarkerZoomThreshold = 8.0;
 
-/// 50km をメートルに換算
-const double _interval50kmMeters = 50000.0;
+/// ルート総距離（メートル）に応じて km 単位のインターバルを決定する。
+/// - 総距離 < 110km  → 10km 毎
+/// - 110km ≤ 総距離 < 600km → 50km 毎
+/// - 600km ≤ 総距離 → 100km 毎
+double _resolveKmIntervalMeters(double totalMeters) {
+  final totalKm = totalMeters / 1000;
+  if (totalKm < 110) return 10000.0;
+  if (totalKm < 610) return 50000.0;
+  return 100000.0;
+}
 
-/// 50 mile をメートルに換算 (1 mile = 1609.344 m)
-const double _interval50mileMeters = 50 * 1609.344;
-
-const double _kmPerMile = 1.609344;
+/// ルート総距離（メートル）に応じて mile 単位のインターバルを決定する。
+/// - 総距離 < 80km (≈ 50mi)  → 10mi 毎
+/// - 80km ≤ 総距離 < 640km (≈ 400mi) → 50mi 毎
+/// - 640km ≤ 総距離 → 100mi 毎
+double _resolveMileIntervalMeters(double totalMeters) {
+  final totalKm = totalMeters / 1000;
+  if (totalKm < 80) return 10 * 1609.344;
+  if (totalKm < 640) return 50 * 1609.344;
+  return 100 * 1609.344;
+}
 
 /// マーカー表示サイズ（論理ピクセル）
 const double _markerSize = 72.0;
@@ -33,7 +47,7 @@ Future<List<Marker>> buildRouteMarkers({
   int distanceUnit = 0,
 }) async {
   final showDistanceMarkers =
-      zoomLevel == null || zoomLevel >= distanceMarkerZoomThreshold;
+      zoomLevel != null && zoomLevel >= distanceMarkerZoomThreshold;
   final markers = <Marker>[];
   Widget? startIcon;
   Widget? goalIcon;
@@ -62,14 +76,17 @@ Future<List<Marker>> buildRouteMarkers({
   // 描画順: 距離マーカー → POI → ユーザー POI → ゴール → スタート（最前面）
 
   if (routePoints.isNotEmpty && showDistanceMarkers) {
-    final intervalMeters =
-        distanceUnit == 1 ? _interval50mileMeters : _interval50kmMeters;
-    final distanceList = distanceMarkersAlongTrack(routePoints,
-        intervalMeters: intervalMeters);
+    final totalMeters =
+        distanceAlongTrackFromStart(routePoints, routePoints.length - 1);
+    final intervalMeters = distanceUnit == 1
+        ? _resolveMileIntervalMeters(totalMeters)
+        : _resolveKmIntervalMeters(totalMeters);
+    final distanceList =
+        distanceMarkersAlongTrack(routePoints, intervalMeters: intervalMeters);
     for (var i = 0; i < distanceList.length; i++) {
       final m = distanceList[i];
       final label = distanceUnit == 1
-          ? '${50 * (i + 1)}mi'
+          ? '${(m.distanceKm / 1.609344).round()}mi'
           : '${m.distanceKm.toInt()}km';
       try {
         final result = await createDistanceMarkerIcon(label);

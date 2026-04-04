@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +28,8 @@ import '../handlers/share_handler.dart';
 import '../handlers/battery_display_handler.dart';
 import '../handlers/sleep_settings_handler.dart';
 import '../handlers/share_url_handler.dart';
+import '../handlers/subscription_handler.dart';
+import '../theme/app_text_styles.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/connectivity_gate.dart'
     show
@@ -115,7 +118,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     loadLocale().then((code) {
       if (!mounted) return;
       if (code != null && code.isNotEmpty) {
-        ref.read(localeProvider.notifier).state = Locale(code);
+        ref.read(localeProvider.notifier).state = codeToLocale(code);
       }
     });
 

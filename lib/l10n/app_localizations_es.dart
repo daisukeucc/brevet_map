@@ -94,7 +94,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get poiAddByDistance => 'Agregar POI por distancia';
 
   @override
-  String get poiAddByMapTap => 'Agregar POI desde el mapa';
+  String get poiAddByMapTap => 'Agregar POI tocando el mapa';
 
   @override
   String get poiTabAdd => 'Añadir POI';
@@ -193,6 +193,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get kmPointNotFound => 'Punto km especificado no encontrado';
+
+  @override
+  String get kmExceedsRoute => 'Supera la distancia total de la ruta';
 
   @override
   String get gpxInvalidFormat => 'Este archivo no está en formato GPX';
@@ -472,4 +475,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'Ver planes';
+
+  @override
+  String get subscription => 'Suscripción';
+
+  @override
+  String get restorePurchases => 'Restaurar compras';
+
+  @override
+  String get restorePurchasesSuccess => 'Compras restauradas';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'ID de cuenta: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return 'Vencimiento: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => 'No suscrito';
+
+  @override
+  String get subscriptionTerms => 'Términos de suscripción';
+
+  @override
+  String get manageSubscription => 'Administrar suscripción';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'La ruta mostrada en el mapa es una ruta de ejemplo. Para uso real, importe y utilice un archivo GPX exportado de una aplicación de ciclismo o proporcionado por un evento.';
+
+  @override
+  String get volumeButtonTutorial =>
+      'Puede ajustar el nivel de zoom del mapa con los botones de volumen del dispositivo';
 }

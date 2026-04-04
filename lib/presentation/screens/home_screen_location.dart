@@ -3,6 +3,7 @@ part of 'home_screen.dart';
 /// 位置情報ストリーム関連の状態・ロジックをまとめた mixin。
 /// [_MyHomePageState] に mix-in して使用する。
 mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
+  void _showSampleRouteDialog(BuildContext context);
   // ── このmixinが所有するstate ──────────────────────────────────────────────
 
   /// 初期表示位置。null の間はローディング、非 null で地図表示
@@ -28,6 +29,7 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
 
   /// 起動時に位置取得に失敗した場合、案内 SnackBar を一度だけ表示したか
   bool _hasShownLocationUnavailableHint = false;
+
 
   /// 初回ルート取得を実行したか（addPostFrameCallback の多重登録防止）
   bool _hasTriggeredInitialRouteFetch = false;
@@ -85,6 +87,7 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
                 .animateToBounds(bounds);
           }
         },
+        onFirstRouteShown: () => _showSampleRouteDialog(context),
       );
     });
   }
@@ -94,6 +97,23 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
     if (!mounted) return;
     _previousStreamPosition = previous;
     _latestStreamPosition = position;
+
+    // ルートが前半・後半に分割されている場合、現在地の進捗で描画順を更新
+    if (ref.read(mapStateProvider).routePolylines.length == 2) {
+      final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+      if (routePoints != null && routePoints.isNotEmpty) {
+        final notifier = ref.read(mapStateProvider.notifier);
+        final result = notifier.computeAlongTrackM(
+          LatLng(position.latitude, position.longitude),
+          previous: previous != null
+              ? LatLng(previous.latitude, previous.longitude)
+              : null,
+        );
+        final isSecondHalf = result.alongTrackM >= notifier.halfRouteDistanceM;
+        notifier.updateHalfDisplay(isSecondHalf);
+      }
+    }
+
     // 共有モード中はカメラを移動しない（スクリーンショット用のルート全体表示を維持する）
     if (_isShareMode) {
       setState(() {});
@@ -190,7 +210,6 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
         _previousStreamPosition = null;
       });
     } else {
-      ref.read(mapStateProvider.notifier).overrideSavedZoom(_trackingZoom);
       _isFirstPositionAfterStreamOn = true;
     }
   }

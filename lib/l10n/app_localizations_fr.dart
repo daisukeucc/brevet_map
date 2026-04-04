@@ -95,7 +95,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiAddByDistance => 'Ajouter un POI à distance';
 
   @override
-  String get poiAddByMapTap => 'Ajouter un POI depuis la carte';
+  String get poiAddByMapTap => 'Ajouter un POI en appuyant sur la carte';
 
   @override
   String get poiTabAdd => 'Ajouter POI';
@@ -194,6 +194,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get kmPointNotFound => 'Point km spécifié introuvable';
+
+  @override
+  String get kmExceedsRoute => 'Dépasse la distance totale de l\'itinéraire';
 
   @override
   String get gpxInvalidFormat => 'Ce fichier n\'est pas au format GPX';
@@ -474,4 +477,40 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'Voir les offres';
+
+  @override
+  String get subscription => 'Abonnement';
+
+  @override
+  String get restorePurchases => 'Restaurer les achats';
+
+  @override
+  String get restorePurchasesSuccess => 'Achats restaurés';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'ID de compte: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return 'Expiration: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => 'Non abonné';
+
+  @override
+  String get subscriptionTerms => 'Conditions d\'abonnement';
+
+  @override
+  String get manageSubscription => 'Gérer l\'abonnement';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'L\'itinéraire affiché sur la carte est un itinéraire d\'exemple. Pour une utilisation réelle, veuillez importer et utiliser un fichier GPX exporté depuis une application de cyclisme ou fourni par un événement.';
+
+  @override
+  String get volumeButtonTutorial =>
+      'Vous pouvez ajuster le niveau de zoom de la carte avec les boutons de volume de l\'appareil';
 }

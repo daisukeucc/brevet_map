@@ -1,6 +1,7 @@
 {
   "@@locale": "fr",
   "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
   "cancel": "Annuler",
   "ok": "OK",
   "ng": "NG",
@@ -33,7 +34,7 @@
   "poiAdd": "Ajouter un POI",
   "poiAddEdit": "Ajouter ou modifier un POI",
   "poiAddByDistance": "Ajouter un POI à distance",
-  "poiAddByMapTap": "Ajouter un POI depuis la carte",
+  "poiAddByMapTap": "Ajouter un POI en appuyant sur la carte",
   "poiTabAdd": "Ajouter POI",
   "poiTabEdit": "Modifier ou supprimer un POI",
   "poiType": "Type de POI",
@@ -79,6 +80,7 @@
   "selectGpxFile": "Veuillez sélectionner un fichier GPX",
   "routeNotLoaded": "L'itinéraire n'est pas chargé",
   "kmPointNotFound": "Point km spécifié introuvable",
+  "kmExceedsRoute": "Dépasse la distance totale de l'itinéraire",
   "gpxInvalidFormat": "Ce fichier n'est pas au format GPX",
   "gpxNoRouteOrWaypoint": "Le fichier GPX ne contient pas d'itinéraire ou de waypoints",
   "locationFailed": "Échec de l'obtention de la position",
@@ -226,5 +228,25 @@
     }
   },
   "poiPremiumMessage": "Abonnez-vous à Brevet MAP Premium pour modifier et supprimer des POIs !",
-  "poiPremiumViewPlans": "Voir les offres"
+  "poiPremiumViewPlans": "Voir les offres",
+  "subscription": "Abonnement",
+  "restorePurchases": "Restaurer les achats",
+  "restorePurchasesSuccess": "Achats restaurés",
+  "subscriptionAccountId": "ID de compte: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Expiration: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "Non abonné",
+  "subscriptionTerms": "Conditions d'abonnement",
+  "manageSubscription": "Gérer l'abonnement",
+  "sampleRouteDialogMessage": "L'itinéraire affiché sur la carte est un itinéraire d'exemple. Pour une utilisation réelle, veuillez importer et utiliser un fichier GPX exporté depuis une application de cyclisme ou fourni par un événement.",
+  "volumeButtonTutorial": "Vous pouvez ajuster le niveau de zoom de la carte avec les boutons de volume de l'appareil"
 }

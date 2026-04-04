@@ -12,6 +12,7 @@ import 'app_localizations_fr.dart';
 import 'app_localizations_it.dart';
 import 'app_localizations_ja.dart';
 import 'app_localizations_ko.dart';
+import 'app_localizations_th.dart';
 import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
@@ -107,7 +108,9 @@ abstract class AppLocalizations {
     Locale('it'),
     Locale('ja'),
     Locale('ko'),
-    Locale('zh')
+    Locale('th'),
+    Locale('zh'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')
   ];
 
   /// Do not translate. Use "Brevet Map" in all non-Japanese locales.
@@ -275,7 +278,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiAddByMapTap.
   ///
   /// In en, this message translates to:
-  /// **'Add POI from map'**
+  /// **'Add POI from map tap'**
   String get poiAddByMapTap;
 
   /// No description provided for @poiTabAdd.
@@ -463,6 +466,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Specified km point not found'**
   String get kmPointNotFound;
+
+  /// No description provided for @kmExceedsRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Exceeds the total route distance'**
+  String get kmExceedsRoute;
 
   /// No description provided for @gpxInvalidFormat.
   ///
@@ -937,6 +946,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'View Plans'**
   String get poiPremiumViewPlans;
+
+  /// No description provided for @subscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription'**
+  String get subscription;
+
+  /// No description provided for @restorePurchases.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Purchases'**
+  String get restorePurchases;
+
+  /// No description provided for @restorePurchasesSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchases restored'**
+  String get restorePurchasesSuccess;
+
+  /// No description provided for @subscriptionAccountId.
+  ///
+  /// In en, this message translates to:
+  /// **'Account ID: {id}'**
+  String subscriptionAccountId(String id);
+
+  /// No description provided for @subscriptionExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires: {date}'**
+  String subscriptionExpiry(String date);
+
+  /// No description provided for @subscriptionNotActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Not subscribed'**
+  String get subscriptionNotActive;
+
+  /// No description provided for @subscriptionTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscription Terms'**
+  String get subscriptionTerms;
+
+  /// No description provided for @manageSubscription.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage Subscription'**
+  String get manageSubscription;
+
+  /// No description provided for @sampleRouteDialogMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'The route shown on the map is a sample route. For actual use, please import and use a GPX file exported from a cycling app or provided by an event.'**
+  String get sampleRouteDialogMessage;
+
+  /// No description provided for @volumeButtonTutorial.
+  ///
+  /// In en, this message translates to:
+  /// **'You can adjust the map zoom level using the device\'s volume buttons'**
+  String get volumeButtonTutorial;
 }
 
 class _AppLocalizationsDelegate
@@ -957,6 +1026,7 @@ class _AppLocalizationsDelegate
         'it',
         'ja',
         'ko',
+        'th',
         'zh'
       ].contains(locale.languageCode);
 
@@ -965,6 +1035,18 @@ class _AppLocalizationsDelegate
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when language+script codes are specified.
+  switch (locale.languageCode) {
+    case 'zh':
+      {
+        switch (locale.scriptCode) {
+          case 'Hant':
+            return AppLocalizationsZhHant();
+        }
+        break;
+      }
+  }
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
     case 'de':
@@ -981,6 +1063,8 @@ AppLocalizations lookupAppLocalizations(Locale locale) {
       return AppLocalizationsJa();
     case 'ko':
       return AppLocalizationsKo();
+    case 'th':
+      return AppLocalizationsTh();
     case 'zh':
       return AppLocalizationsZh();
   }

@@ -41,7 +41,11 @@ Future<void> main() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
 
-  await _initRevenueCat();
+  // RevenueCat は await せず起動をブロックしない（fire-and-forget）。
+  // await すると Android でスプラッシュ画面が固まることがある。
+  // また、await なしで常に configure を呼ぶことで、オフライン時も SDK が初期化済みになり
+  // Purchases.getCustomerInfo() 呼び出し時のネイティブクラッシュを防ぐ。
+  _initRevenueCat();
 
   await TileConfig.initUserAgentPackageName();
   // クラッシュ後の ObjectBox DB 不正状態で initialise() が無限待機することがある。

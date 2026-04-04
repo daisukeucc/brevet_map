@@ -1,6 +1,7 @@
 {
   "@@locale": "it",
   "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
   "cancel": "Annulla",
   "ok": "OK",
   "ng": "NG",
@@ -33,7 +34,7 @@
   "poiAdd": "Aggiungi POI",
   "poiAddEdit": "Aggiungi o modifica POI",
   "poiAddByDistance": "Aggiungi POI alla distanza",
-  "poiAddByMapTap": "Aggiungi POI dalla mappa",
+  "poiAddByMapTap": "Aggiungi POI toccando la mappa",
   "poiTabAdd": "Aggiungi POI",
   "poiTabEdit": "Modifica o elimina POI",
   "poiType": "Tipo di POI",
@@ -79,6 +80,7 @@
   "selectGpxFile": "Seleziona un file GPX",
   "routeNotLoaded": "Il percorso non è caricato",
   "kmPointNotFound": "Punto km specificato non trovato",
+  "kmExceedsRoute": "Supera la distanza totale del percorso",
   "gpxInvalidFormat": "Questo file non è in formato GPX",
   "gpxNoRouteOrWaypoint": "Il GPX non contiene percorso o waypoint",
   "locationFailed": "Impossibile ottenere la posizione",
@@ -226,5 +228,25 @@
     }
   },
   "poiPremiumMessage": "Abbonati a Brevet MAP Premium per modificare ed eliminare i POI!",
-  "poiPremiumViewPlans": "Vedi piani"
+  "poiPremiumViewPlans": "Vedi piani",
+  "subscription": "Abbonamento",
+  "restorePurchases": "Ripristina acquisti",
+  "restorePurchasesSuccess": "Acquisti ripristinati",
+  "subscriptionAccountId": "ID account: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Scadenza: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "Non abbonato",
+  "subscriptionTerms": "Termini di abbonamento",
+  "manageSubscription": "Gestisci abbonamento",
+  "sampleRouteDialogMessage": "Il percorso mostrato sulla mappa è un percorso di esempio. Per uso reale, si consiglia di importare e utilizzare un file GPX esportato da un'app di ciclismo o fornito da un evento.",
+  "volumeButtonTutorial": "È possibile regolare il livello di zoom della mappa con i pulsanti del volume del dispositivo"
 }

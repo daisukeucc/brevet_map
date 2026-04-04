@@ -93,7 +93,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiAddByDistance => 'Add POI at distance';
 
   @override
-  String get poiAddByMapTap => 'Add POI from map';
+  String get poiAddByMapTap => 'Add POI from map tap';
 
   @override
   String get poiTabAdd => 'Add POI';
@@ -192,6 +192,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kmPointNotFound => 'Specified km point not found';
+
+  @override
+  String get kmExceedsRoute => 'Exceeds the total route distance';
 
   @override
   String get gpxInvalidFormat => 'This file is not in GPX format';
@@ -469,4 +472,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get poiPremiumViewPlans => 'View Plans';
+
+  @override
+  String get subscription => 'Subscription';
+
+  @override
+  String get restorePurchases => 'Restore Purchases';
+
+  @override
+  String get restorePurchasesSuccess => 'Purchases restored';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return 'Account ID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return 'Expires: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => 'Not subscribed';
+
+  @override
+  String get subscriptionTerms => 'Subscription Terms';
+
+  @override
+  String get manageSubscription => 'Manage Subscription';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      'The route shown on the map is a sample route. For actual use, please import and use a GPX file exported from a cycling app or provided by an event.';
+
+  @override
+  String get volumeButtonTutorial =>
+      'You can adjust the map zoom level using the device\'s volume buttons';
 }

@@ -1,6 +1,7 @@
 {
   "@@locale": "de",
   "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
   "cancel": "Abbrechen",
   "ok": "OK",
   "ng": "NG",
@@ -33,7 +34,7 @@
   "poiAdd": "POI hinzufügen",
   "poiAddEdit": "POI hinzufügen oder bearbeiten",
   "poiAddByDistance": "POI bei Distanz hinzufügen",
-  "poiAddByMapTap": "POI von Karte hinzufügen",
+  "poiAddByMapTap": "POI durch Tippen auf die Karte hinzufügen",
   "poiTabAdd": "POI hinzufügen",
   "poiTabEdit": "POI bearbeiten oder löschen",
   "poiType": "POI-Typ",
@@ -79,6 +80,7 @@
   "selectGpxFile": "Bitte wählen Sie eine GPX-Datei",
   "routeNotLoaded": "Strecke ist nicht geladen",
   "kmPointNotFound": "Angegebener km-Punkt nicht gefunden",
+  "kmExceedsRoute": "Überschreitet die Gesamtstreckenlänge",
   "gpxInvalidFormat": "Diese Datei ist kein GPX-Format",
   "gpxNoRouteOrWaypoint": "GPX enthält keine Strecke oder Wegpunkte",
   "locationFailed": "Standort konnte nicht ermittelt werden",
@@ -226,5 +228,25 @@
     }
   },
   "poiPremiumMessage": "Mit Brevet MAP Premium können Sie POIs bearbeiten und löschen!",
-  "poiPremiumViewPlans": "Pläne anzeigen"
+  "poiPremiumViewPlans": "Pläne anzeigen",
+  "subscription": "Abonnement",
+  "restorePurchases": "Käufe wiederherstellen",
+  "restorePurchasesSuccess": "Käufe wurden wiederhergestellt",
+  "subscriptionAccountId": "Konto-ID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Ablaufdatum: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "Nicht abonniert",
+  "subscriptionTerms": "Abonnementbedingungen",
+  "manageSubscription": "Abonnement verwalten",
+  "sampleRouteDialogMessage": "Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei aus einer Radsport-App oder von einer Veranstaltung.",
+  "volumeButtonTutorial": "Sie können den Kartenzoom mit den Lautstärketasten des Geräts anpassen"
 }

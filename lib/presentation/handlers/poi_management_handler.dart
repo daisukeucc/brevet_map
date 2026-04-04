@@ -73,21 +73,26 @@ Future<void> handleDistanceInputPoiAdd(
 ) async {
   if (!context.mounted) return;
   final distanceUnit = ref.read(distanceUnitProvider);
-  final data = await showDialog<AddPoiFormData>(
-    context: context,
-    barrierColor: Colors.black54,
-    barrierDismissible: false,
-    builder: (context) => DistanceInputPoiDialog(distanceUnit: distanceUnit),
-  );
-  if (data == null || !context.mounted) return;
-  if (data.km == null) return;
-
   final routePoints = ref.read(mapStateProvider).savedRoutePoints;
   if (routePoints == null || routePoints.isEmpty) {
     if (!context.mounted) return;
     showAppSnackBar(context, AppLocalizations.of(context)!.routeNotLoaded);
     return;
   }
+  final totalRouteKm =
+      distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000;
+  final data = await showDialog<AddPoiFormData>(
+    context: context,
+    barrierColor: Colors.black54,
+    barrierDismissible: false,
+    builder: (context) => DistanceInputPoiDialog(
+      distanceUnit: distanceUnit,
+      totalRouteKm: totalRouteKm,
+    ),
+  );
+  if (data == null || !context.mounted) return;
+  if (data.km == null) return;
+
   final coord = coordAtKm(routePoints, data.km!);
   if (coord == null) {
     if (!context.mounted) return;
@@ -160,6 +165,14 @@ Future<void> handleEditPoiText(
   if (kmChanged && data.km != null) {
     final routePoints = ref.read(mapStateProvider).savedRoutePoints;
     if (routePoints != null && routePoints.isNotEmpty) {
+      final totalKm =
+          distanceAlongTrackFromStart(routePoints, routePoints.length - 1) /
+              1000;
+      if (data.km! > totalKm) {
+        if (!context.mounted) return;
+        showAppSnackBar(context, AppLocalizations.of(context)!.kmExceedsRoute);
+        return;
+      }
       coord = coordAtKm(routePoints, data.km!);
     }
   }
@@ -237,8 +250,13 @@ Future<void> handlePoiDragEnd(
 // ---------------------------------------------------------------------------
 
 class DistanceInputPoiDialog extends StatefulWidget {
-  const DistanceInputPoiDialog({super.key, required this.distanceUnit});
+  const DistanceInputPoiDialog({
+    super.key,
+    required this.distanceUnit,
+    required this.totalRouteKm,
+  });
   final int distanceUnit;
+  final double totalRouteKm;
 
   @override
   State<DistanceInputPoiDialog> createState() => _DistanceInputPoiDialogState();
@@ -277,11 +295,16 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
 
   void _onSubmit() {
     final value = double.tryParse(_kmController.text.trim());
-    if (value == null || value < 0) {
+    if (value == null || value <= 0) {
       setState(() => _kmError = AppLocalizations.of(context)!.kmRequired);
       return;
     }
     final km = widget.distanceUnit == 1 ? value * kmPerMile : value;
+    if (km > widget.totalRouteKm) {
+      setState(() => _kmError =
+          AppLocalizations.of(context)!.kmExceedsRoute);
+      return;
+    }
     setState(() => _kmError = null);
     Navigator.pop(
       context,
@@ -316,6 +339,9 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                       focusNode: _kmFocusNode,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (_) {
+                        if (_kmError != null) setState(() => _kmError = null);
+                      },
                       decoration: InputDecoration(
                         isDense: true,
                         errorText: _kmError != null ? ' ' : null,
