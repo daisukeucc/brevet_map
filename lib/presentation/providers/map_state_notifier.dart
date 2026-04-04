@@ -208,9 +208,12 @@ class MapStateNotifier extends Notifier<MapState> {
     state = state.copyWith(savedZoomLevel: controller.camera.zoom);
 
     final initialRoute = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(initialRoute);
+    final hasRoute =
+        state.savedRoutePoints != null && state.savedRoutePoints!.isNotEmpty;
+    // ルートがある場合は直後にアニメーション開始するため、userPois を除いてマーカーを構築する
+    await _refreshRouteMarkers(initialRoute, includeUserPois: !hasRoute);
 
-    if (state.savedRoutePoints != null && state.savedRoutePoints!.isNotEmpty) {
+    if (hasRoute) {
       final bounds = boundsFromPoints(state.savedRoutePoints!);
       if (bounds != null) {
         await animateCamera(bounds);
@@ -287,8 +290,8 @@ class MapStateNotifier extends Notifier<MapState> {
   }) async {
     if (state.hasStartedInitialRouteFetch) return;
     // 保存済みルートがない場合（初回インストール相当）のみローディングを表示する
-    final hasSavedRoute = state.savedRoutePoints != null &&
-        state.savedRoutePoints!.isNotEmpty;
+    final hasSavedRoute =
+        state.savedRoutePoints != null && state.savedRoutePoints!.isNotEmpty;
     state = state.copyWith(
       hasStartedInitialRouteFetch: true,
       isFetchingRoute: !hasSavedRoute,
@@ -314,15 +317,14 @@ class MapStateNotifier extends Notifier<MapState> {
 
     state = state.copyWith(savedRoutePoints: points);
     if (state.routePolylines.isEmpty) {
-      await _startRouteAnimation(points);
+      // 初回インストール時のみアニメーション完了後にコールバックを呼ぶ
+      await _startRouteAnimation(
+        points,
+        onAnimationComplete: !hasSavedRoute ? onFirstRouteShown : null,
+      );
     }
     final bounds = boundsFromPoints(points);
     await animateCamera(bounds);
-
-    // 初回インストール時のみサンプルルート表示完了後にコールバックを呼ぶ
-    if (!hasSavedRoute) {
-      onFirstRouteShown?.call();
-    }
   }
 
   /// ルート全体のバウンドを返す（animateToRouteBounds 用）
@@ -399,7 +401,11 @@ class MapStateNotifier extends Notifier<MapState> {
   // --- 内部メソッド ---
 
   /// スタート・ゴール・POI マーカーを再構築して state を更新する
-  Future<void> _refreshRouteMarkers(List<LatLng> routePoints) async {
+  /// [includeUserPois] が false の場合、userPois マーカーを含めない（アニメーション中の表示制御用）
+  Future<void> _refreshRouteMarkers(
+    List<LatLng> routePoints, {
+    bool includeUserPois = true,
+  }) async {
     final onPoiTap = _onPoiTap ?? (_) {};
     final onUserPoiTap = _onUserPoiTap;
     final distanceUnit = ref.read(distanceUnitProvider);
@@ -407,7 +413,7 @@ class MapStateNotifier extends Notifier<MapState> {
       routePoints: routePoints,
       pois: state.gpxPois,
       onPoiTap: onPoiTap,
-      userPois: state.userPois,
+      userPois: includeUserPois ? state.userPois : const [],
       onUserPoiTap: onUserPoiTap,
       zoomLevel: state.savedZoomLevel,
       draggingPoi: _draggingPoi,
@@ -425,6 +431,7 @@ class MapStateNotifier extends Notifier<MapState> {
   Future<void> _startRouteAnimation(
     List<LatLng> fullPoints, {
     bool animate = true,
+    VoidCallback? onAnimationComplete,
   }) async {
     _firstHalfPolyline = null;
     _secondHalfPolyline = null;
@@ -449,7 +456,8 @@ class MapStateNotifier extends Notifier<MapState> {
     _sampledCumulativeDistances = cumDist;
     _halfRouteDistanceM = cumDist.isNotEmpty ? cumDist.last / 2 : 0;
     state = state.copyWith(fullRoutePoints: fullPoints);
-    await _refreshRouteMarkers(fullPoints);
+    // アニメーション中は userPois を非表示にし、完了後に表示する
+    await _refreshRouteMarkers(fullPoints, includeUserPois: !animate);
     await _routeAnimationRunner.start(
       fullPoints,
       buildMarkers: false,
@@ -463,6 +471,13 @@ class MapStateNotifier extends Notifier<MapState> {
       },
       onMarkers: (_) {},
       mounted: () => true,
+      onComplete: animate
+          ? () async {
+              await _refreshRouteMarkers(fullPoints);
+              await Future.delayed(const Duration(milliseconds: 400));
+              onAnimationComplete?.call();
+            }
+          : null,
     );
   }
 
@@ -484,7 +499,8 @@ class MapStateNotifier extends Notifier<MapState> {
   /// 往復ルートで往路・復路が近接していても正しく判定できる。
   /// 常に O(500) で動作し、元のルート点数に依存しない。
   /// [alongTrackM]: ルート先頭からの距離、[toRouteM]: ルートへの最近傍距離
-  ({double alongTrackM, double toRouteM}) computeAlongTrackM(LatLng current, {LatLng? previous}) {
+  ({double alongTrackM, double toRouteM}) computeAlongTrackM(LatLng current,
+      {LatLng? previous}) {
     final sampled = _sampledRoutePoints;
     final cumDist = _sampledCumulativeDistances;
     if (sampled.isEmpty) return (alongTrackM: 0, toRouteM: double.infinity);

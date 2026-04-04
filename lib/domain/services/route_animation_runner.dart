@@ -24,6 +24,7 @@ class RouteAnimationRunner {
     required bool Function() mounted,
     bool animate = true,
     bool buildMarkers = true,
+    VoidCallback? onComplete,
   }) async {
     _timer?.cancel();
     if (fullPoints.isEmpty) return;
@@ -67,6 +68,7 @@ class RouteAnimationRunner {
 
     if (!useAnimation) {
       onPolyline(buildPolylines(fullPoints.length));
+      onComplete?.call();
       return;
     }
 
@@ -85,6 +87,7 @@ class RouteAnimationRunner {
       if (nextCount >= fullPoints.length) {
         t.cancel();
         _timer = null;
+        onComplete?.call();
       }
     });
   }
