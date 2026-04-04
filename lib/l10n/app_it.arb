@@ -1,6 +1,7 @@
 {
   "@@locale": "it",
   "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
   "cancel": "Annulla",
   "ok": "OK",
   "ng": "NG",

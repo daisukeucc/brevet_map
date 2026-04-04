@@ -1,6 +1,7 @@
 {
   "@@locale": "ko",
   "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
   "cancel": "취소",
   "ok": "확인",
   "ng": "NG",

@@ -118,7 +118,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     loadLocale().then((code) {
       if (!mounted) return;
       if (code != null && code.isNotEmpty) {
-        ref.read(localeProvider.notifier).state = Locale(code);
+        ref.read(localeProvider.notifier).state = codeToLocale(code);
       }
     });
 

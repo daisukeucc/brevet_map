@@ -487,3 +487,487 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get volumeButtonTutorial => '您可以使用设备的音量键调整地图缩放级别';
 }
+
+/// The translations for Chinese, using the Han script (`zh_Hant`).
+class AppLocalizationsZhHant extends AppLocalizationsZh {
+  AppLocalizationsZhHant() : super('zh_Hant');
+
+  @override
+  String get appTitle => 'Brevet Map';
+
+  @override
+  String get appTitleBrand => 'Brevet Map';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get ok => '確定';
+
+  @override
+  String get ng => 'NG';
+
+  @override
+  String get delete => '刪除';
+
+  @override
+  String get edit => '編輯';
+
+  @override
+  String get change => '更改';
+
+  @override
+  String get add => '添加';
+
+  @override
+  String get settings => '設定';
+
+  @override
+  String get share => '分享';
+
+  @override
+  String get shareFailed => '分享失敗';
+
+  @override
+  String get showMyLocation => '顯示我的位置';
+
+  @override
+  String get sleepSettings => '螢幕休眠';
+
+  @override
+  String get sleepInfoMessage1 => '螢幕休眠時GPS會關閉，因此如果希望減少電量消耗，建議啟用螢幕休眠。';
+
+  @override
+  String get sleepInfoDontShowAgain => '不再顯示';
+
+  @override
+  String get switchGpsLevel => '位置精度';
+
+  @override
+  String get gpxImport => '匯入 GPX 檔案';
+
+  @override
+  String get gpxExport => '匯出 GPX 檔案';
+
+  @override
+  String get gpxExportDialogTitle => '檔案名稱';
+
+  @override
+  String get gpxExportFilenameHint => '輸入檔案名稱（留空則使用日期/時間）';
+
+  @override
+  String gpxExportComplete(String filename) {
+    return '已儲存 $filename';
+  }
+
+  @override
+  String get gpxExportFailed => '匯出失敗';
+
+  @override
+  String get gpxExportPermissionDenied => '檔案儲存權限被拒絕';
+
+  @override
+  String get poiAdd => '添加 POI';
+
+  @override
+  String get poiAddEdit => '添加或編輯 POI';
+
+  @override
+  String get poiAddByDistance => '依距離添加 POI';
+
+  @override
+  String get poiAddByMapTap => '透過點擊地圖添加 POI';
+
+  @override
+  String get poiTabAdd => '添加 POI';
+
+  @override
+  String get poiTabEdit => '編輯或刪除 POI';
+
+  @override
+  String get poiType => 'POI 類型';
+
+  @override
+  String get checkpoint => '檢查點';
+
+  @override
+  String get information => '資訊';
+
+  @override
+  String get title => '標題';
+
+  @override
+  String get body => '內容';
+
+  @override
+  String get distance => '距離';
+
+  @override
+  String get titleNone => '（無標題）';
+
+  @override
+  String get kmRequired => '距離為必填項';
+
+  @override
+  String get offRoute => '偏離路線';
+
+  @override
+  String kmPoint(String km) {
+    return '${km}km 點';
+  }
+
+  @override
+  String poiAtKmPoint(String kmLabel) {
+    return '$kmLabel 點的 POI';
+  }
+
+  @override
+  String get poiOffRoutePoi => '編輯 POI';
+
+  @override
+  String get changePoiPosition => '設為此位置';
+
+  @override
+  String get poiRegistered => 'POI 已添加';
+
+  @override
+  String get poiAddedFromShare => '已從分享連結添加 POI';
+
+  @override
+  String get shareUrlInvalid => '無法從分享連結取得座標';
+
+  @override
+  String get registerThisPlaceAsPoi => '在此添加 POI';
+
+  @override
+  String get poiUpdated => 'POI 已更新';
+
+  @override
+  String get poiDeleted => 'POI 已刪除';
+
+  @override
+  String get poiPositionChanged => 'POI 位置已更改';
+
+  @override
+  String get changePoiText => '更改 POI 標題和內容';
+
+  @override
+  String get changePoiPositionTitle => '更改 POI 位置';
+
+  @override
+  String get deletePoiConfirm => '刪除此 POI？';
+
+  @override
+  String get noPoiRegistered => '未添加 POI';
+
+  @override
+  String get changePoiTextTitle => '更改 POI 內容';
+
+  @override
+  String get routeOverwrite => '覆蓋目前路線';
+
+  @override
+  String get selectGpxFile => '請選擇 GPX 檔案';
+
+  @override
+  String get routeNotLoaded => '路線未載入';
+
+  @override
+  String get kmPointNotFound => '未找到指定的 km 點';
+
+  @override
+  String get kmExceedsRoute => '超過路線總距離';
+
+  @override
+  String get gpxInvalidFormat => '此檔案不是 GPX 格式';
+
+  @override
+  String get gpxNoRouteOrWaypoint => 'GPX 不包含路線或航點';
+
+  @override
+  String get locationFailed => '取得位置失敗';
+
+  @override
+  String get mapStyleNormal => '以一般模式顯示地圖';
+
+  @override
+  String get mapStyleDark => '以深色模式顯示地圖';
+
+  @override
+  String get showFullRoute => '顯示完整路線';
+
+  @override
+  String get locationUnavailable => '位置不可用';
+
+  @override
+  String get locationUnavailableWithRetry => '位置不可用。點擊「顯示我的位置」重試，或在設定中允許位置存取。';
+
+  @override
+  String get openSettings => '開啟設定';
+
+  @override
+  String get locationInvalid => '位置無效';
+
+  @override
+  String get locationServiceOff => '定位服務已關閉。請在裝置設定中開啟。';
+
+  @override
+  String get locationPermissionRequired => '需要位置權限';
+
+  @override
+  String get locationPermissionDenied => '位置權限被拒絕。未取得授權無法顯示您的位置。';
+
+  @override
+  String get locationPermissionDeniedForever => '位置權限已設為「不再詢問」。請在應用程式設定中啟用。';
+
+  @override
+  String get sleepOffMessage => '螢幕休眠已停用';
+
+  @override
+  String get sleepOnMessage => '螢幕休眠已啟用';
+
+  @override
+  String get sleepOff => '關閉';
+
+  @override
+  String get sleepOn => '開啟';
+
+  @override
+  String get sleepSettingsNote => '請在裝置的設定應用程式中查看螢幕休眠時間';
+
+  @override
+  String get openSettingsApp => '開啟設定應用程式';
+
+  @override
+  String get distanceUnit => '距離單位';
+
+  @override
+  String get unitKm => '公里';
+
+  @override
+  String get unitMile => '英里';
+
+  @override
+  String get distanceUnitSetToKm => '距離單位已設為公里';
+
+  @override
+  String get distanceUnitSetToMile => '距離單位已設為英里';
+
+  @override
+  String get checkingConnectivity => '正在檢查連線...';
+
+  @override
+  String get fetchingLocation => '正在取得位置...';
+
+  @override
+  String get offline => '離線';
+
+  @override
+  String get retryConnectivity => '重試';
+
+  @override
+  String get offlineMap => '離線地圖';
+
+  @override
+  String get offlineMapMinimalMap => '最大縮放：15';
+
+  @override
+  String get offlineMapStandardMap => '最大縮放：16';
+
+  @override
+  String offlineMapMinimalMapWithSize(String size) {
+    return '最大縮放：15（$size）';
+  }
+
+  @override
+  String offlineMapStandardMapWithSize(String size) {
+    return '最大縮放：16（$size）';
+  }
+
+  @override
+  String get offlineMapHighResMap => '最大縮放：17';
+
+  @override
+  String offlineMapHighResMapWithSize(String size) {
+    return '最大縮放：17（$size）';
+  }
+
+  @override
+  String get offlineMapZoomSmall => '縮放：限定';
+
+  @override
+  String get offlineMapZoomMedium => '縮放：標準';
+
+  @override
+  String get offlineMapZoomLarge => '縮放：擴展';
+
+  @override
+  String offlineMapZoomSmallWithSize(String size) {
+    return '縮放：限定（$size）';
+  }
+
+  @override
+  String offlineMapZoomMediumWithSize(String size) {
+    return '縮放：標準（$size）';
+  }
+
+  @override
+  String offlineMapZoomLargeWithSize(String size) {
+    return '縮放：擴展（$size）';
+  }
+
+  @override
+  String get offlineMapRequiresNetwork => '下載離線地圖需要網路連線';
+
+  @override
+  String get offlineMapNoRoute => '路線未載入。請先匯入 GPX 檔案。';
+
+  @override
+  String get offlineMapDownloading => '下載中... ';
+
+  @override
+  String get offlineMapCancel => '取消';
+
+  @override
+  String get offlineMapDownloadComplete => '離線地圖下載完成';
+
+  @override
+  String get offlineMapDownloadFailed => '下載失敗';
+
+  @override
+  String get offlineMapDownloadCancelled => '下載已取消';
+
+  @override
+  String get offlineMapWifiRecommendation => '由於資料量大，建議使用 Wi-Fi 下載';
+
+  @override
+  String offlineMapWifiRecommendationWithSize(String size) {
+    return '由於資料量大，建議使用 Wi-Fi 下載。\n\n預計大小：約 $size';
+  }
+
+  @override
+  String offlineMapCurrentStorage(String size) {
+    return '已儲存: $size';
+  }
+
+  @override
+  String offlineMapCacheClearWithSize(String size) {
+    return '清除快取（$size）';
+  }
+
+  @override
+  String get offlineMapCacheClear => '清除快取';
+
+  @override
+  String get offlineMapCacheClearConfirmMessage =>
+      '快取資料（含離線地圖）增多時，地圖顯示可能會變慢。\n\n地圖顯示流程：\n\n1. 快取查詢\n2-1. 有快取：\n無需網路存取\n2-2. 無快取：\n網路存取並儲存至快取\n3. 地圖顯示\n\n步驟1的快取查詢在資料越大時耗時越長。若地圖顯示變慢或為 brevet 儲存了大容量離線地圖，建議刪除快取。';
+
+  @override
+  String get offlineMapCacheClearConfirmButton => '刪除';
+
+  @override
+  String get offlineMapCacheCleared => '快取已清除';
+
+  @override
+  String get offlineMapInfoMessage1 => '離線地圖即使在線時也能減少網路存取並節省電量';
+
+  @override
+  String get offlineMapInfoMessage2 => '為保持應用程式順暢運行，建議在不再需要時刪除已下載的地圖';
+
+  @override
+  String get offlineMapInfoButton => '下載';
+
+  @override
+  String get registerAtPosition => '在此添加';
+
+  @override
+  String get locationSharing => '位置分享';
+
+  @override
+  String get aboutApp => '關於本應用程式';
+
+  @override
+  String get rateApp => '評價應用程式';
+
+  @override
+  String get contactUs => '聯絡我們';
+
+  @override
+  String get language => '語言';
+
+  @override
+  String get useSystemLanguage => '使用系統語言';
+
+  @override
+  String get appSettingsTitle => '設定與其他';
+
+  @override
+  String get contactFormMailError => '無法開啟郵件應用程式';
+
+  @override
+  String get batteryLevelDisplay => '顯示電量';
+
+  @override
+  String get batteryLevelDisplayOn => '顯示';
+
+  @override
+  String get batteryLevelDisplayOff => '隱藏';
+
+  @override
+  String get batteryLevelDisplayIosNote => '由於iOS系統限制，電量以5%為單位顯示';
+
+  @override
+  String get trialInfoClose => '關閉';
+
+  @override
+  String get trialInfoSubscribe => '訂閱';
+
+  @override
+  String get trialInfoMessage => 'POI 添加和 GPX 匯出功能可免費試用 30 天！';
+
+  @override
+  String trialInfoRemainingDays(int days) {
+    return '剩餘 $days 天';
+  }
+
+  @override
+  String get poiPremiumMessage => '訂閱 Brevet MAP 進階版，即可編輯和刪除 POI！';
+
+  @override
+  String get poiPremiumViewPlans => '查看方案';
+
+  @override
+  String get subscription => '訂閱';
+
+  @override
+  String get restorePurchases => '恢復購買';
+
+  @override
+  String get restorePurchasesSuccess => '購買已恢復';
+
+  @override
+  String subscriptionAccountId(String id) {
+    return '帳戶ID: $id';
+  }
+
+  @override
+  String subscriptionExpiry(String date) {
+    return '到期日: $date';
+  }
+
+  @override
+  String get subscriptionNotActive => '未訂閱';
+
+  @override
+  String get subscriptionTerms => '訂閱條款';
+
+  @override
+  String get manageSubscription => '管理訂閱';
+
+  @override
+  String get sampleRouteDialogMessage =>
+      '地圖上顯示的路線是示範路線。實際使用時，請匯入並使用從騎行應用程式匯出的 GPX 檔案或活動提供的 GPX 檔案。';
+
+  @override
+  String get volumeButtonTutorial => '您可以使用裝置的音量鍵調整地圖縮放級別';
+}
