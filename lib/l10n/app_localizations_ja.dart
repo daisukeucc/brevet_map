@@ -85,7 +85,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get gpxExportSaveLocationMessage =>
-      'エクスポートしたファイルは下記に保存されます\n\niOS:\n[このiPhone内] > [ブルベMAP]\n\nAndroid:\n[Files] > [ダウンロード]';
+      '初期設定では、エクスポートしたファイルは下記に保存されます\n\niOS:\n[このiPhone内] > [ブルベMAP]\n\nAndroid:\n[Files] > [ダウンロード]';
 
   @override
   String get poiAdd => 'POIの追加';

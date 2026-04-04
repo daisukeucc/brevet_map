@@ -86,7 +86,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get gpxExportSaveLocationMessage =>
-      'ไฟล์ที่ส่งออกจะถูกบันทึกตามตำแหน่งต่อไปนี้\n\niOS:\n[iPhone ของฉัน] > [Brevet MAP]\n\nAndroid:\n[Files] > [ดาวน์โหลด]';
+      'โดยค่าเริ่มต้น ไฟล์ที่ส่งออกจะถูกบันทึกตามตำแหน่งต่อไปนี้\n\niOS:\n[iPhone ของฉัน] > [Brevet MAP]\n\nAndroid:\n[Files] > [ดาวน์โหลด]';
 
   @override
   String get poiAdd => 'เพิ่ม POI';

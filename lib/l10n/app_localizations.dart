@@ -260,7 +260,7 @@ abstract class AppLocalizations {
   /// No description provided for @gpxExportSaveLocationMessage.
   ///
   /// In en, this message translates to:
-  /// **'Exported files are saved in the following locations:\n\niOS:\n[On My iPhone] > [Brevet MAP]\n\nAndroid:\n[Files] > [Downloads]'**
+  /// **'By default, exported files are saved in the following locations:\n\niOS:\n[On My iPhone] > [Brevet MAP]\n\nAndroid:\n[Files] > [Downloads]'**
   String get gpxExportSaveLocationMessage;
 
   /// No description provided for @poiAdd.

@@ -85,7 +85,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get gpxExportSaveLocationMessage =>
-      '내보낸 파일은 다음 위치에 저장됩니다.\n\niOS:\n[나의 iPhone] > [Brevet MAP]\n\nAndroid:\n[파일] > [다운로드]';
+      '기본적으로 내보낸 파일은 다음 위치에 저장됩니다.\n\niOS:\n[나의 iPhone] > [Brevet MAP]\n\nAndroid:\n[파일] > [다운로드]';
 
   @override
   String get poiAdd => 'POI 추가';

@@ -87,7 +87,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gpxExportSaveLocationMessage =>
-      'Les fichiers exportés sont enregistrés aux emplacements suivants :\n\niOS :\n[Sur mon iPhone] > [Brevet MAP]\n\nAndroid :\n[Fichiers] > [Téléchargements]';
+      'Par défaut, les fichiers exportés sont enregistrés aux emplacements suivants :\n\niOS :\n[Sur mon iPhone] > [Brevet MAP]\n\nAndroid :\n[Fichiers] > [Téléchargements]';
 
   @override
   String get poiAdd => 'Ajouter un POI';

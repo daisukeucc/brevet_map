@@ -84,7 +84,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gpxExportSaveLocationMessage =>
-      '导出的文件将保存在以下位置：\n\niOS：\n[我的iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下载]';
+      '默认情况下，导出的文件将保存在以下位置：\n\niOS：\n[我的iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下载]';
 
   @override
   String get poiAdd => '添加 POI';
@@ -572,7 +572,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get gpxExportSaveLocationMessage =>
-      '匯出的檔案將儲存在以下位置：\n\niOS：\n[我的 iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下載]';
+      '預設情況下，匯出的檔案將儲存在以下位置：\n\niOS：\n[我的 iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下載]';
 
   @override
   String get poiAdd => '添加 POI';
