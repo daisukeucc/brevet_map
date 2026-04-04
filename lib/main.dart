@@ -9,6 +9,7 @@ import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'config/tile_config.dart';
+import 'utils/connectivity_check.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/providers/app_settings_providers.dart';
 import 'presentation/screens/home_screen.dart';
@@ -41,7 +42,12 @@ Future<void> main() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
 
-  await _initRevenueCat();
+  if (await checkConnectivity()) {
+    await _initRevenueCat().timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {},
+    );
+  }
 
   await TileConfig.initUserAgentPackageName();
   // クラッシュ後の ObjectBox DB 不正状態で initialise() が無限待機することがある。
