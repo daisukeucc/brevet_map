@@ -31,6 +31,7 @@
   },
   "gpxExportFailed": "エクスポートに失敗しました",
   "gpxExportPermissionDenied": "ファイル保存の権限がありません",
+  "gpxExportSaveLocationMessage": "エクスポートしたファイルは下記に保存されます\n\niOS:\n[このiPhone内] > [ブルベMAP]\n\nAndroid:\n[Files] > [ダウンロード]",
   "poiAdd": "POIの追加",
   "poiAddEdit": "POIの追加・編集",
   "poiAddByDistance": "距離入力でPOIを追加",

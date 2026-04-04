@@ -31,6 +31,7 @@
   },
   "gpxExportFailed": "내보내기 실패",
   "gpxExportPermissionDenied": "파일 저장 권한이 거부되었습니다",
+  "gpxExportSaveLocationMessage": "내보낸 파일은 다음 위치에 저장됩니다.\n\niOS:\n[나의 iPhone] > [Brevet MAP]\n\nAndroid:\n[파일] > [다운로드]",
   "poiAdd": "POI 추가",
   "poiAddEdit": "POI 추가 또는 편집",
   "poiAddByDistance": "거리로 POI 추가",

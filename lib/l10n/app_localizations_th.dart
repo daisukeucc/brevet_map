@@ -85,6 +85,10 @@ class AppLocalizationsTh extends AppLocalizations {
   String get gpxExportPermissionDenied => 'ไม่มีสิทธิ์บันทึกไฟล์';
 
   @override
+  String get gpxExportSaveLocationMessage =>
+      'ไฟล์ที่ส่งออกจะถูกบันทึกตามตำแหน่งต่อไปนี้\n\niOS:\n[iPhone ของฉัน] > [Brevet MAP]\n\nAndroid:\n[Files] > [ดาวน์โหลด]';
+
+  @override
   String get poiAdd => 'เพิ่ม POI';
 
   @override

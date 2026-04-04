@@ -257,6 +257,12 @@ abstract class AppLocalizations {
   /// **'File save permission denied'**
   String get gpxExportPermissionDenied;
 
+  /// No description provided for @gpxExportSaveLocationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported files are saved in the following locations:\n\niOS:\n[On My iPhone] > [Brevet MAP]\n\nAndroid:\n[Files] > [Downloads]'**
+  String get gpxExportSaveLocationMessage;
+
   /// No description provided for @poiAdd.
   ///
   /// In en, this message translates to:

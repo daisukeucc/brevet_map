@@ -31,6 +31,7 @@
   },
   "gpxExportFailed": "Exportación fallida",
   "gpxExportPermissionDenied": "Permiso de guardado denegado",
+  "gpxExportSaveLocationMessage": "Los archivos exportados se guardan en las siguientes ubicaciones:\n\niOS:\n[En mi iPhone] > [Brevet MAP]\n\nAndroid:\n[Files] > [Descargas]",
   "poiAdd": "Añadir POI",
   "poiAddEdit": "Agregar o editar POI",
   "poiAddByDistance": "Agregar POI por distancia",
