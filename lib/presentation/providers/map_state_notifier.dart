@@ -302,6 +302,15 @@ class MapStateNotifier extends Notifier<MapState> {
     state = state.copyWith(isFetchingRoute: false);
     if (points == null || points.isEmpty) return;
 
+    // 初回インストール時のみサンプル POI を生成して保存する
+    if (!hasSavedRoute) {
+      final samplePois = buildSamplePois(points);
+      if (samplePois.isNotEmpty) {
+        await saveUserPois(samplePois);
+        state = state.copyWith(userPois: samplePois);
+      }
+    }
+
     state = state.copyWith(savedRoutePoints: points);
     if (state.routePolylines.isEmpty) {
       await _startRouteAnimation(points);
