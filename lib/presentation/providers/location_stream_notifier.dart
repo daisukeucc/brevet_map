@@ -43,8 +43,24 @@ class LocationStreamState {
 class LocationStreamNotifier extends Notifier<LocationStreamState> {
   final LocationTrackingService _service = LocationTrackingService();
 
+  /// ユーザーがこのセッションで ON にした（バックグラウンドで停止しても復帰時に再開する）。
+  /// プロセス終了（アプリ Kill）でリセットされる。永続化はしない。
+  bool _sessionWantsLocationStream = false;
+
   @override
   LocationStreamState build() => const LocationStreamState();
+
+  void _startService({
+    required void Function(Position position, Position? previous) onPosition,
+  }) {
+    _service.start(
+      onPosition: onPosition,
+      onError: () {
+        state = state.copyWith(isActive: _service.isActive);
+      },
+      isActive: () => _service.isActive,
+    );
+  }
 
   /// ストリームのON/OFFをトグルする。
   /// ONにする場合は [onPosition] コールバックで位置更新を Widget 側に通知する。
@@ -53,6 +69,7 @@ class LocationStreamNotifier extends Notifier<LocationStreamState> {
   }) async {
     if (_service.isActive) {
       _service.stop();
+      _sessionWantsLocationStream = false;
       await saveLocationStreamActive(false);
       state = state.copyWith(
         isActive: false,
@@ -61,14 +78,8 @@ class LocationStreamNotifier extends Notifier<LocationStreamState> {
       return;
     }
 
-    _service.start(
-      onPosition: onPosition,
-      onError: () {
-        state = state.copyWith(isActive: _service.isActive);
-      },
-      isActive: () => _service.isActive,
-    );
-    await saveLocationStreamActive(true);
+    _sessionWantsLocationStream = true;
+    _startService(onPosition: onPosition);
     state = state.copyWith(
       isActive: true,
       progressBarValue: _service.progressBarValue,
@@ -77,6 +88,7 @@ class LocationStreamNotifier extends Notifier<LocationStreamState> {
   }
 
   /// ストリームを停止する（ライフサイクル管理など外部から停止する場合）
+  /// [_sessionWantsLocationStream] は維持する（フォアグラウンド復帰時に再開するため）。
   void stop() {
     if (!_service.isActive) return;
     _service.stop();
@@ -86,13 +98,20 @@ class LocationStreamNotifier extends Notifier<LocationStreamState> {
     );
   }
 
-  /// バックグラウンドから復帰時: 保存済み設定でストリームを復元する
-  Future<void> restoreFromSaved({
+  /// フォアグラウンド復帰時: セッション中に ON だった場合のみストリームを再開する。
+  /// 再開に成功したら true。
+  Future<bool> resumeForegroundIfNeeded({
     required void Function(Position position, Position? previous) onPosition,
+    required Future<bool> Function() ensurePermission,
   }) async {
-    final wasActive = await loadLocationStreamActive();
-    if (wasActive) {
-      await toggle(onPosition: onPosition);
-    }
+    if (!_sessionWantsLocationStream || _service.isActive) return false;
+    if (!await ensurePermission()) return false;
+    _startService(onPosition: onPosition);
+    state = state.copyWith(
+      isActive: true,
+      progressBarValue: _service.progressBarValue,
+      hasStartedThisSession: true,
+    );
+    return true;
   }
 }

@@ -81,13 +81,13 @@ Future<int> loadMapStyleMode() async {
   return mode == 1 ? 2 : mode;
 }
 
-/// 位置情報ストリームをONにしたいか（ボタンでONにしたとき true、OFFにしたとき false を保存）
+/// 位置ストリームの永続フラグ。現在はユーザーが明示的に OFF にしたときのみ false を保存する
 Future<void> saveLocationStreamActive(bool active) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool(_keyLocationStreamActive, active);
 }
 
-/// 保存済みの位置情報ストリームON/OFFを返す。未保存なら false（OFF）
+/// 未使用（互換のため残置）。ストリーム ON 状態はプロセス内セッションのみで管理する。
 Future<bool> loadLocationStreamActive() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keyLocationStreamActive) ?? false;

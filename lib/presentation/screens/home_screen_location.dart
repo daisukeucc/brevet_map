@@ -214,6 +214,20 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
     }
   }
 
+  /// フォアグラウンド復帰時: バックグラウンドで止めたストリームをセッション中は再開する
+  Future<void> _resumeLocationStreamIfNeeded() async {
+    final resumed = await ref
+        .read(locationStreamProvider.notifier)
+        .resumeForegroundIfNeeded(
+          onPosition: _onPositionUpdate,
+          ensurePermission: _checkLocationAndShowError,
+        );
+    if (!mounted) return;
+    if (resumed) {
+      setState(() => _isFirstPositionAfterStreamOn = true);
+    }
+  }
+
   /// ルート拡大ボタンのタップ処理
   Future<void> _onRouteBoundsTap() async {
     if (_isRouteBoundsMode) {

@@ -198,6 +198,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (!mounted) return;
       _fetchPositionInBackground();
     }
+
+    unawaited(_resumeLocationStreamIfNeeded());
   }
 
   @override
