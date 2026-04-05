@@ -252,6 +252,10 @@ class MapStateNotifier extends Notifier<MapState> {
     await stopPoiDrag();
 
     if (result.trackPoints.isNotEmpty) {
+      await saveDefaultMapCoordinates(
+        result.trackPoints.first.latitude,
+        result.trackPoints.first.longitude,
+      );
       _routeAnimationRunner.cancel();
       await _startRouteAnimation(result.trackPoints, animate: false);
       final bounds = boundsFromPointsWithPois(
@@ -305,6 +309,11 @@ class MapStateNotifier extends Notifier<MapState> {
     );
     state = state.copyWith(isFetchingRoute: false);
     if (points == null || points.isEmpty) return;
+
+    await saveDefaultMapCoordinates(
+      points.first.latitude,
+      points.first.longitude,
+    );
 
     // 初回インストール時のみサンプル POI を生成して保存する
     if (!hasSavedRoute) {

@@ -1,5 +1,12 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// 初回インストール時の既定フォールバック座標（位置取得前・プリファレンス未設定時）
+const double kDefaultInstallMapLat = 48.659149;
+const double kDefaultInstallMapLng = 1.817959;
+
+const _keyDefaultMapLat = 'default_map_lat';
+const _keyDefaultMapLng = 'default_map_lng';
+
 const _keyInitialRouteShown = 'initial_route_shown';
 const _keySavedRoutePolyline = 'saved_route_polyline';
 const _keyGpxPois = 'gpx_pois';
@@ -11,6 +18,22 @@ const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
 const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
 const _keyBatteryDisplay = 'battery_display'; // true=表示, false=非表示
+
+/// フォールバック用の既定座標を保存する（表示ルートのスタートなど）
+Future<void> saveDefaultMapCoordinates(double lat, double lng) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setDouble(_keyDefaultMapLat, lat);
+  await prefs.setDouble(_keyDefaultMapLng, lng);
+}
+
+/// 保存済みの既定座標。未保存なら null
+Future<({double lat, double lng})?> loadDefaultMapCoordinatesOptional() async {
+  final prefs = await SharedPreferences.getInstance();
+  final lat = prefs.getDouble(_keyDefaultMapLat);
+  final lng = prefs.getDouble(_keyDefaultMapLng);
+  if (lat == null || lng == null) return null;
+  return (lat: lat, lng: lng);
+}
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
