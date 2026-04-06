@@ -9,6 +9,8 @@ Future<bool?> showConfirmDialog(
   required String message,
   required String cancelText,
   required String confirmText,
+  /// true のとき、下層ダイアログと重ねた際の二重オーバーレイを避けるためバリアを透明にする
+  bool transparentBarrier = false,
 }) {
   final compactButtonStyle = ButtonStyle(
     minimumSize: WidgetStateProperty.all(Size.zero),
@@ -17,7 +19,10 @@ Future<bool?> showConfirmDialog(
 
   return showDialog<bool>(
     context: context,
+    barrierColor: transparentBarrier ? Colors.transparent : Colors.black54,
     builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       contentPadding: const EdgeInsets.fromLTRB(24, 34, 24, 24),
       content: Text(message, style: AppTextStyles.title),

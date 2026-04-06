@@ -36,17 +36,6 @@ class MapTapAddRequest {
   const MapTapAddRequest();
 }
 
-/// 距離入力でPOI追加を選択した場合のリクエスト
-class DistanceInputRequest {
-  const DistanceInputRequest();
-}
-
-/// POIテキスト編集を選択した場合のリクエスト
-class PoiEditTextRequest {
-  const PoiEditTextRequest(this.poi);
-  final UserPoi poi;
-}
-
 /// POI位置編集を選択した場合のリクエスト
 class PoiEditPositionRequest {
   const PoiEditPositionRequest(this.poi);
@@ -69,8 +58,9 @@ Future<Object?> showPoiManagementDialog(
 /// 距離入力でPOI追加のフロー（ダイアログ表示→登録）
 Future<void> handleDistanceInputPoiAdd(
   BuildContext context,
-  WidgetRef ref,
-) async {
+  WidgetRef ref, {
+  bool transparentBarrier = false,
+}) async {
   if (!context.mounted) return;
   final distanceUnit = ref.read(distanceUnitProvider);
   final routePoints = ref.read(mapStateProvider).savedRoutePoints;
@@ -83,7 +73,7 @@ Future<void> handleDistanceInputPoiAdd(
       distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000;
   final data = await showDialog<AddPoiFormData>(
     context: context,
-    barrierColor: Colors.black54,
+    barrierColor: transparentBarrier ? Colors.transparent : Colors.black54,
     barrierDismissible: false,
     builder: (context) => DistanceInputPoiDialog(
       distanceUnit: distanceUnit,
@@ -147,13 +137,14 @@ Future<void> handleMapLongPressPoiAdd(
 Future<void> handleEditPoiText(
   BuildContext context,
   WidgetRef ref,
-  UserPoi poi,
-) async {
+  UserPoi poi, {
+  bool transparentBarrier = false,
+}) async {
   if (!context.mounted) return;
   final distanceUnit = ref.read(distanceUnitProvider);
   final data = await showDialog<AddPoiFormData>(
     context: context,
-    barrierColor: Colors.black54,
+    barrierColor: transparentBarrier ? Colors.transparent : Colors.black54,
     barrierDismissible: false,
     builder: (context) =>
         EditPoiTextDialog(poi: poi, distanceUnit: distanceUnit),
@@ -325,6 +316,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -519,9 +511,10 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
     final l10n = AppLocalizations.of(context)!;
     final viewPlans = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.black54,
+      barrierColor: Colors.transparent,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         shape: const RoundedRectangleBorder(),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -570,7 +563,13 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
             visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-            onTap: () => Navigator.pop(context, const DistanceInputRequest()),
+            onTap: () async {
+              await handleDistanceInputPoiAdd(
+                context,
+                ref,
+                transparentBarrier: true,
+              );
+            },
           ),
           ListTile(
             title: Text(AppLocalizations.of(context)!.poiAddByMapTap,
@@ -596,7 +595,13 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
     );
     if (action == null || !mounted) return;
     if (action == 0) {
-      Navigator.pop(context, PoiEditTextRequest(poi));
+      // タブ式ダイアログは閉じず、その上に編集ダイアログを重ねる
+      await handleEditPoiText(
+        context,
+        ref,
+        poi,
+        transparentBarrier: true,
+      );
     } else {
       Navigator.pop(context, PoiEditPositionRequest(poi));
     }
@@ -609,6 +614,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
       message: l10n.deletePoiConfirm,
       cancelText: l10n.cancel,
       confirmText: l10n.delete,
+      transparentBarrier: true,
     );
     if (confirmed != true || !mounted) return;
 
@@ -703,6 +709,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxHeight: 440),
@@ -783,6 +790,7 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
@@ -976,6 +984,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),

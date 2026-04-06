@@ -4,6 +4,7 @@ import '../theme/app_text_styles.dart';
 
 /// テキストのみのメニューを表示するダイアログ。
 /// 選択した項目のインデックスを返す。キャンセル時は null。
+/// 下層にダイアログがあっても本ダイアログ用にオーバーレイ（barrier）を表示する。
 Future<int?> showTextMenuDialog(
   BuildContext context, {
   required List<String> items,
@@ -11,7 +12,10 @@ Future<int?> showTextMenuDialog(
 }) {
   return showDialog<int>(
     context: context,
+    barrierColor: Colors.black54,
     builder: (context) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       contentPadding: const EdgeInsets.fromLTRB(0, 18, 0, 18),
       content: Column(
