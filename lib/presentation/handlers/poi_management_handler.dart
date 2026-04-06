@@ -511,7 +511,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
     final l10n = AppLocalizations.of(context)!;
     final viewPlans = await showDialog<bool>(
       context: context,
-      barrierColor: Colors.transparent,
+      barrierColor: Colors.black54,
       builder: (ctx) => Dialog(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
