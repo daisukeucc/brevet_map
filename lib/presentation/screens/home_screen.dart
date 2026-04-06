@@ -22,6 +22,7 @@ import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
 import '../handlers/app_settings_handler.dart';
+import 'about_app_screen.dart';
 import '../handlers/contact_handler.dart';
 import '../handlers/language_handler.dart';
 import '../handlers/location_sharing_handler.dart';

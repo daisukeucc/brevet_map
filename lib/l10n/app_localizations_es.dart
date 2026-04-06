@@ -422,6 +422,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get aboutApp => 'Acerca de la aplicación';
 
   @override
+  String get openSourceLicenses => 'Licencias de código abierto';
+
+  @override
   String get rateApp => 'Valorar la aplicación';
 
   @override

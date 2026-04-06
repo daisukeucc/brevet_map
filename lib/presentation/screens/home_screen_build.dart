@@ -116,6 +116,7 @@ mixin _BuildMixin
             onLocationSharingTap: () => shareCurrentLocation(context),
             onContactUsTap: () => openContactEmail(context),
             onSubscriptionTap: () => showSubscriptionDialog(context),
+            onAboutAppTap: () => showAboutAppScreen(context),
           ),
           onGpxImportTap: () => handleGpxImportTap(
             context,

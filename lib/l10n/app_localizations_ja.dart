@@ -413,6 +413,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get aboutApp => 'このアプリについて';
 
   @override
+  String get openSourceLicenses => 'オープンソースライセンス';
+
+  @override
   String get rateApp => 'アプリを評価する';
 
   @override
