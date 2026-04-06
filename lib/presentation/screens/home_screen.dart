@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../config/default_map_install_coordinates.dart';
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/services/default_map_position_resolver.dart';
 import '../../domain/services/gpx_channel_service.dart';
@@ -84,7 +85,13 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   }
 
   Position _positionFromInstallConstants() {
-    return _positionFromLatLng(kDefaultInstallMapLat, kDefaultInstallMapLng);
+    final picked = ref.read(localeProvider);
+    final c = picked != null
+        ? defaultInstallCoordinatesForLocaleCode(localeToCode(picked))
+        : defaultInstallCoordinatesForSystemLocale(
+            ui.PlatformDispatcher.instance.locale,
+          );
+    return _positionFromLatLng(c.lat, c.lng);
   }
 
   /// GPS 未取得時のフォールバック。表示中ルートの先頭があればそれを優先し、なければプリファレンス解決済みキャッシュ。

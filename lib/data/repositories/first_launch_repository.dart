@@ -1,9 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 初回インストール時の既定フォールバック座標（位置取得前・プリファレンス未設定時）
-const double kDefaultInstallMapLat = 48.659149;
-const double kDefaultInstallMapLng = 1.817959;
-
 const _keyDefaultMapLat = 'default_map_lat';
 const _keyDefaultMapLng = 'default_map_lng';
 
