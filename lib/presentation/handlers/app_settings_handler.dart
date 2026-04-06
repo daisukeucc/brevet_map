@@ -75,41 +75,41 @@ class _AppSettingsScreenState extends State<_AppSettingsScreen> {
       (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
       (label: l10n.locationSharing, onTap: widget.onLocationSharingTap),
       (label: l10n.subscription, onTap: widget.onSubscriptionTap),
-      (label: l10n.contactUs, onTap: widget.onContactUsTap),
       (label: l10n.aboutApp, onTap: widget.onAboutAppTap),
-      (label: l10n.rateApp, onTap: null),
+      (label: l10n.contactUs, onTap: widget.onContactUsTap),
+      // (label: l10n.rateApp, onTap: null),
     ];
 
     return GestureDetector(
       onTap: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
       behavior: HitTestBehavior.translucent,
       child: Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(l10n.appSettingsTitle, style: AppTextStyles.title),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, size: 28),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-        shape: const Border(),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(l10n.appSettingsTitle, style: AppTextStyles.title),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close, size: 28),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+          shape: const Border(),
+        ),
+        body: Column(
+          children: [
+            const Divider(height: 1, thickness: 1),
+            ListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: items
+                  .map((item) =>
+                      _SettingsTile(label: item.label, onTap: item.onTap))
+                  .toList(),
+            ),
+          ],
+        ),
       ),
-      body: Column(
-        children: [
-          const Divider(height: 1, thickness: 1),
-          ListView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: items
-                .map((item) =>
-                    _SettingsTile(label: item.label, onTap: item.onTap))
-                .toList(),
-          ),
-        ],
-      ),
-    ),
     );
   }
 }
