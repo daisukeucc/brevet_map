@@ -421,6 +421,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get aboutApp => 'Über diese App';
 
   @override
+  String get openSourceLicenses => 'Open-Source-Lizenzen';
+
+  @override
   String get rateApp => 'App bewerten';
 
   @override

@@ -414,6 +414,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get aboutApp => '이 앱에 대해';
 
   @override
+  String get openSourceLicenses => '오픈 소스 라이선스';
+
+  @override
   String get rateApp => '앱 평가하기';
 
   @override

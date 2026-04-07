@@ -407,6 +407,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get aboutApp => '关于本应用';
 
   @override
+  String get openSourceLicenses => '开源许可';
+
+  @override
   String get rateApp => '评价应用';
 
   @override
@@ -893,6 +896,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get aboutApp => '關於本應用程式';
+
+  @override
+  String get openSourceLicenses => '開源授權';
 
   @override
   String get rateApp => '評價應用程式';

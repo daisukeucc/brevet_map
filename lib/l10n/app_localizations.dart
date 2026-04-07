@@ -857,6 +857,12 @@ abstract class AppLocalizations {
   /// **'About this app'**
   String get aboutApp;
 
+  /// No description provided for @openSourceLicenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Open source licenses'**
+  String get openSourceLicenses;
+
   /// No description provided for @rateApp.
   ///
   /// In en, this message translates to:

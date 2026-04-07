@@ -15,7 +15,7 @@ mixin _BuildMixin
   // ── 定数 ─────────────────────────────────────────────────────────────────
 
   /// デフォルトズームレベル
-  double get _defaultZoom => 9.0;
+  double get _defaultZoom => 11.0;
 
   // ── メソッド ─────────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ mixin _BuildMixin
     final locationState = ref.watch(locationStreamProvider);
     final distanceUnit = ref.watch(distanceUnitProvider);
     final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
-    final position = _initialPosition ?? _defaultPosition();
+    final position = _initialPosition ?? _fallbackPosition();
 
     // 位置取得が完了してからルート作成（_fetchPositionInBackground が先に完了した場合はそちらで実行済み）
     if (_positionFetchCompleted && !_hasTriggeredInitialRouteFetch) {
@@ -48,7 +48,7 @@ mixin _BuildMixin
       });
     }
 
-    final fallbackPos = _initialPosition ?? _defaultPosition();
+    final fallbackPos = _initialPosition ?? _fallbackPosition();
     final markers = buildMapMarkers(
       baseMarkers: mapState.routeMarkers,
       pendingPosition: _pendingSharedPosition,
@@ -74,10 +74,11 @@ mixin _BuildMixin
           _initialPosition != null,
       currentPosition: () {
         final pos =
-            _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+            _latestStreamPosition ?? _initialPosition ?? _fallbackPosition();
         return LatLng(pos.latitude, pos.longitude);
       }(),
-      computeAlong: (pos) => notifier.computeAlongTrackM(pos, previous: previousPos),
+      computeAlong: (pos) =>
+          notifier.computeAlongTrackM(pos, previous: previousPos),
       totalRouteM: totalRouteM,
       distanceUnit: distanceUnit,
     );
@@ -115,6 +116,7 @@ mixin _BuildMixin
             onLocationSharingTap: () => shareCurrentLocation(context),
             onContactUsTap: () => openContactEmail(context),
             onSubscriptionTap: () => showSubscriptionDialog(context),
+            onAboutAppTap: () => showAboutAppScreen(context),
           ),
           onGpxImportTap: () => handleGpxImportTap(
             context,

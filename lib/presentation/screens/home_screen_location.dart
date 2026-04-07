@@ -4,10 +4,18 @@ part of 'home_screen.dart';
 /// [_MyHomePageState] に mix-in して使用する。
 mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
   void _showSampleRouteDialog(BuildContext context);
+
+  Position _fallbackPosition();
+
+  Position _positionFromLatLng(double lat, double lng);
+
   // ── このmixinが所有するstate ──────────────────────────────────────────────
 
-  /// 初期表示位置。null の間はローディング、非 null で地図表示
+  /// 初期表示位置。GPS 取得成功で設定。未取得時は [_cachedDefaultPosition] を使う
   Position? _initialPosition;
+
+  /// プリファレンスまたは既定インストール座標から解決したフォールバック位置
+  Position? _cachedDefaultPosition;
 
   /// 位置ストリームON時の最新位置（現在地マーカー表示用）
   Position? _latestStreamPosition;
@@ -77,7 +85,7 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
         });
       }
       _hasTriggeredInitialRouteFetch = true;
-      final position = pos ?? _defaultPosition();
+      final position = pos ?? _fallbackPosition();
       ref.read(mapStateProvider.notifier).fetchOrLoadRouteIfNeeded(
         position,
         animateCamera: (bounds) async {
@@ -214,12 +222,26 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
     }
   }
 
+  /// フォアグラウンド復帰時: バックグラウンドで止めたストリームをセッション中は再開する
+  Future<void> _resumeLocationStreamIfNeeded() async {
+    final resumed = await ref
+        .read(locationStreamProvider.notifier)
+        .resumeForegroundIfNeeded(
+          onPosition: _onPositionUpdate,
+          ensurePermission: _checkLocationAndShowError,
+        );
+    if (!mounted) return;
+    if (resumed) {
+      setState(() => _isFirstPositionAfterStreamOn = true);
+    }
+  }
+
   /// ルート拡大ボタンのタップ処理
   Future<void> _onRouteBoundsTap() async {
     if (_isRouteBoundsMode) {
       setState(() => _isRouteBoundsMode = false);
       final knownPos =
-          _latestStreamPosition ?? _initialPosition ?? _defaultPosition();
+          _latestStreamPosition ?? _initialPosition ?? _fallbackPosition();
       await ref.read(cameraControllerProvider.notifier).animateTo(
             LatLng(knownPos.latitude, knownPos.longitude),
             zoom: _trackingZoom,

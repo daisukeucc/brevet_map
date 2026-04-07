@@ -12,6 +12,7 @@ void showAppSettingsScreen(
   required VoidCallback onLocationSharingTap,
   required VoidCallback onContactUsTap,
   required VoidCallback onSubscriptionTap,
+  required VoidCallback onAboutAppTap,
 }) {
   Navigator.of(context).push(
     PageRouteBuilder<void>(
@@ -22,6 +23,7 @@ void showAppSettingsScreen(
         onLocationSharingTap: onLocationSharingTap,
         onContactUsTap: onContactUsTap,
         onSubscriptionTap: onSubscriptionTap,
+        onAboutAppTap: onAboutAppTap,
       ),
       transitionDuration: const Duration(milliseconds: 300),
       reverseTransitionDuration: const Duration(milliseconds: 250),
@@ -48,6 +50,7 @@ class _AppSettingsScreen extends StatefulWidget {
     required this.onLocationSharingTap,
     required this.onContactUsTap,
     required this.onSubscriptionTap,
+    required this.onAboutAppTap,
   });
 
   final VoidCallback onDistanceUnitTap;
@@ -56,6 +59,7 @@ class _AppSettingsScreen extends StatefulWidget {
   final VoidCallback onLocationSharingTap;
   final VoidCallback onContactUsTap;
   final VoidCallback onSubscriptionTap;
+  final VoidCallback onAboutAppTap;
 
   @override
   State<_AppSettingsScreen> createState() => _AppSettingsScreenState();
@@ -66,46 +70,46 @@ class _AppSettingsScreenState extends State<_AppSettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final items = [
-      (label: l10n.language, onTap: widget.onLanguageTap),
-      (label: l10n.distanceUnit, onTap: widget.onDistanceUnitTap),
-      (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
       (label: l10n.locationSharing, onTap: widget.onLocationSharingTap),
+      (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
+      (label: l10n.distanceUnit, onTap: widget.onDistanceUnitTap),
+      (label: l10n.language, onTap: widget.onLanguageTap),
       (label: l10n.subscription, onTap: widget.onSubscriptionTap),
+      (label: l10n.aboutApp, onTap: widget.onAboutAppTap),
       (label: l10n.contactUs, onTap: widget.onContactUsTap),
-      (label: l10n.aboutApp, onTap: null),
-      (label: l10n.rateApp, onTap: null),
+      // (label: l10n.rateApp, onTap: null),
     ];
 
     return GestureDetector(
       onTap: () => ScaffoldMessenger.of(context).hideCurrentSnackBar(),
       behavior: HitTestBehavior.translucent,
       child: Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(l10n.appSettingsTitle, style: AppTextStyles.title),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, size: 28),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-        shape: const Border(),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(l10n.appSettingsTitle, style: AppTextStyles.title),
+          centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.close, size: 28),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+          shape: const Border(),
+        ),
+        body: Column(
+          children: [
+            const Divider(height: 1, thickness: 1),
+            ListView(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              children: items
+                  .map((item) =>
+                      _SettingsTile(label: item.label, onTap: item.onTap))
+                  .toList(),
+            ),
+          ],
+        ),
       ),
-      body: Column(
-        children: [
-          const Divider(height: 1, thickness: 1),
-          ListView(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            children: items
-                .map((item) =>
-                    _SettingsTile(label: item.label, onTap: item.onTap))
-                .toList(),
-          ),
-        ],
-      ),
-    ),
     );
   }
 }

@@ -6,11 +6,10 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 import 'config/tile_config.dart';
 import 'l10n/app_localizations.dart';
-import 'presentation/providers/app_settings_providers.dart';
+import 'presentation/providers/providers.dart';
 import 'presentation/screens/home_screen.dart';
 
 Future<void> _initRevenueCat() async {
@@ -29,7 +28,6 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
-  await initializeDateFormatting();
 
   // デコード済みタイル画像のメモリキャッシュを拡張（デフォルト: 100MB / 1000枚）
   // ルート表示・地図回転時のグレー化を軽減する
@@ -48,23 +46,57 @@ Future<void> main() async {
   _initRevenueCat();
 
   await TileConfig.initUserAgentPackageName();
-  // クラッシュ後の ObjectBox DB 不正状態で initialise() が無限待機することがある。
-  // タイムアウトで強制脱出し、キャッシュなしで起動を継続する。
-  try {
-    await FMTCObjectBoxBackend()
-        .initialise()
-        .timeout(const Duration(seconds: 5));
-    await const FMTCStore('mapStore')
-        .manage
-        .create()
-        .timeout(const Duration(seconds: 3));
-    TileConfig.fmtcReady = true;
-  } catch (_) {
-    // FMTC 初期化失敗時はキャッシュなしで動作継続（NetworkTileProvider を使用）
-  }
-  runApp(const ProviderScope(child: MyApp()));
-  await Future.delayed(const Duration(milliseconds: 500));
+  // FMTC（タイルキャッシュ）は allowFirstFrame 後に [_FmtcBackgroundInit] で起動。
+  // main で await するとスプラッシュが長く止まるため。
+
+  runApp(
+    const ProviderScope(
+      child: _FmtcBackgroundInit(
+        child: MyApp(),
+      ),
+    ),
+  );
+  // await Future.delayed(const Duration(milliseconds: 200));
   WidgetsBinding.instance.allowFirstFrame();
+}
+
+/// allowFirstFrame 後の最初のフレームで FMTC を初期化し、成功時にタイルレイヤーを再構築する。
+class _FmtcBackgroundInit extends ConsumerStatefulWidget {
+  const _FmtcBackgroundInit({required this.child});
+
+  final Widget child;
+
+  @override
+  ConsumerState<_FmtcBackgroundInit> createState() =>
+      _FmtcBackgroundInitState();
+}
+
+class _FmtcBackgroundInitState extends ConsumerState<_FmtcBackgroundInit> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _runFmtcInit());
+  }
+
+  Future<void> _runFmtcInit() async {
+    try {
+      await FMTCObjectBoxBackend()
+          .initialise()
+          .timeout(const Duration(seconds: 5));
+      await const FMTCStore('mapStore')
+          .manage
+          .create()
+          .timeout(const Duration(seconds: 3));
+      if (!mounted) return;
+      TileConfig.fmtcReady = true;
+      ref.read(mapTileProviderKeyProvider.notifier).state++;
+    } catch (_) {
+      // FMTC 初期化失敗時はキャッシュなしで動作継続（NetworkTileProvider を使用）
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 class MyApp extends ConsumerWidget {

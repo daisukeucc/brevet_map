@@ -73,7 +73,8 @@ Future<List<Marker>> buildRouteMarkers({
     return markers;
   }
 
-  // 描画順: 距離マーカー → POI → ユーザー POI → ゴール → スタート（最前面）
+  // 描画順: 距離マーカー → POI（インフォ→CP）→ ユーザー POI（同上）→ ゴール → スタート（最前面）
+  // 同一座標で重なる場合はチェックポイントを手前に（後から add）
 
   if (routePoints.isNotEmpty && showDistanceMarkers) {
     final totalMeters =
@@ -104,8 +105,7 @@ Future<List<Marker>> buildRouteMarkers({
   }
 
   if (pois.isNotEmpty && poiIconOrange != null && poiIconCheckpoint != null) {
-    for (var i = 0; i < pois.length; i++) {
-      final poi = pois[i];
+    void addGpxPoiMarker(GpxPoi poi) {
       final icon = poi.isControl ? poiIconCheckpoint : poiIconOrange;
       markers.add(Marker(
         point: poi.position,
@@ -118,13 +118,19 @@ Future<List<Marker>> buildRouteMarkers({
         ),
       ));
     }
+
+    for (final poi in pois) {
+      if (!poi.isControl) addGpxPoiMarker(poi);
+    }
+    for (final poi in pois) {
+      if (poi.isControl) addGpxPoiMarker(poi);
+    }
   }
 
   if (userPois.isNotEmpty &&
       poiIconOrange != null &&
       poiIconCheckpoint != null) {
-    for (var i = 0; i < userPois.length; i++) {
-      final poi = userPois[i];
+    void addUserPoiMarker(UserPoi poi) {
       final icon = poi.isCheckpoint ? poiIconCheckpoint : poiIconOrange;
       final isDragging = draggingPoi != null &&
           poi.lat == draggingPoi.lat &&
@@ -139,6 +145,13 @@ Future<List<Marker>> buildRouteMarkers({
           child: icon,
         ),
       ));
+    }
+
+    for (final poi in userPois) {
+      if (!poi.isCheckpoint) addUserPoiMarker(poi);
+    }
+    for (final poi in userPois) {
+      if (poi.isCheckpoint) addUserPoiMarker(poi);
     }
   }
 

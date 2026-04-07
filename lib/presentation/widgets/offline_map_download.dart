@@ -322,28 +322,34 @@ Future<void> showOfflineMapDownloadFlow(
   if (!context.mounted) return;
   // コールバックで context/ref を使わないため、事前にキャプチャ
   final messenger = ScaffoldMessenger.of(context);
-  showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (ctx) => OfflineMapDownloadDialog(
-      storeName: 'mapStore',
-      region: region,
-      onComplete: () {
-        if (ctx.mounted) Navigator.of(ctx).pop();
-        showAppSnackBarWithMessenger(
-            messenger, l10n.offlineMapDownloadComplete);
-      },
-      onFailed: () {
-        if (ctx.mounted) Navigator.of(ctx).pop();
-        showAppSnackBarWithMessenger(messenger, l10n.offlineMapDownloadFailed);
-      },
-      onCancelled: () {
-        if (ctx.mounted) Navigator.of(ctx).pop();
-        showAppSnackBarWithMessenger(
-            messenger, l10n.offlineMapDownloadCancelled);
-      },
-    ),
-  );
+  final regionForDownload = region;
+  // 確認ダイアログ直後に同期的に showDialog すると未表示になりうるため、
+  // 1 フレーム挟んでから進捗ダイアログを出す（settings_menu_handler の Navigator 競合対策と同系）。
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!context.mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => OfflineMapDownloadDialog(
+        storeName: 'mapStore',
+        region: regionForDownload,
+        onComplete: () {
+          if (ctx.mounted) Navigator.of(ctx).pop();
+          showAppSnackBarWithMessenger(
+              messenger, l10n.offlineMapDownloadComplete);
+        },
+        onFailed: () {
+          if (ctx.mounted) Navigator.of(ctx).pop();
+          showAppSnackBarWithMessenger(messenger, l10n.offlineMapDownloadFailed);
+        },
+        onCancelled: () {
+          if (ctx.mounted) Navigator.of(ctx).pop();
+          showAppSnackBarWithMessenger(
+              messenger, l10n.offlineMapDownloadCancelled);
+        },
+      ),
+    );
+  });
 }
 
 /// オフラインマップダウンロード進捗ダイアログ
@@ -376,7 +382,11 @@ class _OfflineMapDownloadDialogState extends State<OfflineMapDownloadDialog> {
   @override
   void initState() {
     super.initState();
-    _startDownload();
+    // startForeground を initState 同期で走らせると初回描画が送られず
+    // ダイアログが出ていないように見えることがあるため、先に 0% を 1 フレーム描画する。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _startDownload();
+    });
   }
 
   @override

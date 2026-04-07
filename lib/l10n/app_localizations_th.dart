@@ -419,6 +419,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get aboutApp => 'เกี่ยวกับแอปนี้';
 
   @override
+  String get openSourceLicenses => 'ใบอนุญาตโอเพนซอร์ส';
+
+  @override
   String get rateApp => 'ให้คะแนนแอปนี้';
 
   @override

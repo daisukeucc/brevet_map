@@ -81,14 +81,6 @@ Future<void> handleAddPoiTap(
     onStartMapTapAddMode();
     return;
   }
-  if (result is DistanceInputRequest) {
-    await handleDistanceInputPoiAdd(context, ref);
-    return;
-  }
-  if (result is PoiEditTextRequest) {
-    await handleEditPoiText(context, ref, result.poi);
-    return;
-  }
   if (result is PoiEditPositionRequest) {
     await handleStartEditPoiPosition(
       context,

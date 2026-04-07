@@ -252,7 +252,12 @@ class MapStateNotifier extends Notifier<MapState> {
     await stopPoiDrag();
 
     if (result.trackPoints.isNotEmpty) {
+      await saveDefaultMapCoordinates(
+        result.trackPoints.first.latitude,
+        result.trackPoints.first.longitude,
+      );
       _routeAnimationRunner.cancel();
+      // GPX は点数が多いと線アニメの再生時間が長くなりがちなため、一括表示にする
       await _startRouteAnimation(result.trackPoints, animate: false);
       final bounds = boundsFromPointsWithPois(
         result.trackPoints,
@@ -305,6 +310,11 @@ class MapStateNotifier extends Notifier<MapState> {
     );
     state = state.copyWith(isFetchingRoute: false);
     if (points == null || points.isEmpty) return;
+
+    await saveDefaultMapCoordinates(
+      points.first.latitude,
+      points.first.longitude,
+    );
 
     // 初回インストール時のみサンプル POI を生成して保存する
     if (!hasSavedRoute) {
@@ -427,7 +437,7 @@ class MapStateNotifier extends Notifier<MapState> {
     );
   }
 
-  /// ルートをアニメーション描画する（GPXインポート時は animate: false で一括表示）
+  /// ルートをアニメーション描画する（[animate] が false のときは一括表示。GPX は呼び出し側で false）
   Future<void> _startRouteAnimation(
     List<LatLng> fullPoints, {
     bool animate = true,

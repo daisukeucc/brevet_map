@@ -8,18 +8,22 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../config/default_map_install_coordinates.dart';
 import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/services/default_map_position_resolver.dart';
 import '../../domain/services/gpx_channel_service.dart';
 import '../../domain/services/location_service.dart';
 import '../../domain/services/marker_icon_service.dart';
 import '../../domain/services/share_channel_service.dart';
 import '../../domain/services/volume_zoom_handler.dart';
+import '../../utils/date_formatting_localization.dart';
 import '../../utils/map_utils.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
 import '../handlers/app_settings_handler.dart';
+import 'about_app_screen.dart';
 import '../handlers/contact_handler.dart';
 import '../handlers/language_handler.dart';
 import '../handlers/location_sharing_handler.dart';
@@ -46,22 +50,6 @@ part 'home_screen_poi.dart';
 part 'home_screen_location.dart';
 part 'home_screen_build.dart';
 
-/// 位置情報が取得できない場合のフォールバック位置（東京駅）
-Position _defaultPosition() {
-  return Position(
-    latitude: 35.6812,
-    longitude: 139.7671,
-    timestamp: DateTime(2000),
-    accuracy: 0,
-    altitude: 0,
-    altitudeAccuracy: 0,
-    heading: 0,
-    headingAccuracy: 0,
-    speed: 0,
-    speedAccuracy: 0,
-  );
-}
-
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key, required this.title});
   final String title;
@@ -83,6 +71,43 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   bool? _isFirstLaunch;
 
   @override
+  Position _positionFromLatLng(double lat, double lng) {
+    return Position(
+      latitude: lat,
+      longitude: lng,
+      timestamp: DateTime(2000),
+      accuracy: 0,
+      altitude: 0,
+      altitudeAccuracy: 0,
+      heading: 0,
+      headingAccuracy: 0,
+      speed: 0,
+      speedAccuracy: 0,
+    );
+  }
+
+  Position _positionFromInstallConstants() {
+    final picked = ref.read(localeProvider);
+    final c = picked != null
+        ? defaultInstallCoordinatesForLocaleCode(localeToCode(picked))
+        : defaultInstallCoordinatesForSystemLocale(
+            ui.PlatformDispatcher.instance.locale,
+          );
+    return _positionFromLatLng(c.lat, c.lng);
+  }
+
+  /// GPS 未取得時のフォールバック。表示中ルートの先頭があればそれを優先し、なければプリファレンス解決済みキャッシュ。
+  @override
+  Position _fallbackPosition() {
+    final pts = ref.read(mapStateProvider).savedRoutePoints;
+    if (pts != null && pts.isNotEmpty) {
+      final p = pts.first;
+      return _positionFromLatLng(p.latitude, p.longitude);
+    }
+    return _cachedDefaultPosition ?? _positionFromInstallConstants();
+  }
+
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -92,11 +117,18 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     );
     _volumeZoomHandler.start();
 
-    // 地図を即座に表示するため、まずデフォルト位置で初期化
-    _initialPosition = _defaultPosition();
-    // 初回フレーム後に位置取得開始（権限ダイアログが正しく表示されるように）
+    _cachedDefaultPosition = _positionFromInstallConstants();
+    // 初回フレーム後に位置取得と既定座標のプリファレンス解決
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _fetchPositionInBackground();
+      if (!mounted) return;
+      ensureDateFormattingInitialized();
+      _fetchPositionInBackground();
+      resolveDefaultMapCoordinates().then((c) {
+        if (!mounted) return;
+        setState(() {
+          _cachedDefaultPosition = _positionFromLatLng(c.lat, c.lng);
+        });
+      });
     });
 
     loadScreenSleep().then((value) {
@@ -198,6 +230,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
       if (!mounted) return;
       _fetchPositionInBackground();
     }
+
+    unawaited(_resumeLocationStreamIfNeeded());
   }
 
   @override

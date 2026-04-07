@@ -1,5 +1,8 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _keyDefaultMapLat = 'default_map_lat';
+const _keyDefaultMapLng = 'default_map_lng';
+
 const _keyInitialRouteShown = 'initial_route_shown';
 const _keySavedRoutePolyline = 'saved_route_polyline';
 const _keyGpxPois = 'gpx_pois';
@@ -11,6 +14,22 @@ const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
 const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
 const _keyBatteryDisplay = 'battery_display'; // true=表示, false=非表示
+
+/// フォールバック用の既定座標を保存する（表示ルートのスタートなど）
+Future<void> saveDefaultMapCoordinates(double lat, double lng) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setDouble(_keyDefaultMapLat, lat);
+  await prefs.setDouble(_keyDefaultMapLng, lng);
+}
+
+/// 保存済みの既定座標。未保存なら null
+Future<({double lat, double lng})?> loadDefaultMapCoordinatesOptional() async {
+  final prefs = await SharedPreferences.getInstance();
+  final lat = prefs.getDouble(_keyDefaultMapLat);
+  final lng = prefs.getDouble(_keyDefaultMapLng);
+  if (lat == null || lng == null) return null;
+  return (lat: lat, lng: lng);
+}
 
 /// 初回起動（インストール後初回のみ）かどうかを返す
 Future<bool> isFirstLaunch() async {
@@ -81,13 +100,13 @@ Future<int> loadMapStyleMode() async {
   return mode == 1 ? 2 : mode;
 }
 
-/// 位置情報ストリームをONにしたいか（ボタンでONにしたとき true、OFFにしたとき false を保存）
+/// 位置ストリームの永続フラグ。現在はユーザーが明示的に OFF にしたときのみ false を保存する
 Future<void> saveLocationStreamActive(bool active) async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.setBool(_keyLocationStreamActive, active);
 }
 
-/// 保存済みの位置情報ストリームON/OFFを返す。未保存なら false（OFF）
+/// 未使用（互換のため残置）。ストリーム ON 状態はプロセス内セッションのみで管理する。
 Future<bool> loadLocationStreamActive() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keyLocationStreamActive) ?? false;
