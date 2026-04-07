@@ -8,10 +8,14 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../constants/app_constants.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/date_formatting_localization.dart';
 import '../theme/app_text_styles.dart';
 
 /// 定期購入ダイアログを表示する
 Future<void> showSubscriptionDialog(BuildContext context) async {
+  await ensureDateFormattingInitialized();
+  if (!context.mounted) return;
+
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context)!;
   final locale = Localizations.localeOf(context).toString();

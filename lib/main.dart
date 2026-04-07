@@ -6,7 +6,6 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
 import 'config/tile_config.dart';
 import 'l10n/app_localizations.dart';
@@ -29,7 +28,6 @@ Future<void> main() async {
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
   ]);
-  await initializeDateFormatting();
 
   // デコード済みタイル画像のメモリキャッシュを拡張（デフォルト: 100MB / 1000枚）
   // ルート表示・地図回転時のグレー化を軽減する

@@ -16,6 +16,7 @@ import '../../domain/services/location_service.dart';
 import '../../domain/services/marker_icon_service.dart';
 import '../../domain/services/share_channel_service.dart';
 import '../../domain/services/volume_zoom_handler.dart';
+import '../../utils/date_formatting_localization.dart';
 import '../../utils/map_utils.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
@@ -120,6 +121,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     // 初回フレーム後に位置取得と既定座標のプリファレンス解決
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      ensureDateFormattingInitialized();
       _fetchPositionInBackground();
       resolveDefaultMapCoordinates().then((c) {
         if (!mounted) return;
