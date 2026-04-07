@@ -70,10 +70,10 @@ class _AppSettingsScreenState extends State<_AppSettingsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final items = [
-      (label: l10n.language, onTap: widget.onLanguageTap),
-      (label: l10n.distanceUnit, onTap: widget.onDistanceUnitTap),
-      (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
       (label: l10n.locationSharing, onTap: widget.onLocationSharingTap),
+      (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
+      (label: l10n.distanceUnit, onTap: widget.onDistanceUnitTap),
+      (label: l10n.language, onTap: widget.onLanguageTap),
       (label: l10n.subscription, onTap: widget.onSubscriptionTap),
       (label: l10n.aboutApp, onTap: widget.onAboutAppTap),
       (label: l10n.contactUs, onTap: widget.onContactUsTap),
