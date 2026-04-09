@@ -1,0 +1,9 @@
+# App Store Connect / Xcode 用。ローカルでは環境変数かここを編集。
+# CI では GitHub Secrets を環境変数で渡す想定。
+
+app_identifier(ENV["APP_IDENTIFIER"] || "com.brevetmap")
+
+# apple_id は match 等で必要な場合のみ
+# apple_id(ENV["APPLE_ID"])
+
+# team_id(ENV["APPLE_TEAM_ID"])

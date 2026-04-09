@@ -1,0 +1,260 @@
+{
+  "@@locale": "en",
+  "appTitle": "Brevet Map",
+  "@appTitle": {
+    "description": "Do not translate. Use \"Brevet Map\" in all non-Japanese locales."
+  },
+  "appTitleBrand": "Brevet Map",
+  "@appTitleBrand": {
+    "description": "Brand name. Do not translate. Always Brevet Map in all locales."
+  },
+  "cancel": "Cancel",
+  "ok": "OK",
+  "ng": "NG",
+  "delete": "Delete",
+  "edit": "Edit",
+  "change": "Change",
+  "add": "Add",
+  "settings": "Settings",
+  "share": "Share",
+  "shareFailed": "Share failed",
+  "showMyLocation": "Show my location",
+  "sleepSettings": "Screen Sleep",
+  "sleepInfoMessage1": "GPS turns off when the screen sleeps, so we recommend enabling screen sleep if you want to reduce battery usage",
+  "sleepInfoDontShowAgain": "Don't show again",
+  "switchGpsLevel": "Location accuracy",
+  "gpxImport": "Import GPX file",
+  "gpxExport": "Export GPX file",
+  "gpxExportDialogTitle": "File name",
+  "gpxExportFilenameHint": "Enter filename (use date/time if empty)",
+  "gpxExportComplete": "Saved {filename}",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "gpxExportFailed": "Export failed",
+  "gpxExportPermissionDenied": "File save permission denied",
+  "gpxExportSaveLocationMessage": "By default, exported files are saved in the following locations:\n\niOS:\n[On My iPhone] > [Brevet MAP]\n\nAndroid:\n[Files] > [Downloads]",
+  "poiAdd": "Add POI",
+  "poiAddEdit": "Add or Edit POI",
+  "poiAddByDistance": "Add POI at distance",
+  "poiAddByMapTap": "Add POI from map tap",
+  "poiTabAdd": "Add POI",
+  "poiTabEdit": "Edit or Delete POI",
+  "poiType": "POI type",
+  "checkpoint": "Checkpoint",
+  "information": "Information",
+  "title": "Title",
+  "body": "Body",
+  "distance": "Distance",
+  "titleNone": "(No title)",
+  "kmRequired": "Distance is required",
+  "offRoute": "Off route",
+  "kmPoint": "{km}km point",
+  "poiAtKmPoint": "POI at {kmLabel}",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "poiOffRoutePoi": "Edit POI",
+  "@kmPoint": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "changePoiPosition": "Set this position",
+  "poiRegistered": "POI added",
+  "poiAddedFromShare": "POI added from shared link",
+  "shareUrlInvalid": "Could not extract coordinates from shared link",
+  "registerThisPlaceAsPoi": "Add POI at this location",
+  "poiUpdated": "POI updated",
+  "poiDeleted": "POI deleted",
+  "poiPositionChanged": "POI position changed",
+  "changePoiText": "Change POI title and body",
+  "changePoiPositionTitle": "Change POI position",
+  "deletePoiConfirm": "Delete this POI?",
+  "noPoiRegistered": "No POI registered",
+  "changePoiTextTitle": "Change POI content",
+  "routeOverwrite": "Overwrite current route",
+  "selectGpxFile": "Please select a GPX file",
+  "routeNotLoaded": "Route is not loaded",
+  "kmPointNotFound": "Specified km point not found",
+  "kmExceedsRoute": "Exceeds the total route distance",
+  "gpxInvalidFormat": "This file is not in GPX format",
+  "gpxNoRouteOrWaypoint": "GPX does not contain route or waypoints",
+  "locationFailed": "Failed to get location",
+  "mapStyleNormal": "Show map in normal mode",
+  "mapStyleDark": "Show map in dark mode",
+  "showFullRoute": "Show full route",
+  "locationUnavailable": "Location unavailable",
+  "locationUnavailableWithRetry": "Location unavailable. Tap \"Show my location\" to retry, or allow location access in settings.",
+  "openSettings": "Open settings",
+  "locationInvalid": "Location is invalid",
+  "locationServiceOff": "Location service is off. Please turn it on in device settings.",
+  "locationPermissionRequired": "Location permission required",
+  "locationPermissionDenied": "Location permission was denied. You cannot show your location without permission.",
+  "locationPermissionDeniedForever": "Location permission is set to \"Don't ask again\". Please enable it in app settings.",
+  "sleepOffMessage": "Screen sleep disabled",
+  "sleepOnMessage": "Screen sleep enabled",
+  "sleepOff": "OFF",
+  "sleepOn": "ON",
+  "sleepSettingsNote": "Check the screen sleep duration in your device's Settings app",
+  "openSettings": "Open settings",
+  "openSettingsApp": "Open Settings app",
+  "distanceUnit": "Distance Unit",
+  "unitKm": "km",
+  "unitMile": "mile",
+  "distanceUnitSetToKm": "Distance unit set to km",
+  "distanceUnitSetToMile": "Distance unit set to mile",
+  "checkingConnectivity": "Checking connection...",
+  "fetchingLocation": "Getting location...",
+  "offline": "Offline",
+  "retryConnectivity": "Retry",
+  "offlineMap": "Offline Map",
+  "offlineMapMinimalMap": "Max zoom: 15",
+  "offlineMapStandardMap": "Max zoom: 16",
+  "offlineMapMinimalMapWithSize": "Max zoom: 15 ({size})",
+  "offlineMapStandardMapWithSize": "Max zoom: 16 ({size})",
+  "offlineMapHighResMap": "Max zoom: 17",
+  "offlineMapHighResMapWithSize": "Max zoom: 17 ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapZoomSmall": "Zoom: Limited",
+  "offlineMapZoomMedium": "Zoom: Standard",
+  "offlineMapZoomLarge": "Zoom: Extended",
+  "offlineMapZoomSmallWithSize": "Zoom: Limited ({size})",
+  "offlineMapZoomMediumWithSize": "Zoom: Standard ({size})",
+  "offlineMapZoomLargeWithSize": "Zoom: Extended ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapRequiresNetwork": "Network connection is required to download offline maps",
+  "offlineMapNoRoute": "Route is not loaded. Please import a GPX file first.",
+  "offlineMapDownloading": "Downloading... ",
+  "offlineMapCancel": "Cancel",
+  "offlineMapDownloadComplete": "Offline map download complete",
+  "offlineMapDownloadFailed": "Download failed",
+  "offlineMapDownloadCancelled": "Download cancelled",
+  "offlineMapWifiRecommendation": "We recommend downloading over Wi-Fi due to the large data size",
+  "offlineMapWifiRecommendationWithSize": "We recommend downloading over Wi-Fi due to the large data size.\n\nEstimated size: ~{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCurrentStorage": "Stored: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClearWithSize": "Clear cache ({size})",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClear": "Clear cache",
+  "offlineMapCacheClearConfirmMessage": "When cache data (including offline maps) grows, map display can become slower.\n\nMap display flow:\n\n1. Cache lookup\n2-1. If cached:\nno network access\n2-2. If not cached:\nnetwork access and save to cache\n3. Map display\n\nStep 1 cache lookup takes more time when data is larger. So if the map becomes slow or you have saved a large offline map for brevet, we recommend deleting the cache.",
+  "offlineMapCacheClearConfirmButton": "Delete",
+  "offlineMapCacheCleared": "Cache cleared",
+  "offlineMapInfoMessage1": "Offline maps reduce network access and save battery even when online",
+  "offlineMapInfoMessage2": "To keep the app running smoothly, we recommend deleting downloaded maps when you no longer need them",
+  "offlineMapInfoButton": "Download",
+  "registerAtPosition": "Add here",
+  "locationSharing": "Location Sharing",
+  "aboutApp": "About this app",
+  "openSourceLicenses": "Open source licenses",
+  "rateApp": "Rate this app",
+  "contactUs": "Contact",
+  "language": "Language",
+  "useSystemLanguage": "System default",
+  "appSettingsTitle": "Settings & More",
+  "contactFormMailError": "Could not open mail app",
+  "batteryLevelDisplay": "Show battery level",
+  "batteryLevelDisplayOn": "On",
+  "batteryLevelDisplayOff": "Off",
+  "batteryLevelDisplayIosNote": "On iOS, values are shown in 5% increments due to OS limitations",
+  "trialInfoClose": "Close",
+  "trialInfoSubscribe": "Subscription",
+  "trialInfoMessage": "Try POI adding and GPX export features free for 30 days.",
+  "trialInfoRemainingDays": "{days, plural, =1{1 day remaining} other{{days} days remaining}}",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "Subscribe to Brevet MAP Premium to edit and delete POIs!",
+  "poiPremiumViewPlans": "View Plans",
+  "subscription": "Subscription",
+  "restorePurchases": "Restore Purchases",
+  "restorePurchasesSuccess": "Purchases restored",
+  "subscriptionAccountId": "Account ID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Expires: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "Not subscribed",
+  "subscriptionTerms": "Subscription Terms",
+  "manageSubscription": "Manage Subscription",
+"sampleRouteDialogMessage": "The route shown on the map is a sample route. For actual use, please import and use a GPX file exported from a cycling app or provided by an event.",
+  "volumeButtonTutorial": "You can adjust the map zoom level using the device's volume buttons"
+}

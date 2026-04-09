@@ -1,0 +1,5 @@
+# Google Play デベロッパー API 用のサービスアカウント JSON。
+# ローカル: ファイルパスを環境変数で指定（リポジトリにコミットしない）
+# CI: workflow で一時ファイルを書き、PLAY_STORE_JSON_KEY_PATH を渡す
+
+package_name(ENV["ANDROID_PACKAGE_NAME"] || "com.brevetmap")

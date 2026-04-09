@@ -1,0 +1,254 @@
+{
+  "@@locale": "zh",
+  "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
+  "cancel": "取消",
+  "ok": "确定",
+  "ng": "NG",
+  "delete": "删除",
+  "edit": "编辑",
+  "change": "更改",
+  "add": "添加",
+  "settings": "设置",
+  "share": "分享",
+  "shareFailed": "分享失败",
+  "showMyLocation": "显示我的位置",
+  "sleepSettings": "屏幕休眠",
+  "sleepInfoMessage1": "屏幕休眠时GPS会关闭，因此如果希望减少电量消耗，建议启用屏幕休眠。",
+  "sleepInfoDontShowAgain": "不再显示",
+  "switchGpsLevel": "位置精度",
+  "gpxImport": "导入 GPX 文件",
+  "gpxExport": "导出 GPX 文件",
+  "gpxExportDialogTitle": "文件名",
+  "gpxExportFilenameHint": "输入文件名（留空则使用日期/时间）",
+  "gpxExportComplete": "已保存 {filename}",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "gpxExportFailed": "导出失败",
+  "gpxExportPermissionDenied": "文件保存权限被拒绝",
+  "gpxExportSaveLocationMessage": "默认情况下，导出的文件将保存在以下位置：\n\niOS：\n[我的iPhone] > [Brevet MAP]\n\nAndroid：\n[Files] > [下载]",
+  "poiAdd": "添加 POI",
+  "poiAddEdit": "添加或编辑POI",
+  "poiAddByDistance": "按距离添加POI",
+  "poiAddByMapTap": "通过点击地图添加POI",
+  "poiTabAdd": "添加 POI",
+  "poiTabEdit": "编辑或删除POI",
+  "poiType": "POI 类型",
+  "checkpoint": "检查点",
+  "information": "信息",
+  "title": "标题",
+  "body": "正文",
+  "distance": "距离",
+  "titleNone": "（无标题）",
+  "kmRequired": "距离为必填项",
+  "offRoute": "偏离路线",
+  "kmPoint": "{km}km 点",
+  "poiAtKmPoint": "{kmLabel} 点的 POI",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "poiOffRoutePoi": "编辑 POI",
+  "@kmPoint": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "changePoiPosition": "设为此位置",
+  "poiRegistered": "POI 已添加",
+  "poiAddedFromShare": "已从分享链接添加 POI",
+  "shareUrlInvalid": "无法从分享链接提取坐标",
+  "registerThisPlaceAsPoi": "在此添加 POI",
+  "poiUpdated": "POI 已更新",
+  "poiDeleted": "POI 已删除",
+  "poiPositionChanged": "POI 位置已更改",
+  "changePoiText": "更改 POI 标题和正文",
+  "changePoiPositionTitle": "更改 POI 位置",
+  "deletePoiConfirm": "删除此 POI？",
+  "noPoiRegistered": "未添加 POI",
+  "changePoiTextTitle": "更改 POI 内容",
+  "routeOverwrite": "覆盖当前路线",
+  "selectGpxFile": "请选择 GPX 文件",
+  "routeNotLoaded": "路线未加载",
+  "kmPointNotFound": "未找到指定的 km 点",
+  "kmExceedsRoute": "超过路线总距离",
+  "gpxInvalidFormat": "此文件不是 GPX 格式",
+  "gpxNoRouteOrWaypoint": "GPX 不包含路线或航点",
+  "locationFailed": "获取位置失败",
+  "mapStyleNormal": "以普通模式显示地图",
+  "mapStyleDark": "以深色模式显示地图",
+  "showFullRoute": "显示完整路线",
+  "locationUnavailable": "位置不可用",
+  "locationUnavailableWithRetry": "位置不可用。点击「显示我的位置」重试，或在设置中允许位置访问。",
+  "openSettings": "打开设置",
+  "locationInvalid": "位置无效",
+  "locationServiceOff": "定位服务已关闭。请在设备设置中开启。",
+  "locationPermissionRequired": "需要位置权限",
+  "locationPermissionDenied": "位置权限被拒绝。未经许可无法显示您的位置。",
+  "locationPermissionDeniedForever": "位置权限已设为「不再询问」。请在应用设置中启用。",
+  "sleepOffMessage": "屏幕休眠已禁用",
+  "sleepOnMessage": "屏幕休眠已启用",
+  "sleepOff": "关闭",
+  "sleepOn": "开启",
+  "sleepSettingsNote": "请在设备的设置应用中查看屏幕休眠时间",
+  "openSettings": "打开设置",
+  "openSettingsApp": "打开设置应用",
+  "distanceUnit": "距离单位",
+  "unitKm": "公里",
+  "unitMile": "英里",
+  "distanceUnitSetToKm": "距离单位已设为公里",
+  "distanceUnitSetToMile": "距离单位已设为英里",
+  "checkingConnectivity": "正在检查连接...",
+  "fetchingLocation": "正在获取位置...",
+  "offline": "离线",
+  "retryConnectivity": "重试",
+  "offlineMap": "离线地图",
+  "offlineMapMinimalMap": "最大缩放：15",
+  "offlineMapStandardMap": "最大缩放：16",
+  "offlineMapMinimalMapWithSize": "最大缩放：15（{size}）",
+  "offlineMapStandardMapWithSize": "最大缩放：16（{size}）",
+  "offlineMapHighResMap": "最大缩放：17",
+  "offlineMapHighResMapWithSize": "最大缩放：17（{size}）",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapZoomSmall": "缩放：限定",
+  "offlineMapZoomMedium": "缩放：标准",
+  "offlineMapZoomLarge": "缩放：扩展",
+  "offlineMapZoomSmallWithSize": "缩放：限定（{size}）",
+  "offlineMapZoomMediumWithSize": "缩放：标准（{size}）",
+  "offlineMapZoomLargeWithSize": "缩放：扩展（{size}）",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapRequiresNetwork": "下载离线地图需要网络连接",
+  "offlineMapNoRoute": "路线未加载。请先导入 GPX 文件。",
+  "offlineMapDownloading": "下载中... ",
+  "offlineMapCancel": "取消",
+  "offlineMapDownloadComplete": "离线地图下载完成",
+  "offlineMapDownloadFailed": "下载失败",
+  "offlineMapDownloadCancelled": "下载已取消",
+  "offlineMapWifiRecommendation": "由于数据量大，建议使用 Wi-Fi 下载",
+  "offlineMapWifiRecommendationWithSize": "由于数据量大，建议使用 Wi-Fi 下载。\n\n预计大小：约 {size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCurrentStorage": "已保存: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClearWithSize": "清除缓存（{size}）",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClear": "清除缓存",
+  "offlineMapCacheClearConfirmMessage": "缓存数据（含离线地图）增多时，地图显示可能会变慢。\n\n地图显示流程：\n\n1. 缓存查询\n2-1. 有缓存：\n无需网络访问\n2-2. 无缓存：\n网络访问并保存到缓存\n3. 地图显示\n\n步骤1的缓存查询在数据越大时耗时越长。若地图显示变慢或为 brevet 保存了大容量离线地图，建议删除缓存。",
+  "offlineMapCacheClearConfirmButton": "删除",
+  "offlineMapCacheCleared": "缓存已清除",
+  "offlineMapInfoMessage1": "离线地图即使在线时也能减少网络访问并节省电量",
+  "offlineMapInfoMessage2": "为保持应用顺畅运行，建议在不再需要时删除已下载的地图",
+  "offlineMapInfoButton": "下载",
+  "registerAtPosition": "在此添加",
+  "locationSharing": "位置共享",
+  "aboutApp": "关于本应用",
+  "openSourceLicenses": "开源许可",
+  "rateApp": "评价应用",
+  "contactUs": "联系我们",
+  "language": "语言",
+  "useSystemLanguage": "使用系统语言",
+  "appSettingsTitle": "设置与其他",
+  "contactFormMailError": "无法打开邮件应用",
+  "batteryLevelDisplay": "显示电量",
+  "batteryLevelDisplayOn": "显示",
+  "batteryLevelDisplayOff": "隐藏",
+  "batteryLevelDisplayIosNote": "由于iOS系统限制，电量以5%为单位显示",
+  "trialInfoClose": "关闭",
+  "trialInfoSubscribe": "订阅",
+  "trialInfoMessage": "POI 添加和 GPX 导出功能可免费试用 30 天！",
+  "trialInfoRemainingDays": "剩余 {days} 天",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "订阅 Brevet MAP 高级版，即可编辑和删除 POI！",
+  "poiPremiumViewPlans": "查看方案",
+  "subscription": "订阅",
+  "restorePurchases": "恢复购买",
+  "restorePurchasesSuccess": "购买已恢复",
+  "subscriptionAccountId": "账户ID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "到期日: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "未订阅",
+  "subscriptionTerms": "订阅条款",
+  "manageSubscription": "管理订阅",
+  "sampleRouteDialogMessage": "地图上显示的路线是示例路线。实际使用时，请导入并使用从骑行应用导出的GPX文件或活动提供的GPX文件。",
+  "volumeButtonTutorial": "您可以使用设备的音量键调整地图缩放级别"
+}

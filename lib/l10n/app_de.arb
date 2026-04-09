@@ -1,0 +1,254 @@
+{
+  "@@locale": "de",
+  "appTitle": "Brevet Map",
+  "appTitleBrand": "Brevet Map",
+  "cancel": "Abbrechen",
+  "ok": "OK",
+  "ng": "NG",
+  "delete": "Löschen",
+  "edit": "Bearbeiten",
+  "change": "Ändern",
+  "add": "Hinzufügen",
+  "settings": "Einstellungen",
+  "share": "Teilen",
+  "shareFailed": "Teilen fehlgeschlagen",
+  "showMyLocation": "Meinen Standort anzeigen",
+  "sleepSettings": "Bildschirmschlaf",
+  "sleepInfoMessage1": "Das GPS schaltet sich beim Bildschirmschlaf aus. Wir empfehlen daher, den Bildschirmschlaf zu aktivieren, wenn Sie den Akkuverbrauch reduzieren möchten.",
+  "sleepInfoDontShowAgain": "Nicht mehr anzeigen",
+  "switchGpsLevel": "Standortgenauigkeit",
+  "gpxImport": "GPX-Datei importieren",
+  "gpxExport": "GPX-Datei exportieren",
+  "gpxExportDialogTitle": "Dateiname",
+  "gpxExportFilenameHint": "Dateiname eingeben (Datum/Uhrzeit bei leerem Feld)",
+  "gpxExportComplete": "Gespeichert {filename}",
+  "@gpxExportComplete": {
+    "placeholders": {
+      "filename": {
+        "type": "String"
+      }
+    }
+  },
+  "gpxExportFailed": "Export fehlgeschlagen",
+  "gpxExportPermissionDenied": "Dateispeicherung verweigert",
+  "gpxExportSaveLocationMessage": "Standardmäßig werden exportierte Dateien an folgenden Orten gespeichert:\n\niOS:\n[Auf meinem iPhone] > [Brevet MAP]\n\nAndroid:\n[Files] > [Downloads]",
+  "poiAdd": "POI hinzufügen",
+  "poiAddEdit": "POI hinzufügen oder bearbeiten",
+  "poiAddByDistance": "POI bei Distanz hinzufügen",
+  "poiAddByMapTap": "POI durch Tippen auf die Karte hinzufügen",
+  "poiTabAdd": "POI hinzufügen",
+  "poiTabEdit": "POI bearbeiten oder löschen",
+  "poiType": "POI-Typ",
+  "checkpoint": "Kontrollpunkt",
+  "information": "Information",
+  "title": "Titel",
+  "body": "Text",
+  "distance": "Distanz",
+  "titleNone": "(Kein Titel)",
+  "kmRequired": "Distanz ist erforderlich",
+  "offRoute": "Außerhalb der Strecke",
+  "kmPoint": "Punkt {km} km",
+  "poiAtKmPoint": "POI bei Punkt {kmLabel}",
+  "@poiAtKmPoint": {
+    "placeholders": {
+      "kmLabel": {
+        "type": "String"
+      }
+    }
+  },
+  "poiOffRoutePoi": "POI bearbeiten",
+  "@kmPoint": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
+  "changePoiPosition": "Diese Position festlegen",
+  "poiRegistered": "POI hinzugefügt",
+  "poiAddedFromShare": "POI von geteiltem Link hinzugefügt",
+  "shareUrlInvalid": "Koordinaten konnten nicht aus dem geteilten Link extrahiert werden",
+  "registerThisPlaceAsPoi": "POI hier hinzufügen",
+  "poiUpdated": "POI aktualisiert",
+  "poiDeleted": "POI gelöscht",
+  "poiPositionChanged": "POI-Position geändert",
+  "changePoiText": "POI-Titel und -Text ändern",
+  "changePoiPositionTitle": "POI-Position ändern",
+  "deletePoiConfirm": "Diesen POI löschen?",
+  "noPoiRegistered": "Kein POI hinzugefügt",
+  "changePoiTextTitle": "POI-Inhalt ändern",
+  "routeOverwrite": "Aktuelle Strecke überschreiben",
+  "selectGpxFile": "Bitte wählen Sie eine GPX-Datei",
+  "routeNotLoaded": "Strecke ist nicht geladen",
+  "kmPointNotFound": "Angegebener km-Punkt nicht gefunden",
+  "kmExceedsRoute": "Überschreitet die Gesamtstreckenlänge",
+  "gpxInvalidFormat": "Diese Datei ist kein GPX-Format",
+  "gpxNoRouteOrWaypoint": "GPX enthält keine Strecke oder Wegpunkte",
+  "locationFailed": "Standort konnte nicht ermittelt werden",
+  "mapStyleNormal": "Karte im Normalmodus anzeigen",
+  "mapStyleDark": "Karte im Dunkelmodus anzeigen",
+  "showFullRoute": "Vollständige Strecke anzeigen",
+  "locationUnavailable": "Standort nicht verfügbar",
+  "locationUnavailableWithRetry": "Standort nicht verfügbar. Tippen Sie auf \"Meinen Standort anzeigen\" zum Wiederholen oder erlauben Sie den Standortzugriff in den Einstellungen.",
+  "openSettings": "Einstellungen öffnen",
+  "locationInvalid": "Standort ungültig",
+  "locationServiceOff": "Standortdienst ist ausgeschaltet. Bitte aktivieren Sie ihn in den Geräteeinstellungen.",
+  "locationPermissionRequired": "Standortberechtigung erforderlich",
+  "locationPermissionDenied": "Standortberechtigung wurde verweigert. Ohne Berechtigung kann Ihr Standort nicht angezeigt werden.",
+  "locationPermissionDeniedForever": "Standortberechtigung ist auf \"Nicht erneut fragen\" gesetzt. Bitte aktivieren Sie sie in den App-Einstellungen.",
+  "sleepOffMessage": "Bildschirmschlaf deaktiviert",
+  "sleepOnMessage": "Bildschirmschlaf aktiviert",
+  "sleepOff": "AUS",
+  "sleepOn": "EIN",
+  "sleepSettingsNote": "Die Dauer des Bildschirmschlafs finden Sie in der Einstellungs-App Ihres Geräts",
+  "openSettings": "Einstellungen öffnen",
+  "openSettingsApp": "Einstellungs-App öffnen",
+  "distanceUnit": "Distanzeinheit",
+  "unitKm": "km",
+  "unitMile": "Meilen",
+  "distanceUnitSetToKm": "Distanzeinheit auf km gesetzt",
+  "distanceUnitSetToMile": "Distanzeinheit auf Meilen gesetzt",
+  "checkingConnectivity": "Verbindung wird geprüft...",
+  "fetchingLocation": "Standort wird ermittelt...",
+  "offline": "Offline",
+  "retryConnectivity": "Wiederholen",
+  "offlineMap": "Offline-Karte",
+  "offlineMapMinimalMap": "Max. Zoom: 15",
+  "offlineMapStandardMap": "Max. Zoom: 16",
+  "offlineMapMinimalMapWithSize": "Max. Zoom: 15 ({size})",
+  "offlineMapStandardMapWithSize": "Max. Zoom: 16 ({size})",
+  "offlineMapHighResMap": "Max. Zoom: 17",
+  "offlineMapHighResMapWithSize": "Max. Zoom: 17 ({size})",
+  "@offlineMapMinimalMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapStandardMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapHighResMapWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapZoomSmall": "Zoom: Begrenzt",
+  "offlineMapZoomMedium": "Zoom: Standard",
+  "offlineMapZoomLarge": "Zoom: Erweitert",
+  "offlineMapZoomSmallWithSize": "Zoom: Begrenzt ({size})",
+  "offlineMapZoomMediumWithSize": "Zoom: Standard ({size})",
+  "offlineMapZoomLargeWithSize": "Zoom: Erweitert ({size})",
+  "@offlineMapZoomSmallWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomMediumWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@offlineMapZoomLargeWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapRequiresNetwork": "Netzwerkverbindung erforderlich zum Herunterladen von Offline-Karten",
+  "offlineMapNoRoute": "Strecke ist nicht geladen. Bitte importieren Sie zuerst eine GPX-Datei.",
+  "offlineMapDownloading": "Wird heruntergeladen... ",
+  "offlineMapCancel": "Abbrechen",
+  "offlineMapDownloadComplete": "Offline-Karten-Download abgeschlossen",
+  "offlineMapDownloadFailed": "Download fehlgeschlagen",
+  "offlineMapDownloadCancelled": "Download abgebrochen",
+  "offlineMapWifiRecommendation": "Wir empfehlen das Herunterladen über WLAN wegen der großen Datenmenge",
+  "offlineMapWifiRecommendationWithSize": "Wir empfehlen das Herunterladen über WLAN wegen der großen Datenmenge.\n\nGeschätzte Größe: ~{size}",
+  "@offlineMapWifiRecommendationWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCurrentStorage": "Gespeichert: {size}",
+  "@offlineMapCurrentStorage": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClearWithSize": "Cache leeren ({size})",
+  "@offlineMapCacheClearWithSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "offlineMapCacheClear": "Cache leeren",
+  "offlineMapCacheClearConfirmMessage": "Wenn Cache-Daten (einschließlich Offline-Karten) zunehmen, kann die Kartenanzeige langsamer werden.\n\nAblauf der Kartenanzeige:\n\n1. Cache-Abfrage\n2-1. Im Cache:\nKein Netzwerkzugriff\n2-2. Nicht im Cache:\nNetzwerkzugriff und Speicherung im Cache\n3. Kartenanzeige\n\nSchritt 1 Cache-Abfrage dauert bei größeren Daten länger. Bei langsamer Kartenanzeige oder großen Offline-Karten für Brevet wird die Löschung des Caches empfohlen.",
+  "offlineMapCacheClearConfirmButton": "Löschen",
+  "offlineMapCacheCleared": "Cache geleert",
+  "offlineMapInfoMessage1": "Offline-Karten reduzieren den Netzwerkzugriff und sparen Akku, auch wenn Sie online sind",
+  "offlineMapInfoMessage2": "Für eine reibungslose App-Nutzung empfehlen wir, heruntergeladene Karten zu löschen, wenn Sie sie nicht mehr benötigen",
+  "offlineMapInfoButton": "Herunterladen",
+  "registerAtPosition": "Hier hinzufügen",
+  "locationSharing": "Standort teilen",
+  "aboutApp": "Über diese App",
+  "openSourceLicenses": "Open-Source-Lizenzen",
+  "rateApp": "App bewerten",
+  "contactUs": "Kontakt",
+  "language": "Sprache",
+  "useSystemLanguage": "Systemsprache",
+  "appSettingsTitle": "Einstellungen & mehr",
+  "contactFormMailError": "Mail-App konnte nicht geöffnet werden",
+  "batteryLevelDisplay": "Akkustand anzeigen",
+  "batteryLevelDisplayOn": "Anzeigen",
+  "batteryLevelDisplayOff": "Ausblenden",
+  "batteryLevelDisplayIosNote": "Auf iOS werden die Werte aufgrund von Betriebssystemeinschränkungen in 5%-Schritten angezeigt",
+  "trialInfoClose": "Schließen",
+  "trialInfoSubscribe": "Abonnement",
+  "trialInfoMessage": "Testen Sie das Hinzufügen von POIs und den GPX-Export 30 Tage lang kostenlos.",
+  "trialInfoRemainingDays": "{days, plural, =1{Noch 1 Tag} other{Noch {days} Tage}}",
+  "@trialInfoRemainingDays": {
+    "placeholders": {
+      "days": { "type": "int" }
+    }
+  },
+  "poiPremiumMessage": "Mit Brevet MAP Premium können Sie POIs bearbeiten und löschen!",
+  "poiPremiumViewPlans": "Pläne anzeigen",
+  "subscription": "Abonnement",
+  "restorePurchases": "Käufe wiederherstellen",
+  "restorePurchasesSuccess": "Käufe wurden wiederhergestellt",
+  "subscriptionAccountId": "Konto-ID: {id}",
+  "@subscriptionAccountId": {
+    "placeholders": {
+      "id": { "type": "String" }
+    }
+  },
+  "subscriptionExpiry": "Ablaufdatum: {date}",
+  "@subscriptionExpiry": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "subscriptionNotActive": "Nicht abonniert",
+  "subscriptionTerms": "Abonnementbedingungen",
+  "manageSubscription": "Abonnement verwalten",
+  "sampleRouteDialogMessage": "Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei aus einer Radsport-App oder von einer Veranstaltung.",
+  "volumeButtonTutorial": "Sie können den Kartenzoom mit den Lautstärketasten des Geräts anpassen"
+}

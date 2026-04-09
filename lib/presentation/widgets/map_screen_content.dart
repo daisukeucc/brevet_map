@@ -1,0 +1,508 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:latlong2/latlong.dart';
+import '../../config/tile_config.dart';
+import '../../l10n/app_localizations.dart';
+import '../handlers/settings_menu_handler.dart';
+import 'battery_indicator.dart';
+import 'callout_overlay.dart';
+import 'location_bottom_bar.dart';
+import 'map_style_button.dart';
+import 'map_tool_buttons.dart';
+import 'settings_bottom_sheet.dart';
+
+/// 地図画面の本体。地図・オーバーレイ・下部バーをまとめる。
+class MapScreenContent extends StatefulWidget {
+  const MapScreenContent({
+    super.key,
+    required this.initialPosition,
+    required this.initialZoom,
+    required this.polylines,
+    required this.markers,
+    required this.mapStyleMode,
+    required this.onCameraIdle,
+    required this.onMapCreated,
+    required this.onMapStyleTap,
+    required this.onRouteBoundsTap,
+    this.isRouteBoundsMode = false,
+    required this.isStreamActive,
+    required this.onToggleLocationStream,
+    required this.onGpxImportTap,
+    required this.onGpxExportTap,
+    required this.onOfflineMapTap,
+    required this.onAddPoiTap,
+    required this.onAppSettingsTap,
+    this.onDebugWelcomeTap,
+    this.hasUserPois = false,
+    this.isDragMode = false,
+    this.isMapTapAddMode = false,
+    this.progressBarValue,
+    this.isScreenSleepOn = true,
+    this.onSleepToggleTap,
+    this.onUserInteraction,
+    this.offlineCenter,
+    this.onShareTap,
+    this.calloutPosition,
+    this.calloutText,
+    this.calloutHp,
+    this.isShareMode = false,
+    this.showBatteryLevel = false,
+  });
+
+  /// 共有モード時 true（スクリーンショット用に四隅ボタン・バッテリーを非表示にする）
+  final bool isShareMode;
+
+  /// true のときバッテリー残量インジケーターを表示する
+  final bool showBatteryLevel;
+
+  /// 吹き出し表示時の現在地（共有モード用）
+  final LatLng? calloutPosition;
+
+  /// 吹き出しのメインテキスト
+  final String? calloutText;
+
+  /// 吹き出しのHP値（0.0〜1.0）。null のときゲージ非表示
+  final double? calloutHp;
+
+  /// 共有ボタンタップ時のコールバック。GlobalKey を渡して共有フローを実行する。
+  final void Function(GlobalKey key)? onShareTap;
+
+  /// オフライン時に地図の代わりに中央に表示するウィジェット。
+  /// 非 null の場合、FlutterMap の代わりにこれを表示（ボタン・下部バーは通常表示）。
+  final Widget? offlineCenter;
+
+  final LatLng initialPosition;
+  final double initialZoom;
+  final List<Polyline> polylines;
+  final List<Marker> markers;
+  final int mapStyleMode;
+  final VoidCallback onCameraIdle;
+  final void Function(MapController controller) onMapCreated;
+  final VoidCallback onMapStyleTap;
+  final VoidCallback onRouteBoundsTap;
+
+  /// true のときルート拡大モード中（MapToolButtons のアイコン切り替えに使用）
+  final bool isRouteBoundsMode;
+
+  final bool isStreamActive;
+  final VoidCallback onToggleLocationStream;
+  final ValueNotifier<double>? progressBarValue;
+
+  /// 画面スリープ設定の現在値。true=ON（通常スリープ）、false=OFF（WakeLock）
+  final bool isScreenSleepOn;
+
+  /// 位置ストリームON中に表示するスリープ切り替えボタンのコールバック
+  final VoidCallback? onSleepToggleTap;
+
+  /// GPXファイルインポートコールバック
+  final VoidCallback onGpxImportTap;
+
+  /// GPXファイルエクスポートコールバック
+  final VoidCallback onGpxExportTap;
+
+  /// オフラインマップコールバック
+  final VoidCallback onOfflineMapTap;
+
+  /// POI登録コールバック
+  final VoidCallback onAddPoiTap;
+
+  /// アプリ設定画面表示コールバック
+  final VoidCallback onAppSettingsTap;
+
+  /// [Debug] Welcomeダイアログ表示コールバック
+  final VoidCallback? onDebugWelcomeTap;
+
+  /// ユーザーPOIが1件以上登録されている場合 true
+  final bool hasUserPois;
+
+  /// true のときマーカードラッグ編集モード（全ボタンを非表示にする）
+  final bool isDragMode;
+
+  /// true のとき地図タップでPOI登録モード（全ボタンを非表示にする）
+  final bool isMapTapAddMode;
+
+  /// 画面タッチ時のコールバック
+  final VoidCallback? onUserInteraction;
+
+  @override
+  State<MapScreenContent> createState() => _MapScreenContentState();
+}
+
+class _MapScreenContentState extends State<MapScreenContent> {
+  late final MapController _mapController;
+  late final FMTCTileProvider _tileProvider;
+  final GlobalKey _screenshotKey = GlobalKey();
+
+  void _onMenuTap() {
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(),
+      builder: (_) => SettingsBottomSheet(
+        onGpxImportTap: () =>
+            popSheetAndCall(context, widget.onGpxImportTap),
+        onGpxExportTap: () =>
+            popSheetAndCall(context, widget.onGpxExportTap),
+        onOfflineMapTap: () =>
+            popSheetAndCall(context, widget.onOfflineMapTap),
+        hasUserPois: widget.hasUserPois,
+        onAddPoiTap: () => popSheetAndCall(context, widget.onAddPoiTap),
+        onAppSettingsTap: () =>
+            popSheetAndCall(context, widget.onAppSettingsTap),
+        onDebugWelcomeTap: widget.onDebugWelcomeTap != null
+            ? () => popSheetAndCall(context, widget.onDebugWelcomeTap!)
+            : null,
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+    _tileProvider = FMTCTileProvider(
+      stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
+      headers: {'User-Agent': TileConfig.userAgent},
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onMapCreated(_mapController);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          Expanded(
+            child: Listener(
+              onPointerDown: (_) => widget.onUserInteraction?.call(),
+              child: RepaintBoundary(
+                key: _screenshotKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          if (widget.offlineCenter != null)
+                            Positioned.fill(child: widget.offlineCenter!)
+                          else
+                            _buildMap(),
+                          if (!widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              left: 16,
+                              bottom: 24,
+                              child: MapStyleButton(
+                                mapStyleMode: widget.mapStyleMode,
+                                onTap: widget.onMapStyleTap,
+                              ),
+                            ),
+                          if (widget.isStreamActive &&
+                              widget.onShareTap != null &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              left: 16,
+                              top: 24,
+                              child: Tooltip(
+                                message: AppLocalizations.of(context)!.share,
+                                child: Material(
+                                  color: Colors.white,
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                  shape: const CircleBorder(),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: () =>
+                                        widget.onShareTap?.call(_screenshotKey),
+                                    customBorder: const CircleBorder(),
+                                    child: SizedBox(
+                                      width: 60,
+                                      height: 60,
+                                      child: Center(
+                                        child: Transform.translate(
+                                          offset: const Offset(-3, 0),
+                                          child: const Icon(
+                                            Icons.share,
+                                            color: Colors.blueGrey,
+                                            size: 35,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (!widget.isStreamActive &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              left: 16,
+                              top: 24,
+                              child: Tooltip(
+                                message: AppLocalizations.of(context)!.settings,
+                                child: Material(
+                                  color: Colors.white,
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                  shape: const CircleBorder(),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: _onMenuTap,
+                                    customBorder: const CircleBorder(),
+                                    child: const SizedBox(
+                                      width: 60,
+                                      height: 60,
+                                      child: Icon(
+                                        Icons.menu,
+                                        color: Colors.blueGrey,
+                                        size: 35,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (widget.showBatteryLevel &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            const Positioned(
+                              left: 0,
+                              right: 0,
+                              top: 24,
+                              child: Center(
+                                child: BatteryIndicator(),
+                              ),
+                            ),
+                          if (!widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              right: 16,
+                              top: 24,
+                              child: MapToolButtons(
+                                onRouteBoundsTap: widget.onRouteBoundsTap,
+                                isRouteBoundsMode: widget.isRouteBoundsMode,
+                              ),
+                            ),
+                          if (widget.onSleepToggleTap != null &&
+                              !widget.isDragMode &&
+                              !widget.isMapTapAddMode)
+                            Positioned(
+                              right: 16,
+                              bottom: 24,
+                              child: Tooltip(
+                                message: widget.isScreenSleepOn
+                                    ? AppLocalizations.of(context)!.sleepOn
+                                    : AppLocalizations.of(context)!.sleepOff,
+                                child: Material(
+                                  color: widget.isScreenSleepOn
+                                      ? Colors.blueGrey
+                                      : Colors.white,
+                                  elevation: 5,
+                                  shadowColor: Colors.black26,
+                                  shape: const CircleBorder(),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: InkWell(
+                                    onTap: widget.onSleepToggleTap,
+                                    customBorder: const CircleBorder(),
+                                    child: SizedBox(
+                                      width: 60,
+                                      height: 60,
+                                      child: Center(
+                                        child: Icon(
+                                          widget.isScreenSleepOn
+                                              ? Icons.bedtime
+                                              : Icons.bedtime_off,
+                                          color: widget.isScreenSleepOn
+                                              ? Colors.white
+                                              : Colors.blueGrey,
+                                          size: 35,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (widget.calloutPosition != null &&
+                              widget.calloutText != null &&
+                              widget.offlineCenter == null)
+                            Positioned.fill(
+                              child: CalloutOverlay(
+                                mapController: _mapController,
+                                position: widget.calloutPosition!,
+                                text: widget.calloutText!,
+                                hp: widget.calloutHp,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    LocationBottomBar(
+                      isStreamActive: widget.isStreamActive,
+                      onTap: widget.onToggleLocationStream,
+                      progressBarValue: widget.progressBarValue,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// [urlTemplate] に含まれるホストに応じてサブドメインを返す。
+  /// tile.openstreetmap（.org / .jp）は OSM 推奨のためサブドメインなし。
+  static List<String> _subdomainsForTemplate(String urlTemplate) {
+    if (urlTemplate.contains('tile.openstreetmap')) return const [];
+    return const ['a', 'b', 'c'];
+  }
+
+  TileLayer _buildTileLayer(String urlTemplate) {
+    // FMTC 初期化失敗時は NetworkTileProvider にフォールバック。
+    // FMTCTileProvider を使うとハング中のバックグラウンド isolate に
+    // タイルリクエストが積まれ、地図が永遠に真っ灰になる。
+    final provider =
+        TileConfig.fmtcReady ? _tileProvider : NetworkTileProvider();
+    return TileLayer(
+      urlTemplate: urlTemplate,
+      userAgentPackageName: TileConfig.userAgentPackageName,
+      subdomains: _subdomainsForTemplate(urlTemplate),
+      tileProvider: provider,
+      keepBuffer: 4,
+      panBuffer: 2,
+    );
+  }
+
+  Widget _buildMap() {
+    final isDark = widget.mapStyleMode == 2;
+    final languageCode = Localizations.localeOf(context).languageCode;
+    final urlTemplate = TileConfig.getTileUrlTemplate(languageCode);
+    final map = FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: widget.initialPosition,
+        initialZoom: widget.initialZoom,
+        onMapReady: () {},
+        onMapEvent: (event) {
+          if (event is MapEventMoveEnd ||
+              event is MapEventFlingAnimationEnd ||
+              event is MapEventDoubleTapZoomEnd ||
+              event is MapEventScrollWheelZoom) {
+            widget.onCameraIdle();
+          }
+        },
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all,
+        ),
+      ),
+      children: [
+        if (isDark)
+          ColorFiltered(
+            colorFilter: const ColorFilter.matrix(<double>[
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              265,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              265,
+              -0.2126,
+              -0.7152,
+              -0.0722,
+              0,
+              285,
+              0,
+              0,
+              0,
+              1,
+              0,
+            ]),
+            child: _buildTileLayer(urlTemplate),
+          )
+        else
+          _buildTileLayer(urlTemplate),
+        if (widget.polylines.isNotEmpty)
+          PolylineLayer(polylines: widget.polylines),
+        if (widget.markers.isNotEmpty) MarkerLayer(markers: widget.markers),
+        Align(
+          alignment: Alignment.bottomRight,
+          child: widget.isShareMode
+              ? Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.6),
+                  child: Text.rich(
+                    TextSpan(
+                      text: 'Powered by ',
+                      style: (Theme.of(context).textTheme.bodySmall ??
+                              const TextStyle())
+                          .copyWith(
+                        fontSize: 13,
+                        color: isDark ? Colors.white : Colors.black54,
+                      ),
+                      children: [
+                        TextSpan(
+                          text: 'Brevet Map',
+                          style: (Theme.of(context).textTheme.bodySmall ??
+                                  const TextStyle())
+                              .copyWith(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : StreamBuilder<MapEvent>(
+                  stream: _mapController.mapEventStream,
+                  builder: (context, snapshot) {
+                    final zoom = snapshot.hasData
+                        ? _mapController.camera.zoom
+                        : widget.initialZoom;
+                    final bgColor = isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.6);
+                    final textStyle = (Theme.of(context).textTheme.bodySmall ??
+                            const TextStyle())
+                        .copyWith(
+                      fontSize: 13,
+                      color: isDark ? Colors.white : Colors.black54,
+                    );
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+                          color: bgColor,
+                          child: Text('zoom: ${zoom.toStringAsFixed(1)}',
+                              style: textStyle),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
+                          color: bgColor,
+                          child: Text(TileConfig.attribution, style: textStyle),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+    return map;
+  }
+}
