@@ -108,8 +108,54 @@ jobs:
           if [ -z "$B64" ]; then
             echo "ANDROID_KEYSTORE_BASE64 が未設定です。" && exit 1
           fi
-          # Secret 貼り付けで混入した改行・空白を除いてからデコード（無いと base64: invalid input になりやすい）
-          printf '%s' "$B64" | tr -d ' \n\r\t' | base64 -d > "$PROJ/android/upload-keystore.jks"
+          # shell の base64 は環境・文字種で invalid input になりやすい。Python で空白/BOM/data URI/URL-safe を吸収してデコードする。
+          export PROJ
+          python3 <<'PY'
+          import base64, os, pathlib, re, sys
+
+          def clean(s: str) -> str:
+              s = "".join(s.split())
+              if s.startswith("\ufeff"):
+                  s = s[1:]
+              if s.startswith("\xef\xbb\xbf"):
+                  s = s[3:]
+              return s
+
+          def pad(s: str) -> str:
+              return s + "=" * ((-len(s)) % 4)
+
+          def decode_keystore(b64: str) -> bytes:
+              s = clean(b64)
+              if not s:
+                  raise ValueError("クリーニング後に空です")
+              if "base64," in s:
+                  s = clean(s.split("base64,", 1)[1])
+              p = pad(s)
+              try:
+                  return base64.b64decode(p, validate=True)
+              except Exception:
+                  pass
+              try:
+                  return base64.urlsafe_b64decode(p)
+              except Exception:
+                  pass
+              return base64.b64decode(s, validate=False)
+
+          out = pathlib.Path(os.environ["PROJ"]) / "android/upload-keystore.jks"
+          try:
+              data = decode_keystore(os.environ["B64"])
+          except Exception as e:
+              n = len(re.sub(r"\s+", "", os.environ.get("B64", "")))
+              print(f"keystore base64 のデコードに失敗しました: {e}", file=sys.stderr)
+              print(f"（非空白文字数: {n}）", file=sys.stderr)
+              print(
+                  "ローカルで jks を1行の標準 base64 にし直し、Secret を貼り替えてください: "
+                  "base64 -w0 < android/upload-keystore.jks",
+                  file=sys.stderr,
+              )
+              sys.exit(1)
+          out.write_bytes(data)
+          PY
           printf '%s\n' "storePassword=$STORE_PW" "keyPassword=$KEY_PW" "keyAlias=$ALIAS" "storeFile=upload-keystore.jks" > "$PROJ/android/key.properties"
 
       - name: Write Play service account JSON
@@ -209,7 +255,50 @@ jobs:
           security list-keychains -d user -s "$KEYCHAIN_PATH" "$HOME/Library/Keychains/login.keychain-db"
           security default-keychain -s "$KEYCHAIN_PATH"
 
-          printf '%s' "$P12_B64" | tr -d ' \n\r\t' | base64 -d > /tmp/dist-signing.p12
+          # macOS の base64 は入力が厳密で失敗しやすい。Android keystore 復元と同じ Python デコードを使う。
+          decode_secret_b64_to() {
+            B64_IN="$1" OUT_PATH="$2" python3 <<'PY'
+          import base64, os, pathlib, sys
+
+          def clean(s: str) -> str:
+              s = "".join(s.split())
+              if s.startswith("\ufeff"):
+                  s = s[1:]
+              if s.startswith("\xef\xbb\xbf"):
+                  s = s[3:]
+              return s
+
+          def pad(s: str) -> str:
+              return s + "=" * ((-len(s)) % 4)
+
+          def decode(b64: str) -> bytes:
+              s = clean(b64)
+              if not s:
+                  raise ValueError("empty after clean")
+              if "base64," in s:
+                  s = clean(s.split("base64,", 1)[1])
+              p = pad(s)
+              try:
+                  return base64.b64decode(p, validate=True)
+              except Exception:
+                  pass
+              try:
+                  return base64.urlsafe_b64decode(p)
+              except Exception:
+                  pass
+              return base64.b64decode(s, validate=False)
+
+          b64 = os.environ["B64_IN"]
+          out = pathlib.Path(os.environ["OUT_PATH"])
+          try:
+              data = decode(b64)
+          except Exception as e:
+              print(f"iOS Secret base64 のデコードに失敗: {e}", file=sys.stderr)
+              sys.exit(1)
+          out.write_bytes(data)
+          PY
+          }
+          decode_secret_b64_to "$P12_B64" /tmp/dist-signing.p12
           security import /tmp/dist-signing.p12 -k "$KEYCHAIN_PATH" -P "$P12_PW" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           rm -f /tmp/dist-signing.p12
@@ -218,7 +307,7 @@ jobs:
           install_profile() {
             local b64="$1"
             local raw="/tmp/prov-$$.mobileprovision"
-            printf '%s' "$b64" | tr -d ' \n\r\t' | base64 -d > "$raw"
+            decode_secret_b64_to "$b64" "$raw"
             security cms -D -i "$raw" > /tmp/prov-decoded.plist
             local uuid
             uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' /tmp/prov-decoded.plist)"
