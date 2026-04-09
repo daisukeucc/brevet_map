@@ -54,10 +54,16 @@ platform :ios do
       raw = ENV["EXPORT_OPTIONS_PLIST_PATH"]
       export_plist =
         if raw && !raw.to_s.empty?
-          File.expand_path(raw, project_root)
+          p = raw.strip.sub(%r{\A\./}, "")
+          # 絶対パスはそのまま。相対は Flutter ルート（project_root）基準（brevet_map/ios/... の二重を防ぐ）
+          p.start_with?("/") ? File.expand_path(p) : File.expand_path(p, project_root)
         end
       if export_plist && File.exist?(export_plist)
         sh(flutter_bin, "build", "ipa", "--release", "--export-options-plist=#{export_plist}")
+      elsif export_plist
+        UI.user_error!(
+          "ExportOptions が見つかりません: #{export_plist} （CI では EXPORT_OPTIONS_PLIST_PATH を plist の絶対パスにしてください）"
+        )
       else
         sh(flutter_bin, "build", "ipa", "--release")
       end

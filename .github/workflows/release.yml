@@ -321,7 +321,8 @@ jobs:
           RUNNER_PROF_NAME="$(install_profile "$PROF_RUNNER_B64")"
           EXT_PROF_NAME="$(install_profile "$PROF_EXT_B64")"
 
-          EXPORT_PLIST="$PROJ/ios/ExportOptions-ci.plist"
+          # Fastlane は project_root 基準で相対パスを解決する。brevet_map/ios/... だと二重になるため絶対パスにする
+          EXPORT_PLIST="$(cd "$PROJ" && pwd)/ios/ExportOptions-ci.plist"
           export EXPORT_PLIST RUNNER_PROF_NAME EXT_PROF_NAME
           python3 <<'PY'
           import os
