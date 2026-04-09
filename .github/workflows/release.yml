@@ -63,10 +63,10 @@ jobs:
             echo "Flutter project not found" && exit 1
           fi
 
+      # Fastlane 依存の CFPropertyList 3.x は Ruby < 3.2 のため 3.1 系（3.3 では bundle install 不可）
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
-          # Ruby 3.3 では Bundler 1.17 は動かない（String#untaint 削除のため）。Gemfile.lock と揃える。
+          ruby-version: "3.1.6"
           bundler: "2.5.23"
           bundler-cache: true
           working-directory: ${{ steps.project-dir.outputs.dir }}
@@ -152,9 +152,10 @@ jobs:
             echo "Flutter project not found" && exit 1
           fi
 
+      # release-android と同様（CFPropertyList / fastlane）
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.3"
+          ruby-version: "3.1.6"
           bundler: "2.5.23"
           bundler-cache: true
           working-directory: ${{ steps.project-dir.outputs.dir }}
