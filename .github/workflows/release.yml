@@ -28,6 +28,11 @@
 #
 name: Release (Fastlane)
 
+# Node 20 非推奨対策: JS 製アクションを Node 24 で実行（checkout ほか）
+# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
     inputs:
@@ -45,7 +50,7 @@ jobs:
     if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set project directory
         id: project-dir
@@ -132,7 +137,7 @@ jobs:
     if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set project directory
         id: project-dir
