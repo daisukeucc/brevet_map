@@ -44,6 +44,8 @@ pubspec.lock
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.java
 **/android/key.properties
+**/android/play-store-key.json
+**/android/upload-keystore.jks
 *.jks
 
 # iOS/XCode related

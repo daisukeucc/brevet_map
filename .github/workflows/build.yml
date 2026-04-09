@@ -1,9 +1,8 @@
-# サンプル: API キーを GitHub Secrets から注入してビルド
-# リポジトリの Settings → Secrets and variables → Actions に
-# GOOGLE_MAPS_API_KEY を登録してください
+# 手動で APK / iOS（署名なし）を成果物として保存
+# 継続的チェック: .github/workflows/ci.yml
+# ストア配信: .github/workflows/release.yml（Fastlane）
 #
-# 注意: このリポジトリの Flutter プロジェクトルートが brevet_map/ 直下の場合は
-# 下記の working-directory を削除し、パスをリポジトリ構成に合わせてください
+# Secrets: GOOGLE_MAPS_API_KEY, REVENUECAT_*（.env 用・任意）
 
 name: Build
 
@@ -35,8 +34,17 @@ jobs:
           fi
 
       - name: Create .env from Secrets
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          REVENUECAT_ANDROID_API_KEY: ${{ secrets.REVENUECAT_ANDROID_API_KEY }}
+          REVENUECAT_IOS_API_KEY: ${{ secrets.REVENUECAT_IOS_API_KEY }}
         run: |
-          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > ${{ steps.project.outputs.dir }}/.env
+          PROJ="${{ steps.project.outputs.dir }}"
+          {
+            echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY"
+            echo "REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY"
+            echo "REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY"
+          } > "$PROJ/.env"
 
       - name: Inject Android API key
         run: |
@@ -84,8 +92,17 @@ jobs:
           fi
 
       - name: Create .env from Secrets
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          REVENUECAT_ANDROID_API_KEY: ${{ secrets.REVENUECAT_ANDROID_API_KEY }}
+          REVENUECAT_IOS_API_KEY: ${{ secrets.REVENUECAT_IOS_API_KEY }}
         run: |
-          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > ${{ steps.project.outputs.dir }}/.env
+          PROJ="${{ steps.project.outputs.dir }}"
+          {
+            echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY"
+            echo "REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY"
+            echo "REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY"
+          } > "$PROJ/.env"
 
       - name: Create iOS Secrets.xcconfig
         run: |

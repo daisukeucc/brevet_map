@@ -1,8 +1,8 @@
 import UIKit
 import Flutter
 
-private let kShareSchemePrefix = "ShareMedia-com.example.brevetMap"
-private let kAppGroupId = "group.com.example.brevetMap"
+private let kShareSchemePrefix = "ShareMedia-com.brevetmap"
+private let kAppGroupId = "group.com.brevetmap"
 private let kSharedUrlKey = "shared_url"
 private let kPendingGpxContentKey = "pending_gpx_content"
 

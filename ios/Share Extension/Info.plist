@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>AppGroupId</key>
-	<string>group.com.example.brevetMap</string>
+	<string>group.com.brevetmap</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>NSExtension</key>

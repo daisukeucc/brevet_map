@@ -1,0 +1,45 @@
+# PR / push: 解析とテスト（ストア署名・シークレット不要）
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Set project directory
+        id: project
+        run: |
+          if [ -f pubspec.yaml ]; then
+            echo "dir=." >> $GITHUB_OUTPUT
+          elif [ -f brevet_map/pubspec.yaml ]; then
+            echo "dir=brevet_map" >> $GITHUB_OUTPUT
+          else
+            echo "Flutter project not found" && exit 1
+          fi
+
+      - name: Placeholder .env (pubspec assets)
+        run: |
+          echo "# CI placeholder" > "${{ steps.project.outputs.dir }}/.env"
+
+      - name: Flutter pub get
+        run: flutter pub get
+        working-directory: ${{ steps.project.outputs.dir }}
+
+      - name: Analyze
+        run: flutter analyze
+        working-directory: ${{ steps.project.outputs.dir }}
+
+      - name: Test
+        run: flutter test
+        working-directory: ${{ steps.project.outputs.dir }}
