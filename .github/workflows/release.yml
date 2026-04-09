@@ -66,6 +66,8 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
+          # Ruby 3.3 では Bundler 1.17 は動かない（String#untaint 削除のため）。Gemfile.lock と揃える。
+          bundler: "2.5.23"
           bundler-cache: true
           working-directory: ${{ steps.project-dir.outputs.dir }}
 
@@ -153,6 +155,7 @@ jobs:
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: "3.3"
+          bundler: "2.5.23"
           bundler-cache: true
           working-directory: ${{ steps.project-dir.outputs.dir }}
 
