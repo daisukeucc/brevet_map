@@ -345,9 +345,12 @@ jobs:
           PY
           echo "EXPORT_OPTIONS_PLIST_PATH=$EXPORT_PLIST" >> "$GITHUB_ENV"
 
-      - name: CocoaPods
+      - name: Flutter pub get & CocoaPods
         run: |
-          cd "${{ steps.project-dir.outputs.dir }}/ios"
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          cd "$PROJ"
+          flutter pub get
+          cd ios
           pod install
 
       - name: Bundle install & Fastlane beta (iOS)
