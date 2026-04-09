@@ -354,7 +354,30 @@ jobs:
           cd ios
           pod install
 
-      - name: Bundle install & Fastlane beta (iOS)
+      # Fastlane の sh 経由だと Xcode/Flutter の失敗ログが折りたたみで見えにくいため、CI ではここでビルドする
+      - name: Flutter build IPA
+        run: |
+          set -euo pipefail
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          cd "$PROJ"
+          if [ -z "${EXPORT_OPTIONS_PLIST_PATH:-}" ]; then
+            echo "::error::EXPORT_OPTIONS_PLIST_PATH が未設定です"
+            exit 1
+          fi
+          if [ ! -f "$EXPORT_OPTIONS_PLIST_PATH" ]; then
+            echo "::error::ExportOptions が見つかりません: $EXPORT_OPTIONS_PLIST_PATH"
+            exit 1
+          fi
+          if [ -n "${FLUTTER_ROOT:-}" ] && [ -x "${FLUTTER_ROOT}/bin/flutter" ]; then
+            FL_BIN="${FLUTTER_ROOT}/bin/flutter"
+          else
+            FL_BIN="flutter"
+          fi
+          echo "Using EXPORT_OPTIONS_PLIST_PATH=$EXPORT_OPTIONS_PLIST_PATH"
+          "$FL_BIN" --version
+          "$FL_BIN" build ipa --release --export-options-plist="$EXPORT_OPTIONS_PLIST_PATH"
+
+      - name: Bundle install & Fastlane upload (TestFlight)
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -363,11 +386,5 @@ jobs:
         run: |
           PROJ="${{ steps.project-dir.outputs.dir }}"
           cd "$PROJ"
-          # Fastlane 内の pub get より先に失敗させ、エラーをこのステップに出す（bundle exec で PATH が変わる場合も FLUTTER_ROOT を使う）
-          if [ -n "${FLUTTER_ROOT:-}" ] && [ -x "${FLUTTER_ROOT}/bin/flutter" ]; then
-            "${FLUTTER_ROOT}/bin/flutter" pub get
-          else
-            flutter pub get
-          fi
           bundle install
-          cd ios && bundle exec fastlane ios beta
+          cd ios && bundle exec fastlane ios upload_testflight
