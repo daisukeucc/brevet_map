@@ -362,5 +362,11 @@ jobs:
         run: |
           PROJ="${{ steps.project-dir.outputs.dir }}"
           cd "$PROJ"
+          # Fastlane 内の pub get より先に失敗させ、エラーをこのステップに出す（bundle exec で PATH が変わる場合も FLUTTER_ROOT を使う）
+          if [ -n "${FLUTTER_ROOT:-}" ] && [ -x "${FLUTTER_ROOT}/bin/flutter" ]; then
+            "${FLUTTER_ROOT}/bin/flutter" pub get
+          else
+            flutter pub get
+          fi
           bundle install
           cd ios && bundle exec fastlane ios beta
