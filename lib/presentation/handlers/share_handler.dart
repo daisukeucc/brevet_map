@@ -91,14 +91,19 @@ Future<void> handleShareButtonTap({
       currentPosition: currentPosition,
       previousPosition: previousPosition,
       onAfterCameraAnimation: onAfterCameraAnimation,
-    ).whenComplete(() {
-      if (getMounted()) onShareModeChanged(false);
-    });
+      onExitShareMode: () {
+        if (getMounted()) onShareModeChanged(false);
+      },
+    );
   });
 }
 
 /// 地図スクリーンショットの共有フローを実行する。
 /// ルートがある場合は拡大表示し、ルート上（1km以内）であれば距離を含むテキストを共有する。
+///
+/// [onExitShareMode] は共有シートが閉じたあと（[Share.shareXFiles] の Future 完了時）に呼ぶ。
+/// 撮影失敗など共有シートを出せない場合はその時点で呼ぶ。iOS で Future が遅延する場合は
+/// [MyHomePage] のライフサイクル（`resumed`）でも共有モードを落とすフォールバックあり。
 Future<void> showShareFlow(
   BuildContext context,
   WidgetRef ref,
@@ -106,10 +111,21 @@ Future<void> showShareFlow(
   LatLng? currentPosition,
   LatLng? previousPosition,
   void Function(double zoomBefore)? onAfterCameraAnimation,
+  required void Function() onExitShareMode,
 }) async {
+  var exitedShareMode = false;
+  void ensureExitShareMode() {
+    if (exitedShareMode) return;
+    exitedShareMode = true;
+    onExitShareMode();
+  }
+
   final boundary = screenshotKey.currentContext?.findRenderObject()
       as RenderRepaintBoundary?;
-  if (boundary == null || !context.mounted) return;
+  if (boundary == null || !context.mounted) {
+    ensureExitShareMode();
+    return;
+  }
 
   try {
     // 1. ルートを拡大表示
@@ -129,18 +145,27 @@ Future<void> showShareFlow(
       }
       await Future.delayed(const Duration(milliseconds: 500));
     }
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      ensureExitShareMode();
+      return;
+    }
 
     // 2. ボタン含む複雑なシーンの描画完了を待つ
     await Future.delayed(const Duration(milliseconds: 150));
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      ensureExitShareMode();
+      return;
+    }
 
     // 共有用: 1.75 で画質優先（2.0 に近い鮮明さ、やや軽め）
     final image = await boundary.toImage(pixelRatio: 1.75);
     // スクリーンショット撮影後にズームを復元（GPS 位置更新での zoom 上書きを防ぐため）
     if (zoomBefore != null) onAfterCameraAnimation?.call(zoomBefore);
     final byteData = await image.toByteData(format: ImageByteFormat.png);
-    if (byteData == null || !context.mounted) return;
+    if (byteData == null || !context.mounted) {
+      ensureExitShareMode();
+      return;
+    }
 
     final gpxName = await loadGpxMetadataName();
     final fileName = 'brevet_map_${DateTime.now().millisecondsSinceEpoch}.png';
@@ -155,7 +180,10 @@ Future<void> showShareFlow(
     final file = File('${shareDir.path}/$fileName');
     await file.writeAsBytes(byteData.buffer.asUint8List());
 
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      ensureExitShareMode();
+      return;
+    }
 
     // iPad / iOS: sharePositionOrigin が必須の場合がある（share_plus issue #3697 等）
     final sharePositionOrigin = Platform.isIOS
@@ -177,7 +205,9 @@ Future<void> showShareFlow(
       ].join('\n'),
       sharePositionOrigin: sharePositionOrigin,
     );
+    ensureExitShareMode();
   } catch (e) {
+    ensureExitShareMode();
     if (context.mounted) {
       showAppSnackBar(context, AppLocalizations.of(context)!.shareFailed);
     }
