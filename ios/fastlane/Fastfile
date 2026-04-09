@@ -7,6 +7,16 @@ def project_root
   File.expand_path("../..", __dir__)
 end
 
+# CI では bundle exec 後に PATH から flutter が消えることがあるため FLUTTER_ROOT を優先する
+def flutter_executable
+  root = ENV["FLUTTER_ROOT"]
+  if root && !root.empty?
+    candidate = File.join(root, "bin", "flutter")
+    return candidate if File.exist?(candidate)
+  end
+  "flutter"
+end
+
 # App Store Connect API:
 # - 分割: APP_STORE_CONNECT_KEY_ID / ISSUER_ID / KEY_CONTENT(base64)
 # - または 1 本: APP_STORE_CONNECT_API_KEY に JSON
@@ -39,12 +49,17 @@ platform :ios do
   desc "CI: EXPORT_OPTIONS_PLIST_PATH に ExportOptions（manual・Runner+Extension）を渡す"
   lane :build_ipa do
     Dir.chdir(project_root) do
-      sh("flutter", "pub", "get")
-      export_plist = ENV["EXPORT_OPTIONS_PLIST_PATH"]
-      if export_plist && !export_plist.to_s.empty? && File.exist?(export_plist)
-        sh("flutter", "build", "ipa", "--release", "--export-options-plist=#{export_plist}")
+      flutter_bin = flutter_executable
+      sh(flutter_bin, "pub", "get")
+      raw = ENV["EXPORT_OPTIONS_PLIST_PATH"]
+      export_plist =
+        if raw && !raw.to_s.empty?
+          File.expand_path(raw, project_root)
+        end
+      if export_plist && File.exist?(export_plist)
+        sh(flutter_bin, "build", "ipa", "--release", "--export-options-plist=#{export_plist}")
       else
-        sh("flutter", "build", "ipa", "--release")
+        sh(flutter_bin, "build", "ipa", "--release")
       end
     end
   end
