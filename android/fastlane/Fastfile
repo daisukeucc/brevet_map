@@ -1,0 +1,40 @@
+# frozen_string_literal: true
+
+default_platform(:android)
+
+def project_root
+  File.expand_path("../..", __dir__)
+end
+
+platform :android do
+  desc "Flutter でリリース用 AAB をビルド（android/key.properties + keystore が必要）"
+  lane :build_aab do
+    Dir.chdir(project_root) do
+      sh("flutter", "pub", "get")
+      sh("flutter", "build", "appbundle", "--release")
+    end
+  end
+
+  desc "AAB を Play コンソールの internal トラックへアップロード"
+  lane :internal do
+    json_path = ENV.fetch("PLAY_STORE_JSON_KEY_PATH")
+    aab = File.join(project_root, "build/app/outputs/bundle/release/app-release.aab")
+    UI.user_error!("AAB が見つかりません: #{aab}") unless File.exist?(aab)
+
+    supply(
+      track: "internal",
+      aab: aab,
+      json_key: json_path,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+
+  desc "build_aab のあと internal へアップロード"
+  lane :deploy_internal do
+    build_aab
+    internal
+  end
+end

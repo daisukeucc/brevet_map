@@ -1,0 +1,263 @@
+# 手動リリース: Fastlane でビルドし、TestFlight / Play internal へアップロード
+#
+# GitHub Secrets（例・登録済みの名前に合わせています）
+#   共通 .env:
+#     GOOGLE_MAPS_API_KEY
+#     REVENUECAT_ANDROID_API_KEY
+#     REVENUECAT_IOS_API_KEY
+#
+#   Android リリース署名 + Play:
+#     ANDROID_KEYSTORE_BASE64
+#     ANDROID_KEYSTORE_STORE_PASSWORD
+#     ANDROID_KEY_ALIAS
+#     ANDROID_KEY_KEY_PASSWORD
+#     GOOGLE_CLOUD_SERVICE_ACCOUNT_KEY
+#       → サービスアカウント JSON をそのまま、または JSON 全体を base64 した1行
+#
+#   iOS（TestFlight）— App Store Connect API（アップロード用）:
+#     APP_STORE_CONNECT_KEY_ID + APP_STORE_CONNECT_ISSUER_ID + APP_STORE_CONNECT_KEY_CONTENT(.p8 base64)
+#     または APP_STORE_CONNECT_API_KEY（JSON）
+#
+#   iOS コード署名（方法 B・手エクスポート・CI 用）:
+#     IOS_DISTRIBUTION_P12_BASE64        Distribution 証明書 .p12 を base64
+#     IOS_DISTRIBUTION_P12_PASSWORD
+#     IOS_PROVISION_PROFILE_RUNNER_BASE64       メイン com.brevetmap 用 .mobileprovision
+#     IOS_PROVISION_PROFILE_SHARE_EXTENSION_BASE64  Share Extension 用
+#     IOS_APP_STORE_TEAM_ID              10桁の Team ID（App Store Connect のチーム ID）
+#     （任意）IOS_KEYCHAIN_PASSWORD       一時キーチェーン用。未設定時はランダム生成
+#
+name: Release (Fastlane)
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "デプロイするプラットフォーム"
+        required: true
+        type: choice
+        options:
+          - android
+          - ios
+          - both
+
+jobs:
+  release-android:
+    if: ${{ inputs.platform == 'android' || inputs.platform == 'both' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set project directory
+        id: project-dir
+        run: |
+          if [ -f pubspec.yaml ]; then
+            echo "dir=." >> $GITHUB_OUTPUT
+          elif [ -f brevet_map/pubspec.yaml ]; then
+            echo "dir=brevet_map" >> $GITHUB_OUTPUT
+          else
+            echo "Flutter project not found" && exit 1
+          fi
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: ${{ steps.project-dir.outputs.dir }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create .env from Secrets
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          REVENUECAT_ANDROID_API_KEY: ${{ secrets.REVENUECAT_ANDROID_API_KEY }}
+          REVENUECAT_IOS_API_KEY: ${{ secrets.REVENUECAT_IOS_API_KEY }}
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          {
+            echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY"
+            echo "REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY"
+            echo "REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY"
+          } > "$PROJ/.env"
+
+      - name: Inject Android API key
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          mkdir -p "$PROJ/android"
+          echo "sdk.dir=$ANDROID_HOME" >> "$PROJ/android/local.properties"
+          echo "flutter.sdk=$FLUTTER_ROOT" >> "$PROJ/android/local.properties"
+          echo "google.maps.api.key=${{ secrets.GOOGLE_MAPS_API_KEY }}" >> "$PROJ/android/local.properties"
+
+      - name: Decode keystore and key.properties
+        env:
+          B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PW: ${{ secrets.ANDROID_KEYSTORE_STORE_PASSWORD }}
+          KEY_PW: ${{ secrets.ANDROID_KEY_KEY_PASSWORD }}
+          ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          if [ -z "$B64" ]; then
+            echo "ANDROID_KEYSTORE_BASE64 が未設定です。" && exit 1
+          fi
+          echo "$B64" | base64 -d > "$PROJ/android/upload-keystore.jks"
+          printf '%s\n' "storePassword=$STORE_PW" "keyPassword=$KEY_PW" "keyAlias=$ALIAS" "storeFile=upload-keystore.jks" > "$PROJ/android/key.properties"
+
+      - name: Write Play service account JSON
+        env:
+          GC_KEY: ${{ secrets.GOOGLE_CLOUD_SERVICE_ACCOUNT_KEY }}
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          if [ -z "$GC_KEY" ]; then
+            echo "GOOGLE_CLOUD_SERVICE_ACCOUNT_KEY が未設定です。" && exit 1
+          fi
+          FIRST=$(printf '%s' "$GC_KEY" | head -c 1)
+          if [ "$FIRST" = "{" ]; then
+            printf '%s' "$GC_KEY" > "$PROJ/android/play-store-key.json"
+          else
+            printf '%s' "$GC_KEY" | base64 -d > "$PROJ/android/play-store-key.json"
+          fi
+
+      - name: Bundle install & Fastlane deploy Android
+        env:
+          PLAY_STORE_JSON_KEY_PATH: ${{ github.workspace }}/${{ steps.project-dir.outputs.dir }}/android/play-store-key.json
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          cd "$PROJ"
+          bundle install
+          cd android && bundle exec fastlane android deploy_internal
+
+  release-ios:
+    if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set project directory
+        id: project-dir
+        run: |
+          if [ -f pubspec.yaml ]; then
+            echo "dir=." >> $GITHUB_OUTPUT
+          elif [ -f brevet_map/pubspec.yaml ]; then
+            echo "dir=brevet_map" >> $GITHUB_OUTPUT
+          else
+            echo "Flutter project not found" && exit 1
+          fi
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: ${{ steps.project-dir.outputs.dir }}
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create .env from Secrets
+        env:
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
+          REVENUECAT_ANDROID_API_KEY: ${{ secrets.REVENUECAT_ANDROID_API_KEY }}
+          REVENUECAT_IOS_API_KEY: ${{ secrets.REVENUECAT_IOS_API_KEY }}
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          {
+            echo "GOOGLE_MAPS_API_KEY=$GOOGLE_MAPS_API_KEY"
+            echo "REVENUECAT_ANDROID_API_KEY=$REVENUECAT_ANDROID_API_KEY"
+            echo "REVENUECAT_IOS_API_KEY=$REVENUECAT_IOS_API_KEY"
+          } > "$PROJ/.env"
+
+      - name: Create iOS Secrets.xcconfig
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          mkdir -p "$PROJ/ios/Runner"
+          echo "GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}" > "$PROJ/ios/Runner/Secrets.xcconfig"
+
+      # 方法 B: Keychain に Distribution .p12、2 本の App Store 用 .mobileprovision を配置し manual 用 ExportOptions を生成
+      - name: Install iOS signing (p12 + provisioning profiles)
+        env:
+          P12_B64: ${{ secrets.IOS_DISTRIBUTION_P12_BASE64 }}
+          P12_PW: ${{ secrets.IOS_DISTRIBUTION_P12_PASSWORD }}
+          PROF_RUNNER_B64: ${{ secrets.IOS_PROVISION_PROFILE_RUNNER_BASE64 }}
+          PROF_EXT_B64: ${{ secrets.IOS_PROVISION_PROFILE_SHARE_EXTENSION_BASE64 }}
+          TEAM_ID: ${{ secrets.IOS_APP_STORE_TEAM_ID }}
+          KC_PW: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${P12_B64:-}" ] || [ -z "${P12_PW:-}" ] || [ -z "${PROF_RUNNER_B64:-}" ] || [ -z "${PROF_EXT_B64:-}" ] || [ -z "${TEAM_ID:-}" ]; then
+            echo "::error::iOS CI 署名: IOS_DISTRIBUTION_P12_* / IOS_PROVISION_PROFILE_*（Runner・Extension の2本）/ IOS_APP_STORE_TEAM_ID を Secrets に設定してください。"
+            exit 1
+          fi
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          KEYCHAIN_PATH="${RUNNER_TEMP}/ios-ci-signing.keychain-db"
+          KEYCHAIN_PASSWORD="${KC_PW:-$(openssl rand -hex 32)}"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychains -d user -s "$KEYCHAIN_PATH" "$HOME/Library/Keychains/login.keychain-db"
+          security default-keychain -s "$KEYCHAIN_PATH"
+
+          echo "$P12_B64" | base64 -d > /tmp/dist-signing.p12
+          security import /tmp/dist-signing.p12 -k "$KEYCHAIN_PATH" -P "$P12_PW" -T /usr/bin/codesign -T /usr/bin/security -T /usr/bin/productbuild
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          rm -f /tmp/dist-signing.p12
+
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          install_profile() {
+            local b64="$1"
+            local raw="/tmp/prov-$$.mobileprovision"
+            echo "$b64" | base64 -d > "$raw"
+            security cms -D -i "$raw" > /tmp/prov-decoded.plist
+            local uuid
+            uuid="$(/usr/libexec/PlistBuddy -c 'Print UUID' /tmp/prov-decoded.plist)"
+            local pname
+            pname="$(/usr/libexec/PlistBuddy -c 'Print Name' /tmp/prov-decoded.plist)"
+            cp "$raw" "$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
+            rm -f "$raw"
+            printf '%s' "$pname"
+          }
+          RUNNER_PROF_NAME="$(install_profile "$PROF_RUNNER_B64")"
+          EXT_PROF_NAME="$(install_profile "$PROF_EXT_B64")"
+
+          EXPORT_PLIST="$PROJ/ios/ExportOptions-ci.plist"
+          export EXPORT_PLIST RUNNER_PROF_NAME EXT_PROF_NAME
+          python3 <<'PY'
+          import os
+          import plistlib
+
+          team = os.environ["TEAM_ID"]
+          path = os.environ["EXPORT_PLIST"]
+          runner = os.environ["RUNNER_PROF_NAME"]
+          ext = os.environ["EXT_PROF_NAME"]
+          data = {
+              "method": "app-store",
+              "signingStyle": "manual",
+              "teamID": team,
+              "provisioningProfiles": {
+                  "com.brevetmap": runner,
+                  "com.brevetmap.Share-Extension": ext,
+              },
+          }
+          with open(path, "wb") as f:
+              plistlib.dump(data, f, fmt=plistlib.FMT_XML)
+          PY
+          echo "EXPORT_OPTIONS_PLIST_PATH=$EXPORT_PLIST" >> "$GITHUB_ENV"
+
+      - name: CocoaPods
+        run: |
+          cd "${{ steps.project-dir.outputs.dir }}/ios"
+          pod install
+
+      - name: Bundle install & Fastlane beta (iOS)
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_KEY_CONTENT }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          cd "$PROJ"
+          bundle install
+          cd ios && bundle exec fastlane ios beta
