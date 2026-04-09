@@ -1,0 +1,3 @@
+// Release 用: Pods の設定を引き継ぎ、CI では CI-signing-ShareExtension.xcconfig で手動署名
+#include "../Pods/Target Support Files/Pods-Share Extension/Pods-Share Extension.release.xcconfig"
+#include? "CI-signing-ShareExtension.xcconfig"

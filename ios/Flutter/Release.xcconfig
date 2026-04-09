@@ -1,4 +1,6 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"
 #include "Generated.xcconfig"
 #include? "../Runner/Secrets.xcconfig"
+// CI のみ存在（GitHub Actions がプロファイル名を書き込む）。ローカルでは #include? でスキップ
+#include? "CI-signing-Runner.xcconfig"
 DEVELOPER_TEAM = MLLH8854QX
