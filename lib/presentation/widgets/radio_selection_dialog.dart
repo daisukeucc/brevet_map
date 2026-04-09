@@ -1,3 +1,6 @@
+// TODO: RadioGroup へ移行後に削除（Flutter 3.32+ で Radio の API が非推奨）
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 import '../theme/app_text_styles.dart';

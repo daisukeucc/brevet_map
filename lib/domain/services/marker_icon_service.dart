@@ -14,15 +14,15 @@ Future<Widget> createRoundedSquareMarkerIcon({
   const pixelRatio = 2.0;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
   final outerRrect = RRect.fromRectAndRadius(
-    Rect.fromLTWH(0, 0, size, size),
+    const Rect.fromLTWH(0, 0, size, size),
     const Radius.circular(radius),
   );
   final innerRadius = (radius - borderWidth).clamp(0.0, double.infinity);
   final innerRrect = RRect.fromRectAndRadius(
-    Rect.fromLTWH(borderWidth, borderWidth, size - borderWidth * 2,
+    const Rect.fromLTWH(borderWidth, borderWidth, size - borderWidth * 2,
         size - borderWidth * 2),
     Radius.circular(innerRadius),
   );
@@ -32,8 +32,8 @@ Future<Widget> createRoundedSquareMarkerIcon({
   final iconPaint = Paint()
     ..color = Colors.white
     ..style = PaintingStyle.fill;
-  final cx = size / 2;
-  final cy = size / 2;
+  const cx = size / 2;
+  const cy = size / 2;
 
   if (isPlayIcon) {
     const halfH = 20.0;
@@ -48,7 +48,7 @@ Future<Widget> createRoundedSquareMarkerIcon({
     const iconSize = 35.0;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        Rect.fromLTWH(cx - iconSize / 2, cy - iconSize / 2, iconSize, iconSize),
+        const Rect.fromLTWH(cx - iconSize / 2, cy - iconSize / 2, iconSize, iconSize),
         const Radius.circular(0),
       ),
       iconPaint,
@@ -98,22 +98,22 @@ Future<Widget> createPoiInfoMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
   const pixelRatio = 2.0;
-  final cx = size / 2;
-  final cy = size / 2;
+  const cx = size / 2;
+  const cy = size / 2;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
   final circlePaint = Paint()
     ..color = Colors.orange.shade600
     ..style = PaintingStyle.fill;
-  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+  canvas.drawCircle(const Offset(cx, cy), radius, circlePaint);
 
   final borderPaint = Paint()
     ..color = Colors.white
     ..style = PaintingStyle.stroke
     ..strokeWidth = 6;
-  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+  canvas.drawCircle(const Offset(cx, cy), radius, borderPaint);
 
   const text = 'i';
   final textPainter = TextPainter(
@@ -222,7 +222,7 @@ Future<({Widget icon, double width, double height})> createDistanceMarkerIcon(
 
   textPainter.paint(
     canvas,
-    Offset(horizontalPadding, verticalPadding),
+    const Offset(horizontalPadding, verticalPadding),
   );
 
   final picture = recorder.endRecording();
@@ -254,22 +254,22 @@ Future<Widget> createSharePreviewMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
   const pixelRatio = 2.0;
-  final cx = size / 2;
-  final cy = size / 2;
+  const cx = size / 2;
+  const cy = size / 2;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
   final circlePaint = Paint()
     ..color = Colors.blue
     ..style = PaintingStyle.fill;
-  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+  canvas.drawCircle(const Offset(cx, cy), radius, circlePaint);
 
   final borderPaint = Paint()
     ..color = Colors.white
     ..style = PaintingStyle.stroke
     ..strokeWidth = 6;
-  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+  canvas.drawCircle(const Offset(cx, cy), radius, borderPaint);
 
   // 下向き矢印（パスで描画・天地左右中央揃え、太め）
   const arrowTip = 14.0;
@@ -305,22 +305,22 @@ Future<Widget> createPoiCheckpointMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
   const pixelRatio = 2.0;
-  final cx = size / 2;
-  final cy = size / 2;
+  const cx = size / 2;
+  const cy = size / 2;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
   final circlePaint = Paint()
     ..color = Colors.lightBlue
     ..style = PaintingStyle.fill;
-  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+  canvas.drawCircle(const Offset(cx, cy), radius, circlePaint);
 
   final borderPaint = Paint()
     ..color = Colors.white
     ..style = PaintingStyle.stroke
     ..strokeWidth = 6;
-  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+  canvas.drawCircle(const Offset(cx, cy), radius, borderPaint);
 
   final checkPath = Path()
     ..moveTo(cx - 13, cy)

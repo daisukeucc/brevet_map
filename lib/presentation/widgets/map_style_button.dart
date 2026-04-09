@@ -20,7 +20,7 @@ class MapStyleButton extends StatelessWidget {
     final message = isDark ? l10n.mapStyleNormal : l10n.mapStyleDark;
     final backgroundColor = isDark ? Colors.blueGrey : Colors.white;
     final iconColor = isDark ? Colors.white : Colors.blueGrey;
-    final shadowColor = Colors.black26;
+    const shadowColor = Colors.black26;
 
     return Tooltip(
       message: message,

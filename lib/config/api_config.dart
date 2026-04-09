@@ -7,4 +7,4 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 /// （env.example をコピー: cp env.example .env）
 String get googleMapsApiKey =>
     dotenv.env['GOOGLE_MAPS_API_KEY']?.trim() ??
-    String.fromEnvironment('GOOGLE_MAPS_API_KEY', defaultValue: '');
+    const String.fromEnvironment('GOOGLE_MAPS_API_KEY', defaultValue: '');

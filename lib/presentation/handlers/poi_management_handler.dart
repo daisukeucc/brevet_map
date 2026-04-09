@@ -1,3 +1,6 @@
+// TODO: Radio を RadioGroup ベースに移行後に削除（Flutter 3.32+）
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
