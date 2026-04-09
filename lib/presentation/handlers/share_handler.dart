@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' show ImageByteFormat;
 
@@ -18,12 +19,17 @@ import '../widgets/hp_setup_dialog.dart';
 /// ルート上とみなす距離の閾値（メートル）
 const double _onRouteThresholdM = 1000;
 
+/// スクショ撮影完了から共有吹き出しを自動で消すまでの時間。
+/// 共有シート終了の検知に失敗しても残り続けないようにする。
+const Duration _shareCalloutAutoHideDuration = Duration(seconds: 8);
+
 /// 吹き出し用のメインテキストを取得する。
 /// [computeAlong] はダウンサンプル済みの alongTrackM と toRouteM を返す関数。
 /// [totalRouteM] はルート総距離（メートル）。
 String getLocationCalloutMainText({
   required LatLng? currentPosition,
-  required ({double alongTrackM, double toRouteM}) Function(LatLng) computeAlong,
+  required ({double alongTrackM, double toRouteM}) Function(LatLng)
+      computeAlong,
   required double totalRouteM,
   required int unit,
 }) {
@@ -49,7 +55,8 @@ String getLocationCalloutMainText({
   required bool hasPosition,
   required LatLng? currentPosition,
   LatLng? previousPosition,
-  required ({double alongTrackM, double toRouteM}) Function(LatLng) computeAlong,
+  required ({double alongTrackM, double toRouteM}) Function(LatLng)
+      computeAlong,
   required double totalRouteM,
   required int distanceUnit,
 }) {
@@ -101,9 +108,13 @@ Future<void> handleShareButtonTap({
 /// 地図スクリーンショットの共有フローを実行する。
 /// ルートがある場合は拡大表示し、ルート上（1km以内）であれば距離を含むテキストを共有する。
 ///
-/// [onExitShareMode] は共有シートが閉じたあと（[Share.shareXFiles] の Future 完了時）に呼ぶ。
-/// 撮影失敗など共有シートを出せない場合はその時点で呼ぶ。iOS で Future が遅延する場合は
-/// [MyHomePage] のライフサイクル（`resumed`）でも共有モードを落とすフォールバックあり。
+/// [onExitShareMode] は次のいずれかで呼ぶ。
+/// - [Share.shareXFiles] 完了時（共有シートが閉じたあと）
+/// - 撮影失敗・ファイル書き込み失敗など、共有フローを続けられないとき
+/// - 撮影完了から [_shareCalloutAutoHideDuration] 経過時（タイマー）
+///
+/// 共有シート終了の検知に失敗しても、タイマーで吹き出しは消える。
+/// [MyHomePage] の `resumed` でも共有モードを落とすフォールバックあり。
 Future<void> showShareFlow(
   BuildContext context,
   WidgetRef ref,
@@ -114,7 +125,11 @@ Future<void> showShareFlow(
   required void Function() onExitShareMode,
 }) async {
   var exitedShareMode = false;
+  Timer? calloutAutoHideTimer;
+
   void ensureExitShareMode() {
+    calloutAutoHideTimer?.cancel();
+    calloutAutoHideTimer = null;
     if (exitedShareMode) return;
     exitedShareMode = true;
     onExitShareMode();
@@ -161,6 +176,9 @@ Future<void> showShareFlow(
     final image = await boundary.toImage(pixelRatio: 1.75);
     // スクリーンショット撮影後にズームを復元（GPS 位置更新での zoom 上書きを防ぐため）
     if (zoomBefore != null) onAfterCameraAnimation?.call(zoomBefore);
+    // 撮影完了をトリガーに吹き出し自動解除タイマー（共有シート検知失敗時の保険）
+    calloutAutoHideTimer =
+        Timer(_shareCalloutAutoHideDuration, ensureExitShareMode);
     final byteData = await image.toByteData(format: ImageByteFormat.png);
     if (byteData == null || !context.mounted) {
       ensureExitShareMode();
