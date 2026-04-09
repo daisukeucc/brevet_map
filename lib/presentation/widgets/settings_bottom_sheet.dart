@@ -48,12 +48,13 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
         label: l10n.appSettingsTitle,
         onTap: widget.onAppSettingsTap
       ),
-      if (widget.onDebugWelcomeTap != null)
-        (
-          icon: Icons.info_outline,
-          label: '[Debug] Welcome Dialog',
-          onTap: widget.onDebugWelcomeTap!,
-        ),
+      // ボトムメニューから Welcome Dialog を非表示（デバッグ用）
+      // if (widget.onDebugWelcomeTap != null)
+      //   (
+      //     icon: Icons.info_outline,
+      //     label: '[Debug] Welcome Dialog',
+      //     onTap: widget.onDebugWelcomeTap!,
+      //   ),
     ];
 
     return SafeArea(
