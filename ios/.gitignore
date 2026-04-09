@@ -29,6 +29,8 @@ Runner/GeneratedPluginRegistrant.*
 
 # CI で生成（GitHub Actions の方法 B）
 ExportOptions-ci.plist
+Flutter/CI-signing-Runner.xcconfig
+Share Extension/CI-signing-ShareExtension.xcconfig
 
 # Exceptions to above rules.
 !default.mode1v3

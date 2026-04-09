@@ -323,9 +323,10 @@ jobs:
 
           # Fastlane は project_root 基準で相対パスを解決する。brevet_map/ios/... だと二重になるため絶対パスにする
           EXPORT_PLIST="$(cd "$PROJ" && pwd)/ios/ExportOptions-ci.plist"
-          export EXPORT_PLIST RUNNER_PROF_NAME EXT_PROF_NAME
+          export PROJ EXPORT_PLIST RUNNER_PROF_NAME EXT_PROF_NAME
           python3 <<'PY'
           import os
+          import pathlib
           import plistlib
 
           team = os.environ["TEAM_ID"]
@@ -343,6 +344,20 @@ jobs:
           }
           with open(path, "wb") as f:
               plistlib.dump(data, f, fmt=plistlib.FMT_XML)
+
+          def write_ci_signing(xc_path: pathlib.Path, profile_name: str) -> None:
+              esc = profile_name.replace("\\", "\\\\").replace('"', '\\"')
+              xc_path.parent.mkdir(parents=True, exist_ok=True)
+              xc_path.write_text(
+                  "CODE_SIGN_STYLE = Manual\n"
+                  'CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution\n'
+                  f'PROVISIONING_PROFILE_SPECIFIER = "{esc}"\n',
+                  encoding="utf-8",
+              )
+
+          proj = pathlib.Path(os.environ["PROJ"])
+          write_ci_signing(proj / "ios/Flutter/CI-signing-Runner.xcconfig", runner)
+          write_ci_signing(proj / "ios/Share Extension/CI-signing-ShareExtension.xcconfig", ext)
           PY
           echo "EXPORT_OPTIONS_PLIST_PATH=$EXPORT_PLIST" >> "$GITHUB_ENV"
 
