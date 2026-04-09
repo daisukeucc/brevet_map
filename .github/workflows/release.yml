@@ -329,10 +329,18 @@ jobs:
           import pathlib
           import plistlib
 
+          import re
+
+          def normalize_profile_name(s: str) -> str:
+              s = (s or "").strip()
+              while len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'":
+                  s = s[1:-1].strip()
+              return s
+
           team = os.environ["TEAM_ID"]
           path = os.environ["EXPORT_PLIST"]
-          runner = os.environ["RUNNER_PROF_NAME"]
-          ext = os.environ["EXT_PROF_NAME"]
+          runner = normalize_profile_name(os.environ["RUNNER_PROF_NAME"])
+          ext = normalize_profile_name(os.environ["EXT_PROF_NAME"])
           data = {
               "method": "app-store",
               "signingStyle": "manual",
@@ -345,13 +353,21 @@ jobs:
           with open(path, "wb") as f:
               plistlib.dump(data, f, fmt=plistlib.FMT_XML)
 
+          def provisioning_profile_specifier_xc_line(name: str) -> str:
+              # 引用符で常に囲むと Xcode が名前に " を含むものとして誤解釈することがある。
+              # 英数字・._-+ のみはクォートなし。それ以外や空白はダブルクォート + エスケープ。
+              n = normalize_profile_name(name)
+              if re.fullmatch(r"[A-Za-z0-9._+-]+", n):
+                  return f"PROVISIONING_PROFILE_SPECIFIER = {n}\n"
+              esc = n.replace("\\", "\\\\").replace('"', '\\"')
+              return f'PROVISIONING_PROFILE_SPECIFIER = "{esc}"\n'
+
           def write_ci_signing(xc_path: pathlib.Path, profile_name: str) -> None:
-              esc = profile_name.replace("\\", "\\\\").replace('"', '\\"')
               xc_path.parent.mkdir(parents=True, exist_ok=True)
               xc_path.write_text(
                   "CODE_SIGN_STYLE = Manual\n"
                   'CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution\n'
-                  f'PROVISIONING_PROFILE_SPECIFIER = "{esc}"\n',
+                  + provisioning_profile_specifier_xc_line(profile_name),
                   encoding="utf-8",
               )
 
