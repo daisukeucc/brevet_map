@@ -141,7 +141,8 @@ jobs:
                   pass
               return base64.b64decode(s, validate=False)
 
-          out = pathlib.Path(os.environ["PROJ"]) / "android/upload-keystore.jks"
+          # app/build.gradle の file(storeFile) は android/app を基準に解決するため app 直下に置く
+          out = pathlib.Path(os.environ["PROJ"]) / "android/app/upload-keystore.jks"
           try:
               data = decode_keystore(os.environ["B64"])
           except Exception as e:
@@ -150,7 +151,7 @@ jobs:
               print(f"（非空白文字数: {n}）", file=sys.stderr)
               print(
                   "ローカルで jks を1行の標準 base64 にし直し、Secret を貼り替えてください: "
-                  "base64 -w0 < android/upload-keystore.jks",
+                  "base64 -w0 < android/app/upload-keystore.jks",
                   file=sys.stderr,
               )
               sys.exit(1)
@@ -344,9 +345,12 @@ jobs:
           PY
           echo "EXPORT_OPTIONS_PLIST_PATH=$EXPORT_PLIST" >> "$GITHUB_ENV"
 
-      - name: CocoaPods
+      - name: Flutter pub get & CocoaPods
         run: |
-          cd "${{ steps.project-dir.outputs.dir }}/ios"
+          PROJ="${{ steps.project-dir.outputs.dir }}"
+          cd "$PROJ"
+          flutter pub get
+          cd ios
           pod install
 
       - name: Bundle install & Fastlane beta (iOS)
