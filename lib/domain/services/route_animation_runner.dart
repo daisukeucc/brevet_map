@@ -125,14 +125,14 @@ class RouteAnimationRunner {
         width: _markerSize,
         height: _markerSize,
         alignment: Alignment.center,
-        child: goalIcon!,
+        child: goalIcon,
       ),
       Marker(
         point: startPoint,
         width: _markerSize,
         height: _markerSize,
         alignment: Alignment.center,
-        child: startIcon!,
+        child: startIcon,
       ),
     ];
   }

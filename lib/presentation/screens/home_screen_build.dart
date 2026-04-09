@@ -236,6 +236,7 @@ mixin _BuildMixin
     return _buildMapLayout(context);
   }
 
+  @override
   void _showSampleRouteDialog(BuildContext context) {
     if (!context.mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -278,7 +279,8 @@ mixin _BuildMixin
         ],
       ),
     ).then((_) {
-      if (mounted) _showVolumeButtonTutorial(context);
+      if (!context.mounted) return;
+      _showVolumeButtonTutorial(context);
     });
   }
 

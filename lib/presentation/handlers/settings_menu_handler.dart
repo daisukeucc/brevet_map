@@ -82,6 +82,7 @@ Future<void> handleAddPoiTap(
     return;
   }
   if (result is PoiEditPositionRequest) {
+    if (!context.mounted) return;
     await handleStartEditPoiPosition(
       context,
       ref,

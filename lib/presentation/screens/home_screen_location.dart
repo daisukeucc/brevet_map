@@ -7,6 +7,8 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
 
   Position _fallbackPosition();
 
+  // 実装は home_screen.dart。他 part から参照。
+  // ignore: unused_element
   Position _positionFromLatLng(double lat, double lng);
 
   // ── このmixinが所有するstate ──────────────────────────────────────────────

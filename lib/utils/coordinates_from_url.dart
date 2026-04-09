@@ -130,13 +130,22 @@ String _extractFacilityNameOnly(String raw) {
 }
 
 bool _isAddressPart(String part) {
-  if (part.isEmpty) return true;
-  if (RegExp(r'^〒?\d{3}-?\d{4}$').hasMatch(part)) return true;
-  if (RegExp(r'^[\d〇一二三四五六七八九十百千０-９0-9\-−‐‑–—―−]+$').hasMatch(part))
+  if (part.isEmpty) {
     return true;
-  if (RegExp(r'[丁目番号\d０-９\-−]$').hasMatch(part)) return true;
+  }
+  if (RegExp(r'^〒?\d{3}-?\d{4}$').hasMatch(part)) {
+    return true;
+  }
+  if (RegExp(r'^[\d〇一二三四五六七八九十百千０-９0-9\-−‐‑–—―−]+$').hasMatch(part)) {
+    return true;
+  }
+  if (RegExp(r'[丁目番号\d０-９\-−]$').hasMatch(part)) {
+    return true;
+  }
   if (part.contains('県') &&
       (part.contains('市') || part.contains('町') || part.contains('村')) &&
-      RegExp(r'[丁目\d０-９\-−]$').hasMatch(part)) return true;
+      RegExp(r'[丁目\d０-９\-−]$').hasMatch(part)) {
+    return true;
+  }
   return false;
 }

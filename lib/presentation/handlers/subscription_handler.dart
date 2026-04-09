@@ -107,6 +107,7 @@ Future<void> showSubscriptionDialog(BuildContext context) async {
   );
 
   if (selected == null) return;
+  if (!context.mounted) return;
 
   if (selected == 0) {
     final navigator = Navigator.of(context);

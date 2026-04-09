@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 /// 設定ボトムシート
 class SettingsBottomSheet extends StatefulWidget {
   const SettingsBottomSheet({
+    super.key,
     required this.onGpxImportTap,
     required this.onGpxExportTap,
     required this.onOfflineMapTap,
