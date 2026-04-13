@@ -6,13 +6,19 @@ import 'package:latlong2/latlong.dart';
 
 const double kmPerMile = 1.609344;
 
-/// 距離を単位に応じてフォーマット（0=km, 1=mile）。小数点以下は四捨五入。
+/// [value] を小数第1位で丸め、`.0` で終わるときは整数表示にする（例: 20.0→20、20.5→20.5）。
+String _formatDistanceDisplayValue(double value) {
+  final s = value.toStringAsFixed(1);
+  return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
+}
+
+/// 距離を単位に応じてフォーマット（0=km, 1=mile）。小数点以下第1位まで（表示用に丸め）。
 String formatDistance(double km, int unit) {
   if (unit == 1) {
     final mi = km / kmPerMile;
-    return '${mi.round()}mi';
+    return '${_formatDistanceDisplayValue(mi)}mi';
   }
-  return '${km.round()}km';
+  return '${_formatDistanceDisplayValue(km)}km';
 }
 
 /// 複数の座標を囲む [LatLngBounds] を返す。空のときは null。
