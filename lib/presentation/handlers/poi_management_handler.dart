@@ -617,7 +617,6 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
       message: l10n.deletePoiConfirm,
       cancelText: l10n.cancel,
       confirmText: l10n.delete,
-      transparentBarrier: true,
     );
     if (confirmed != true || !mounted) return;
 
