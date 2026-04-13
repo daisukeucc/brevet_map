@@ -299,8 +299,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
     }
     final km = widget.distanceUnit == 1 ? value * kmPerMile : value;
     if (km > widget.totalRouteKm) {
-      setState(() => _kmError =
-          AppLocalizations.of(context)!.kmExceedsRoute);
+      setState(() => _kmError = AppLocalizations.of(context)!.kmExceedsRoute);
       return;
     }
     setState(() => _kmError = null);
@@ -504,11 +503,6 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
     super.dispose();
   }
 
-  Future<void> _onTabTap(int index) async {
-    if (index != 1 || _isPremium) return;
-    await _showPoiPremiumDialog();
-  }
-
   Future<void> _showPoiPremiumDialog() async {
     if (!mounted) return;
     final l10n = AppLocalizations.of(context)!;
@@ -598,6 +592,10 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
     );
     if (action == null || !mounted) return;
     if (action == 0) {
+      if (!_isPremium) {
+        await _showPoiPremiumDialog();
+        if (!_isPremium || !mounted) return;
+      }
       // タブ式ダイアログは閉じず、その上に編集ダイアログを重ねる
       await handleEditPoiText(
         context,
@@ -611,13 +609,16 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
   }
 
   Future<void> _onDeleteTap(UserPoi poi) async {
+    if (!_isPremium) {
+      await _showPoiPremiumDialog();
+      if (!_isPremium || !mounted) return;
+    }
     final l10n = AppLocalizations.of(context)!;
     final confirmed = await showConfirmDialog(
       context,
       message: l10n.deletePoiConfirm,
       cancelText: l10n.cancel,
       confirmText: l10n.delete,
-      transparentBarrier: true,
     );
     if (confirmed != true || !mounted) return;
 
@@ -679,12 +680,10 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                     minimumSize: const Size(36, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: _isPremium ? () => _onEditTap(poi) : null,
+                  onPressed: () => _onEditTap(poi),
                   child: Text(
                     AppLocalizations.of(context)!.edit,
-                    style: AppTextStyles.buttonSmall.copyWith(
-                      color: _isPremium ? null : Colors.black26,
-                    ),
+                    style: AppTextStyles.buttonSmall,
                   ),
                 ),
                 TextButton(
@@ -692,12 +691,10 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                     minimumSize: const Size(36, 36),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  onPressed: _isPremium ? () => _onDeleteTap(poi) : null,
+                  onPressed: () => _onDeleteTap(poi),
                   child: Text(
                     AppLocalizations.of(context)!.delete,
-                    style: AppTextStyles.buttonSmall.copyWith(
-                      color: _isPremium ? null : Colors.black26,
-                    ),
+                    style: AppTextStyles.buttonSmall,
                   ),
                 ),
               ],
@@ -724,7 +721,6 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
               controller: _tabController,
               indicatorSize: TabBarIndicatorSize.tab,
               labelStyle: AppTextStyles.bodySmall,
-              onTap: _onTabTap,
               tabs: [
                 Tab(text: AppLocalizations.of(context)!.poiTabAdd),
                 Tab(text: AppLocalizations.of(context)!.poiTabEdit),
