@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _keyDefaultMapLat = 'default_map_lat';
@@ -5,6 +7,7 @@ const _keyDefaultMapLng = 'default_map_lng';
 
 const _keyInitialRouteShown = 'initial_route_shown';
 const _keySavedRoutePolyline = 'saved_route_polyline';
+const _keySavedRouteElevations = 'saved_route_elevations';
 const _keyGpxPois = 'gpx_pois';
 const _keyGpxMetadataName = 'gpx_metadata_name';
 const _keyMapStyleMode = 'map_style_mode';
@@ -55,10 +58,42 @@ Future<String?> loadRouteEncoded() async {
   return prefs.getString(_keySavedRoutePolyline);
 }
 
+/// GPX インポート時の各 trkpt の標高（デコード後のポイント列と同じ長さ）。少なくとも1点に `<ele>` があるときだけ保存する
+Future<void> saveTrackElevations(List<double?> elevations) async {
+  final prefs = await SharedPreferences.getInstance();
+  if (elevations.isEmpty || !elevations.any((e) => e != null)) {
+    await prefs.remove(_keySavedRouteElevations);
+    return;
+  }
+  await prefs.setString(_keySavedRouteElevations, jsonEncode(elevations));
+}
+
+/// 保存済みの標高リスト。未保存または無効なら null
+Future<List<double?>?> loadTrackElevations() async {
+  final prefs = await SharedPreferences.getInstance();
+  final s = prefs.getString(_keySavedRouteElevations);
+  if (s == null || s.isEmpty) return null;
+  try {
+    final list = jsonDecode(s) as List<dynamic>;
+    return list
+        .map((e) => e == null ? null : (e as num).toDouble())
+        .toList();
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Directions API 等でルートだけ差し替えたとき、GPX の標高キャッシュを消す
+Future<void> clearTrackElevations() async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove(_keySavedRouteElevations);
+}
+
 /// 既存の保存ルートとGPX POIを削除する（GPXインポート時に上書きするため）
 Future<void> clearSavedRoute() async {
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove(_keySavedRoutePolyline);
+  await prefs.remove(_keySavedRouteElevations);
   await prefs.remove(_keyGpxPois);
   await prefs.remove(_keyGpxMetadataName);
 }

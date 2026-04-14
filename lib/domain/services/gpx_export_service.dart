@@ -8,11 +8,13 @@ import '../../utils/map_utils.dart';
 /// GPX XML を生成する。
 ///
 /// [trackPoints] トラック（ルート）の座標リスト
+/// [trackElevations] 各 trkpt の `<ele>`。[trackPoints] と同じ長さ。null または長さ不一致のときは出力しない
 /// [gpxPois] GPXからインポートしたウェイポイント
 /// [userPois] ユーザーが追加したPOI
 /// [filename] metadata と trk の name に使用するファイル名（任意）
 String buildGpxXml({
   required List<LatLng> trackPoints,
+  List<double?>? trackElevations,
   List<GpxPoi> gpxPois = const [],
   List<UserPoi> userPois = const [],
   String? filename,
@@ -20,9 +22,14 @@ String buildGpxXml({
   final builder = XmlBuilder();
   builder.declaration(version: '1.0', encoding: 'UTF-8');
   builder.element('gpx', attributes: {
+    'xmlns:gpxdata': 'http://www.cluetrust.com/XML/GPXDATA/1/0',
+    'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
     'xmlns': 'http://www.topografix.com/GPX/1/1',
     'version': '1.1',
-    'creator': 'Brevet Map',
+    'creator': 'http://brevetmap.com/',
+    'xsi:schemaLocation':
+        'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd '
+        'http://www.cluetrust.com/XML/GPXDATA/1/0 http://www.cluetrust.com/Schemas/gpxdata10.xsd',
   }, nest: () {
     // metadata
     builder.element('metadata', nest: () {
@@ -75,11 +82,26 @@ String buildGpxXml({
           });
         }
         builder.element('trkseg', nest: () {
-          for (final pt in trackPoints) {
-            builder.element('trkpt', attributes: {
-              'lat': pt.latitude.toString(),
-              'lon': pt.longitude.toString(),
-            });
+          final useEle = trackElevations != null &&
+              trackElevations.length == trackPoints.length;
+          for (var i = 0; i < trackPoints.length; i++) {
+            final pt = trackPoints[i];
+            final ele = useEle ? trackElevations[i] : null;
+            if (ele != null) {
+              builder.element('trkpt', attributes: {
+                'lat': pt.latitude.toString(),
+                'lon': pt.longitude.toString(),
+              }, nest: () {
+                builder.element('ele', nest: () {
+                  builder.text(ele.toString());
+                });
+              });
+            } else {
+              builder.element('trkpt', attributes: {
+                'lat': pt.latitude.toString(),
+                'lon': pt.longitude.toString(),
+              });
+            }
           }
         });
       });
