@@ -25,6 +25,7 @@ class MapState {
     this.routeMarkers = const [],
     this.mapStyleMode = 0,
     this.savedRoutePoints,
+    this.savedTrackElevations,
     this.gpxPois = const [],
     this.userPois = const [],
     this.fullRoutePoints,
@@ -42,6 +43,10 @@ class MapState {
   final int mapStyleMode;
 
   final List<LatLng>? savedRoutePoints;
+
+  /// GPX インポート時の各 trkpt の標高。[savedRoutePoints] と同じ長さ。アプリ表示には使わない
+  final List<double?>? savedTrackElevations;
+
   final List<GpxPoi> gpxPois;
 
   /// ユーザーが手動で登録した POI
@@ -68,6 +73,7 @@ class MapState {
     List<Marker>? routeMarkers,
     int? mapStyleMode,
     List<LatLng>? savedRoutePoints,
+    List<double?>? savedTrackElevations,
     List<GpxPoi>? gpxPois,
     List<UserPoi>? userPois,
     List<LatLng>? fullRoutePoints,
@@ -77,6 +83,7 @@ class MapState {
     bool? lastShowDistanceMarkers,
     bool? isFetchingRoute,
     bool clearSavedRoutePoints = false,
+    bool clearSavedTrackElevations = false,
     bool clearFullRoutePoints = false,
     bool clearSavedZoomLevel = false,
   }) {
@@ -87,6 +94,9 @@ class MapState {
       savedRoutePoints: clearSavedRoutePoints
           ? null
           : (savedRoutePoints ?? this.savedRoutePoints),
+      savedTrackElevations: clearSavedRoutePoints || clearSavedTrackElevations
+          ? null
+          : (savedTrackElevations ?? this.savedTrackElevations),
       gpxPois: gpxPois ?? this.gpxPois,
       userPois: userPois ?? this.userPois,
       fullRoutePoints: clearFullRoutePoints
@@ -154,10 +164,18 @@ class MapStateNotifier extends Notifier<MapState> {
       return;
     }
     final result = await loadSavedRouteWithPois();
+    final pts = result.points;
+    final elev = await loadTrackElevations();
+    final alignedElev = (elev != null &&
+            pts != null &&
+            pts.isNotEmpty &&
+            elev.length == pts.length)
+        ? elev
+        : null;
     state = state.copyWith(
-      savedRoutePoints: (result.points != null && result.points!.isNotEmpty)
-          ? result.points
-          : null,
+      savedRoutePoints:
+          (pts != null && pts.isNotEmpty) ? pts : null,
+      savedTrackElevations: alignedElev,
       gpxPois: result.pois,
       userPois: savedUserPois,
     );
@@ -243,6 +261,9 @@ class MapStateNotifier extends Notifier<MapState> {
     state = state.copyWith(
       savedRoutePoints:
           result.trackPoints.isNotEmpty ? result.trackPoints : null,
+      savedTrackElevations: result.trackPoints.isNotEmpty
+          ? result.trackElevations
+          : null,
       clearSavedRoutePoints: result.trackPoints.isEmpty,
       gpxPois: const [],
       userPois: result.userPois,
@@ -325,7 +346,11 @@ class MapStateNotifier extends Notifier<MapState> {
       }
     }
 
-    state = state.copyWith(savedRoutePoints: points);
+    state = state.copyWith(
+      savedRoutePoints: points,
+      // 初回 Directions のルート差し替え時は標高キャッシュを捨てる（GPX 由来の ele は保持しない）
+      clearSavedTrackElevations: !hasSavedRoute,
+    );
     if (state.routePolylines.isEmpty) {
       // 初回インストール時のみアニメーション完了後にコールバックを呼ぶ
       await _startRouteAnimation(

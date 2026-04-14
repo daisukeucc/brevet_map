@@ -12,12 +12,16 @@ class GpxImportResult {
   const GpxImportResult({
     required this.trackPoints,
     required this.userPois,
+    this.trackElevations,
   });
 
   final List<LatLng> trackPoints;
 
   /// wpt を UserPoi に変換したリスト（編集可能）
   final List<UserPoi> userPois;
+
+  /// 各 trkpt の `<ele>`。[trackPoints] と同じ長さ。トラック無し・または `<ele>` が無い点は null
+  final List<double?>? trackElevations;
 
   bool get isEmpty => trackPoints.isEmpty && userPois.isEmpty;
 }
@@ -75,6 +79,7 @@ Future<GpxImportResult?> parseAndSaveGpx(
   if (result.trackPoints.isNotEmpty) {
     final encoded = encodePolyline(result.trackPoints);
     await saveRouteEncoded(encoded);
+    await saveTrackElevations(result.trackElevations);
     await markInitialRouteShown();
   }
 
@@ -91,5 +96,7 @@ Future<GpxImportResult?> parseAndSaveGpx(
   return GpxImportResult(
     trackPoints: result.trackPoints,
     userPois: userPois,
+    trackElevations:
+        result.trackPoints.isNotEmpty ? result.trackElevations : null,
   );
 }
