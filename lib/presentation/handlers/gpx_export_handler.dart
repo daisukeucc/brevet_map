@@ -133,8 +133,11 @@ Future<void> showGpxExportFlow(
 
   final sanitized = _sanitizeFilename(filename);
   final displayFilename = '$sanitized.gpx';
+  final elevs = mapState.savedTrackElevations;
+  final useEle = elevs != null && elevs.length == routePoints.length;
   final gpxXml = buildGpxXml(
     trackPoints: routePoints,
+    trackElevations: useEle ? elevs : null,
     gpxPois: mapState.gpxPois,
     userPois: mapState.userPois,
     filename: sanitized,

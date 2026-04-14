@@ -59,8 +59,10 @@ class GpxPoi {
 }
 
 /// GPXパース結果：トラックポイントのリスト、ウェイポイント（POI）のリスト、metadataのname
+/// [trackElevations] は [trackPoints] と同じ長さ。`<ele>` が無い点は null
 typedef GpxParseResult = ({
   List<LatLng> trackPoints,
+  List<double?> trackElevations,
   List<GpxPoi> waypoints,
   String? metadataName,
 });
@@ -70,6 +72,7 @@ GpxParseResult? parseGpx(String xmlContent) {
   try {
     final doc = XmlDocument.parse(xmlContent);
     final trackPoints = <LatLng>[];
+    final trackElevations = <double?>[];
     final waypoints = <GpxPoi>[];
 
     // <metadata><name>...</name></metadata>
@@ -90,6 +93,11 @@ GpxParseResult? parseGpx(String xmlContent) {
           final lon = double.tryParse(pt.getAttribute('lon') ?? '');
           if (lat != null && lon != null) {
             trackPoints.add(LatLng(lat, lon));
+            final eleText = pt.findElements('ele').firstOrNull?.innerText.trim();
+            final ele = eleText == null || eleText.isEmpty
+                ? null
+                : double.tryParse(eleText);
+            trackElevations.add(ele);
           }
         }
       }
@@ -119,6 +127,7 @@ GpxParseResult? parseGpx(String xmlContent) {
 
     return (
       trackPoints: trackPoints,
+      trackElevations: trackElevations,
       waypoints: waypoints,
       metadataName: name,
     );
