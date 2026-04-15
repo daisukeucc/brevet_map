@@ -53,11 +53,11 @@
 		<key>CFBundleDisplayName</key>
 		<string>Brevet Map</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Brevet Map uses your location to show the map and your position on it.</string>
+		<string>Brevet Map uses your approximate location while you use the app to center the map on where you are, show your position along imported brevet or cycling routes (for example GPX files), and—when you choose—to share your current coordinates. Location is used only for these map and navigation features, not for advertising.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
-		<string>Brevet Map uses your location to show the map and your position on it.</string>
+		<string>Brevet Map uses your approximate location while you use the app to center the map on where you are, show your position along imported brevet or cycling routes (for example GPX files), and—when you choose—to share your current coordinates. Location is used only for these map and navigation features, not for advertising.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Brevet Map uses your location to show the map and your current location.</string>
+		<string>Brevet Map uses your approximate location while you use the app to center the map on where you are, show your position along imported brevet or cycling routes (for example GPX files), and—when you choose—to share your current coordinates. Location is used only for these map and navigation features, not for advertising.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Brevet Map may access your photo library when you choose files or images—for example to
 			import GPX files or shared content.</string>
