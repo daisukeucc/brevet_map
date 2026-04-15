@@ -488,6 +488,80 @@ class AppLocalizationsZh extends AppLocalizations {
   String get manageSubscription => '管理订阅';
 
   @override
+  String get subscriptionPremiumBlurb =>
+      'Brevet Map 高级版可在您购买的每个订阅周期内解锁地图上的 POI 编辑与删除等功能。';
+
+  @override
+  String subscriptionCurrentPlan(String name) {
+    return '当前方案：$name';
+  }
+
+  @override
+  String subscriptionPlanBillingUnit(String unit) {
+    return '计费周期：$unit';
+  }
+
+  @override
+  String get subscriptionUnitMonthly => '按月';
+
+  @override
+  String get subscriptionUnitYearly => '按年';
+
+  @override
+  String get subscriptionUnitWeekly => '按周';
+
+  @override
+  String get subscriptionExpiryNoDate => '高级版已生效，但无法加载续订日期。';
+
+  @override
+  String get subscriptionAvailablePlans => '方案与价格';
+
+  @override
+  String get subscriptionPlansLoadError => '无法加载订阅方案。请检查网络后重试。';
+
+  @override
+  String get subscriptionPlansNotConfigured => '商店当前没有可用的订阅方案。';
+
+  @override
+  String subscriptionPlanRow(String title, String price, String periodSuffix) {
+    return '$title\n$price$periodSuffix';
+  }
+
+  @override
+  String subscriptionPeriodPart(String period) {
+    return ' · $period';
+  }
+
+  @override
+  String get subscriptionBillingPeriodWeek => '每周';
+
+  @override
+  String get subscriptionBillingPeriodMonth => '每月';
+
+  @override
+  String get subscriptionBillingPeriodThreeMonths => '每 3 个月';
+
+  @override
+  String get subscriptionBillingPeriodSixMonths => '每 6 个月';
+
+  @override
+  String get subscriptionBillingPeriodYear => '每年';
+
+  @override
+  String subscriptionBillingPeriodUnknown(String code) {
+    return '周期：$code';
+  }
+
+  @override
+  String get linkPrivacyPolicy => '隐私政策';
+
+  @override
+  String get linkTermsOfUse => '使用条款';
+
+  @override
+  String get subscriptionOpenPaywall => '订阅或更改方案';
+
+  @override
   String get sampleRouteDialogMessage =>
       '地图上显示的路线是示例路线。实际使用时，请导入并使用从骑行应用导出的GPX文件或活动提供的GPX文件。';
 
@@ -977,6 +1051,80 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get manageSubscription => '管理訂閱';
+
+  @override
+  String get subscriptionPremiumBlurb =>
+      'Brevet Map 進階版可在您購買的每個訂閱週期內解鎖地圖上的 POI 編輯與刪除等功能。';
+
+  @override
+  String subscriptionCurrentPlan(String name) {
+    return '目前方案：$name';
+  }
+
+  @override
+  String subscriptionPlanBillingUnit(String unit) {
+    return '計費週期：$unit';
+  }
+
+  @override
+  String get subscriptionUnitMonthly => '按月';
+
+  @override
+  String get subscriptionUnitYearly => '按年';
+
+  @override
+  String get subscriptionUnitWeekly => '按週';
+
+  @override
+  String get subscriptionExpiryNoDate => '進階版已生效，但無法載入續訂日期。';
+
+  @override
+  String get subscriptionAvailablePlans => '方案與價格';
+
+  @override
+  String get subscriptionPlansLoadError => '無法載入訂閱方案。請檢查網路後重試。';
+
+  @override
+  String get subscriptionPlansNotConfigured => '商店目前沒有可用的訂閱方案。';
+
+  @override
+  String subscriptionPlanRow(String title, String price, String periodSuffix) {
+    return '$title\n$price$periodSuffix';
+  }
+
+  @override
+  String subscriptionPeriodPart(String period) {
+    return ' · $period';
+  }
+
+  @override
+  String get subscriptionBillingPeriodWeek => '每週';
+
+  @override
+  String get subscriptionBillingPeriodMonth => '每月';
+
+  @override
+  String get subscriptionBillingPeriodThreeMonths => '每 3 個月';
+
+  @override
+  String get subscriptionBillingPeriodSixMonths => '每 6 個月';
+
+  @override
+  String get subscriptionBillingPeriodYear => '每年';
+
+  @override
+  String subscriptionBillingPeriodUnknown(String code) {
+    return '週期：$code';
+  }
+
+  @override
+  String get linkPrivacyPolicy => '隱私權政策';
+
+  @override
+  String get linkTermsOfUse => '使用條款';
+
+  @override
+  String get subscriptionOpenPaywall => '訂閱或變更方案';
 
   @override
   String get sampleRouteDialogMessage =>

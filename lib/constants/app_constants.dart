@@ -5,9 +5,12 @@ const String kContactEmail = 'brevetmap@gmail.com';
 String kGoogleMapsLocationUrl(double lat, double lng) =>
     'https://maps.google.com/maps?q=$lat,$lng';
 
-/// 購読規約 URL
-const String kSubscriptionTermsUrl =
-    'https://daisukeucc.github.io/privacy_policy/';
+/// プライバシーポリシー URL
+const String kPrivacyPolicyUrl = 'https://daisukeucc.github.io/privacy_policy/';
+
+/// 標準の Apple 利用規約（EULA）。App Store の説明文にも同 URL を含めてください。
+const String kTermsOfUseUrl =
+    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 /// サブスクリプション管理 URL
 const String kManageSubscriptionIosUrl =
