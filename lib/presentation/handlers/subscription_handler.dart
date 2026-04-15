@@ -87,6 +87,21 @@ String? _billingUnitLabel(String? iso, AppLocalizations l10n) {
   }
 }
 
+/// [Offering.availablePackages] は iOS などで同一ストア商品を複数の [Package] として
+/// 返すことがある（パッケージ識別子は異なるが [StoreProduct.identifier] は同じ）。
+/// 「プランと価格」一覧ではストア商品 ID ごとに 1 行にまとめる。
+List<Package> _deduplicatePackagesByStoreProductId(List<Package> packages) {
+  final seen = <String>{};
+  final out = <Package>[];
+  for (final pkg in packages) {
+    final id = pkg.storeProduct.identifier;
+    if (seen.add(id)) {
+      out.add(pkg);
+    }
+  }
+  return out;
+}
+
 /// 定期購入ダイアログを表示する（プラン・価格・規約リンクを含む）
 /// メニュー項目のタップでは閉じず、閉じるボタンのみで閉じる。
 Future<void> showSubscriptionDialog(BuildContext context) async {
@@ -125,6 +140,8 @@ Future<void> showSubscriptionDialog(BuildContext context) async {
   } catch (_) {
     offeringsFailed = true;
   }
+
+  packages = _deduplicatePackagesByStoreProductId(packages);
 
   if (!context.mounted) return;
 
