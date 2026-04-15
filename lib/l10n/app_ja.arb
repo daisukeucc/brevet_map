@@ -235,6 +235,54 @@
   "subscriptionNotActive": "未加入",
   "subscriptionTerms": "購読規約",
   "manageSubscription": "サブスクリプションを管理",
+  "subscriptionPremiumBlurb": "ブルベMAPプレミアムは、購入した各サブスクリプション期間中、地図上のPOIの編集・削除などをご利用いただけます。",
+  "subscriptionCurrentPlan": "現在のプラン: {name}",
+  "@subscriptionCurrentPlan": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "subscriptionPlanBillingUnit": "請求単位: {unit}",
+  "@subscriptionPlanBillingUnit": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
+  "subscriptionUnitMonthly": "月額（毎月）",
+  "subscriptionUnitYearly": "年額（毎年）",
+  "subscriptionUnitWeekly": "週額（毎週）",
+  "subscriptionExpiryNoDate": "プレミアムは有効ですが、更新日を取得できませんでした。",
+  "subscriptionAvailablePlans": "プランと価格",
+  "subscriptionPlansLoadError": "サブスクリプションプランを読み込めませんでした。通信状況を確認のうえ、再度お試しください。",
+  "subscriptionPlansNotConfigured": "ストアから利用可能なプランがありません。",
+  "subscriptionPlanRow": "{title}\n{price}{periodSuffix}",
+  "@subscriptionPlanRow": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "price": { "type": "String" },
+      "periodSuffix": { "type": "String" }
+    }
+  },
+  "subscriptionPeriodPart": " · {period}",
+  "@subscriptionPeriodPart": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "subscriptionBillingPeriodWeek": "毎週",
+  "subscriptionBillingPeriodMonth": "毎月",
+  "subscriptionBillingPeriodThreeMonths": "3か月ごと",
+  "subscriptionBillingPeriodSixMonths": "6か月ごと",
+  "subscriptionBillingPeriodYear": "毎年",
+  "subscriptionBillingPeriodUnknown": "期間: {code}",
+  "@subscriptionBillingPeriodUnknown": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "linkPrivacyPolicy": "プライバシーポリシー",
+  "linkTermsOfUse": "利用規約",
+  "subscriptionOpenPaywall": "購入・プラン変更",
 "sampleRouteDialogMessage": "地図上のルートはサンプルルートのため、実際に使用する場合は、サイクリングアプリからエクスポートしたGPXファイルや、イベントで提供されるGPXファイルをインポートして使用してください。",
   "volumeButtonTutorial": "端末のボリュームボタンで地図のズームレベルを調節可能です"
 }

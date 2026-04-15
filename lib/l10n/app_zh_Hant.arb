@@ -248,6 +248,54 @@
   "subscriptionNotActive": "未訂閱",
   "subscriptionTerms": "訂閱條款",
   "manageSubscription": "管理訂閱",
+  "subscriptionPremiumBlurb": "Brevet Map 進階版可在您購買的每個訂閱週期內解鎖地圖上的 POI 編輯與刪除等功能。",
+  "subscriptionCurrentPlan": "目前方案：{name}",
+  "@subscriptionCurrentPlan": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "subscriptionPlanBillingUnit": "計費週期：{unit}",
+  "@subscriptionPlanBillingUnit": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
+  "subscriptionUnitMonthly": "按月",
+  "subscriptionUnitYearly": "按年",
+  "subscriptionUnitWeekly": "按週",
+  "subscriptionExpiryNoDate": "進階版已生效，但無法載入續訂日期。",
+  "subscriptionAvailablePlans": "方案與價格",
+  "subscriptionPlansLoadError": "無法載入訂閱方案。請檢查網路後重試。",
+  "subscriptionPlansNotConfigured": "商店目前沒有可用的訂閱方案。",
+  "subscriptionPlanRow": "{title}\n{price}{periodSuffix}",
+  "@subscriptionPlanRow": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "price": { "type": "String" },
+      "periodSuffix": { "type": "String" }
+    }
+  },
+  "subscriptionPeriodPart": " · {period}",
+  "@subscriptionPeriodPart": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "subscriptionBillingPeriodWeek": "每週",
+  "subscriptionBillingPeriodMonth": "每月",
+  "subscriptionBillingPeriodThreeMonths": "每 3 個月",
+  "subscriptionBillingPeriodSixMonths": "每 6 個月",
+  "subscriptionBillingPeriodYear": "每年",
+  "subscriptionBillingPeriodUnknown": "週期：{code}",
+  "@subscriptionBillingPeriodUnknown": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "linkPrivacyPolicy": "隱私權政策",
+  "linkTermsOfUse": "使用條款",
+  "subscriptionOpenPaywall": "訂閱或變更方案",
   "sampleRouteDialogMessage": "地圖上顯示的路線是示範路線。實際使用時，請匯入並使用從騎行應用程式匯出的 GPX 檔案或活動提供的 GPX 檔案。",
   "volumeButtonTutorial": "您可以使用裝置的音量鍵調整地圖縮放級別"
 }

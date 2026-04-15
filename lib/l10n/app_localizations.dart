@@ -1007,6 +1007,132 @@ abstract class AppLocalizations {
   /// **'Manage Subscription'**
   String get manageSubscription;
 
+  /// No description provided for @subscriptionPremiumBlurb.
+  ///
+  /// In en, this message translates to:
+  /// **'Brevet Map Premium unlocks POI editing and deletion on the map for each subscription period you purchase.'**
+  String get subscriptionPremiumBlurb;
+
+  /// No description provided for @subscriptionCurrentPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan: {name}'**
+  String subscriptionCurrentPlan(String name);
+
+  /// No description provided for @subscriptionPlanBillingUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Billing: {unit}'**
+  String subscriptionPlanBillingUnit(String unit);
+
+  /// No description provided for @subscriptionUnitMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get subscriptionUnitMonthly;
+
+  /// No description provided for @subscriptionUnitYearly.
+  ///
+  /// In en, this message translates to:
+  /// **'Yearly'**
+  String get subscriptionUnitYearly;
+
+  /// No description provided for @subscriptionUnitWeekly.
+  ///
+  /// In en, this message translates to:
+  /// **'Weekly'**
+  String get subscriptionUnitWeekly;
+
+  /// No description provided for @subscriptionExpiryNoDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Premium is active; the renewal date could not be loaded.'**
+  String get subscriptionExpiryNoDate;
+
+  /// No description provided for @subscriptionAvailablePlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans & pricing'**
+  String get subscriptionAvailablePlans;
+
+  /// No description provided for @subscriptionPlansLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load subscription plans. Check your connection and try again.'**
+  String get subscriptionPlansLoadError;
+
+  /// No description provided for @subscriptionPlansNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'No subscription plans are available from the store right now.'**
+  String get subscriptionPlansNotConfigured;
+
+  /// No description provided for @subscriptionPlanRow.
+  ///
+  /// In en, this message translates to:
+  /// **'{title}\n{price}{periodSuffix}'**
+  String subscriptionPlanRow(String title, String price, String periodSuffix);
+
+  /// No description provided for @subscriptionPeriodPart.
+  ///
+  /// In en, this message translates to:
+  /// **' · {period}'**
+  String subscriptionPeriodPart(String period);
+
+  /// No description provided for @subscriptionBillingPeriodWeek.
+  ///
+  /// In en, this message translates to:
+  /// **'per week'**
+  String get subscriptionBillingPeriodWeek;
+
+  /// No description provided for @subscriptionBillingPeriodMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'per month'**
+  String get subscriptionBillingPeriodMonth;
+
+  /// No description provided for @subscriptionBillingPeriodThreeMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'per 3 months'**
+  String get subscriptionBillingPeriodThreeMonths;
+
+  /// No description provided for @subscriptionBillingPeriodSixMonths.
+  ///
+  /// In en, this message translates to:
+  /// **'per 6 months'**
+  String get subscriptionBillingPeriodSixMonths;
+
+  /// No description provided for @subscriptionBillingPeriodYear.
+  ///
+  /// In en, this message translates to:
+  /// **'per year'**
+  String get subscriptionBillingPeriodYear;
+
+  /// No description provided for @subscriptionBillingPeriodUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Period: {code}'**
+  String subscriptionBillingPeriodUnknown(String code);
+
+  /// No description provided for @linkPrivacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get linkPrivacyPolicy;
+
+  /// No description provided for @linkTermsOfUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Use'**
+  String get linkTermsOfUse;
+
+  /// No description provided for @subscriptionOpenPaywall.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe or change plan'**
+  String get subscriptionOpenPaywall;
+
   /// No description provided for @sampleRouteDialogMessage.
   ///
   /// In en, this message translates to:
