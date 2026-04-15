@@ -6,12 +6,10 @@ String kGoogleMapsLocationUrl(double lat, double lng) =>
     'https://maps.google.com/maps?q=$lat,$lng';
 
 /// プライバシーポリシー URL
-const String kPrivacyPolicyUrl =
-    'https://daisukeucc.github.io/privacy_policy/';
+const String kPrivacyPolicyUrl = 'https://daisukeucc.github.io/privacy_policy/';
 
-/// 利用規約（EULA）。専用ページを用意したら差し替えてください。
-const String kTermsOfUseUrl =
-    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+/// 利用規約
+const String kTermsOfUseUrl = 'https://daisukeucc.github.io/terms/';
 
 /// サブスクリプション管理 URL
 const String kManageSubscriptionIosUrl =

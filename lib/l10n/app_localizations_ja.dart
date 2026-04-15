@@ -563,7 +563,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get linkPrivacyPolicy => 'プライバシーポリシー';
 
   @override
-  String get linkTermsOfUse => '利用規約（EULA）';
+  String get linkTermsOfUse => '利用規約';
 
   @override
   String get subscriptionOpenPaywall => '購入・プラン変更';

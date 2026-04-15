@@ -1124,7 +1124,7 @@ abstract class AppLocalizations {
   /// No description provided for @linkTermsOfUse.
   ///
   /// In en, this message translates to:
-  /// **'Terms of Use (EULA)'**
+  /// **'Terms of Use'**
   String get linkTermsOfUse;
 
   /// No description provided for @subscriptionOpenPaywall.

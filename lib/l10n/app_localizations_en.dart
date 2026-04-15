@@ -580,7 +580,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get linkPrivacyPolicy => 'Privacy Policy';
 
   @override
-  String get linkTermsOfUse => 'Terms of Use (EULA)';
+  String get linkTermsOfUse => 'Terms of Use';
 
   @override
   String get subscriptionOpenPaywall => 'Subscribe or change plan';

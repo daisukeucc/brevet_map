@@ -556,7 +556,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get linkPrivacyPolicy => '隐私政策';
 
   @override
-  String get linkTermsOfUse => '使用条款（EULA）';
+  String get linkTermsOfUse => '使用条款';
 
   @override
   String get subscriptionOpenPaywall => '订阅或更改方案';
@@ -1121,7 +1121,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get linkPrivacyPolicy => '隱私權政策';
 
   @override
-  String get linkTermsOfUse => '使用條款（EULA）';
+  String get linkTermsOfUse => '使用條款';
 
   @override
   String get subscriptionOpenPaywall => '訂閱或變更方案';
