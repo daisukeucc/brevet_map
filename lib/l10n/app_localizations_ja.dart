@@ -494,6 +494,81 @@ class AppLocalizationsJa extends AppLocalizations {
   String get manageSubscription => 'サブスクリプションを管理';
 
   @override
+  String get subscriptionPremiumBlurb =>
+      'ブルベMAPプレミアムは、購入した各サブスクリプション期間中、地図上のPOIの編集・削除などをご利用いただけます。';
+
+  @override
+  String subscriptionCurrentPlan(String name) {
+    return '現在のプラン: $name';
+  }
+
+  @override
+  String subscriptionPlanBillingUnit(String unit) {
+    return '請求単位: $unit';
+  }
+
+  @override
+  String get subscriptionUnitMonthly => '月額（毎月）';
+
+  @override
+  String get subscriptionUnitYearly => '年額（毎年）';
+
+  @override
+  String get subscriptionUnitWeekly => '週額（毎週）';
+
+  @override
+  String get subscriptionExpiryNoDate => 'プレミアムは有効ですが、更新日を取得できませんでした。';
+
+  @override
+  String get subscriptionAvailablePlans => 'プランと価格';
+
+  @override
+  String get subscriptionPlansLoadError =>
+      'サブスクリプションプランを読み込めませんでした。通信状況を確認のうえ、再度お試しください。';
+
+  @override
+  String get subscriptionPlansNotConfigured => 'ストアから利用可能なプランがありません。';
+
+  @override
+  String subscriptionPlanRow(String title, String price, String periodSuffix) {
+    return '$title\n$price$periodSuffix';
+  }
+
+  @override
+  String subscriptionPeriodPart(String period) {
+    return ' · $period';
+  }
+
+  @override
+  String get subscriptionBillingPeriodWeek => '毎週';
+
+  @override
+  String get subscriptionBillingPeriodMonth => '毎月';
+
+  @override
+  String get subscriptionBillingPeriodThreeMonths => '3か月ごと';
+
+  @override
+  String get subscriptionBillingPeriodSixMonths => '6か月ごと';
+
+  @override
+  String get subscriptionBillingPeriodYear => '毎年';
+
+  @override
+  String subscriptionBillingPeriodUnknown(String code) {
+    return '期間: $code';
+  }
+
+  @override
+  String get linkPrivacyPolicy => 'プライバシーポリシー';
+
+  @override
+  String get linkTermsOfUse => '利用規約（EULA）';
+
+  @override
+  String get subscriptionOpenPaywall => '購入・プラン変更';
+
+  @override
   String get sampleRouteDialogMessage =>
       '地図上のルートはサンプルルートのため、実際に使用する場合は、サイクリングアプリからエクスポートしたGPXファイルや、イベントで提供されるGPXファイルをインポートして使用してください。';
 

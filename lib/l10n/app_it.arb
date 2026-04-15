@@ -249,6 +249,54 @@
   "subscriptionNotActive": "Non abbonato",
   "subscriptionTerms": "Termini di abbonamento",
   "manageSubscription": "Gestisci abbonamento",
+  "subscriptionPremiumBlurb": "Brevet Map Premium unlocks POI editing and deletion on the map for each subscription period you purchase.",
+  "subscriptionCurrentPlan": "Current plan: {name}",
+  "@subscriptionCurrentPlan": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "subscriptionPlanBillingUnit": "Billing: {unit}",
+  "@subscriptionPlanBillingUnit": {
+    "placeholders": {
+      "unit": { "type": "String" }
+    }
+  },
+  "subscriptionUnitMonthly": "Monthly",
+  "subscriptionUnitYearly": "Yearly",
+  "subscriptionUnitWeekly": "Weekly",
+  "subscriptionExpiryNoDate": "Premium is active; the renewal date could not be loaded.",
+  "subscriptionAvailablePlans": "Plans & pricing",
+  "subscriptionPlansLoadError": "Could not load subscription plans. Check your connection and try again.",
+  "subscriptionPlansNotConfigured": "No subscription plans are available from the store right now.",
+  "subscriptionPlanRow": "{title}\n{price}{periodSuffix}",
+  "@subscriptionPlanRow": {
+    "placeholders": {
+      "title": { "type": "String" },
+      "price": { "type": "String" },
+      "periodSuffix": { "type": "String" }
+    }
+  },
+  "subscriptionPeriodPart": " · {period}",
+  "@subscriptionPeriodPart": {
+    "placeholders": {
+      "period": { "type": "String" }
+    }
+  },
+  "subscriptionBillingPeriodWeek": "per week",
+  "subscriptionBillingPeriodMonth": "per month",
+  "subscriptionBillingPeriodThreeMonths": "per 3 months",
+  "subscriptionBillingPeriodSixMonths": "per 6 months",
+  "subscriptionBillingPeriodYear": "per year",
+  "subscriptionBillingPeriodUnknown": "Period: {code}",
+  "@subscriptionBillingPeriodUnknown": {
+    "placeholders": {
+      "code": { "type": "String" }
+    }
+  },
+  "linkPrivacyPolicy": "Privacy Policy",
+  "linkTermsOfUse": "Terms of Use (EULA)",
+  "subscriptionOpenPaywall": "Subscribe or change plan",
   "sampleRouteDialogMessage": "Il percorso mostrato sulla mappa è un percorso di esempio. Per uso reale, si consiglia di importare e utilizzare un file GPX esportato da un'app di ciclismo o fornito da un evento.",
   "volumeButtonTutorial": "È possibile regolare il livello di zoom della mappa con i pulsanti del volume del dispositivo"
 }

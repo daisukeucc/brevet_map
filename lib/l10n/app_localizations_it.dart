@@ -511,6 +511,83 @@ class AppLocalizationsIt extends AppLocalizations {
   String get manageSubscription => 'Gestisci abbonamento';
 
   @override
+  String get subscriptionPremiumBlurb =>
+      'Brevet Map Premium unlocks POI editing and deletion on the map for each subscription period you purchase.';
+
+  @override
+  String subscriptionCurrentPlan(String name) {
+    return 'Current plan: $name';
+  }
+
+  @override
+  String subscriptionPlanBillingUnit(String unit) {
+    return 'Billing: $unit';
+  }
+
+  @override
+  String get subscriptionUnitMonthly => 'Monthly';
+
+  @override
+  String get subscriptionUnitYearly => 'Yearly';
+
+  @override
+  String get subscriptionUnitWeekly => 'Weekly';
+
+  @override
+  String get subscriptionExpiryNoDate =>
+      'Premium is active; the renewal date could not be loaded.';
+
+  @override
+  String get subscriptionAvailablePlans => 'Plans & pricing';
+
+  @override
+  String get subscriptionPlansLoadError =>
+      'Could not load subscription plans. Check your connection and try again.';
+
+  @override
+  String get subscriptionPlansNotConfigured =>
+      'No subscription plans are available from the store right now.';
+
+  @override
+  String subscriptionPlanRow(String title, String price, String periodSuffix) {
+    return '$title\n$price$periodSuffix';
+  }
+
+  @override
+  String subscriptionPeriodPart(String period) {
+    return ' · $period';
+  }
+
+  @override
+  String get subscriptionBillingPeriodWeek => 'per week';
+
+  @override
+  String get subscriptionBillingPeriodMonth => 'per month';
+
+  @override
+  String get subscriptionBillingPeriodThreeMonths => 'per 3 months';
+
+  @override
+  String get subscriptionBillingPeriodSixMonths => 'per 6 months';
+
+  @override
+  String get subscriptionBillingPeriodYear => 'per year';
+
+  @override
+  String subscriptionBillingPeriodUnknown(String code) {
+    return 'Period: $code';
+  }
+
+  @override
+  String get linkPrivacyPolicy => 'Privacy Policy';
+
+  @override
+  String get linkTermsOfUse => 'Terms of Use (EULA)';
+
+  @override
+  String get subscriptionOpenPaywall => 'Subscribe or change plan';
+
+  @override
   String get sampleRouteDialogMessage =>
       'Il percorso mostrato sulla mappa è un percorso di esempio. Per uso reale, si consiglia di importare e utilizzare un file GPX esportato da un\'app di ciclismo o fornito da un evento.';
 
