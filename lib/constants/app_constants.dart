@@ -8,8 +8,9 @@ String kGoogleMapsLocationUrl(double lat, double lng) =>
 /// プライバシーポリシー URL
 const String kPrivacyPolicyUrl = 'https://daisukeucc.github.io/privacy_policy/';
 
-/// 利用規約
-const String kTermsOfUseUrl = 'https://daisukeucc.github.io/terms/';
+/// 標準の Apple 利用規約（EULA）。App Store の説明文にも同 URL を含めてください。
+const String kTermsOfUseUrl =
+    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
 
 /// サブスクリプション管理 URL
 const String kManageSubscriptionIosUrl =
