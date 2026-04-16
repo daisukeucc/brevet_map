@@ -44,12 +44,12 @@ class GpxImportResult {
 }
 
 /// GpxPoi を UserPoi に変換する（Dot 以外のみ）。
-/// チェックポイント: `<cmt>control</cmt>` → [UserPoi.type] 0
+/// チェックポイント: `<type>checkpoint</type>` → [UserPoi.type] 0
 UserPoi _gpxPoiToUserPoi(GpxPoi poi) {
   final rawName = poi.name ?? '';
   final parsed = _parseNameAndKm(rawName);
   return UserPoi(
-    type: poi.isControl ? 0 : 1,
+    type: poi.isCheckpoint ? 0 : 1,
     km: parsed.km,
     title: parsed.title,
     body: poi.description ?? '',
