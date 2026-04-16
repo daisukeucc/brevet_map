@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -27,6 +29,7 @@ class MapState {
     this.savedRoutePoints,
     this.savedTrackElevations,
     this.gpxPois = const [],
+    this.gpxDotWaypoints = const [],
     this.userPois = const [],
     this.fullRoutePoints,
     this.savedZoomLevel,
@@ -48,6 +51,9 @@ class MapState {
   final List<double?>? savedTrackElevations;
 
   final List<GpxPoi> gpxPois;
+
+  /// `<type>Dot</type>` の wpt（エクスポート復元用。マーカー・POI一覧には出さない）
+  final List<GpxPoi> gpxDotWaypoints;
 
   /// ユーザーが手動で登録した POI
   final List<UserPoi> userPois;
@@ -75,6 +81,7 @@ class MapState {
     List<LatLng>? savedRoutePoints,
     List<double?>? savedTrackElevations,
     List<GpxPoi>? gpxPois,
+    List<GpxPoi>? gpxDotWaypoints,
     List<UserPoi>? userPois,
     List<LatLng>? fullRoutePoints,
     double? savedZoomLevel,
@@ -98,6 +105,7 @@ class MapState {
           ? null
           : (savedTrackElevations ?? this.savedTrackElevations),
       gpxPois: gpxPois ?? this.gpxPois,
+      gpxDotWaypoints: gpxDotWaypoints ?? this.gpxDotWaypoints,
       userPois: userPois ?? this.userPois,
       fullRoutePoints: clearFullRoutePoints
           ? null
@@ -172,11 +180,22 @@ class MapStateNotifier extends Notifier<MapState> {
             elev.length == pts.length)
         ? elev
         : null;
+    List<GpxPoi> dotWaypoints = const [];
+    final dotsJson = await loadGpxDotWaypointsJson();
+    if (dotsJson != null && dotsJson.isNotEmpty) {
+      try {
+        final list = jsonDecode(dotsJson) as List<dynamic>;
+        dotWaypoints = list
+            .map((e) => GpxPoi.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } catch (_) {}
+    }
     state = state.copyWith(
       savedRoutePoints:
           (pts != null && pts.isNotEmpty) ? pts : null,
       savedTrackElevations: alignedElev,
       gpxPois: result.pois,
+      gpxDotWaypoints: dotWaypoints,
       userPois: savedUserPois,
     );
   }
@@ -266,6 +285,7 @@ class MapStateNotifier extends Notifier<MapState> {
           : null,
       clearSavedRoutePoints: result.trackPoints.isEmpty,
       gpxPois: const [],
+      gpxDotWaypoints: result.gpxDotWaypoints,
       userPois: result.userPois,
       hasStartedInitialRouteFetch: true,
     );

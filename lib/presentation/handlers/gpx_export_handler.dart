@@ -138,6 +138,7 @@ Future<void> showGpxExportFlow(
   final gpxXml = buildGpxXml(
     trackPoints: routePoints,
     trackElevations: useEle ? elevs : null,
+    gpxDotWaypoints: mapState.gpxDotWaypoints,
     gpxPois: mapState.gpxPois,
     userPois: mapState.userPois,
     filename: sanitized,
