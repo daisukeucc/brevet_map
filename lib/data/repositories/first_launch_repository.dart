@@ -9,6 +9,8 @@ const _keyInitialRouteShown = 'initial_route_shown';
 const _keySavedRoutePolyline = 'saved_route_polyline';
 const _keySavedRouteElevations = 'saved_route_elevations';
 const _keyGpxPois = 'gpx_pois';
+/// `<type>Dot</type>` の wpt のみ（表示・編集対象外、GPX エクスポートで復元）
+const _keyGpxDotWaypoints = 'gpx_dot_waypoints';
 const _keyGpxMetadataName = 'gpx_metadata_name';
 const _keyMapStyleMode = 'map_style_mode';
 const _keyLocationStreamActive = 'location_stream_active';
@@ -95,7 +97,24 @@ Future<void> clearSavedRoute() async {
   await prefs.remove(_keySavedRoutePolyline);
   await prefs.remove(_keySavedRouteElevations);
   await prefs.remove(_keyGpxPois);
+  await prefs.remove(_keyGpxDotWaypoints);
   await prefs.remove(_keyGpxMetadataName);
+}
+
+/// Dot ウェイポイント一覧の JSON を保存する
+Future<void> saveGpxDotWaypointsJson(String? json) async {
+  final prefs = await SharedPreferences.getInstance();
+  if (json == null || json.isEmpty) {
+    await prefs.remove(_keyGpxDotWaypoints);
+    return;
+  }
+  await prefs.setString(_keyGpxDotWaypoints, json);
+}
+
+/// 保存済み Dot ウェイポイント JSON。未保存なら null
+Future<String?> loadGpxDotWaypointsJson() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_keyGpxDotWaypoints);
 }
 
 /// GPXの<metadata><name>を保存する（エクスポート時のデフォルト名に使用）

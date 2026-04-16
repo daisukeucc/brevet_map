@@ -9,13 +9,15 @@ class UserPoi {
     required this.body,
     required this.lat,
     required this.lng,
+
     /// GPX インポート時の `cmt` 要素の値（手動追加 POI では null）
     this.gpxCmt,
+
     /// GPX インポート時の `type` 要素の値（手動追加 POI では null）
     this.gpxType,
   });
 
-  /// 0=チェックポイント, 1=インフォメーション
+  /// 0=チェックポイント（GPX の `<type>checkpoint</type>` に相当）, 1=インフォメーション
   final int type;
 
   final double? km;
@@ -25,14 +27,15 @@ class UserPoi {
   final double lat;
   final double lng;
 
-  /// GPX の `cmt` をエクスポートでそのまま出すため保持
+  /// GPX インポート時の `<cmt>` の値（参照用）
   final String? gpxCmt;
 
-  /// GPX の `type` をエクスポートでそのまま出すため保持
+  /// GPX インポート時の `<type>` の元文字列（参照用）
   final String? gpxType;
 
   LatLng get position => LatLng(lat, lng);
 
+  /// チェックポイントか（インポート時は `<type>checkpoint</type>` 由来）
   bool get isCheckpoint => type == 0;
 
   Map<String, dynamic> toJson() => {

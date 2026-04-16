@@ -9,12 +9,14 @@ import '../../utils/map_utils.dart';
 ///
 /// [trackPoints] トラック（ルート）の座標リスト
 /// [trackElevations] 各 trkpt の `<ele>`。[trackPoints] と同じ長さ。null または長さ不一致のときは出力しない
-/// [gpxPois] GPXからインポートしたウェイポイント
-/// [userPois] ユーザーが追加したPOI
+/// [gpxDotWaypoints] `<type>Dot</type>` のみ別保持（インポート内容をそのまま出力）
+/// [gpxPois] レガシー保存の GPX ウェイポイント
+/// [userPois] 表示・編集対象の POI
 /// [filename] metadata と trk の name に使用するファイル名（任意）
 String buildGpxXml({
   required List<LatLng> trackPoints,
   List<double?>? trackElevations,
+  List<GpxPoi> gpxDotWaypoints = const [],
   List<GpxPoi> gpxPois = const [],
   List<UserPoi> userPois = const [],
   String? filename,
@@ -43,7 +45,15 @@ String buildGpxXml({
       });
     });
 
-    // wpt: gpxPois + userPois
+    // wpt: Dot（インポート復元）→ レガシー gpxPois → UserPoi
+    for (final poi in gpxDotWaypoints) {
+      _addWpt(builder, poi.lat, poi.lng,
+          name: poi.name?.isNotEmpty == true ? poi.name : filename,
+          desc: poi.description,
+          sym: poi.symbol,
+          cmt: poi.cmt,
+          type: poi.type);
+    }
     for (final poi in gpxPois) {
       _addWpt(builder, poi.lat, poi.lng,
           name: poi.name?.isNotEmpty == true ? poi.name : filename,
@@ -52,19 +62,14 @@ String buildGpxXml({
           cmt: poi.cmt,
           type: poi.type);
     }
+    // UserPoi（手動追加・編集後含む）: 追加 POI と同一形式で出力（インポート時の cmt/type は引き継がない）
     for (final poi in userPois) {
       final body = poi.body.isEmpty ? null : poi.body;
       final name = poi.km != null
           ? '${formatDistance(poi.km!, 0)}：${poi.title}'
           : (poi.title.isEmpty ? null : poi.title);
-      // GPX から保持した <cmt>/<type> があればそのまま。手動追加・編集のみの POI は下記既定値
-      // チェックポイント: cmt=control, type=checkpoint / インフォ: cmt=generic, type=generic
-      final cmtOut = (poi.gpxCmt != null && poi.gpxCmt!.isNotEmpty)
-          ? poi.gpxCmt!
-          : (poi.isCheckpoint ? 'control' : 'generic');
-      final typeOut = (poi.gpxType != null && poi.gpxType!.isNotEmpty)
-          ? poi.gpxType!
-          : (poi.isCheckpoint ? 'checkpoint' : 'generic');
+      final cmtOut = poi.isCheckpoint ? 'control' : 'generic';
+      final typeOut = poi.isCheckpoint ? 'checkpoint' : 'generic';
       _addWpt(builder, poi.lat, poi.lng,
           name: name,
           desc: body,

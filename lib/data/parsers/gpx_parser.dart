@@ -28,11 +28,16 @@ class GpxPoi {
   LatLng get position => LatLng(lat, lng);
 
   /// チェックポイントとして扱うか（`UserPoi.type` 0 用）
-  /// `<cmt>` が `control`（前後空白を除き大文字小文字は無視）のときだけ true。
-  /// `<cmt>` が無い・空・それ以外はインフォメーション。
-  bool get isControl {
-    final c = cmt?.trim().toLowerCase();
-    return c == 'control';
+  /// `<type>checkpoint</type>`（前後空白を除き大文字小文字は無視）のときだけ true。
+  bool get isCheckpoint {
+    final t = type?.trim().toLowerCase();
+    return t == 'checkpoint';
+  }
+
+  /// `<type>Dot</type>`（大文字小文字無視）。アプリ表示では無視し、エクスポート用に別保持する。
+  bool get isGpxDotType {
+    final t = type?.trim().toLowerCase();
+    return t == 'dot';
   }
 
   Map<String, dynamic> toJson() => {
