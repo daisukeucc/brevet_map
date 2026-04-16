@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:latlong2/latlong.dart';
 
 import '../../data/parsers/gpx_parser.dart';
@@ -13,21 +15,25 @@ class GpxImportResult {
     required this.trackPoints,
     required this.userPois,
     this.trackElevations,
+    this.gpxDotWaypoints = const [],
   });
 
   final List<LatLng> trackPoints;
 
-  /// wpt を UserPoi に変換したリスト（編集可能）
+  /// `<type>Dot</type>` 以外の wpt を UserPoi に変換したリスト（マーカー・編集対象）
   final List<UserPoi> userPois;
 
-  /// 各 trkpt の `<ele>`。[trackPoints] と同じ長さ。トラック無し・または `<ele>` が無い点は null
+  /// `<type>Dot</type>` の wpt。表示・編集せずエクスポートで元どおり出す
+  final List<GpxPoi> gpxDotWaypoints;
+
+  /// 各 trkpt の `<ele>`。[trackPoints] と同じ長さ。
   final List<double?>? trackElevations;
 
-  bool get isEmpty => trackPoints.isEmpty && userPois.isEmpty;
+  bool get isEmpty =>
+      trackPoints.isEmpty && userPois.isEmpty && gpxDotWaypoints.isEmpty;
 }
 
 /// <name> の先頭が「Nkm：」「N.Nkm：」の場合、(km, title) を返す。
-/// 該当しない場合は (null, name) を返す。
 ({double? km, String title}) _parseNameAndKm(String name) {
   final match = RegExp(r'^\s*(\d+(?:\.\d+)?)\s*km\s*[：:]\s*(.*)$', dotAll: true)
       .firstMatch(name);
@@ -37,12 +43,8 @@ class GpxImportResult {
   return (km: km, title: title);
 }
 
-/// GpxPoi を UserPoi に変換する。
-/// - type: `<cmt>` が `control` ならチェックポイント(0)、それ以外はインフォメーション(1)
-/// - gpxCmt / gpxType: `<cmt>` `<type>` の文字列をそのまま保持（エクスポートで同じタグに出力）
-/// - km: <name> 先頭に「Nkm：」があれば N、なければ null
-/// - title: <name> から距離プレフィックスを除去した実質的なタイトル
-/// - body: <desc>
+/// GpxPoi を UserPoi に変換する（Dot 以外のみ）。
+/// チェックポイント: `<cmt>control</cmt>` → [UserPoi.type] 0
 UserPoi _gpxPoiToUserPoi(GpxPoi poi) {
   final rawName = poi.name ?? '';
   final parsed = _parseNameAndKm(rawName);
@@ -59,10 +61,6 @@ UserPoi _gpxPoiToUserPoi(GpxPoi poi) {
 }
 
 /// GPX 文字列をパースし、ルート・POI を保存する。
-/// - パース失敗時は null
-/// - トラックもウェイポイントも無い場合は [GpxImportResult] を返す（isEmpty == true）。保存は行わない
-/// - wpt は UserPoi に変換して保存し、編集可能にする
-/// - [importFilename] ファイルピッカーから取得したファイル名（.gpx 除く）。metadata が空のときのフォールバック
 Future<GpxImportResult?> parseAndSaveGpx(
   String gpxContent, {
   String? importFilename,
@@ -71,7 +69,11 @@ Future<GpxImportResult?> parseAndSaveGpx(
   if (result == null) return null;
 
   if (result.trackPoints.isEmpty && result.waypoints.isEmpty) {
-    return const GpxImportResult(trackPoints: [], userPois: []);
+    return const GpxImportResult(
+      trackPoints: [],
+      userPois: [],
+      gpxDotWaypoints: [],
+    );
   }
 
   await clearSavedRoute();
@@ -90,12 +92,22 @@ Future<GpxImportResult?> parseAndSaveGpx(
     await saveGpxMetadataName(toHalfwidthAscii(nameToSave));
   }
 
-  final userPois = result.waypoints.map(_gpxPoiToUserPoi).toList();
-  await saveUserPois(userPois); // トラックのみのGPXでも必ず上書き（過去のPOIをクリアするため）
+  final dotWpts =
+      result.waypoints.where((w) => w.isGpxDotType).toList(growable: false);
+  final visibleWpts =
+      result.waypoints.where((w) => !w.isGpxDotType).toList(growable: false);
+
+  await saveGpxDotWaypointsJson(
+    jsonEncode(dotWpts.map((e) => e.toJson()).toList()),
+  );
+
+  final userPois = visibleWpts.map(_gpxPoiToUserPoi).toList();
+  await saveUserPois(userPois);
 
   return GpxImportResult(
     trackPoints: result.trackPoints,
     userPois: userPois,
+    gpxDotWaypoints: dotWpts,
     trackElevations:
         result.trackPoints.isNotEmpty ? result.trackElevations : null,
   );

@@ -35,6 +35,12 @@ class GpxPoi {
     return c == 'control';
   }
 
+  /// `<type>Dot</type>`（大文字小文字無視）。アプリ表示では無視し、エクスポート用に別保持する。
+  bool get isGpxDotType {
+    final t = type?.trim().toLowerCase();
+    return t == 'dot';
+  }
+
   Map<String, dynamic> toJson() => {
         'lat': lat,
         'lng': lng,

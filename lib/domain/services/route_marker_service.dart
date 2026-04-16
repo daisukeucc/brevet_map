@@ -65,7 +65,8 @@ Future<List<Marker>> buildRouteMarkers({
         isPlayIcon: false,
       );
     }
-    if (pois.isNotEmpty || userPois.isNotEmpty) {
+    final hasVisibleGpxPoi = pois.any((p) => !p.isGpxDotType);
+    if (hasVisibleGpxPoi || userPois.isNotEmpty) {
       poiIconOrange = await createPoiInfoMarkerIcon();
       poiIconCheckpoint = await createPoiCheckpointMarkerIcon();
     }
@@ -120,9 +121,11 @@ Future<List<Marker>> buildRouteMarkers({
     }
 
     for (final poi in pois) {
+      if (poi.isGpxDotType) continue;
       if (!poi.isControl) addGpxPoiMarker(poi);
     }
     for (final poi in pois) {
+      if (poi.isGpxDotType) continue;
       if (poi.isControl) addGpxPoiMarker(poi);
     }
   }
