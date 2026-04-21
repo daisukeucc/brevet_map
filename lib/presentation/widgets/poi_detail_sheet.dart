@@ -10,10 +10,12 @@ class PoiSheetEntry {
     required this.description,
     required this.position,
     this.distance,
+    this.elevationGain,
   });
 
   final String? name;
   final String? distance;
+  final String? elevationGain;
   final String? description;
   final LatLng position;
 }
@@ -45,6 +47,7 @@ void showPoiDetailSheet(
       return _PoiDetailSheetBody(
         name: entries.first.name,
         distance: entries.first.distance,
+        elevationGain: entries.first.elevationGain,
         description: entries.first.description,
       );
     },
@@ -55,11 +58,13 @@ class _PoiDetailSheetBody extends StatelessWidget {
   const _PoiDetailSheetBody({
     required this.name,
     required this.distance,
+    required this.elevationGain,
     required this.description,
   });
 
   final String? name;
   final String? distance;
+  final String? elevationGain;
   final String? description;
 
   @override
@@ -73,6 +78,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
           child: _PoiContentBlock(
             name: name,
             distance: distance,
+            elevationGain: elevationGain,
             description: description,
             distanceLeft: 20,
             contentLeft: 24,
@@ -134,6 +140,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                     child: _PoiContentBlock(
                       name: e.name,
                       distance: e.distance,
+                      elevationGain: e.elevationGain,
                       description: e.description,
                       distanceLeft: 20,
                       contentLeft: 24,
@@ -167,6 +174,7 @@ class _PoiContentBlock extends StatelessWidget {
   const _PoiContentBlock({
     required this.name,
     required this.distance,
+    required this.elevationGain,
     required this.description,
     this.distanceLeft = 0,
     this.contentLeft = 0,
@@ -174,6 +182,7 @@ class _PoiContentBlock extends StatelessWidget {
 
   final String? name;
   final String? distance;
+  final String? elevationGain;
   final String? description;
   final double distanceLeft;
   final double contentLeft;
@@ -182,6 +191,8 @@ class _PoiContentBlock extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasName = name != null && name!.isNotEmpty;
     final hasDistance = distance != null && distance!.isNotEmpty;
+    final hasElevationGain =
+        elevationGain != null && elevationGain!.isNotEmpty;
     final hasDescription = description != null && description!.isNotEmpty;
 
     return Column(
@@ -202,9 +213,26 @@ class _PoiContentBlock extends StatelessWidget {
               ],
             ),
           ),
-          if (hasName) const SizedBox(height: 8),
         ],
-        if (hasName)
+        if (hasElevationGain) ...[
+          const SizedBox(height: 4),
+          Padding(
+            padding: EdgeInsets.only(left: distanceLeft),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Icons.trending_up, size: 20, color: Colors.blueGrey),
+                const SizedBox(width: 3),
+                Text(
+                  elevationGain!,
+                  style: AppTextStyles.body.copyWith(color: Colors.blueGrey),
+                ),
+              ],
+            ),
+          ),
+        ],
+        if (hasName) ...[
+          if (hasDistance || hasElevationGain) const SizedBox(height: 8),
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
             child: Text(
@@ -213,8 +241,10 @@ class _PoiContentBlock extends StatelessWidget {
                   .copyWith(height: 1.6, color: Colors.blueGrey.shade600),
             ),
           ),
+        ],
         if (hasDescription) ...[
-          if (hasName || hasDistance) const SizedBox(height: 15),
+          if (hasName || hasDistance || hasElevationGain)
+            const SizedBox(height: 15),
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
             child: Text(

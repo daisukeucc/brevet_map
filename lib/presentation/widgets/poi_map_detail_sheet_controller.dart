@@ -108,16 +108,37 @@ class PoiMapDetailSheetController {
         p.km != null ? formatDistance(p.km!, unit) : null;
 
     final ms = _ref.read(mapStateProvider);
+    final trackPoints = ms.savedRoutePoints ?? const [];
+    final elevations = ms.savedTrackElevations ?? const [];
+    final hasElevation = trackPoints.isNotEmpty && elevations.isNotEmpty;
+
     final ordered = PoiMapMarkerOrder.userPois(ms.userPois);
     final canNavigateInSheet = ordered.length >= 2;
+
     if (canNavigateInSheet) {
+      // POI ごとの最近傍トラックインデックスを事前計算
+      final trackIndices = hasElevation
+          ? ordered
+              .map((p) => nearestTrackIndex(trackPoints, p.position))
+              .toList()
+          : <int>[];
+
+      String? elevationGainAt(int i) {
+        if (!hasElevation) return null;
+        final fromIdx = i > 0 ? trackIndices[i - 1] : 0;
+        final toIdx = trackIndices[i];
+        final gain = elevationGainBetweenIndices(elevations, fromIdx, toIdx);
+        return '${gain.round()}m';
+      }
+
       final entries = [
-        for (final p in ordered)
+        for (var i = 0; i < ordered.length; i++)
           PoiSheetEntry(
-            name: titleFor(p),
-            distance: distanceFor(p),
-            description: p.body,
-            position: p.position,
+            name: titleFor(ordered[i]),
+            distance: distanceFor(ordered[i]),
+            elevationGain: elevationGainAt(i),
+            description: ordered[i].body,
+            position: ordered[i].position,
           ),
       ];
       final idx = ordered.indexWhere((p) => _sameUserPoi(p, poi));
@@ -137,6 +158,7 @@ class PoiMapDetailSheetController {
           PoiSheetEntry(
             name: titleFor(poi),
             distance: distanceFor(poi),
+            elevationGain: null,
             description: poi.body,
             position: poi.position,
           ),

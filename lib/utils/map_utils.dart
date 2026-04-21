@@ -69,6 +69,50 @@ double distanceAlongTrackFromStart(List<LatLng> trackPoints, int toIndex) {
   return sum;
 }
 
+/// トラック上で [point] に最も近いポイントのインデックスを返す。
+int nearestTrackIndex(List<LatLng> trackPoints, LatLng point) {
+  if (trackPoints.isEmpty) return 0;
+  var bestIndex = 0;
+  var bestDist = distanceBetweenLatLng(trackPoints[0], point);
+  for (var i = 1; i < trackPoints.length; i++) {
+    final d = distanceBetweenLatLng(trackPoints[i], point);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
+
+/// [fromIndex] から [toIndex] の区間の獲得標高をメートルで返す。
+/// [threshold] 未満の上昇はノイズとして無視する（デフォルト 8m）。
+double elevationGainBetweenIndices(
+    List<double?> elevations, int fromIndex, int toIndex,
+    {double threshold = 4.0}) {
+  if (elevations.isEmpty) return 0;
+  final start = fromIndex.clamp(0, elevations.length - 1);
+  final end = toIndex.clamp(0, elevations.length - 1);
+  if (start >= end) return 0;
+  double gain = 0;
+  double? ref;
+  for (var i = start; i <= end; i++) {
+    final ele = elevations[i];
+    if (ele == null) continue;
+    if (ref == null) {
+      ref = ele;
+      continue;
+    }
+    final diff = ele - ref;
+    if (diff >= threshold) {
+      gain += diff;
+      ref = ele;
+    } else if (diff <= -threshold) {
+      ref = ele;
+    }
+  }
+  return gain;
+}
+
 /// トラック上で [point] に最も近いポイントを探し、スタートからそのポイントまでのルート沿い距離（メートル）を返す。
 /// スタートから「そのポイントに最も近いトラック上の位置」までの走行距離の目安として使える。
 double distanceFromStartToPointAlongTrack(
