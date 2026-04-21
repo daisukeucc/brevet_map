@@ -3,7 +3,6 @@ import 'package:xml/xml.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../domain/models/user_poi.dart';
-import '../../utils/map_utils.dart';
 
 /// GPX XML を生成する。
 ///
@@ -65,10 +64,10 @@ String buildGpxXml({
     // UserPoi（手動追加・編集後含む）: 追加 POI と同一形式で出力（インポート時の cmt/type は引き継がない）
     for (final poi in userPois) {
       final body = poi.body.isEmpty ? null : poi.body;
-      final name = poi.km != null
-          ? '${formatDistance(poi.km!, 0)}：${poi.title}'
-          : (poi.title.isEmpty ? null : poi.title);
-      final cmtOut = poi.isCheckpoint ? 'control' : 'generic';
+      final name = poi.title.isEmpty ? null : poi.title;
+      final cmtOut = poi.km != null
+          ? _formatKmValue(poi.km!)
+          : (poi.isCheckpoint ? 'control' : 'generic');
       final typeOut = poi.isCheckpoint ? 'checkpoint' : 'generic';
       _addWpt(builder, poi.lat, poi.lng,
           name: name,
@@ -156,6 +155,11 @@ void _addWpt(
       });
     }
   });
+}
+
+String _formatKmValue(double km) {
+  final s = km.toStringAsFixed(1);
+  return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
 }
 
 String _toIso8601(DateTime dt) {

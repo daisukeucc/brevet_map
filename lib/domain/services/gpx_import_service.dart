@@ -7,6 +7,7 @@ import '../../data/repositories/directions_repository.dart';
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/models/user_poi.dart';
 import '../../data/repositories/user_poi_repository.dart';
+import '../../utils/map_utils.dart';
 import '../../utils/string_utils.dart';
 
 /// GPX をパースして永続化した結果。UI 側で setState やカメラに使う。
@@ -45,12 +46,19 @@ class GpxImportResult {
 
 /// GpxPoi を UserPoi に変換する（Dot 以外のみ）。
 /// チェックポイント: `<type>checkpoint</type>` → [UserPoi.type] 0
-UserPoi _gpxPoiToUserPoi(GpxPoi poi) {
+/// [trackPoints] が与えられた場合、名前に距離がない POI はルートから距離を算出する。
+UserPoi _gpxPoiToUserPoi(GpxPoi poi, {List<LatLng> trackPoints = const []}) {
   final rawName = poi.name ?? '';
   final parsed = _parseNameAndKm(rawName);
+  double? km = parsed.km;
+  if (km == null && trackPoints.isNotEmpty) {
+    final meters =
+        distanceFromStartToPointAlongTrack(trackPoints, poi.position);
+    km = meters / 1000;
+  }
   return UserPoi(
     type: poi.isCheckpoint ? 0 : 1,
-    km: parsed.km,
+    km: km,
     title: parsed.title,
     body: poi.description ?? '',
     lat: poi.lat,
@@ -101,7 +109,9 @@ Future<GpxImportResult?> parseAndSaveGpx(
     jsonEncode(dotWpts.map((e) => e.toJson()).toList()),
   );
 
-  final userPois = visibleWpts.map(_gpxPoiToUserPoi).toList();
+  final userPois = visibleWpts
+      .map((w) => _gpxPoiToUserPoi(w, trackPoints: result.trackPoints))
+      .toList();
   await saveUserPois(userPois);
 
   return GpxImportResult(
