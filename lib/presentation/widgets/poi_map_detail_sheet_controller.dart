@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -116,27 +117,25 @@ class PoiMapDetailSheetController {
     final canNavigateInSheet = ordered.length >= 2;
 
     if (canNavigateInSheet) {
-      // POI ごとの最近傍トラックインデックスを事前計算
-      final trackIndices = hasElevation
-          ? ordered
-              .map((p) => nearestTrackIndex(trackPoints, p.position))
-              .toList()
-          : <int>[];
+      final elevationGains = hasElevation
+          ? await compute(
+              computePoiElevationGains,
+              (
+                trackPoints: trackPoints,
+                elevations: elevations,
+                poiPositions: ordered.map((p) => p.position).toList(),
+              ),
+            )
+          : List<String?>.filled(ordered.length, null);
 
-      String? elevationGainAt(int i) {
-        if (!hasElevation) return null;
-        final fromIdx = i > 0 ? trackIndices[i - 1] : 0;
-        final toIdx = trackIndices[i];
-        final gain = elevationGainBetweenIndices(elevations, fromIdx, toIdx);
-        return '${gain.round()}m';
-      }
+      if (!isMounted() || !context.mounted) return;
 
       final entries = [
         for (var i = 0; i < ordered.length; i++)
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
-            elevationGain: elevationGainAt(i),
+            elevationGain: elevationGains[i],
             description: ordered[i].body,
             position: ordered[i].position,
           ),
