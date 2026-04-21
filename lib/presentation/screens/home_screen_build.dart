@@ -198,19 +198,13 @@ mixin _BuildMixin
 
   Future<void> _onMapCreated(MapController controller) async {
     ref.read(cameraControllerProvider.notifier).setController(controller);
-    ref.read(mapStateProvider.notifier).setPoiTapHandler((poi) {
-      showPoiDetailSheet(context, name: poi.name, description: poi.description);
+
+    final poiDetailSheet = PoiMapDetailSheetController(ref);
+    ref.read(mapStateProvider.notifier).setPoiTapHandler((poi) async {
+      await poiDetailSheet.handleGpxPoiTap(context, poi, () => mounted);
     });
-    ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) {
-      final l10n = AppLocalizations.of(context)!;
-      final unit = ref.read(distanceUnitProvider);
-      final prefix = poi.km != null ? '${formatDistance(poi.km!, unit)}：' : '';
-      final title = poi.title.isEmpty ? l10n.titleNone : poi.title;
-      showPoiDetailSheet(
-        context,
-        name: '$prefix$title',
-        description: poi.body,
-      );
+    ref.read(mapStateProvider.notifier).setUserPoiTapHandler((poi) async {
+      await poiDetailSheet.handleUserPoiTap(context, poi, () => mounted);
     });
     await ref.read(mapStateProvider.notifier).onMapCreated(
           controller,

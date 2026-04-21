@@ -6,8 +6,19 @@ abstract class AppTextStyles {
   static const TextStyle headline =
       TextStyle(fontSize: 20, color: Colors.black87);
 
+  /// 見出し
+  static const TextStyle headlineMedium =
+      TextStyle(fontSize: 18, color: Colors.black87);
+
   /// タイトル
   static const TextStyle title = TextStyle(fontSize: 17, color: Colors.black87);
+
+  /// 距離（ハイライト表示用）
+  static const TextStyle distanceLarge = TextStyle(
+    fontSize: 25,
+    fontWeight: FontWeight.w700,
+    color: Colors.blueGrey,
+  );
 
   /// 本文
   static const TextStyle body = TextStyle(fontSize: 16, color: Colors.black87);

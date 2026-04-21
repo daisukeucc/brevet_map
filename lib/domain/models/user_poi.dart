@@ -38,6 +38,42 @@ class UserPoi {
   /// チェックポイントか（インポート時は `<type>checkpoint</type>` 由来）
   bool get isCheckpoint => type == 0;
 
+  /// 詳細ボトムシートなどの表示順。
+  ///
+  /// - [km] がある POI … [km] 昇順（同値は [pois] の登録順）
+  /// - [km] がない POI … チェックポイント → インフォメーション、各グループは [pois] の登録順
+  ///
+  /// 両方混在するときは、まず [km] ありを距離順、その後に [km] なしを上記順。
+  static List<UserPoi> orderedForDetailSheet(List<UserPoi> pois) {
+    if (pois.isEmpty) return pois;
+    final indexed = pois.asMap().entries.toList();
+
+    final withKm = indexed.where((e) => e.value.km != null).toList()
+      ..sort((a, b) {
+        final byKm = a.value.km!.compareTo(b.value.km!);
+        if (byKm != 0) return byKm;
+        return a.key.compareTo(b.key);
+      });
+
+    final withoutKmCp = <UserPoi>[];
+    final withoutKmInfo = <UserPoi>[];
+    for (final e in indexed) {
+      final p = e.value;
+      if (p.km != null) continue;
+      if (p.isCheckpoint) {
+        withoutKmCp.add(p);
+      } else {
+        withoutKmInfo.add(p);
+      }
+    }
+
+    return [
+      for (final e in withKm) e.value,
+      ...withoutKmCp,
+      ...withoutKmInfo,
+    ];
+  }
+
   Map<String, dynamic> toJson() => {
         'type': type,
         'km': km,

@@ -43,7 +43,7 @@ import '../widgets/connectivity_gate.dart'
         OfflinePlaceholderView;
 import '../widgets/map_screen_content.dart';
 import 'map_markers.dart';
-import '../widgets/poi_detail_sheet.dart';
+import '../widgets/poi_map_detail_sheet_controller.dart';
 
 part 'home_screen_share.dart';
 part 'home_screen_poi.dart';
