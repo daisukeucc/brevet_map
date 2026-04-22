@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -109,26 +108,14 @@ class PoiMapDetailSheetController {
         p.km != null ? formatDistance(p.km!, unit) : null;
 
     final ms = _ref.read(mapStateProvider);
-    final trackPoints = ms.savedRoutePoints ?? const [];
-    final elevations = ms.savedTrackElevations ?? const [];
-    final hasElevation = trackPoints.isNotEmpty && elevations.isNotEmpty;
-
     final ordered = PoiMapMarkerOrder.userPois(ms.userPois);
     final canNavigateInSheet = ordered.length >= 2;
 
     if (canNavigateInSheet) {
-      final elevationGains = hasElevation
-          ? await compute(
-              computePoiElevationGains,
-              (
-                trackPoints: trackPoints,
-                elevations: elevations,
-                poiPositions: ordered.map((p) => p.position).toList(),
-              ),
-            )
+      final cached = ms.cachedPoiElevationGains;
+      final elevationGains = (cached != null && cached.length == ordered.length)
+          ? cached
           : List<String?>.filled(ordered.length, null);
-
-      if (!isMounted() || !context.mounted) return;
 
       final entries = [
         for (var i = 0; i < ordered.length; i++)
