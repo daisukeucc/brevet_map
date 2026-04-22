@@ -65,9 +65,7 @@ String buildGpxXml({
     for (final poi in userPois) {
       final body = poi.body.isEmpty ? null : poi.body;
       final name = poi.title.isEmpty ? null : poi.title;
-      final cmtOut = poi.km != null
-          ? _formatKmValue(poi.km!)
-          : (poi.isCheckpoint ? 'control' : 'generic');
+      final cmtOut = poi.isCheckpoint ? 'control' : 'generic';
       final typeOut = poi.isCheckpoint ? 'checkpoint' : 'generic';
       _addWpt(builder, poi.lat, poi.lng,
           name: name,
@@ -155,11 +153,6 @@ void _addWpt(
       });
     }
   });
-}
-
-String _formatKmValue(double km) {
-  final s = km.toStringAsFixed(1);
-  return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
 }
 
 String _toIso8601(DateTime dt) {
