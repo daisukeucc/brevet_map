@@ -38,6 +38,12 @@ class PoiMapDetailSheetController {
 
   final WidgetRef _ref;
 
+  String? _formatElevation(double? meters, int unit) {
+    if (meters == null) return null;
+    if (unit == 1) return '${(meters / 0.3048).round()}ft';
+    return '${meters.round()}m';
+  }
+
   Future<void> animateToPoiPreservingZoom(LatLng position) async {
     final mapCtrl = _ref.read(cameraControllerProvider);
     if (mapCtrl == null) return;
@@ -113,16 +119,16 @@ class PoiMapDetailSheetController {
 
     if (canNavigateInSheet) {
       final cached = ms.cachedPoiElevationGains;
-      final elevationGains = (cached != null && cached.length == ordered.length)
+      final rawGains = (cached != null && cached.length == ordered.length)
           ? cached
-          : List<String?>.filled(ordered.length, null);
+          : List<double?>.filled(ordered.length, null);
 
       final entries = [
         for (var i = 0; i < ordered.length; i++)
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
-            elevationGain: elevationGains[i],
+            elevationGain: _formatElevation(rawGains[i], unit),
             description: ordered[i].body,
             position: ordered[i].position,
             arrival: ordered[i].bmExt?.schedule.arrival,

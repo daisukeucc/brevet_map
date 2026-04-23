@@ -60,8 +60,8 @@ class MapState {
   /// ユーザーが手動で登録した POI
   final List<UserPoi> userPois;
 
-  /// orderedForDetailSheet 順の獲得標高キャッシュ。インポート・起動・POI変更後に更新
-  final List<String?>? cachedPoiElevationGains;
+  /// orderedForDetailSheet 順の獲得標高キャッシュ（メートル値）。インポート・起動・POI変更後に更新
+  final List<double?>? cachedPoiElevationGains;
 
   /// アニメーション用フルルート（animateToRouteBounds にも使う）
   final List<LatLng>? fullRoutePoints;
@@ -88,7 +88,7 @@ class MapState {
     List<GpxPoi>? gpxPois,
     List<GpxPoi>? gpxDotWaypoints,
     List<UserPoi>? userPois,
-    List<String?>? cachedPoiElevationGains,
+    List<double?>? cachedPoiElevationGains,
     List<LatLng>? fullRoutePoints,
     double? savedZoomLevel,
     bool? hasStartedInitialRouteFetch,

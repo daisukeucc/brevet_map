@@ -151,8 +151,8 @@ int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
 }
 
 /// compute() で実行する獲得標高計算。
-/// 各 POI の「前 POI（またはスタート）→ この POI」区間の獲得標高文字列を返す。
-List<String?> computePoiElevationGains(PoiElevationGainInput input) {
+/// 各 POI の「前 POI（またはスタート）→ この POI」区間の獲得標高を返す。
+List<double?> computePoiElevationGains(PoiElevationGainInput input) {
   final trackPoints = input.trackPoints;
   final elevations = input.elevations;
   final poiPositions = input.poiPositions;
@@ -164,7 +164,8 @@ List<String?> computePoiElevationGains(PoiElevationGainInput input) {
       .toList();
   return [
     for (var i = 0; i < poiPositions.length; i++)
-      '${elevationGainBetweenIndices(elevations, i > 0 ? indices[i - 1] : 0, indices[i]).round()}m',
+      elevationGainBetweenIndices(
+          elevations, i > 0 ? indices[i - 1] : 0, indices[i]),
   ];
 }
 
@@ -253,7 +254,8 @@ RouteLegResult getRouteLegWithBearing(
             trackPoints[0],
             trackPoints[1],
           );
-        } else if (c.index == trackPoints.length - 1 && trackPoints.length > 1) {
+        } else if (c.index == trackPoints.length - 1 &&
+            trackPoints.length > 1) {
           routeBearing = bearingBetweenLatLng(
             trackPoints[trackPoints.length - 2],
             trackPoints[trackPoints.length - 1],
@@ -279,7 +281,8 @@ RouteLegResult getRouteLegWithBearing(
     bestAlongM = candidates[0].alongM;
   }
 
-  final toRouteM = distanceBetweenLatLng(trackPoints[bestIndex], currentPosition);
+  final toRouteM =
+      distanceBetweenLatLng(trackPoints[bestIndex], currentPosition);
   final ratio = bestAlongM / totalM;
   final leg = ratio < 0.55 ? RouteLeg.outbound : RouteLeg.returnRoute;
   return (alongTrackM: bestAlongM, toRouteM: toRouteM, leg: leg);
@@ -386,7 +389,8 @@ RouteType detectRouteType(List<LatLng> points) {
   // 累積距離を事前計算（O(n)、以降の計算で再利用）
   final cumDist = List<double>.filled(points.length, 0);
   for (var i = 1; i < points.length; i++) {
-    cumDist[i] = cumDist[i - 1] + distanceBetweenLatLng(points[i - 1], points[i]);
+    cumDist[i] =
+        cumDist[i - 1] + distanceBetweenLatLng(points[i - 1], points[i]);
   }
   final totalDist = cumDist.last;
   if (totalDist == 0) return RouteType.pointToPoint;
