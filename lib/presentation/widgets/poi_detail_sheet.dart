@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../theme/app_text_styles.dart';
@@ -11,6 +12,8 @@ class PoiSheetEntry {
     required this.position,
     this.distance,
     this.elevationGain,
+    this.arrival,
+    this.departure,
   });
 
   final String? name;
@@ -18,6 +21,12 @@ class PoiSheetEntry {
   final String? elevationGain;
   final String? description;
   final LatLng position;
+
+  /// スケジュール：到着時刻（UTC）
+  final DateTime? arrival;
+
+  /// スケジュール：出発時刻（UTC）
+  final DateTime? departure;
 }
 
 /// POI タップ時に表示するボトムシート。名前と説明を表示。
@@ -49,6 +58,8 @@ void showPoiDetailSheet(
         distance: entries.first.distance,
         elevationGain: entries.first.elevationGain,
         description: entries.first.description,
+        arrival: entries.first.arrival,
+        departure: entries.first.departure,
       );
     },
   );
@@ -60,12 +71,16 @@ class _PoiDetailSheetBody extends StatelessWidget {
     required this.distance,
     required this.elevationGain,
     required this.description,
+    this.arrival,
+    this.departure,
   });
 
   final String? name;
   final String? distance;
   final String? elevationGain;
   final String? description;
+  final DateTime? arrival;
+  final DateTime? departure;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +95,8 @@ class _PoiDetailSheetBody extends StatelessWidget {
             distance: distance,
             elevationGain: elevationGain,
             description: description,
+            arrival: arrival,
+            departure: departure,
             distanceLeft: 20,
             contentLeft: 24,
           ),
@@ -142,6 +159,8 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                       distance: e.distance,
                       elevationGain: e.elevationGain,
                       description: e.description,
+                      arrival: e.arrival,
+                      departure: e.departure,
                       distanceLeft: 20,
                       contentLeft: 24,
                     ),
@@ -156,7 +175,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                     child: Icon(
                       Icons.chevron_right,
                       size: 36,
-                      color: Colors.blueGrey,
+                      color: Colors.black38,
                     ),
                   ),
                 ),
@@ -169,13 +188,15 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
   }
 }
 
-/// タイトル・距離・本文を縦に並べるコンテンツブロック
+/// タイトル・距離・標高・スケジュール・本文を縦に並べるコンテンツブロック
 class _PoiContentBlock extends StatelessWidget {
   const _PoiContentBlock({
     required this.name,
     required this.distance,
     required this.elevationGain,
     required this.description,
+    this.arrival,
+    this.departure,
     this.distanceLeft = 0,
     this.contentLeft = 0,
   });
@@ -184,73 +205,98 @@ class _PoiContentBlock extends StatelessWidget {
   final String? distance;
   final String? elevationGain;
   final String? description;
+  final DateTime? arrival;
+  final DateTime? departure;
   final double distanceLeft;
   final double contentLeft;
 
+  String _formatTime(DateTime dt) => DateFormat.Hm().format(dt.toLocal());
+
   @override
   Widget build(BuildContext context) {
-    final hasName = name != null && name!.isNotEmpty;
     final hasDistance = distance != null && distance!.isNotEmpty;
-    final hasElevationGain =
-        elevationGain != null && elevationGain!.isNotEmpty;
+    final hasElevationGain = elevationGain != null && elevationGain!.isNotEmpty;
+    final hasStats = hasDistance || hasElevationGain;
+    final hasName = name != null && name!.isNotEmpty;
     final hasDescription = description != null && description!.isNotEmpty;
+    final hasArrival = arrival != null;
+    final hasDeparture = departure != null;
+    final hasSchedule = hasArrival || hasDeparture;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (hasDistance) ...[
+        // 距離 + 獲得標高（1行）
+        if (hasStats) ...[
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
+              // crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(Icons.location_on, size: 25, color: Colors.blueGrey),
-                const SizedBox(width: 3),
-                Flexible(
-                  child: Text(distance!, style: AppTextStyles.distanceLarge),
-                ),
+                if (hasDistance) ...[
+                  const Icon(Icons.location_on,
+                      size: 25, color: Colors.black54),
+                  const SizedBox(width: 3),
+                  Text(distance!, style: AppTextStyles.poiLarge),
+                ],
+                if (hasDistance && hasElevationGain) const SizedBox(width: 12),
+                if (hasElevationGain) ...[
+                  const Icon(Icons.trending_up,
+                      size: 27, color: Colors.black54),
+                  const SizedBox(width: 3),
+                  Text(
+                    elevationGain!,
+                    style: AppTextStyles.poiLarge,
+                  ),
+                ],
               ],
             ),
           ),
         ],
-        if (hasElevationGain) ...[
-          const SizedBox(height: 4),
+        // スケジュール（arrival / departure）
+        if (hasSchedule) ...[
           Padding(
-            padding: EdgeInsets.only(left: distanceLeft),
+            padding: const EdgeInsets.only(left: 23),
             child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(Icons.trending_up, size: 20, color: Colors.blueGrey),
-                const SizedBox(width: 3),
-                Text(
-                  elevationGain!,
-                  style: AppTextStyles.body.copyWith(color: Colors.blueGrey),
-                ),
+                if (hasArrival) ...[
+                  const Icon(Icons.arrow_downward,
+                      size: 18, color: Colors.black54),
+                  const SizedBox(width: 2),
+                  Text(_formatTime(arrival!), style: AppTextStyles.poiSchedule),
+                ],
+                if (hasArrival && hasDeparture) const SizedBox(width: 8),
+                if (hasDeparture) ...[
+                  const Icon(Icons.arrow_upward,
+                      size: 18, color: Colors.black54),
+                  const SizedBox(width: 2),
+                  Text(_formatTime(departure!),
+                      style: AppTextStyles.poiSchedule),
+                ],
               ],
             ),
           ),
         ],
+        // タイトル
         if (hasName) ...[
-          if (hasDistance || hasElevationGain) const SizedBox(height: 8),
+          if (hasStats || hasSchedule) const SizedBox(height: 5),
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
             child: Text(
               name!.replaceAll('　', ' '),
-              style: AppTextStyles.headlineMedium
-                  .copyWith(height: 1.6, color: Colors.blueGrey.shade600),
+              style: AppTextStyles.poiTitle.copyWith(height: 1.6),
             ),
           ),
         ],
+        // 説明
         if (hasDescription) ...[
-          if (hasName || hasDistance || hasElevationGain)
-            const SizedBox(height: 15),
+          if (hasName || hasStats || hasSchedule) const SizedBox(height: 3),
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
             child: Text(
-              description!,
-              style: AppTextStyles.body
-                  .copyWith(height: 1.6, color: Colors.blueGrey.shade600),
+              description!.replaceAll('　', ' '),
+              style: AppTextStyles.poiDetail.copyWith(height: 1.6),
             ),
           ),
         ],

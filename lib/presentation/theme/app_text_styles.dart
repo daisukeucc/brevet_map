@@ -13,11 +13,28 @@ abstract class AppTextStyles {
   /// タイトル
   static const TextStyle title = TextStyle(fontSize: 17, color: Colors.black87);
 
-  /// 距離（ハイライト表示用）
-  static const TextStyle distanceLarge = TextStyle(
+  static const TextStyle poiLarge = TextStyle(
     fontSize: 25,
     fontWeight: FontWeight.w700,
-    color: Colors.blueGrey,
+    color: Colors.black54,
+  );
+
+  static const TextStyle poiSchedule = TextStyle(
+    fontSize: 18,
+    fontWeight: FontWeight.w500,
+    color: Colors.black54,
+  );
+
+  static const TextStyle poiTitle = TextStyle(
+    fontSize: 19,
+    fontWeight: FontWeight.w500,
+    color: Colors.black54,
+  );
+
+  static const TextStyle poiDetail = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+    color: Colors.black54,
   );
 
   /// 本文

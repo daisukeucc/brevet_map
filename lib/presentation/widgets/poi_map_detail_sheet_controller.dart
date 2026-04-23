@@ -125,6 +125,8 @@ class PoiMapDetailSheetController {
             elevationGain: elevationGains[i],
             description: ordered[i].body,
             position: ordered[i].position,
+            arrival: ordered[i].bmExt?.schedule.arrival,
+            departure: ordered[i].bmExt?.schedule.departure,
           ),
       ];
       final idx = ordered.indexWhere((p) => _sameUserPoi(p, poi));
@@ -147,6 +149,8 @@ class PoiMapDetailSheetController {
             elevationGain: null,
             description: poi.body,
             position: poi.position,
+            arrival: poi.bmExt?.schedule.arrival,
+            departure: poi.bmExt?.schedule.departure,
           ),
         ],
       );
