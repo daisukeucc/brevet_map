@@ -210,7 +210,7 @@ class _PoiContentBlock extends StatelessWidget {
   final double distanceLeft;
   final double contentLeft;
 
-  String _formatTime(DateTime dt) => DateFormat.Hm().format(dt.toLocal());
+  String _formatTime(DateTime dt) => DateFormat.Hm().format(dt);
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +232,6 @@ class _PoiContentBlock extends StatelessWidget {
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
             child: Row(
-              // crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (hasDistance) ...[
                   const Icon(Icons.location_on,
