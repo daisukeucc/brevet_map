@@ -180,6 +180,7 @@ Future<void> handleEditPoiText(
     lng: coord?.longitude ?? poi.lng,
     gpxCmt: poi.gpxCmt,
     gpxType: poi.gpxType,
+    bmExt: poi.bmExt,
   );
   await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
   if (!context.mounted) return;
@@ -237,6 +238,7 @@ Future<void> handlePoiDragEnd(
     lng: newLatLng.longitude,
     gpxCmt: poi.gpxCmt,
     gpxType: poi.gpxType,
+    bmExt: poi.bmExt,
   );
   await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
   if (!context.mounted) return;

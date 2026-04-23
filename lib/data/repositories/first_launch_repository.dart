@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/models/bm_extension.dart';
+
+const _keyBrevetMeta = 'brevet_meta';
 const _keyDefaultMapLat = 'default_map_lat';
 const _keyDefaultMapLng = 'default_map_lng';
 
@@ -99,6 +102,25 @@ Future<void> clearSavedRoute() async {
   await prefs.remove(_keyGpxPois);
   await prefs.remove(_keyGpxDotWaypoints);
   await prefs.remove(_keyGpxMetadataName);
+  await prefs.remove(_keyBrevetMeta);
+}
+
+/// ブルベメタデータ（距離・スタート時刻・制限時間）を保存する
+Future<void> saveBrevetMeta(BmBrevetMeta meta) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_keyBrevetMeta, jsonEncode(meta.toJson()));
+}
+
+/// 保存済みのブルベメタデータを返す。未保存なら null
+Future<BmBrevetMeta?> loadBrevetMeta() async {
+  final prefs = await SharedPreferences.getInstance();
+  final s = prefs.getString(_keyBrevetMeta);
+  if (s == null || s.isEmpty) return null;
+  try {
+    return BmBrevetMeta.fromJson(jsonDecode(s) as Map<String, dynamic>);
+  } catch (_) {
+    return null;
+  }
 }
 
 /// Dot ウェイポイント一覧の JSON を保存する

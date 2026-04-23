@@ -2,6 +2,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:xml/xml.dart';
 
 import '../../data/parsers/gpx_parser.dart';
+import '../../domain/models/bm_extension.dart';
 import '../../domain/models/user_poi.dart';
 
 /// GPX XML を生成する。
@@ -12,6 +13,7 @@ import '../../domain/models/user_poi.dart';
 /// [gpxPois] レガシー保存の GPX ウェイポイント
 /// [userPois] 表示・編集対象の POI
 /// [filename] metadata と trk の name に使用するファイル名（任意）
+/// [brevetMeta] ブルベメタデータ。あれば `<metadata><extensions>` に出力する
 String buildGpxXml({
   required List<LatLng> trackPoints,
   List<double?>? trackElevations,
@@ -19,18 +21,15 @@ String buildGpxXml({
   List<GpxPoi> gpxPois = const [],
   List<UserPoi> userPois = const [],
   String? filename,
+  BmBrevetMeta? brevetMeta,
 }) {
   final builder = XmlBuilder();
   builder.declaration(version: '1.0', encoding: 'UTF-8');
   builder.element('gpx', attributes: {
-    'xmlns:gpxdata': 'http://www.cluetrust.com/XML/GPXDATA/1/0',
-    'xmlns:xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-    'xmlns': 'http://www.topografix.com/GPX/1/1',
     'version': '1.1',
-    'creator': 'http://brevetmap.com/',
-    'xsi:schemaLocation':
-        'http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd '
-        'http://www.cluetrust.com/XML/GPXDATA/1/0 http://www.cluetrust.com/Schemas/gpxdata10.xsd',
+    'creator': 'BrevetMap',
+    'xmlns': 'http://www.topografix.com/GPX/1/1',
+    'xmlns:bm': 'https://brevetmap.app/schema',
   }, nest: () {
     // metadata
     builder.element('metadata', nest: () {
@@ -42,6 +41,21 @@ String buildGpxXml({
       builder.element('time', nest: () {
         builder.text(_toIso8601(DateTime.now()));
       });
+      if (brevetMeta != null) {
+        builder.element('extensions', nest: () {
+          builder.element('bm:brevet', attributes: {'version': '1.0'}, nest: () {
+            builder.element('bm:distanceKm', nest: () {
+              builder.text(_formatNumber(brevetMeta.distanceKm));
+            });
+            builder.element('bm:startTime', nest: () {
+              builder.text(_toIso8601(brevetMeta.startTime));
+            });
+            builder.element('bm:timeLimitHours', nest: () {
+              builder.text(_formatNumber(brevetMeta.timeLimitHours));
+            });
+          });
+        });
+      }
     });
 
     // wpt: Dot（インポート復元）→ レガシー gpxPois → UserPoi
@@ -61,18 +75,8 @@ String buildGpxXml({
           cmt: poi.cmt,
           type: poi.type);
     }
-    // UserPoi（手動追加・編集後含む）: 追加 POI と同一形式で出力（インポート時の cmt/type は引き継がない）
     for (final poi in userPois) {
-      final body = poi.body.isEmpty ? null : poi.body;
-      final name = poi.title.isEmpty ? null : poi.title;
-      final cmtOut = poi.isCheckpoint ? 'control' : 'generic';
-      final typeOut = poi.isCheckpoint ? 'checkpoint' : 'generic';
-      _addWpt(builder, poi.lat, poi.lng,
-          name: name,
-          desc: body,
-          sym: 'Dot',
-          cmt: cmtOut,
-          type: typeOut);
+      _addUserPoiWpt(builder, poi);
     }
 
     // trk
@@ -113,6 +117,41 @@ String buildGpxXml({
   return builder.buildDocument().toXmlString(pretty: true);
 }
 
+/// UserPoi を `<wpt>` として出力する。
+/// bmExt がある場合は `<extensions><bm:poi>` を付加し、種別に応じた sym/type/cmt を設定する。
+void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
+  final bmExt = poi.bmExt;
+  final poiType = bmExt?.type ?? (poi.isCheckpoint ? 'checkpoint' : 'generic');
+  final isStartOrFinish = poiType == 'start' || poiType == 'finish';
+
+  final String? name;
+  if (poiType == 'start') {
+    name = poi.title.isEmpty ? 'Start' : poi.title;
+  } else if (poiType == 'finish') {
+    name = poi.title.isEmpty ? 'Goal' : poi.title;
+  } else {
+    name = poi.title.isEmpty ? null : poi.title;
+  }
+  final desc = poi.body.isEmpty ? null : poi.body;
+  final sym = isStartOrFinish ? 'Flag' : 'Dot';
+  final typeOut = poiType;
+  final cmtOut = isStartOrFinish
+      ? null
+      : (poiType == 'checkpoint' ? 'control' : 'generic');
+
+  _addWpt(
+    builder,
+    poi.lat,
+    poi.lng,
+    name: name,
+    desc: isStartOrFinish ? null : desc,
+    sym: sym,
+    cmt: cmtOut,
+    type: typeOut,
+    bmPoiExt: bmExt,
+  );
+}
+
 void _addWpt(
   XmlBuilder builder,
   double lat,
@@ -122,6 +161,7 @@ void _addWpt(
   String? sym,
   String? cmt,
   String? type,
+  BmPoiExtension? bmPoiExt,
 }) {
   builder.element('wpt', attributes: {
     'lat': lat.toString(),
@@ -142,17 +182,59 @@ void _addWpt(
         builder.text(sym);
       });
     }
-    if (cmt != null && cmt.isNotEmpty) {
-      builder.element('cmt', nest: () {
-        builder.text(cmt);
-      });
-    }
     if (type != null && type.isNotEmpty) {
       builder.element('type', nest: () {
         builder.text(type);
       });
     }
+    if (cmt != null && cmt.isNotEmpty) {
+      builder.element('cmt', nest: () {
+        builder.text(cmt);
+      });
+    }
+    if (bmPoiExt != null) {
+      builder.element('extensions', nest: () {
+        builder.element('bm:poi', attributes: {'version': '1.0'}, nest: () {
+          builder.element('bm:type', nest: () {
+            builder.text(bmPoiExt.type);
+          });
+          if (!bmPoiExt.schedule.isEmpty) {
+            builder.element('bm:schedule', nest: () {
+              if (bmPoiExt.schedule.arrival != null) {
+                builder.element('bm:arrival', nest: () {
+                  builder.text(_toIso8601(bmPoiExt.schedule.arrival!));
+                });
+              }
+              if (bmPoiExt.schedule.departure != null) {
+                builder.element('bm:departure', nest: () {
+                  builder.text(_toIso8601(bmPoiExt.schedule.departure!));
+                });
+              }
+              if (bmPoiExt.schedule.cutoff != null) {
+                builder.element('bm:cutoff', nest: () {
+                  builder.text(_toIso8601(bmPoiExt.schedule.cutoff!));
+                });
+              }
+            });
+          }
+          builder.element('bm:routeInfo', nest: () {
+            builder.element('bm:distanceKm', nest: () {
+              builder.text(_formatNumber(bmPoiExt.distanceKm));
+            });
+          });
+        });
+      });
+    }
   });
+}
+
+/// 整数なら小数点なし、小数点以下がある場合は最小桁数で出力する。
+String _formatNumber(double value) {
+  if (value == value.truncateToDouble()) {
+    return value.truncate().toString();
+  }
+  final s = value.toString();
+  return s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
 }
 
 String _toIso8601(DateTime dt) {

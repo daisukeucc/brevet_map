@@ -134,6 +134,10 @@ Future<List<Marker>> buildRouteMarkers({
       poiIconOrange != null &&
       poiIconCheckpoint != null) {
     void addUserPoiMarker(UserPoi poi) {
+      // start/finish は緑・赤マーカーでタップを処理するためスキップ
+      final bmType = poi.bmExt?.type;
+      if (bmType == 'start' || bmType == 'finish') return;
+
       final icon = poi.isCheckpoint ? poiIconCheckpoint : poiIconOrange;
       final isDragging = draggingPoi != null &&
           poi.lat == draggingPoi.lat &&
@@ -158,28 +162,53 @@ Future<List<Marker>> buildRouteMarkers({
     }
   }
 
-  if (routePoints.isNotEmpty && startIcon != null && goalIcon != null) {
-    final start = routePoints.first;
-    final goal = routePoints.length > 1 ? routePoints.last : start;
-    final isSamePoint = (start.latitude - goal.latitude).abs() < 1e-6 &&
-        (start.longitude - goal.longitude).abs() < 1e-6;
-    final startPoint =
-        isSamePoint ? LatLng(start.latitude + 0.00008, start.longitude) : start;
+  if (startIcon != null && goalIcon != null) {
+    // start/finish UserPoi があればその座標を使い、なければ routePoints の端点にフォールバック
+    final startPoi = userPois.cast<UserPoi?>().firstWhere(
+      (p) => p?.bmExt?.type == 'start',
+      orElse: () => null,
+    );
+    final finishPoi = userPois.cast<UserPoi?>().firstWhere(
+      (p) => p?.bmExt?.type == 'finish',
+      orElse: () => null,
+    );
 
-    markers.add(Marker(
-      point: goal,
-      width: _markerSize,
-      height: _markerSize,
-      alignment: Alignment.center,
-      child: goalIcon,
-    ));
-    markers.add(Marker(
-      point: startPoint,
-      width: _markerSize,
-      height: _markerSize,
-      alignment: Alignment.center,
-      child: startIcon,
-    ));
+    final startPoint = startPoi != null
+        ? startPoi.position
+        : (routePoints.isNotEmpty ? routePoints.first : null);
+    final goalPoint = finishPoi != null
+        ? finishPoi.position
+        : (routePoints.isNotEmpty ? routePoints.last : null);
+
+    if (startPoint != null && goalPoint != null) {
+      final isSamePoint =
+          (startPoint.latitude - goalPoint.latitude).abs() < 1e-6 &&
+              (startPoint.longitude - goalPoint.longitude).abs() < 1e-6;
+      final adjustedStartPoint = isSamePoint
+          ? LatLng(startPoint.latitude + 0.00008, startPoint.longitude)
+          : startPoint;
+
+      markers.add(Marker(
+        point: goalPoint,
+        width: _markerSize,
+        height: _markerSize,
+        alignment: Alignment.center,
+        child: GestureDetector(
+          onTap: finishPoi != null ? () => onUserPoiTap?.call(finishPoi) : null,
+          child: goalIcon,
+        ),
+      ));
+      markers.add(Marker(
+        point: adjustedStartPoint,
+        width: _markerSize,
+        height: _markerSize,
+        alignment: Alignment.center,
+        child: GestureDetector(
+          onTap: startPoi != null ? () => onUserPoiTap?.call(startPoi) : null,
+          child: startIcon,
+        ),
+      ));
+    }
   }
 
   return markers;

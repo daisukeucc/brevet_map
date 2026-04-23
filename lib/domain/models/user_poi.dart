@@ -1,5 +1,7 @@
 import 'package:latlong2/latlong.dart';
 
+import 'bm_extension.dart';
+
 /// ユーザーが手動で登録した POI。SharedPreferences に JSON で保存する。
 class UserPoi {
   const UserPoi({
@@ -15,6 +17,9 @@ class UserPoi {
 
     /// GPX インポート時の `type` 要素の値（手動追加 POI では null）
     this.gpxType,
+
+    /// BrevetMap 独自拡張データ（`<bm:poi>`）
+    this.bmExt,
   });
 
   /// 0=チェックポイント（GPX の `<type>checkpoint</type>` に相当）, 1=インフォメーション
@@ -32,6 +37,9 @@ class UserPoi {
 
   /// GPX インポート時の `<type>` の元文字列（参照用）
   final String? gpxType;
+
+  /// BrevetMap 独自拡張データ。インポート / 新規追加時に設定される。
+  final BmPoiExtension? bmExt;
 
   LatLng get position => LatLng(lat, lng);
 
@@ -83,6 +91,7 @@ class UserPoi {
         'lng': lng,
         if (gpxCmt != null) 'gpxCmt': gpxCmt,
         if (gpxType != null) 'gpxType': gpxType,
+        if (bmExt != null) 'bmExt': bmExt!.toJson(),
       };
 
   static UserPoi fromJson(Map<String, dynamic> json) => UserPoi(
@@ -94,5 +103,8 @@ class UserPoi {
         lng: (json['lng'] as num).toDouble(),
         gpxCmt: json['gpxCmt'] as String?,
         gpxType: json['gpxType'] as String?,
+        bmExt: json['bmExt'] != null
+            ? BmPoiExtension.fromJson(json['bmExt'] as Map<String, dynamic>)
+            : null,
       );
 }

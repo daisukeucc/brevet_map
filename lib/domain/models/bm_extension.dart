@@ -1,0 +1,101 @@
+/// BrevetMap 独自拡張データ（`<bm:…>` 名前空間）のモデル。
+///
+/// GPX の `<metadata><extensions><bm:brevet>` および
+/// `<wpt><extensions><bm:poi>` を Dart オブジェクトとして表現する。
+
+library bm_extension;
+
+/// `<metadata><extensions><bm:brevet>` — ルート全体のブルベ情報。
+class BmBrevetMeta {
+  const BmBrevetMeta({
+    required this.distanceKm,
+    required this.startTime,
+    required this.timeLimitHours,
+  });
+
+  /// ブルベ公認距離（km）。判定できない場合は 0。
+  final double distanceKm;
+
+  /// スタート日時（UTC）。
+  final DateTime startTime;
+
+  /// 制限時間（時間）。判定できない場合は 0。
+  final double timeLimitHours;
+
+  Map<String, dynamic> toJson() => {
+        'distanceKm': distanceKm,
+        'startTime': startTime.toUtc().toIso8601String(),
+        'timeLimitHours': timeLimitHours,
+      };
+
+  static BmBrevetMeta fromJson(Map<String, dynamic> json) => BmBrevetMeta(
+        distanceKm: (json['distanceKm'] as num).toDouble(),
+        startTime: DateTime.parse(json['startTime'] as String),
+        timeLimitHours: (json['timeLimitHours'] as num).toDouble(),
+      );
+}
+
+/// `<bm:schedule>` — POI の通過予定時刻。
+class BmSchedule {
+  const BmSchedule({
+    this.arrival,
+    this.departure,
+    this.cutoff,
+  });
+
+  final DateTime? arrival;
+  final DateTime? departure;
+  final DateTime? cutoff;
+
+  bool get isEmpty => arrival == null && departure == null && cutoff == null;
+
+  Map<String, dynamic> toJson() => {
+        if (arrival != null) 'arrival': arrival!.toUtc().toIso8601String(),
+        if (departure != null)
+          'departure': departure!.toUtc().toIso8601String(),
+        if (cutoff != null) 'cutoff': cutoff!.toUtc().toIso8601String(),
+      };
+
+  static BmSchedule fromJson(Map<String, dynamic> json) => BmSchedule(
+        arrival: json['arrival'] != null
+            ? DateTime.parse(json['arrival'] as String)
+            : null,
+        departure: json['departure'] != null
+            ? DateTime.parse(json['departure'] as String)
+            : null,
+        cutoff: json['cutoff'] != null
+            ? DateTime.parse(json['cutoff'] as String)
+            : null,
+      );
+}
+
+/// `<wpt><extensions><bm:poi>` — POI 1件分の拡張情報。
+class BmPoiExtension {
+  const BmPoiExtension({
+    required this.type,
+    required this.schedule,
+    required this.distanceKm,
+  });
+
+  /// POI の種別。'start' / 'finish' / 'checkpoint' / 'generic'
+  final String type;
+
+  final BmSchedule schedule;
+
+  /// スタートからこの POI までのルート沿い距離（km）。
+  final double distanceKm;
+
+  Map<String, dynamic> toJson() => {
+        'type': type,
+        'schedule': schedule.toJson(),
+        'distanceKm': distanceKm,
+      };
+
+  static BmPoiExtension fromJson(Map<String, dynamic> json) => BmPoiExtension(
+        type: json['type'] as String? ?? 'generic',
+        schedule: json['schedule'] != null
+            ? BmSchedule.fromJson(json['schedule'] as Map<String, dynamic>)
+            : const BmSchedule(),
+        distanceKm: (json['distanceKm'] as num?)?.toDouble() ?? 0,
+      );
+}
