@@ -36,6 +36,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add => 'Add';
 
   @override
+  String get next => 'Next';
+
+  @override
   String get settings => 'Settings';
 
   @override
@@ -119,6 +122,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get body => 'Body';
+
+  @override
+  String get plannedArrival => 'Planned arrival';
+
+  @override
+  String get plannedDeparture => 'Planned departure';
 
   @override
   String get distance => 'Distance';

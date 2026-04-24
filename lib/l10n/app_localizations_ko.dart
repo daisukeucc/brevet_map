@@ -36,6 +36,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get add => '추가';
 
   @override
+  String get next => '다음';
+
+  @override
   String get settings => '설정';
 
   @override
@@ -119,6 +122,12 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get body => '본문';
+
+  @override
+  String get plannedArrival => '도착 예정';
+
+  @override
+  String get plannedDeparture => '출발 예정';
 
   @override
   String get distance => '거리';

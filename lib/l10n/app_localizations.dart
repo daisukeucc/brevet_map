@@ -167,6 +167,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add;
 
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
   /// No description provided for @settings.
   ///
   /// In en, this message translates to:
@@ -328,6 +334,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Body'**
   String get body;
+
+  /// No description provided for @plannedArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned arrival'**
+  String get plannedArrival;
+
+  /// No description provided for @plannedDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned departure'**
+  String get plannedDeparture;
 
   /// No description provided for @distance.
   ///

@@ -36,6 +36,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get add => '追加';
 
   @override
+  String get next => '次へ';
+
+  @override
   String get settings => '設定';
 
   @override
@@ -119,6 +122,12 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get body => '本文';
+
+  @override
+  String get plannedArrival => '到着予定';
+
+  @override
+  String get plannedDeparture => '出発予定';
 
   @override
   String get distance => '距離';

@@ -36,6 +36,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get add => '添加';
 
   @override
+  String get next => '下一个';
+
+  @override
   String get settings => '设置';
 
   @override
@@ -118,6 +121,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get body => '正文';
+
+  @override
+  String get plannedArrival => '预计到达';
+
+  @override
+  String get plannedDeparture => '预计出发';
 
   @override
   String get distance => '距离';
@@ -601,6 +610,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get add => '添加';
 
   @override
+  String get next => '下一個';
+
+  @override
   String get settings => '設定';
 
   @override
@@ -683,6 +695,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get body => '內容';
+
+  @override
+  String get plannedArrival => '預計到達';
+
+  @override
+  String get plannedDeparture => '預計出發';
 
   @override
   String get distance => '距離';

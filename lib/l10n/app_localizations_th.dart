@@ -36,6 +36,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get add => 'เพิ่ม';
 
   @override
+  String get next => 'ถัดไป';
+
+  @override
   String get settings => 'การตั้งค่า';
 
   @override
@@ -120,6 +123,12 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get body => 'เนื้อหา';
+
+  @override
+  String get plannedArrival => 'เวลาถึงที่กำหนด';
+
+  @override
+  String get plannedDeparture => 'เวลาออกเดินทางที่กำหนด';
 
   @override
   String get distance => 'ระยะทาง';
