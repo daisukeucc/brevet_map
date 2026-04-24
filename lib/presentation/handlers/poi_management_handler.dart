@@ -1157,22 +1157,21 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     super.dispose();
   }
 
+  String _kmToDisplayText(double? km) {
+    if (km == null) return '';
+    final displayValue =
+        widget.distanceUnit == 1 ? (km / kmPerMile) : km;
+    return displayValue % 1 == 0
+        ? displayValue.toInt().toString()
+        : displayValue.toStringAsFixed(1);
+  }
+
   void _loadPoiToForm(UserPoi poi) {
     _currentPoi = poi;
     _poiType = poi.type;
     _titleController.text = poi.title;
     _bodyController.text = poi.body;
-    final kmText = poi.km != null
-        ? (() {
-            final displayValue = widget.distanceUnit == 1
-                ? (poi.km! / kmPerMile)
-                : poi.km!;
-            return displayValue % 1 == 0
-                ? displayValue.toInt().toString()
-                : displayValue.toStringAsFixed(1);
-          }())
-        : '';
-    _kmController.text = kmText;
+    _kmController.text = _kmToDisplayText(poi.km);
     _arrival = _timeOfDayFromDt(poi.bmExt?.schedule.arrival);
     _departure = _timeOfDayFromDt(poi.bmExt?.schedule.departure);
     _kmError = null;
@@ -1184,15 +1183,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (_titleController.text.trim() != _currentPoi.title) return true;
     if (_bodyController.text.trim() != _currentPoi.body) return true;
 
-    final text = _kmController.text.trim();
-    final double? formKm;
-    if (text.isEmpty) {
-      formKm = null;
-    } else {
-      final v = double.tryParse(text);
-      formKm = v == null ? null : (widget.distanceUnit == 1 ? v * kmPerMile : v);
-    }
-    if (formKm != _currentPoi.km) return true;
+    if (_kmController.text.trim() != _kmToDisplayText(_currentPoi.km)) return true;
 
     final origArrival = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.arrival);
     final origDeparture = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.departure);
