@@ -607,4 +607,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => 'Save changes?';
+
+  @override
+  String get setStartDate => 'Set start date';
+
+  @override
+  String get changeRideDate => 'Change ride date';
 }

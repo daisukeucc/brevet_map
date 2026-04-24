@@ -612,4 +612,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => 'Enregistrer les modifications ?';
+
+  @override
+  String get setStartDate => 'Définir la date de départ';
+
+  @override
+  String get changeRideDate => 'Modifier la date de départ';
 }

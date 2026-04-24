@@ -103,7 +103,7 @@ BmPoiExtension _defaultBmPoiExtension({
       final limitDuration =
           Duration(minutes: (brevetMeta.timeLimitHours * 60).round());
       schedule = BmSchedule(
-        arrival: brevetMeta.startTime.add(limitDuration),
+        arrival: brevetMeta.startTime?.add(limitDuration),
       );
     default:
       schedule = const BmSchedule();
@@ -184,11 +184,8 @@ Future<GpxImportResult?> parseAndSaveGpx(
     brevetMeta = result.brevetMeta!;
   } else {
     final matched = matchBrevetDistance(totalDistanceKm);
-    final now = DateTime.now();
-    final startTime = DateTime(now.year, now.month, now.day, 6).toUtc();
     brevetMeta = BmBrevetMeta(
       distanceKm: matched.km,
-      startTime: startTime,
       timeLimitHours: matched.limitHours,
     );
   }

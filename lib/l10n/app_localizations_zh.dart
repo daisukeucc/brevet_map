@@ -582,6 +582,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => '保存更改？';
+
+  @override
+  String get setStartDate => '设置出发日期';
+
+  @override
+  String get changeRideDate => '更改出发日期';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1162,4 +1168,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get saveChangesConfirm => '儲存變更？';
+
+  @override
+  String get setStartDate => '設定出發日期';
+
+  @override
+  String get changeRideDate => '更改出發日期';
 }

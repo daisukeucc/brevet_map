@@ -303,5 +303,7 @@
   "sampleRouteDialogMessage": "La ruta mostrada en el mapa es una ruta de ejemplo. Para uso real, importe y utilice un archivo GPX exportado de una aplicación de ciclismo o proporcionado por un evento.",
   "volumeButtonTutorial": "Puede ajustar el nivel de zoom del mapa con los botones de volumen del dispositivo",
   "save": "Guardar",
-  "saveChangesConfirm": "¿Guardar cambios?"
+  "saveChangesConfirm": "¿Guardar cambios?",
+  "setStartDate": "Establecer fecha de salida",
+  "changeRideDate": "Cambiar fecha de salida"
 }

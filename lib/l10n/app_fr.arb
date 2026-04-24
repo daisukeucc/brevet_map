@@ -303,5 +303,7 @@
   "sampleRouteDialogMessage": "L'itinéraire affiché sur la carte est un itinéraire d'exemple. Pour une utilisation réelle, veuillez importer et utiliser un fichier GPX exporté depuis une application de cyclisme ou fourni par un événement.",
   "volumeButtonTutorial": "Vous pouvez ajuster le niveau de zoom de la carte avec les boutons de volume de l'appareil",
   "save": "Enregistrer",
-  "saveChangesConfirm": "Enregistrer les modifications ?"
+  "saveChangesConfirm": "Enregistrer les modifications ?",
+  "setStartDate": "Définir la date de départ",
+  "changeRideDate": "Modifier la date de départ"
 }

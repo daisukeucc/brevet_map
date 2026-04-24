@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/models/bm_extension.dart';
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
@@ -74,6 +75,31 @@ Future<void> handleAddPoiTap(
   required void Function(UserPoi poi, LatLng newLatLng) onDragEnd,
 }) async {
   if (!getMounted()) return;
+
+  final meta = await loadBrevetMeta();
+  if (meta?.startTime == null) {
+    if (!context.mounted) return;
+    final l10n = AppLocalizations.of(context)!;
+    final now = DateTime.now();
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+      helpText: l10n.setStartDate,
+    );
+    if (selectedDate == null || !getMounted() || !context.mounted) return;
+    final startTime =
+        DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 6)
+            .toUtc();
+    await saveBrevetMeta(BmBrevetMeta(
+      distanceKm: meta?.distanceKm ?? 0,
+      startTime: startTime,
+      timeLimitHours: meta?.timeLimitHours ?? 0,
+    ));
+  }
+
+  if (!getMounted() || !context.mounted) return;
   final result = await showPoiManagementDialog(context, ref);
   if (result == null || !getMounted()) return;
 

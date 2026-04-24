@@ -607,4 +607,10 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => 'บันทึกการเปลี่ยนแปลงหรือไม่?';
+
+  @override
+  String get setStartDate => 'ตั้งวันที่ออกสตาร์ต';
+
+  @override
+  String get changeRideDate => 'เปลี่ยนวันที่ออกสตาร์ต';
 }

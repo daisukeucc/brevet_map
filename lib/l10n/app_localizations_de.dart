@@ -609,4 +609,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => 'Änderungen speichern?';
+
+  @override
+  String get setStartDate => 'Startdatum festlegen';
+
+  @override
+  String get changeRideDate => 'Fahrdatum ändern';
 }

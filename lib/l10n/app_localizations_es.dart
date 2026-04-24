@@ -610,4 +610,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => '¿Guardar cambios?';
+
+  @override
+  String get setStartDate => 'Establecer fecha de salida';
+
+  @override
+  String get changeRideDate => 'Cambiar fecha de salida';
 }

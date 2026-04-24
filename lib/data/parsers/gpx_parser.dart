@@ -179,7 +179,6 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
       ) ??
       0;
 
-  if (startTime == null) return null;
   return BmBrevetMeta(
     distanceKm: distanceKm,
     startTime: startTime,

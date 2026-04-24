@@ -303,5 +303,7 @@
   "sampleRouteDialogMessage": "Die auf der Karte angezeigte Route ist eine Beispielroute. Zur tatsächlichen Nutzung importieren Sie bitte eine GPX-Datei aus einer Radsport-App oder von einer Veranstaltung.",
   "volumeButtonTutorial": "Sie können den Kartenzoom mit den Lautstärketasten des Geräts anpassen",
   "save": "Speichern",
-  "saveChangesConfirm": "Änderungen speichern?"
+  "saveChangesConfirm": "Änderungen speichern?",
+  "setStartDate": "Startdatum festlegen",
+  "changeRideDate": "Fahrdatum ändern"
 }

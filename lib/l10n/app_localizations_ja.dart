@@ -589,4 +589,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => '変更を保存しますか';
+
+  @override
+  String get setStartDate => '出走日を設定';
+
+  @override
+  String get changeRideDate => '出走日を変更';
 }

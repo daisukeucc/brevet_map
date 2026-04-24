@@ -592,4 +592,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get saveChangesConfirm => '변경 사항을 저장하시겠습니까?';
+
+  @override
+  String get setStartDate => '출발 날짜 설정';
+
+  @override
+  String get changeRideDate => '출발 날짜 변경';
 }

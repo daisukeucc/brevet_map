@@ -302,5 +302,7 @@
   "sampleRouteDialogMessage": "地圖上顯示的路線是示範路線。實際使用時，請匯入並使用從騎行應用程式匯出的 GPX 檔案或活動提供的 GPX 檔案。",
   "volumeButtonTutorial": "您可以使用裝置的音量鍵調整地圖縮放級別",
   "save": "儲存",
-  "saveChangesConfirm": "儲存變更？"
+  "saveChangesConfirm": "儲存變更？",
+  "setStartDate": "設定出發日期",
+  "changeRideDate": "更改出發日期"
 }

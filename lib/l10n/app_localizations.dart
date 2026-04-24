@@ -1174,6 +1174,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save changes?'**
   String get saveChangesConfirm;
+
+  /// No description provided for @setStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Set start date'**
+  String get setStartDate;
+
+  /// No description provided for @changeRideDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Change ride date'**
+  String get changeRideDate;
 }
 
 class _AppLocalizationsDelegate

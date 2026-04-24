@@ -468,6 +468,15 @@ class MapStateNotifier extends Notifier<MapState> {
     await _cachePoiElevationGains();
   }
 
+  /// 全ユーザー POI をまとめて置き換えて保存する（出走日変更などの一括更新用）
+  Future<void> replaceAllUserPois(List<UserPoi> pois) async {
+    await saveUserPois(pois);
+    state = state.copyWith(userPois: pois);
+    final routePoints = state.savedRoutePoints ?? _emptyRoute;
+    await _refreshRouteMarkers(routePoints);
+    await _cachePoiElevationGains();
+  }
+
   // --- 内部メソッド ---
 
   /// orderedForDetailSheet 順で全 POI の獲得標高を isolate で計算してキャッシュする。

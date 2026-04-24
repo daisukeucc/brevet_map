@@ -9,28 +9,31 @@ library bm_extension;
 class BmBrevetMeta {
   const BmBrevetMeta({
     required this.distanceKm,
-    required this.startTime,
+    this.startTime,
     required this.timeLimitHours,
   });
 
   /// ブルベ公認距離（km）。判定できない場合は 0。
   final double distanceKm;
 
-  /// スタート日時（UTC）。
-  final DateTime startTime;
+  /// スタート日時（UTC）。ユーザーが日付ピッカーで設定するまで null。
+  final DateTime? startTime;
 
   /// 制限時間（時間）。判定できない場合は 0。
   final double timeLimitHours;
 
   Map<String, dynamic> toJson() => {
         'distanceKm': distanceKm,
-        'startTime': startTime.toUtc().toIso8601String(),
+        if (startTime != null)
+          'startTime': startTime!.toUtc().toIso8601String(),
         'timeLimitHours': timeLimitHours,
       };
 
   static BmBrevetMeta fromJson(Map<String, dynamic> json) => BmBrevetMeta(
         distanceKm: (json['distanceKm'] as num).toDouble(),
-        startTime: DateTime.parse(json['startTime'] as String),
+        startTime: json['startTime'] != null
+            ? DateTime.parse(json['startTime'] as String)
+            : null,
         timeLimitHours: (json['timeLimitHours'] as num).toDouble(),
       );
 }

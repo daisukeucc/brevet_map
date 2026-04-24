@@ -47,9 +47,11 @@ String buildGpxXml({
             builder.element('bm:distanceKm', nest: () {
               builder.text(_formatNumber(brevetMeta.distanceKm));
             });
-            builder.element('bm:startTime', nest: () {
-              builder.text(_toIso8601(brevetMeta.startTime));
-            });
+            if (brevetMeta.startTime != null) {
+              builder.element('bm:startTime', nest: () {
+                builder.text(_toIso8601(brevetMeta.startTime!));
+              });
+            }
             builder.element('bm:timeLimitHours', nest: () {
               builder.text(_formatNumber(brevetMeta.timeLimitHours));
             });
