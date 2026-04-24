@@ -146,42 +146,39 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
       width: double.infinity,
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.all(0),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 20, 15, 25),
-                    child: _PoiContentBlock(
-                      name: e.name,
-                      distance: e.distance,
-                      elevationGain: e.elevationGain,
-                      description: e.description,
-                      arrival: e.arrival,
-                      departure: e.departure,
-                      distanceLeft: 20,
-                      contentLeft: 24,
-                    ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 20, 15, 25),
+                  child: _PoiContentBlock(
+                    name: e.name,
+                    distance: e.distance,
+                    elevationGain: e.elevationGain,
+                    description: e.description,
+                    arrival: e.arrival,
+                    departure: e.departure,
+                    distanceLeft: 20,
+                    contentLeft: 24,
                   ),
                 ),
-                InkWell(
-                  onTap: _goNext,
-                  splashColor: Colors.grey.withValues(alpha: 0.3),
-                  highlightColor: Colors.grey.withValues(alpha: 0.2),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6),
-                    child: Icon(
-                      Icons.chevron_right,
-                      size: 36,
-                      color: Colors.black38,
-                    ),
+              ),
+              InkWell(
+                onTap: _goNext,
+                splashColor: Colors.grey.withValues(alpha: 0.3),
+                highlightColor: Colors.grey.withValues(alpha: 0.2),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6),
+                  child: Icon(
+                    Icons.chevron_right,
+                    size: 36,
+                    color: Colors.black38,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -215,6 +212,7 @@ class _PoiContentBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final hasDistance = distance != null && distance!.isNotEmpty;
     final hasElevationGain = elevationGain != null && elevationGain!.isNotEmpty;
     final hasStats = hasDistance || hasElevationGain;
@@ -229,81 +227,59 @@ class _PoiContentBlock extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 距離 + 獲得標高（1行）
-        if (hasStats) ...[
+        if (hasStats)
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    if (hasDistance) ...[
-                      const Icon(Icons.location_on,
-                          size: 23, color: AppColors.muted),
-                      const SizedBox(width: 3),
-                      Text(distance!, style: AppTextStyles.poiLarge),
-                    ],
-                    if (hasDistance && hasElevationGain)
-                      const SizedBox(width: 12),
-                    if (hasElevationGain) ...[
-                      const Icon(Icons.trending_up,
-                          size: 23, color: AppColors.muted),
-                      const SizedBox(width: 3),
-                      Text(
-                        elevationGain!,
-                        style: AppTextStyles.poiLarge,
-                      ),
-                    ],
-                  ],
-                ),
+                if (hasDistance) ...[
+                  const Icon(Icons.location_on,
+                      size: 23, color: AppColors.muted),
+                  const SizedBox(width: 3),
+                  Text(distance!, style: AppTextStyles.poiLarge),
+                ],
+                if (hasDistance && hasElevationGain) const SizedBox(width: 12),
+                if (hasElevationGain) ...[
+                  const Icon(Icons.trending_up,
+                      size: 23, color: AppColors.muted),
+                  const SizedBox(width: 3),
+                  Text(elevationGain!, style: AppTextStyles.poiLarge),
+                ],
               ],
             ),
           ),
-        ],
         // スケジュール（arrival / departure）
         if (hasSchedule) ...[
-          if (hasStats || hasSchedule) const SizedBox(height: 3),
+          if (hasStats) const SizedBox(height: 3),
           Padding(
             padding: const EdgeInsets.only(left: 23),
-            child: Builder(
-              builder: (context) {
-                final l10n = AppLocalizations.of(context)!;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        if (hasArrival) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 1),
-                            color: Colors.blueGrey,
-                            child: Text(l10n.plannedArrival,
-                                style: AppTextStyles.poiScheduleLabel),
-                          ),
-                          const SizedBox(width: 7),
-                          Text(_formatTime(arrival!),
-                              style: AppTextStyles.poiSchedule),
-                        ],
-                        if (hasArrival && hasDeparture)
-                          const SizedBox(width: 12),
-                        if (hasDeparture) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 1),
-                            color: Colors.blueGrey,
-                            child: Text(l10n.plannedDeparture,
-                                style: AppTextStyles.poiScheduleLabel),
-                          ),
-                          const SizedBox(width: 7),
-                          Text(_formatTime(departure!),
-                              style: AppTextStyles.poiSchedule),
-                        ],
-                      ],
-                    ),
-                  ],
-                );
-              },
+            child: Row(
+              children: [
+                if (hasArrival) ...[
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    color: Colors.blueGrey,
+                    child: Text(l10n.plannedArrival,
+                        style: AppTextStyles.poiScheduleLabel),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(_formatTime(arrival!), style: AppTextStyles.poiSchedule),
+                ],
+                if (hasArrival && hasDeparture) const SizedBox(width: 12),
+                if (hasDeparture) ...[
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    color: Colors.blueGrey,
+                    child: Text(l10n.plannedDeparture,
+                        style: AppTextStyles.poiScheduleLabel),
+                  ),
+                  const SizedBox(width: 7),
+                  Text(_formatTime(departure!),
+                      style: AppTextStyles.poiSchedule),
+                ],
+              ],
             ),
           ),
         ],
@@ -314,33 +290,22 @@ class _PoiContentBlock extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         // タイトル
-        if (hasName) ...[
+        if (hasName)
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name!.replaceAll('　', ' '),
-                  style: AppTextStyles.poiTitle.copyWith(height: 1.6),
-                ),
-              ],
+            child: Text(
+              name!.replaceAll('　', ' '),
+              style: AppTextStyles.poiTitle.copyWith(height: 1.6),
             ),
           ),
-        ],
         // 説明
         if (hasDescription) ...[
           const SizedBox(height: 3),
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  description!.replaceAll('　', ' '),
-                  style: AppTextStyles.poiDetail.copyWith(height: 1.6),
-                ),
-              ],
+            child: Text(
+              description!.replaceAll('　', ' '),
+              style: AppTextStyles.poiDetail.copyWith(height: 1.6),
             ),
           ),
         ],
