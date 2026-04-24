@@ -217,8 +217,8 @@ Future<void> showShareFlow(
         ),
       ],
       text: [
-        if (gpxName != null && gpxName.trim().isNotEmpty) '#${gpxName.trim()}',
-        '#Brevet Map',
+        if (gpxName != null && gpxName.trim().isNotEmpty)
+          '#${gpxName.replaceAll(RegExp(r'[ 　]'), '').replaceAll('.', '_')}',
         '@BrevetMap',
       ].join('\n'),
       sharePositionOrigin: sharePositionOrigin,
