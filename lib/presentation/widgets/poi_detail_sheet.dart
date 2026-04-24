@@ -259,7 +259,7 @@ class _PoiContentBlock extends StatelessWidget {
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    color: Colors.blueGrey,
+                    color: Colors.red,
                     child: Text(l10n.plannedArrival,
                         style: AppTextStyles.poiScheduleLabel),
                   ),
@@ -271,7 +271,7 @@ class _PoiContentBlock extends StatelessWidget {
                   Container(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    color: Colors.blueGrey,
+                    color: Colors.green,
                     child: Text(l10n.plannedDeparture,
                         style: AppTextStyles.poiScheduleLabel),
                   ),
