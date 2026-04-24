@@ -603,4 +603,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'Sie können den Kartenzoom mit den Lautstärketasten des Geräts anpassen';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get saveChangesConfirm => 'Änderungen speichern?';
 }

@@ -603,4 +603,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'È possibile regolare il livello di zoom della mappa con i pulsanti del volume del dispositivo';
+
+  @override
+  String get save => 'Salva';
+
+  @override
+  String get saveChangesConfirm => 'Salvare le modifiche?';
 }

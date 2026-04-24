@@ -576,6 +576,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get volumeButtonTutorial => '您可以使用设备的音量键调整地图缩放级别';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get saveChangesConfirm => '保存更改？';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1150,4 +1156,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get volumeButtonTutorial => '您可以使用裝置的音量鍵調整地圖縮放級別';
+
+  @override
+  String get save => '儲存';
+
+  @override
+  String get saveChangesConfirm => '儲存變更？';
 }

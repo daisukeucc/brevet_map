@@ -601,4 +601,10 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'คุณสามารถปรับระดับซูมของแผนที่โดยใช้ปุ่มปรับเสียงของอุปกรณ์';
+
+  @override
+  String get save => 'บันทึก';
+
+  @override
+  String get saveChangesConfirm => 'บันทึกการเปลี่ยนแปลงหรือไม่?';
 }

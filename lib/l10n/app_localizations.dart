@@ -1162,6 +1162,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can adjust the map zoom level using the device\'s volume buttons'**
   String get volumeButtonTutorial;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @saveChangesConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes?'**
+  String get saveChangesConfirm;
 }
 
 class _AppLocalizationsDelegate

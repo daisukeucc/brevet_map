@@ -287,5 +287,7 @@
   "linkTermsOfUse": "利用規約",
   "subscriptionOpenPaywall": "購入・プラン変更",
 "sampleRouteDialogMessage": "地図上のルートはサンプルルートのため、実際に使用する場合は、サイクリングアプリからエクスポートしたGPXファイルや、イベントで提供されるGPXファイルをインポートして使用してください。",
-  "volumeButtonTutorial": "端末のボリュームボタンで地図のズームレベルを調節可能です"
+  "volumeButtonTutorial": "端末のボリュームボタンで地図のズームレベルを調節可能です",
+  "save": "保存",
+  "saveChangesConfirm": "変更を保存しますか"
 }

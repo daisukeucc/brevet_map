@@ -583,4 +583,10 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get volumeButtonTutorial => '端末のボリュームボタンで地図のズームレベルを調節可能です';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get saveChangesConfirm => '変更を保存しますか';
 }

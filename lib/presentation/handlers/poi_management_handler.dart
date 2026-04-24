@@ -214,7 +214,7 @@ Future<void> handleMapLongPressPoiAdd(
   onComplete();
 }
 
-/// POIテキスト編集フロー。「次へ」はダイアログ内で次のPOIをロード。
+/// POIテキスト編集フロー
 Future<void> handleEditPoiText(
   BuildContext context,
   WidgetRef ref,
@@ -228,6 +228,43 @@ Future<void> handleEditPoiText(
       ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
       : null;
 
+  List<UserPoi> orderedPois() =>
+      UserPoi.orderedForDetailSheet(ref.read(mapStateProvider).userPois);
+
+  UserPoi? findNext(UserPoi current) {
+    final list = orderedPois();
+    final idx = list.indexWhere(
+      (p) => p.lat == current.lat && p.lng == current.lng && p.km == current.km,
+    );
+    if (idx >= 0 && idx + 1 < list.length) return list[idx + 1];
+    return null;
+  }
+
+  Future<UserPoi?> saveAndFindNext(UserPoi currentPoi, AddPoiFormData data) async {
+    LatLng? coord;
+    final kmChanged = data.km != currentPoi.km;
+    if (kmChanged && data.km != null && routePoints != null && routePoints.isNotEmpty) {
+      coord = coordAtKm(routePoints, data.km!);
+    }
+    final newBmExt = await _buildBmPoiExtForEdit(data: data, existing: currentPoi.bmExt);
+    final updatedPoi = UserPoi(
+      type: data.type,
+      km: data.km,
+      title: data.title,
+      body: data.body,
+      lat: coord?.latitude ?? currentPoi.lat,
+      lng: coord?.longitude ?? currentPoi.lng,
+      gpxCmt: currentPoi.gpxCmt,
+      gpxType: currentPoi.gpxType,
+      bmExt: newBmExt,
+    );
+    await ref.read(mapStateProvider.notifier).updateUserPoi(currentPoi, updatedPoi);
+    if (context.mounted) {
+      showAppSnackBar(context, AppLocalizations.of(context)!.poiUpdated);
+    }
+    return findNext(updatedPoi);
+  }
+
   await showDialog<void>(
     context: context,
     barrierColor: transparentBarrier ? Colors.transparent : Colors.black54,
@@ -236,39 +273,8 @@ Future<void> handleEditPoiText(
       poi: poi,
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
-      onSave: (currentPoi, data) async {
-        LatLng? coord;
-        final kmChanged = data.km != currentPoi.km;
-        if (kmChanged && data.km != null && routePoints != null && routePoints.isNotEmpty) {
-          coord = coordAtKm(routePoints, data.km!);
-        }
-        final newBmExt = await _buildBmPoiExtForEdit(data: data, existing: currentPoi.bmExt);
-        final updatedPoi = UserPoi(
-          type: data.type,
-          km: data.km,
-          title: data.title,
-          body: data.body,
-          lat: coord?.latitude ?? currentPoi.lat,
-          lng: coord?.longitude ?? currentPoi.lng,
-          gpxCmt: currentPoi.gpxCmt,
-          gpxType: currentPoi.gpxType,
-          bmExt: newBmExt,
-        );
-        await ref.read(mapStateProvider.notifier).updateUserPoi(currentPoi, updatedPoi);
-        if (context.mounted) {
-          showAppSnackBar(context, AppLocalizations.of(context)!.poiUpdated);
-        }
-        final ordered = UserPoi.orderedForDetailSheet(
-          ref.read(mapStateProvider).userPois,
-        );
-        final idx = ordered.indexWhere(
-          (p) => p.lat == updatedPoi.lat && p.lng == updatedPoi.lng && p.km == updatedPoi.km,
-        );
-        if (idx >= 0 && idx + 1 < ordered.length) {
-          return ordered[idx + 1];
-        }
-        return null;
-      },
+      onNext: findNext,
+      onSave: saveAndFindNext,
     ),
   );
 }
@@ -407,29 +413,13 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
   }
 
   Future<void> _handleAdd() async {
+    FocusScope.of(context).unfocus();
     final data = _validate();
     if (data == null) return;
     setState(() => _saving = true);
     await widget.onSave(data);
     if (!mounted) return;
     Navigator.pop(context);
-  }
-
-  Future<void> _handleNext() async {
-    final data = _validate();
-    if (data == null) return;
-    setState(() => _saving = true);
-    await widget.onSave(data);
-    if (!mounted) return;
-    setState(() {
-      _saving = false;
-      _kmController.clear();
-      _titleController.clear();
-      _bodyController.clear();
-      _arrival = null;
-      _departure = null;
-      _kmError = null;
-    });
   }
 
   Future<void> _pickTime({required bool isArrival}) async {
@@ -608,10 +598,6 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                   TextButton(
                     onPressed: _saving ? null : _handleAdd,
                     child: Text(l10n.add, style: AppTextStyles.button),
-                  ),
-                  TextButton(
-                    onPressed: _saving ? null : _handleNext,
-                    child: Text(l10n.next, style: AppTextStyles.button),
                   ),
                 ],
               ),
@@ -979,23 +965,11 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
       );
 
   Future<void> _handleAdd() async {
+    FocusScope.of(context).unfocus();
     setState(() => _saving = true);
     await widget.onSave(_buildFormData());
     if (!mounted) return;
     Navigator.pop(context);
-  }
-
-  Future<void> _handleNext() async {
-    setState(() => _saving = true);
-    await widget.onSave(_buildFormData());
-    if (!mounted) return;
-    setState(() {
-      _saving = false;
-      _titleController.clear();
-      _bodyController.clear();
-      _arrival = null;
-      _departure = null;
-    });
   }
 
   @override
@@ -1104,10 +1078,6 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                     onPressed: _saving ? null : _handleAdd,
                     child: Text(l10n.add, style: AppTextStyles.button),
                   ),
-                  TextButton(
-                    onPressed: _saving ? null : _handleNext,
-                    child: Text(l10n.next, style: AppTextStyles.button),
-                  ),
                 ],
               ),
             ],
@@ -1128,13 +1098,16 @@ class EditPoiTextDialog extends StatefulWidget {
     required this.poi,
     required this.distanceUnit,
     this.totalRouteKm,
+    required this.onNext,
     required this.onSave,
   });
 
   final UserPoi poi;
   final int distanceUnit;
   final double? totalRouteKm;
-  /// 保存処理。次のPOIがあれば返し、なければ null を返す。
+  /// 保存せずに次のPOIを返す。なければ null。
+  final UserPoi? Function(UserPoi currentPoi) onNext;
+  /// 保存して次のPOIを返す。なければ null。
   final Future<UserPoi?> Function(UserPoi currentPoi, AddPoiFormData data) onSave;
 
   @override
@@ -1148,6 +1121,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   late final TextEditingController _bodyController;
   late final TextEditingController _kmController;
   late final FocusNode _kmFocusNode;
+  late final FocusNode _dummyFocusNode;
   String? _kmError;
   TimeOfDay? _arrival;
   TimeOfDay? _departure;
@@ -1161,6 +1135,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _bodyController = TextEditingController();
     _kmController = TextEditingController();
     _kmFocusNode = FocusNode();
+    _dummyFocusNode = FocusNode();
     _kmFocusNode.addListener(_onKmFocusChange);
     _loadPoiToForm(widget.poi);
   }
@@ -1175,6 +1150,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   void dispose() {
     _kmFocusNode.removeListener(_onKmFocusChange);
     _kmFocusNode.dispose();
+    _dummyFocusNode.dispose();
     _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
@@ -1200,6 +1176,30 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _arrival = _timeOfDayFromDt(poi.bmExt?.schedule.arrival);
     _departure = _timeOfDayFromDt(poi.bmExt?.schedule.departure);
     _kmError = null;
+  }
+
+  /// フォームの内容が元の POI から変更されているか判定する
+  bool _hasChanged() {
+    if (_poiType != _currentPoi.type) return true;
+    if (_titleController.text.trim() != _currentPoi.title) return true;
+    if (_bodyController.text.trim() != _currentPoi.body) return true;
+
+    final text = _kmController.text.trim();
+    final double? formKm;
+    if (text.isEmpty) {
+      formKm = null;
+    } else {
+      final v = double.tryParse(text);
+      formKm = v == null ? null : (widget.distanceUnit == 1 ? v * kmPerMile : v);
+    }
+    if (formKm != _currentPoi.km) return true;
+
+    final origArrival = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.arrival);
+    final origDeparture = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.departure);
+    if (_arrival?.hour != origArrival?.hour || _arrival?.minute != origArrival?.minute) return true;
+    if (_departure?.hour != origDeparture?.hour || _departure?.minute != origDeparture?.minute) return true;
+
+    return false;
   }
 
   AddPoiFormData? _validate() {
@@ -1239,17 +1239,39 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     Navigator.pop(context);
   }
 
+  /// 次のPOIへ：変更なしならそのまま移動、変更ありなら確認後に保存してから移動
   Future<void> _handleNext() async {
-    final data = _validate();
-    if (data == null) return;
-    setState(() => _saving = true);
-    final nextPoi = await widget.onSave(_currentPoi, data);
-    if (!mounted) return;
+    // ダミーノードにフォーカスを移すことで、ダイアログを閉じた際の
+    // TextField へのフォーカス自動復元を防ぐ
+    FocusScope.of(context).requestFocus(_dummyFocusNode);
+    if (_hasChanged()) {
+      final l10n = AppLocalizations.of(context)!;
+      final confirmed = await showConfirmDialog(
+        context,
+        message: l10n.saveChangesConfirm,
+        cancelText: l10n.cancel,
+        confirmText: l10n.save,
+      );
+      if (!mounted) return;
+      if (confirmed != true) return;
+      final data = _validate();
+      if (data == null) return;
+      setState(() => _saving = true);
+      final nextPoi = await widget.onSave(_currentPoi, data);
+      if (!mounted) return;
+      if (nextPoi != null) {
+        setState(() {
+          _saving = false;
+          _loadPoiToForm(nextPoi);
+        });
+      } else {
+        Navigator.pop(context);
+      }
+      return;
+    }
+    final nextPoi = widget.onNext(_currentPoi);
     if (nextPoi != null) {
-      setState(() {
-        _saving = false;
-        _loadPoiToForm(nextPoi);
-      });
+      setState(() => _loadPoiToForm(nextPoi));
     } else {
       Navigator.pop(context);
     }

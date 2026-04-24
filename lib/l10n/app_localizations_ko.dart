@@ -586,4 +586,10 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get volumeButtonTutorial => '기기의 볼륨 버튼으로 지도 줌 레벨을 조절할 수 있습니다';
+
+  @override
+  String get save => '저장';
+
+  @override
+  String get saveChangesConfirm => '변경 사항을 저장하시겠습니까?';
 }
