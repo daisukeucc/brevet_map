@@ -130,6 +130,12 @@ class AppLocalizationsJa extends AppLocalizations {
   String get plannedDeparture => '出発予定';
 
   @override
+  String get arrivalShort => '到着予定';
+
+  @override
+  String get departureShort => '出発予定';
+
+  @override
   String get distance => '距離';
 
   @override

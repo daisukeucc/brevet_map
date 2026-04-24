@@ -15,7 +15,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appTitleBrand => 'Brevet Map';
 
   @override
-  String get cancel => 'Cancelar';
+  String get cancel => 'Canc.';
 
   @override
   String get ok => 'OK';
@@ -24,7 +24,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get ng => 'NG';
 
   @override
-  String get delete => 'Eliminar';
+  String get delete => 'Borrar';
 
   @override
   String get edit => 'Editar';
@@ -107,7 +107,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get poiTabAdd => 'Añadir POI';
 
   @override
-  String get poiTabEdit => 'Editar o eliminar POI';
+  String get poiTabEdit => 'Editar POI';
 
   @override
   String get poiType => 'Tipo de POI';
@@ -129,6 +129,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get plannedDeparture => 'Salida prevista';
+
+  @override
+  String get arrivalShort => 'Llegada';
+
+  @override
+  String get departureShort => 'Salida';
 
   @override
   String get distance => 'Distancia';

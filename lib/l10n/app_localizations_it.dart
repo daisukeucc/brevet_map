@@ -27,7 +27,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get delete => 'Elimina';
 
   @override
-  String get edit => 'Modifica';
+  String get edit => 'Edita';
 
   @override
   String get change => 'Modifica';
@@ -107,7 +107,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get poiTabAdd => 'Aggiungi POI';
 
   @override
-  String get poiTabEdit => 'Modifica o elimina POI';
+  String get poiTabEdit => 'Modifica POI';
 
   @override
   String get poiType => 'Tipo di POI';
@@ -129,6 +129,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannedDeparture => 'Partenza prevista';
+
+  @override
+  String get arrivalShort => 'Arrivo';
+
+  @override
+  String get departureShort => 'Partenza';
 
   @override
   String get distance => 'Distanza';

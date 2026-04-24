@@ -46,6 +46,8 @@
   "body": "본문",
   "plannedArrival": "도착 예정",
   "plannedDeparture": "출발 예정",
+  "arrivalShort": "도착 예정",
+  "departureShort": "출발 예정",
   "distance": "거리",
   "titleNone": "(제목 없음)",
   "kmRequired": "거리를 입력해 주세요",

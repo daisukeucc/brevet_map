@@ -24,10 +24,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ng => 'NG';
 
   @override
-  String get delete => 'Supprimer';
+  String get delete => 'Suppr.';
 
   @override
-  String get edit => 'Modifier';
+  String get edit => 'Éditer';
 
   @override
   String get change => 'Modifier';
@@ -108,7 +108,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiTabAdd => 'Ajouter POI';
 
   @override
-  String get poiTabEdit => 'Modifier ou supprimer un POI';
+  String get poiTabEdit => 'Éditer un POI';
 
   @override
   String get poiType => 'Type de POI';
@@ -130,6 +130,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get plannedDeparture => 'Départ prévu';
+
+  @override
+  String get arrivalShort => 'Arrivée';
+
+  @override
+  String get departureShort => 'Départ';
 
   @override
   String get distance => 'Distance';

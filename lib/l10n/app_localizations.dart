@@ -347,6 +347,18 @@ abstract class AppLocalizations {
   /// **'Planned departure'**
   String get plannedDeparture;
 
+  /// No description provided for @arrivalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get arrivalShort;
+
+  /// No description provided for @departureShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure'**
+  String get departureShort;
+
   /// No description provided for @distance.
   ///
   /// In en, this message translates to:

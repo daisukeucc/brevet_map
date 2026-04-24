@@ -46,6 +46,8 @@
   "body": "正文",
   "plannedArrival": "预计到达",
   "plannedDeparture": "预计出发",
+  "arrivalShort": "预计到达",
+  "departureShort": "预计出发",
   "distance": "距离",
   "titleNone": "（无标题）",
   "kmRequired": "距离为必填项",

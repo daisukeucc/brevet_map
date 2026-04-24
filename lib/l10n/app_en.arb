@@ -52,6 +52,8 @@
   "body": "Body",
   "plannedArrival": "Planned arrival",
   "plannedDeparture": "Planned departure",
+  "arrivalShort": "Arrival",
+  "departureShort": "Departure",
   "distance": "Distance",
   "titleNone": "(No title)",
   "kmRequired": "Distance is required",

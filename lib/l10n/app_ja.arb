@@ -46,6 +46,8 @@
   "body": "本文",
   "plannedArrival": "到着予定",
   "plannedDeparture": "出発予定",
+  "arrivalShort": "到着予定",
+  "departureShort": "出発予定",
   "distance": "距離",
   "titleNone": "(タイトルなし)",
   "kmRequired": "距離の入力は必須です",

@@ -46,6 +46,8 @@
   "body": "內容",
   "plannedArrival": "預計到達",
   "plannedDeparture": "預計出發",
+  "arrivalShort": "預計到達",
+  "departureShort": "預計出發",
   "distance": "距離",
   "titleNone": "（無標題）",
   "kmRequired": "距離為必填項",

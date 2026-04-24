@@ -129,6 +129,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannedDeparture => '预计出发';
 
   @override
+  String get arrivalShort => '预计到达';
+
+  @override
+  String get departureShort => '预计出发';
+
+  @override
   String get distance => '距离';
 
   @override
@@ -713,6 +719,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get plannedDeparture => '預計出發';
+
+  @override
+  String get arrivalShort => '預計到達';
+
+  @override
+  String get departureShort => '預計出發';
 
   @override
   String get distance => '距離';
