@@ -105,7 +105,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiTabAdd => '添加 POI';
 
   @override
-  String get poiTabEdit => '编辑或删除POI';
+  String get poiTabEdit => '编辑 POI';
 
   @override
   String get poiType => 'POI 类型';
@@ -697,7 +697,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get poiTabAdd => '添加 POI';
 
   @override
-  String get poiTabEdit => '編輯或刪除 POI';
+  String get poiTabEdit => '編輯 POI';
 
   @override
   String get poiType => 'POI 類型';

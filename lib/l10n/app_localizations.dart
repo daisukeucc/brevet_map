@@ -302,7 +302,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiTabEdit.
   ///
   /// In en, this message translates to:
-  /// **'Edit or Delete POI'**
+  /// **'Edit POI'**
   String get poiTabEdit;
 
   /// No description provided for @poiType.

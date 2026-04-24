@@ -106,7 +106,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiTabAdd => 'POI 추가';
 
   @override
-  String get poiTabEdit => 'POI 편집 또는 삭제';
+  String get poiTabEdit => 'POI 편집';
 
   @override
   String get poiType => 'POI 유형';

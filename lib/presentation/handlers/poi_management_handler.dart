@@ -897,43 +897,32 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
               bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
             ),
           ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    distStr != null
-                        ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
-                        : (poi.title.isEmpty
-                            ? AppLocalizations.of(context)!.titleNone
-                            : poi.title),
-                    style: AppTextStyles.bodySmall,
+          child: InkWell(
+            onTap: () => _onEditTap(poi),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      distStr != null
+                          ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
+                          : (poi.title.isEmpty
+                              ? AppLocalizations.of(context)!.titleNone
+                              : poi.title),
+                      style: AppTextStyles.bodySmall,
+                    ),
                   ),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(36, 36),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  IconButton(
+                    onPressed: () => _onDeleteTap(poi),
+                    icon: const Icon(Icons.cancel,
+                        size: 20, color: Colors.black45),
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                   ),
-                  onPressed: () => _onEditTap(poi),
-                  child: Text(
-                    AppLocalizations.of(context)!.edit,
-                    style: AppTextStyles.buttonSmall,
-                  ),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(36, 36),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  onPressed: () => _onDeleteTap(poi),
-                  child: Text(
-                    AppLocalizations.of(context)!.delete,
-                    style: AppTextStyles.buttonSmall,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

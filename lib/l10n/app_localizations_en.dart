@@ -106,7 +106,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiTabAdd => 'Add POI';
 
   @override
-  String get poiTabEdit => 'Edit or Delete POI';
+  String get poiTabEdit => 'Edit POI';
 
   @override
   String get poiType => 'POI type';

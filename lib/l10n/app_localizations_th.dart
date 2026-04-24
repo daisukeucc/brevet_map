@@ -107,7 +107,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get poiTabAdd => 'เพิ่ม POI';
 
   @override
-  String get poiTabEdit => 'แก้ไขหรือลบ POI';
+  String get poiTabEdit => 'แก้ไข POI';
 
   @override
   String get poiType => 'ประเภท POI';
