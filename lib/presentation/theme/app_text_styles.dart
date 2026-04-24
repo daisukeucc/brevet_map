@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+/// アプリ全体で使用するカラー定数
+abstract class AppColors {
+  static const Color muted = Colors.black54;
+}
+
 /// アプリ全体で使用するテキストスタイル
 abstract class AppTextStyles {
   /// 見出し
@@ -14,27 +19,33 @@ abstract class AppTextStyles {
   static const TextStyle title = TextStyle(fontSize: 17, color: Colors.black87);
 
   static const TextStyle poiLarge = TextStyle(
-    fontSize: 25,
+    fontSize: 23,
     fontWeight: FontWeight.w700,
-    color: Colors.black54,
+    color: AppColors.muted,
+  );
+
+  static const TextStyle poiScheduleLabel = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: Colors.white,
   );
 
   static const TextStyle poiSchedule = TextStyle(
     fontSize: 18,
     fontWeight: FontWeight.w500,
-    color: Colors.black54,
+    color: AppColors.muted,
   );
 
   static const TextStyle poiTitle = TextStyle(
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: FontWeight.w500,
-    color: Colors.black54,
+    color: AppColors.muted,
   );
 
   static const TextStyle poiDetail = TextStyle(
     fontSize: 15,
     fontWeight: FontWeight.w500,
-    color: Colors.black54,
+    color: AppColors.muted,
   );
 
   /// 本文
@@ -49,9 +60,9 @@ abstract class AppTextStyles {
 
   /// ボタン
   static const TextStyle button =
-      TextStyle(fontSize: 17, color: Colors.black54);
+      TextStyle(fontSize: 17, color: AppColors.muted);
 
   /// ボタン（小）
   static const TextStyle buttonSmall =
-      TextStyle(fontSize: 14, color: Colors.black54);
+      TextStyle(fontSize: 14, color: AppColors.muted);
 }

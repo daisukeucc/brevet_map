@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../theme/app_text_styles.dart';
 
 /// POI 詳細1件（ボトムシート用）
@@ -153,7 +154,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
               children: [
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 25, 20, 27),
+                    padding: const EdgeInsets.fromLTRB(0, 20, 15, 25),
                     child: _PoiContentBlock(
                       name: e.name,
                       distance: e.distance,
@@ -231,71 +232,115 @@ class _PoiContentBlock extends StatelessWidget {
         if (hasStats) ...[
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (hasDistance) ...[
-                  const Icon(Icons.location_on,
-                      size: 25, color: Colors.black54),
-                  const SizedBox(width: 3),
-                  Text(distance!, style: AppTextStyles.poiLarge),
-                ],
-                if (hasDistance && hasElevationGain) const SizedBox(width: 12),
-                if (hasElevationGain) ...[
-                  const Icon(Icons.trending_up,
-                      size: 27, color: Colors.black54),
-                  const SizedBox(width: 3),
-                  Text(
-                    elevationGain!,
-                    style: AppTextStyles.poiLarge,
-                  ),
-                ],
+                Row(
+                  children: [
+                    if (hasDistance) ...[
+                      const Icon(Icons.location_on,
+                          size: 23, color: AppColors.muted),
+                      const SizedBox(width: 3),
+                      Text(distance!, style: AppTextStyles.poiLarge),
+                    ],
+                    if (hasDistance && hasElevationGain)
+                      const SizedBox(width: 12),
+                    if (hasElevationGain) ...[
+                      const Icon(Icons.trending_up,
+                          size: 23, color: AppColors.muted),
+                      const SizedBox(width: 3),
+                      Text(
+                        elevationGain!,
+                        style: AppTextStyles.poiLarge,
+                      ),
+                    ],
+                  ],
+                ),
               ],
             ),
           ),
         ],
         // スケジュール（arrival / departure）
         if (hasSchedule) ...[
+          if (hasStats || hasSchedule) const SizedBox(height: 3),
           Padding(
             padding: const EdgeInsets.only(left: 23),
-            child: Row(
-              children: [
-                if (hasArrival) ...[
-                  const Icon(Icons.arrow_downward,
-                      size: 18, color: Colors.black54),
-                  const SizedBox(width: 2),
-                  Text(_formatTime(arrival!), style: AppTextStyles.poiSchedule),
-                ],
-                if (hasArrival && hasDeparture) const SizedBox(width: 8),
-                if (hasDeparture) ...[
-                  const Icon(Icons.arrow_upward,
-                      size: 18, color: Colors.black54),
-                  const SizedBox(width: 2),
-                  Text(_formatTime(departure!),
-                      style: AppTextStyles.poiSchedule),
-                ],
-              ],
+            child: Builder(
+              builder: (context) {
+                final l10n = AppLocalizations.of(context)!;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (hasArrival) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
+                            color: Colors.blueGrey,
+                            child: Text(l10n.plannedArrival,
+                                style: AppTextStyles.poiScheduleLabel),
+                          ),
+                          const SizedBox(width: 7),
+                          Text(_formatTime(arrival!),
+                              style: AppTextStyles.poiSchedule),
+                        ],
+                        if (hasArrival && hasDeparture)
+                          const SizedBox(width: 12),
+                        if (hasDeparture) ...[
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
+                            color: Colors.blueGrey,
+                            child: Text(l10n.plannedDeparture,
+                                style: AppTextStyles.poiScheduleLabel),
+                          ),
+                          const SizedBox(width: 7),
+                          Text(_formatTime(departure!),
+                              style: AppTextStyles.poiSchedule),
+                        ],
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
+        const SizedBox(height: 12),
+        Padding(
+          padding: EdgeInsets.only(left: distanceLeft),
+          child: const Divider(height: 1, thickness: 1, color: Colors.black26),
+        ),
+        const SizedBox(height: 12),
         // タイトル
         if (hasName) ...[
-          if (hasStats || hasSchedule) const SizedBox(height: 5),
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
-            child: Text(
-              name!.replaceAll('　', ' '),
-              style: AppTextStyles.poiTitle.copyWith(height: 1.6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name!.replaceAll('　', ' '),
+                  style: AppTextStyles.poiTitle.copyWith(height: 1.6),
+                ),
+              ],
             ),
           ),
         ],
         // 説明
         if (hasDescription) ...[
-          if (hasName || hasStats || hasSchedule) const SizedBox(height: 3),
+          const SizedBox(height: 3),
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
-            child: Text(
-              description!.replaceAll('　', ' '),
-              style: AppTextStyles.poiDetail.copyWith(height: 1.6),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  description!.replaceAll('　', ' '),
+                  style: AppTextStyles.poiDetail.copyWith(height: 1.6),
+                ),
+              ],
             ),
           ),
         ],
