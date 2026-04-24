@@ -97,17 +97,13 @@ BmPoiExtension _defaultBmPoiExtension({
   switch (poiType) {
     case 'start':
       schedule = BmSchedule(
-        arrival: brevetMeta.startTime.subtract(const Duration(hours: 1)),
         departure: brevetMeta.startTime,
       );
     case 'finish':
       final limitDuration =
           Duration(minutes: (brevetMeta.timeLimitHours * 60).round());
       schedule = BmSchedule(
-        arrival: brevetMeta.startTime
-            .add(limitDuration)
-            .subtract(const Duration(hours: 2)),
-        cutoff: brevetMeta.startTime.add(limitDuration),
+        arrival: brevetMeta.startTime.add(limitDuration),
       );
     default:
       schedule = const BmSchedule();
@@ -119,7 +115,6 @@ BmPoiExtension _defaultBmPoiExtension({
     distanceKm: distanceKm,
   );
 }
-
 
 /// スタート POI を新規作成する（GPX にスタート wpt がない場合）。
 UserPoi _createStartPoi(LatLng position, BmBrevetMeta brevetMeta) {
@@ -273,8 +268,7 @@ Future<GpxImportResult?> parseAndSaveGpx(
     trackPoints: trackPoints,
     userPois: userPois,
     gpxDotWaypoints: dotWpts,
-    trackElevations:
-        trackPoints.isNotEmpty ? result.trackElevations : null,
+    trackElevations: trackPoints.isNotEmpty ? result.trackElevations : null,
     brevetMeta: brevetMeta,
   );
 }
