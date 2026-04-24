@@ -397,7 +397,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
       return null;
     }
     final km = widget.distanceUnit == 1 ? value * kmPerMile : value;
-    if (km > widget.totalRouteKm) {
+    if (km > widget.totalRouteKm + 5) {
       setState(() => _kmError = AppLocalizations.of(context)!.kmExceedsRoute);
       return null;
     }
@@ -1205,7 +1205,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
         return null;
       }
       km = widget.distanceUnit == 1 ? value * kmPerMile : value;
-      if (widget.totalRouteKm != null && km > widget.totalRouteKm!) {
+      if (widget.totalRouteKm != null && km > widget.totalRouteKm! + 5) {
         setState(() => _kmError = AppLocalizations.of(context)!.kmExceedsRoute);
         return null;
       }
