@@ -85,7 +85,8 @@ UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
 
 DateTime _applyTimeOfDay(TimeOfDay tod, DateTime refDate) {
   final localRef = refDate.toLocal();
-  return DateTime(localRef.year, localRef.month, localRef.day, tod.hour, tod.minute)
+  return DateTime(
+          localRef.year, localRef.month, localRef.day, tod.hour, tod.minute)
       .toUtc();
 }
 
@@ -136,8 +137,12 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
     type: existing?.type ?? (data.type == 0 ? 'checkpoint' : 'generic'),
     distanceKm: existing?.distanceKm ?? data.km ?? 0,
     schedule: BmSchedule(
-      arrival: data.arrival != null ? _applyTimeOfDay(data.arrival!, refDate!) : null,
-      departure: data.departure != null ? _applyTimeOfDay(data.departure!, refDate!) : null,
+      arrival: data.arrival != null
+          ? _applyTimeOfDay(data.arrival!, refDate!)
+          : null,
+      departure: data.departure != null
+          ? _applyTimeOfDay(data.departure!, refDate!)
+          : null,
       close: existing?.schedule.close,
       result: existing?.schedule.result,
     ),
@@ -185,7 +190,8 @@ Future<void> handleDistanceInputPoiAdd(
         final coord = coordAtKm(routePoints, data.km!);
         if (coord == null) {
           if (context.mounted) {
-            showAppSnackBar(context, AppLocalizations.of(context)!.kmPointNotFound);
+            showAppSnackBar(
+                context, AppLocalizations.of(context)!.kmPointNotFound);
           }
           return;
         }
@@ -271,13 +277,18 @@ Future<void> handleEditPoiText(
     return null;
   }
 
-  Future<UserPoi?> saveAndFindNext(UserPoi currentPoi, AddPoiFormData data) async {
+  Future<UserPoi?> saveAndFindNext(
+      UserPoi currentPoi, AddPoiFormData data) async {
     LatLng? coord;
     final kmChanged = data.km != currentPoi.km;
-    if (kmChanged && data.km != null && routePoints != null && routePoints.isNotEmpty) {
+    if (kmChanged &&
+        data.km != null &&
+        routePoints != null &&
+        routePoints.isNotEmpty) {
       coord = coordAtKm(routePoints, data.km!);
     }
-    final newBmExt = await _buildBmPoiExtForEdit(data: data, existing: currentPoi.bmExt);
+    final newBmExt =
+        await _buildBmPoiExtForEdit(data: data, existing: currentPoi.bmExt);
     final updatedPoi = UserPoi(
       type: data.type,
       km: data.km,
@@ -289,7 +300,9 @@ Future<void> handleEditPoiText(
       gpxType: currentPoi.gpxType,
       bmExt: newBmExt,
     );
-    await ref.read(mapStateProvider.notifier).updateUserPoi(currentPoi, updatedPoi);
+    await ref
+        .read(mapStateProvider.notifier)
+        .updateUserPoi(currentPoi, updatedPoi);
     if (context.mounted) {
       showAppSnackBar(context, AppLocalizations.of(context)!.poiUpdated);
     }
@@ -797,11 +810,8 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
       final delta = newDate.difference(oldDate);
       if (delta != Duration.zero) {
         final pois = ref.read(mapStateProvider).userPois;
-        final shifted =
-            pois.map((p) => _shiftPoiSchedule(p, delta)).toList();
-        await ref
-            .read(mapStateProvider.notifier)
-            .replaceAllUserPois(shifted);
+        final shifted = pois.map((p) => _shiftPoiSchedule(p, delta)).toList();
+        await ref.read(mapStateProvider.notifier).replaceAllUserPois(shifted);
       }
     }
     if (mounted) Navigator.pop(context);
@@ -888,7 +898,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
             ),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
             child: Row(
               children: [
                 Expanded(
@@ -938,7 +948,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxHeight: 440),
+        constraints: const BoxConstraints(maxHeight: 520),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1185,10 +1195,13 @@ class EditPoiTextDialog extends StatefulWidget {
   final UserPoi poi;
   final int distanceUnit;
   final double? totalRouteKm;
+
   /// 保存せずに次のPOIを返す。なければ null。
   final UserPoi? Function(UserPoi currentPoi) onNext;
+
   /// 保存して次のPOIを返す。なければ null。
-  final Future<UserPoi?> Function(UserPoi currentPoi, AddPoiFormData data) onSave;
+  final Future<UserPoi?> Function(UserPoi currentPoi, AddPoiFormData data)
+      onSave;
 
   @override
   State<EditPoiTextDialog> createState() => _EditPoiTextDialogState();
@@ -1239,8 +1252,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   String _kmToDisplayText(double? km) {
     if (km == null) return '';
-    final displayValue =
-        widget.distanceUnit == 1 ? (km / kmPerMile) : km;
+    final displayValue = widget.distanceUnit == 1 ? (km / kmPerMile) : km;
     return displayValue % 1 == 0
         ? displayValue.toInt().toString()
         : displayValue.toStringAsFixed(1);
@@ -1263,12 +1275,16 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (_titleController.text.trim() != _currentPoi.title) return true;
     if (_bodyController.text.trim() != _currentPoi.body) return true;
 
-    if (_kmController.text.trim() != _kmToDisplayText(_currentPoi.km)) return true;
+    if (_kmController.text.trim() != _kmToDisplayText(_currentPoi.km))
+      return true;
 
     final origArrival = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.arrival);
-    final origDeparture = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.departure);
-    if (_arrival?.hour != origArrival?.hour || _arrival?.minute != origArrival?.minute) return true;
-    if (_departure?.hour != origDeparture?.hour || _departure?.minute != origDeparture?.minute) return true;
+    final origDeparture =
+        _timeOfDayFromDt(_currentPoi.bmExt?.schedule.departure);
+    if (_arrival?.hour != origArrival?.hour ||
+        _arrival?.minute != origArrival?.minute) return true;
+    if (_departure?.hour != origDeparture?.hour ||
+        _departure?.minute != origDeparture?.minute) return true;
 
     return false;
   }
