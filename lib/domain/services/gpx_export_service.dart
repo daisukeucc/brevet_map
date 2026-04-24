@@ -210,9 +210,14 @@ void _addWpt(
                   builder.text(_toIso8601(bmPoiExt.schedule.departure!));
                 });
               }
-              if (bmPoiExt.schedule.cutoff != null) {
-                builder.element('bm:cutoff', nest: () {
-                  builder.text(_toIso8601(bmPoiExt.schedule.cutoff!));
+              if (bmPoiExt.schedule.close != null) {
+                builder.element('bm:close', nest: () {
+                  builder.text(_toIso8601(bmPoiExt.schedule.close!));
+                });
+              }
+              if (bmPoiExt.schedule.result != null) {
+                builder.element('bm:result', nest: () {
+                  builder.text(_toIso8601(bmPoiExt.schedule.result!));
                 });
               }
             });

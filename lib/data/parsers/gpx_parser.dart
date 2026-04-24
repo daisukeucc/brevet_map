@@ -198,14 +198,16 @@ BmPoiExtension? _parseBmPoiExtension(XmlElement wpt) {
       bmPoi.findElements('bm:type').firstOrNull?.innerText.trim() ?? 'generic';
 
   final schedEl = bmPoi.findElements('bm:schedule').firstOrNull;
-  DateTime? arrival, departure, cutoff;
+  DateTime? arrival, departure, close, result;
   if (schedEl != null) {
     arrival = _parseDateTime(
         schedEl.findElements('bm:arrival').firstOrNull?.innerText.trim());
     departure = _parseDateTime(
         schedEl.findElements('bm:departure').firstOrNull?.innerText.trim());
-    cutoff = _parseDateTime(
-        schedEl.findElements('bm:cutoff').firstOrNull?.innerText.trim());
+    close = _parseDateTime(
+        schedEl.findElements('bm:close').firstOrNull?.innerText.trim());
+    result = _parseDateTime(
+        schedEl.findElements('bm:result').firstOrNull?.innerText.trim());
   }
 
   final routeInfoEl = bmPoi.findElements('bm:routeInfo').firstOrNull;
@@ -221,7 +223,8 @@ BmPoiExtension? _parseBmPoiExtension(XmlElement wpt) {
 
   return BmPoiExtension(
     type: type,
-    schedule: BmSchedule(arrival: arrival, departure: departure, cutoff: cutoff),
+    schedule: BmSchedule(
+        arrival: arrival, departure: departure, close: close, result: result),
     distanceKm: distanceKm,
   );
 }

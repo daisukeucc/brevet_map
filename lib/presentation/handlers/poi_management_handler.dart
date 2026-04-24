@@ -53,11 +53,15 @@ class PoiEditPositionRequest {
 
 TimeOfDay? _timeOfDayFromDt(DateTime? dt) {
   if (dt == null) return null;
-  return TimeOfDay(hour: dt.hour, minute: dt.minute);
+  final local = dt.toLocal();
+  return TimeOfDay(hour: local.hour, minute: local.minute);
 }
 
-DateTime _applyTimeOfDay(TimeOfDay tod, DateTime refDate) => DateTime.utc(
-    refDate.year, refDate.month, refDate.day, tod.hour, tod.minute);
+DateTime _applyTimeOfDay(TimeOfDay tod, DateTime refDate) {
+  final localRef = refDate.toLocal();
+  return DateTime(localRef.year, localRef.month, localRef.day, tod.hour, tod.minute)
+      .toUtc();
+}
 
 /// 新規 POI の BmPoiExtension を生成する（arrival/departure が未指定なら null）
 Future<BmPoiExtension?> _buildBmPoiExtForAdd({
@@ -80,7 +84,7 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   );
 }
 
-/// 既存 POI の BmPoiExtension を更新する。arrival/departure を上書きし、cutoff・type・distanceKm は保持する。
+/// 既存 POI の BmPoiExtension を更新する。arrival/departure を上書きし、close・result・type・distanceKm は保持する。
 /// EditPoiTextDialog は既存値で初期化されるため、data.arrival/departure が最終状態（null = クリア済み）。
 Future<BmPoiExtension?> _buildBmPoiExtForEdit({
   required AddPoiFormData data,
@@ -108,7 +112,8 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
     schedule: BmSchedule(
       arrival: data.arrival != null ? _applyTimeOfDay(data.arrival!, refDate!) : null,
       departure: data.departure != null ? _applyTimeOfDay(data.departure!, refDate!) : null,
-      cutoff: existing?.schedule.cutoff,
+      close: existing?.schedule.close,
+      result: existing?.schedule.result,
     ),
   );
 }

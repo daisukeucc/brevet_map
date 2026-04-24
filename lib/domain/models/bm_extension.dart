@@ -40,20 +40,24 @@ class BmSchedule {
   const BmSchedule({
     this.arrival,
     this.departure,
-    this.cutoff,
+    this.close,
+    this.result,
   });
 
   final DateTime? arrival;
   final DateTime? departure;
-  final DateTime? cutoff;
+  final DateTime? close;
+  final DateTime? result;
 
-  bool get isEmpty => arrival == null && departure == null && cutoff == null;
+  bool get isEmpty =>
+      arrival == null && departure == null && close == null && result == null;
 
   Map<String, dynamic> toJson() => {
         if (arrival != null) 'arrival': arrival!.toUtc().toIso8601String(),
         if (departure != null)
           'departure': departure!.toUtc().toIso8601String(),
-        if (cutoff != null) 'cutoff': cutoff!.toUtc().toIso8601String(),
+        if (close != null) 'close': close!.toUtc().toIso8601String(),
+        if (result != null) 'result': result!.toUtc().toIso8601String(),
       };
 
   static BmSchedule fromJson(Map<String, dynamic> json) => BmSchedule(
@@ -63,8 +67,11 @@ class BmSchedule {
         departure: json['departure'] != null
             ? DateTime.parse(json['departure'] as String)
             : null,
-        cutoff: json['cutoff'] != null
-            ? DateTime.parse(json['cutoff'] as String)
+        close: json['close'] != null
+            ? DateTime.parse(json['close'] as String)
+            : null,
+        result: json['result'] != null
+            ? DateTime.parse(json['result'] as String)
             : null,
       );
 }

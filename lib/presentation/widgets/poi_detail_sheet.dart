@@ -208,7 +208,7 @@ class _PoiContentBlock extends StatelessWidget {
   final double distanceLeft;
   final double contentLeft;
 
-  String _formatTime(DateTime dt) => DateFormat.Hm().format(dt);
+  String _formatTime(DateTime dt) => DateFormat.Hm().format(dt.toLocal());
 
   @override
   Widget build(BuildContext context) {

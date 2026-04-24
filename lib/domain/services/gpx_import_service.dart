@@ -184,8 +184,8 @@ Future<GpxImportResult?> parseAndSaveGpx(
     brevetMeta = result.brevetMeta!;
   } else {
     final matched = matchBrevetDistance(totalDistanceKm);
-    final now = DateTime.now().toUtc();
-    final startTime = DateTime.utc(now.year, now.month, now.day, 6);
+    final now = DateTime.now();
+    final startTime = DateTime(now.year, now.month, now.day, 6).toUtc();
     brevetMeta = BmBrevetMeta(
       distanceKm: matched.km,
       startTime: startTime,
