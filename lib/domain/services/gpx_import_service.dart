@@ -110,17 +110,7 @@ BmPoiExtension _defaultBmPoiExtension({
         cutoff: brevetMeta.startTime.add(limitDuration),
       );
     default:
-      // checkpoint / generic など：スタート日の 0:00 を初期値とする
-      final brevetDay = DateTime.utc(
-        brevetMeta.startTime.year,
-        brevetMeta.startTime.month,
-        brevetMeta.startTime.day,
-      );
-      schedule = BmSchedule(
-        arrival: brevetDay,
-        departure: brevetDay,
-        cutoff: brevetDay,
-      );
+      schedule = const BmSchedule();
   }
 
   return BmPoiExtension(
