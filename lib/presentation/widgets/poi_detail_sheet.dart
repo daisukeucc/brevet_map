@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../l10n/app_localizations.dart';
 import '../theme/app_text_styles.dart';
 
 /// POI 詳細1件（ボトムシート用）
@@ -212,7 +211,6 @@ class _PoiContentBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final hasDistance = distance != null && distance!.isNotEmpty;
     final hasElevationGain = elevationGain != null && elevationGain!.isNotEmpty;
     final hasStats = hasDistance || hasElevationGain;
@@ -256,26 +254,16 @@ class _PoiContentBlock extends StatelessWidget {
             child: Row(
               children: [
                 if (hasArrival) ...[
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    color: Colors.red,
-                    child: Text(l10n.arrivalShort,
-                        style: AppTextStyles.poiScheduleLabel),
-                  ),
-                  const SizedBox(width: 7),
+                  const Icon(Icons.arrow_downward,
+                      size: 17, color: AppColors.muted),
+                  const SizedBox(width: 4),
                   Text(_formatTime(arrival!), style: AppTextStyles.poiSchedule),
                 ],
                 if (hasArrival && hasDeparture) const SizedBox(width: 12),
                 if (hasDeparture) ...[
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    color: Colors.green,
-                    child: Text(l10n.departureShort,
-                        style: AppTextStyles.poiScheduleLabel),
-                  ),
-                  const SizedBox(width: 7),
+                  const Icon(Icons.arrow_upward,
+                      size: 17, color: AppColors.muted),
+                  const SizedBox(width: 4),
                   Text(_formatTime(departure!),
                       style: AppTextStyles.poiSchedule),
                 ],
