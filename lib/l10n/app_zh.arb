@@ -46,6 +46,7 @@
   "body": "正文",
   "plannedArrival": "预计到达",
   "plannedDeparture": "预计出发",
+  "plannedClose": "关闭时间",
   "arrivalShort": "预计到达",
   "departureShort": "预计出发",
   "distance": "距离",

@@ -46,6 +46,7 @@
   "body": "Text",
   "plannedArrival": "Geplante Ankunft",
   "plannedDeparture": "Geplante Abfahrt",
+  "plannedClose": "Schlusszeit",
   "arrivalShort": "Ankunft",
   "departureShort": "Abfahrt",
   "distance": "Distanz",

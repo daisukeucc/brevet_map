@@ -46,6 +46,7 @@
   "body": "본문",
   "plannedArrival": "도착 예정",
   "plannedDeparture": "출발 예정",
+  "plannedClose": "마감",
   "arrivalShort": "도착 예정",
   "departureShort": "출발 예정",
   "distance": "거리",

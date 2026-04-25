@@ -131,6 +131,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get plannedDeparture => 'Salida prevista';
 
   @override
+  String get plannedClose => 'Cierre';
+
+  @override
   String get arrivalShort => 'Llegada';
 
   @override

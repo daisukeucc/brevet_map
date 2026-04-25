@@ -46,6 +46,7 @@
   "body": "เนื้อหา",
   "plannedArrival": "เวลาถึงที่กำหนด",
   "plannedDeparture": "เวลาออกเดินทาง",
+  "plannedClose": "เวลาปิด",
   "arrivalShort": "ถึง",
   "departureShort": "ออก",
   "distance": "ระยะทาง",

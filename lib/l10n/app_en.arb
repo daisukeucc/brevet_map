@@ -52,6 +52,7 @@
   "body": "Body",
   "plannedArrival": "Planned arrival",
   "plannedDeparture": "Planned departure",
+  "plannedClose": "Close time",
   "arrivalShort": "Arrival",
   "departureShort": "Departure",
   "distance": "Distance",

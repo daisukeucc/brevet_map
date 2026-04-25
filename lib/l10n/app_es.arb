@@ -46,6 +46,7 @@
   "body": "Texto",
   "plannedArrival": "Llegada prevista",
   "plannedDeparture": "Salida prevista",
+  "plannedClose": "Cierre",
   "arrivalShort": "Llegada",
   "departureShort": "Salida",
   "distance": "Distancia",
