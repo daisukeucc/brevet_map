@@ -8,6 +8,9 @@ const brevetDistanceTable = [
   (km: 1200.0, limitHours: 90.0),
 ];
 
+/// ルート全長がこれ未満（km）のとき、GPX インポートで finish の `close` を制限時間から付与しない。
+const kMinRouteKmForFinishClose = 200.0;
+
 /// ルート距離 [routeKm] に最も近いブルベ距離クラスを返す。
 /// テーブル最大距離（1200km）を超える場合は `(km: 0, limitHours: 0)` を返す。
 ({double km, double limitHours}) matchBrevetDistance(double routeKm) {

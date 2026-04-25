@@ -56,6 +56,7 @@ UserPoi _gpxPoiToUserPoi(
   GpxPoi poi, {
   List<LatLng> trackPoints = const [],
   required BmBrevetMeta brevetMeta,
+  required double totalRouteKm,
 }) {
   final rawName = poi.name ?? '';
   final parsed = _parseNameAndKm(rawName);
@@ -82,7 +83,14 @@ UserPoi _gpxPoiToUserPoi(
         ),
       );
     } else if (gpxTypeLower == 'finish' && ext.schedule.close == null) {
-      final close = _finishCloseFromBrevetMeta(brevetMeta) ?? ext.schedule.arrival;
+      final computed = _finishCloseFromBrevetMeta(
+        brevetMeta,
+        totalRouteKm: totalRouteKm,
+      );
+      final close = computed ??
+          (totalRouteKm >= kMinRouteKmForFinishClose
+              ? ext.schedule.arrival
+              : null);
       bmExt = BmPoiExtension(
         type: ext.type,
         distanceKm: ext.distanceKm,
@@ -103,6 +111,7 @@ UserPoi _gpxPoiToUserPoi(
           : (poi.isCheckpoint ? 'checkpoint' : 'generic'),
       distanceKm: km ?? 0,
       brevetMeta: brevetMeta,
+      totalRouteKm: totalRouteKm,
     );
   }
 
@@ -120,9 +129,14 @@ UserPoi _gpxPoiToUserPoi(
 }
 
 /// finish のクローズ＝走行日スタート＋ [BmBrevetMeta.timeLimitHours]。
+/// ルート全長 [totalRouteKm] が [kMinRouteKmForFinishClose] 未満のときは [null]。
 /// [BmBrevetMeta.startTime] が null の場合のみ [DateTime.now]（UTC）を仮の起点にする
 ///（通常はインポート前に 6:00 既定の [brevetMeta.startTime] が入る）。
-DateTime? _finishCloseFromBrevetMeta(BmBrevetMeta brevetMeta) {
+DateTime? _finishCloseFromBrevetMeta(
+  BmBrevetMeta brevetMeta, {
+  required double totalRouteKm,
+}) {
+  if (totalRouteKm < kMinRouteKmForFinishClose) return null;
   if (brevetMeta.timeLimitHours <= 0) return null;
   final limitDuration =
       Duration(minutes: (brevetMeta.timeLimitHours * 60).round());
@@ -141,6 +155,7 @@ BmPoiExtension _defaultBmPoiExtension({
   required String poiType,
   required double distanceKm,
   required BmBrevetMeta brevetMeta,
+  required double totalRouteKm,
 }) {
   final BmSchedule schedule;
   switch (poiType) {
@@ -151,7 +166,10 @@ BmPoiExtension _defaultBmPoiExtension({
       break;
     case 'finish':
       schedule = BmSchedule(
-        close: _finishCloseFromBrevetMeta(brevetMeta),
+        close: _finishCloseFromBrevetMeta(
+          brevetMeta,
+          totalRouteKm: totalRouteKm,
+        ),
       );
       break;
     default:
@@ -166,7 +184,11 @@ BmPoiExtension _defaultBmPoiExtension({
 }
 
 /// スタート POI を新規作成する（GPX にスタート wpt がない場合）。
-UserPoi _createStartPoi(LatLng position, BmBrevetMeta brevetMeta) {
+UserPoi _createStartPoi(
+  LatLng position,
+  BmBrevetMeta brevetMeta, {
+  required double totalRouteKm,
+}) {
   return UserPoi(
     type: 1,
     km: 0,
@@ -178,6 +200,7 @@ UserPoi _createStartPoi(LatLng position, BmBrevetMeta brevetMeta) {
       poiType: 'start',
       distanceKm: 0,
       brevetMeta: brevetMeta,
+      totalRouteKm: totalRouteKm,
     ),
   );
 }
@@ -199,6 +222,7 @@ UserPoi _createFinishPoi(
       poiType: 'finish',
       distanceKm: totalDistanceKm,
       brevetMeta: brevetMeta,
+      totalRouteKm: totalDistanceKm,
     ),
   );
 }
@@ -290,21 +314,39 @@ Future<GpxImportResult?> parseAndSaveGpx(
 
   // UserPoi に変換
   final otherPois = otherWpts
-      .map((w) =>
-          _gpxPoiToUserPoi(w, trackPoints: trackPoints, brevetMeta: brevetMeta))
+      .map(
+        (w) => _gpxPoiToUserPoi(
+          w,
+          trackPoints: trackPoints,
+          brevetMeta: brevetMeta,
+          totalRouteKm: totalDistanceKm,
+        ),
+      )
       .toList();
 
   // start/finish: 明示的な wpt があればそれを使い、なければ常に自動生成
   final startPoi = startWpt != null
-      ? _gpxPoiToUserPoi(startWpt,
-          trackPoints: trackPoints, brevetMeta: brevetMeta)
+      ? _gpxPoiToUserPoi(
+          startWpt,
+          trackPoints: trackPoints,
+          brevetMeta: brevetMeta,
+          totalRouteKm: totalDistanceKm,
+        )
       : (trackPoints.isNotEmpty
-          ? _createStartPoi(trackPoints.first, brevetMeta)
+          ? _createStartPoi(
+              trackPoints.first,
+              brevetMeta,
+              totalRouteKm: totalDistanceKm,
+            )
           : null);
 
   final finishPoi = finishWpt != null
-      ? _gpxPoiToUserPoi(finishWpt,
-          trackPoints: trackPoints, brevetMeta: brevetMeta)
+      ? _gpxPoiToUserPoi(
+          finishWpt,
+          trackPoints: trackPoints,
+          brevetMeta: brevetMeta,
+          totalRouteKm: totalDistanceKm,
+        )
       : (trackPoints.isNotEmpty
           ? _createFinishPoi(trackPoints.last, totalDistanceKm, brevetMeta)
           : null);
