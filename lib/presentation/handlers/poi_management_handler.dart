@@ -10,6 +10,7 @@ import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/models/bm_extension.dart';
+import '../../domain/models/brevet_distances.dart';
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/effective_premium.dart';
@@ -155,6 +156,44 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
           : null,
       close: data.close != null ? _applyTimeOfDay(data.close!, refDate!) : null,
       result: existing?.schedule.result,
+    ),
+  );
+}
+
+/// スタートの出発に対応するゴール `close`（[BmBrevetMeta.timeLimitHours]）。[gpx_import_service] の finish と同じ要領。
+DateTime? _closeForFinishFromStartDeparture({
+  required DateTime? startDeparture,
+  BmBrevetMeta? meta,
+  required double totalRouteKm,
+}) {
+  if (startDeparture == null) return null;
+  if (totalRouteKm < kMinRouteKmForFinishClose) return null;
+  final h = meta?.timeLimitHours ?? 0.0;
+  if (h <= 0) return null;
+  return startDeparture.add(Duration(minutes: (h * 60).round()));
+}
+
+UserPoi _userPoiWithFinishClose(UserPoi p, DateTime? close) {
+  final ext = p.bmExt;
+  if (ext == null) return p;
+  return UserPoi(
+    type: p.type,
+    km: p.km,
+    title: p.title,
+    body: p.body,
+    lat: p.lat,
+    lng: p.lng,
+    gpxCmt: p.gpxCmt,
+    gpxType: p.gpxType,
+    bmExt: BmPoiExtension(
+      type: ext.type,
+      distanceKm: ext.distanceKm,
+      schedule: BmSchedule(
+        arrival: ext.schedule.arrival,
+        departure: ext.schedule.departure,
+        close: close,
+        result: ext.schedule.result,
+      ),
     ),
   );
 }
@@ -321,9 +360,42 @@ Future<void> handleEditPoiText(
       gpxType: currentPoi.gpxType,
       bmExt: newBmExt,
     );
-    await ref
-        .read(mapStateProvider.notifier)
-        .updateUserPoi(currentPoi, updatedPoi);
+    final isStartPoi = currentPoi.bmExt?.type == 'start';
+    final newStartDep = updatedPoi.bmExt?.schedule.departure;
+    final oldStartDep = currentPoi.bmExt?.schedule.departure;
+    if (isStartPoi && newStartDep != oldStartDep) {
+      final tr = totalRouteKm ?? 0.0;
+      final meta = await loadBrevetMeta();
+      final newClose = _closeForFinishFromStartDeparture(
+        startDeparture: newStartDep,
+        meta: meta,
+        totalRouteKm: tr,
+      );
+      final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
+      final startIdx = list.indexWhere(
+        (p) =>
+            p.lat == currentPoi.lat &&
+            p.lng == currentPoi.lng &&
+            p.km == currentPoi.km,
+      );
+      if (startIdx < 0) {
+        await ref
+            .read(mapStateProvider.notifier)
+            .updateUserPoi(currentPoi, updatedPoi);
+      } else {
+        list[startIdx] = updatedPoi;
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].bmExt?.type == 'finish') {
+            list[i] = _userPoiWithFinishClose(list[i], newClose);
+          }
+        }
+        await ref.read(mapStateProvider.notifier).replaceAllUserPois(list);
+      }
+    } else {
+      await ref
+          .read(mapStateProvider.notifier)
+          .updateUserPoi(currentPoi, updatedPoi);
+    }
     if (context.mounted) {
       showAppSnackBar(context, AppLocalizations.of(context)!.poiUpdated);
     }
