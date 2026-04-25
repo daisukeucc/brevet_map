@@ -14,6 +14,7 @@ class PoiSheetEntry {
     this.elevationGain,
     this.arrival,
     this.departure,
+    this.close,
   });
 
   final String? name;
@@ -27,6 +28,9 @@ class PoiSheetEntry {
 
   /// スケジュール：出発時刻（UTC）
   final DateTime? departure;
+
+  /// スケジュール：クローズ時刻（UTC）
+  final DateTime? close;
 }
 
 /// POI タップ時に表示するボトムシート。名前と説明を表示。
@@ -60,6 +64,7 @@ void showPoiDetailSheet(
         description: entries.first.description,
         arrival: entries.first.arrival,
         departure: entries.first.departure,
+        close: entries.first.close,
       );
     },
   );
@@ -73,6 +78,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
     required this.description,
     this.arrival,
     this.departure,
+    this.close,
   });
 
   final String? name;
@@ -81,6 +87,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
   final String? description;
   final DateTime? arrival;
   final DateTime? departure;
+  final DateTime? close;
 
   @override
   Widget build(BuildContext context) {
@@ -97,6 +104,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
             description: description,
             arrival: arrival,
             departure: departure,
+            close: close,
             distanceLeft: 20,
             contentLeft: 24,
           ),
@@ -163,6 +171,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                     description: e.description,
                     arrival: e.arrival,
                     departure: e.departure,
+                    close: e.close,
                     distanceLeft: 20,
                     contentLeft: 24,
                   ),
@@ -229,6 +238,7 @@ class _PoiContentBlock extends StatelessWidget {
     required this.description,
     this.arrival,
     this.departure,
+    this.close,
     this.distanceLeft = 0,
     this.contentLeft = 0,
   });
@@ -239,6 +249,7 @@ class _PoiContentBlock extends StatelessWidget {
   final String? description;
   final DateTime? arrival;
   final DateTime? departure;
+  final DateTime? close;
   final double distanceLeft;
   final double contentLeft;
 
@@ -253,7 +264,8 @@ class _PoiContentBlock extends StatelessWidget {
     final hasDescription = description != null && description!.isNotEmpty;
     final hasArrival = arrival != null;
     final hasDeparture = departure != null;
-    final hasSchedule = hasArrival || hasDeparture;
+    final hasClose = close != null;
+    final hasSchedule = hasArrival || hasDeparture || hasClose;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -301,6 +313,14 @@ class _PoiContentBlock extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(_formatTime(departure!),
                       style: AppTextStyles.poiSchedule),
+                ],
+                if ((hasArrival || hasDeparture) && hasClose)
+                  const SizedBox(width: 16),
+                if (hasClose) ...[
+                  const Icon(Icons.lock_outline,
+                      size: 17, color: AppColors.muted),
+                  const SizedBox(width: 3),
+                  Text(_formatTime(close!), style: AppTextStyles.poiSchedule),
                 ],
               ],
             ),

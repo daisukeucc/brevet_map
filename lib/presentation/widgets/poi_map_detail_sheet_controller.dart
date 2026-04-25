@@ -71,6 +71,7 @@ class PoiMapDetailSheetController {
             name: p.name,
             description: p.description,
             position: p.position,
+            close: p.bmPoiExt?.schedule.close,
           ),
       ];
       final idx = ordered.indexWhere((p) => _sameGpxPoi(p, poi));
@@ -91,6 +92,7 @@ class PoiMapDetailSheetController {
             name: poi.name,
             description: poi.description,
             position: poi.position,
+            close: poi.bmPoiExt?.schedule.close,
           ),
         ],
       );
@@ -107,8 +109,7 @@ class PoiMapDetailSheetController {
     final l10n = AppLocalizations.of(context)!;
     final unit = _ref.read(distanceUnitProvider);
 
-    String titleFor(UserPoi p) =>
-        p.title.isEmpty ? l10n.titleNone : p.title;
+    String titleFor(UserPoi p) => p.title.isEmpty ? l10n.titleNone : p.title;
 
     String? distanceFor(UserPoi p) =>
         p.km != null ? formatDistance(p.km!, unit) : null;
@@ -133,6 +134,7 @@ class PoiMapDetailSheetController {
             position: ordered[i].position,
             arrival: ordered[i].bmExt?.schedule.arrival,
             departure: ordered[i].bmExt?.schedule.departure,
+            close: ordered[i].bmExt?.schedule.close,
           ),
       ];
       final idx = ordered.indexWhere((p) => _sameUserPoi(p, poi));
@@ -157,6 +159,7 @@ class PoiMapDetailSheetController {
             position: poi.position,
             arrival: poi.bmExt?.schedule.arrival,
             departure: poi.bmExt?.schedule.departure,
+            close: poi.bmExt?.schedule.close,
           ),
         ],
       );
