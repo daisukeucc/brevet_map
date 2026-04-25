@@ -607,4 +607,11 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get changeRideDate => '출발 날짜 변경';
+
+  @override
+  String get releaseNotesDialogTitle => '릴리스 노트';
+
+  @override
+  String get releaseNotesV11018Message =>
+      '버전 1.1에서는 브레베 주행 계획을 더 효율적으로 세울 수 있도록 POI 정보를 강화했습니다!\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!';
 }

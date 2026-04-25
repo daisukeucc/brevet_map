@@ -314,5 +314,7 @@
   "save": "Save",
   "saveChangesConfirm": "Save changes?",
   "setStartDate": "Set start date",
-  "changeRideDate": "Change ride date"
+  "changeRideDate": "Change ride date",
+  "releaseNotesDialogTitle": "Release notes",
+  "releaseNotesV11018Message": "In version 1.1, we've added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!"
 }

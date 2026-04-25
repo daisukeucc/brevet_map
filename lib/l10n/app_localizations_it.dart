@@ -624,4 +624,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get changeRideDate => 'Cambia data di partenza';
+
+  @override
+  String get releaseNotesDialogTitle => 'Note di rilascio';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'Nella versione 1.1 abbiamo aggiunto più dettagli sui POI per aiutarti a pianificare meglio i tuoi percorsi a lunga distanza.\nTutte le funzionalità sono sbloccate in questa versione, quindi provala!';
 }

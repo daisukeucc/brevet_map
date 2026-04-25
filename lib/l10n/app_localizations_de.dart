@@ -624,4 +624,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get changeRideDate => 'Fahrdatum ändern';
+
+  @override
+  String get releaseNotesDialogTitle => 'Release Notes';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'In Version 1.1 haben wir zusätzliche POI-Details hinzugefügt, damit du deine Brevets besser planen kannst!\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!';
 }

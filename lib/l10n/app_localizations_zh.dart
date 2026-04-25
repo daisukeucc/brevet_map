@@ -597,6 +597,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get changeRideDate => '更改出发日期';
+
+  @override
+  String get releaseNotesDialogTitle => '发行说明';
+
+  @override
+  String get releaseNotesV11018Message =>
+      '在 1.1 版本中，我们增强了 POI 信息，让您可以更高效地规划您的长距离骑行！\n此版本已解锁全部功能，欢迎体验！';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1192,4 +1199,11 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get changeRideDate => '更改出發日期';
+
+  @override
+  String get releaseNotesDialogTitle => '發行說明';
+
+  @override
+  String get releaseNotesV11018Message =>
+      '在 1.1 版本中，我們強化了 POI 資訊，讓您能更有效地規劃長距離騎行！\n此版本已開放所有功能，歡迎體驗！';
 }

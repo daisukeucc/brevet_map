@@ -18,6 +18,7 @@ import '../../domain/services/share_channel_service.dart';
 import '../../domain/services/volume_zoom_handler.dart';
 import '../../utils/date_formatting_localization.dart';
 import '../../utils/map_utils.dart';
+import '../../utils/release_notes_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';

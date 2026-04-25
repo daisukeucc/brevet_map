@@ -604,4 +604,11 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get changeRideDate => '出走日を変更';
+
+  @override
+  String get releaseNotesDialogTitle => 'リリースノート';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'ver1.1では、ブルベの走行計画が立てられるよう、POIの情報を増やしました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！';
 }

@@ -342,10 +342,14 @@ class MapStateNotifier extends Notifier<MapState> {
   }
 
   /// 初回 API 取得 or 保存済みルート読み込み（1回のみ実行）
+  ///
+  /// [onReturningUserMapReady] は保存済みルートがあるときカメラ移動直後。初回インストールの
+  /// サンプル＋ボリューム＋リリースノートとは別（後者は [onFirstRouteShown] 経路）。
   Future<void> fetchOrLoadRouteIfNeeded(
     Position position, {
     required Future<void> Function(LatLngBounds?) animateCamera,
     VoidCallback? onFirstRouteShown,
+    VoidCallback? onReturningUserMapReady,
   }) async {
     if (state.hasStartedInitialRouteFetch) return;
     // 保存済みルートがない場合（初回インストール相当）のみローディングを表示する
@@ -393,6 +397,9 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     final bounds = boundsFromPoints(points);
     await animateCamera(bounds);
+    if (hasSavedRoute) {
+      onReturningUserMapReady?.call();
+    }
   }
 
   /// ルート全体のバウンドを返す（animateToRouteBounds 用）

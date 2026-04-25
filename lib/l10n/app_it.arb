@@ -308,5 +308,7 @@
   "save": "Salva",
   "saveChangesConfirm": "Salvare le modifiche?",
   "setStartDate": "Imposta data di partenza",
-  "changeRideDate": "Cambia data di partenza"
+  "changeRideDate": "Cambia data di partenza",
+  "releaseNotesDialogTitle": "Note di rilascio",
+  "releaseNotesV11018Message": "Nella versione 1.1 abbiamo aggiunto più dettagli sui POI per aiutarti a pianificare meglio i tuoi percorsi a lunga distanza.\nTutte le funzionalità sono sbloccate in questa versione, quindi provala!"
 }

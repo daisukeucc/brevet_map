@@ -308,5 +308,7 @@
   "save": "Speichern",
   "saveChangesConfirm": "Änderungen speichern?",
   "setStartDate": "Startdatum festlegen",
-  "changeRideDate": "Fahrdatum ändern"
+  "changeRideDate": "Fahrdatum ändern",
+  "releaseNotesDialogTitle": "Release Notes",
+  "releaseNotesV11018Message": "In Version 1.1 haben wir zusätzliche POI-Details hinzugefügt, damit du deine Brevets besser planen kannst!\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!"
 }

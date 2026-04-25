@@ -622,4 +622,11 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get changeRideDate => 'เปลี่ยนวันที่ออกสตาร์ต';
+
+  @override
+  String get releaseNotesDialogTitle => 'บันทึกประจำรุ่น';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'ในเวอร์ชัน 1.1 เราได้เพิ่มรายละเอียด POI เพื่อช่วยให้คุณวางแผนการปั่นระยะไกลได้อย่างมีประสิทธิภาพมากขึ้น!\nเวอร์ชันนี้ปลดล็อกทุกฟีเจอร์แล้ว ลองใช้งานดูได้เลย!';
 }

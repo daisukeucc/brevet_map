@@ -44,6 +44,9 @@ mixin _BuildMixin
                 }
               },
               onFirstRouteShown: () => _showSampleRouteDialog(context),
+              onReturningUserMapReady: () {
+                unawaited(maybeShowReleaseNotesDialog(context));
+              },
             );
       });
     }
@@ -272,16 +275,19 @@ mixin _BuildMixin
           ),
         ],
       ),
-    ).then((_) {
+    ).then((_) async {
       if (!context.mounted) return;
-      _showVolumeButtonTutorial(context);
+      await _showVolumeButtonTutorial(context);
+      if (!context.mounted) return;
+      await maybeShowReleaseNotesDialog(context);
     });
   }
 
-  void _showVolumeButtonTutorial(BuildContext context) {
-    if (!context.mounted) return;
+  /// 初回のウェルカム直後。閉じると [Future] 完了（リリースノート用に連結）
+  Future<void> _showVolumeButtonTutorial(BuildContext context) {
+    if (!context.mounted) return Future<void>.value();
     final message = AppLocalizations.of(context)!.volumeButtonTutorial;
-    showGeneralDialog<void>(
+    return showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
       barrierLabel: '',

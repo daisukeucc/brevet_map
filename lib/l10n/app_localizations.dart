@@ -1204,6 +1204,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Change ride date'**
   String get changeRideDate;
+
+  /// No description provided for @releaseNotesDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get releaseNotesDialogTitle;
+
+  /// No description provided for @releaseNotesV11018Message.
+  ///
+  /// In en, this message translates to:
+  /// **'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!'**
+  String get releaseNotesV11018Message;
 }
 
 class _AppLocalizationsDelegate

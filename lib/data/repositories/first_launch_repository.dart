@@ -22,6 +22,8 @@ const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
 const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
 const _keyBatteryDisplay = 'battery_display'; // true=表示, false=非表示
+const _keyLastShownReleaseNoteId =
+    'last_shown_release_note_id'; // 例: 1.1.0+18。一度表示した版は再表示しない
 
 /// フォールバック用の既定座標を保存する（表示ルートのスタートなど）
 Future<void> saveDefaultMapCoordinates(double lat, double lng) async {
@@ -260,4 +262,16 @@ Future<void> saveBatteryDisplay(bool value) async {
 Future<bool> loadBatteryDisplay() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keyBatteryDisplay) ?? false;
+}
+
+/// リリースノートダイアログを最後に表示した `version+build`（未表示なら null）
+Future<String?> loadLastShownReleaseNoteId() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_keyLastShownReleaseNoteId);
+}
+
+/// リリースノートを表示済みにする（[id] は [PackageInfo] の `version+build`）
+Future<void> saveLastShownReleaseNoteId(String id) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_keyLastShownReleaseNoteId, id);
 }

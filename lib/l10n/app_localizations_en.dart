@@ -622,4 +622,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get changeRideDate => 'Change ride date';
+
+  @override
+  String get releaseNotesDialogTitle => 'Release notes';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!';
 }
