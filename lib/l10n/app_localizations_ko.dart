@@ -36,6 +36,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get add => '추가';
 
   @override
+  String get next => '다음';
+
+  @override
   String get settings => '설정';
 
   @override
@@ -103,7 +106,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiTabAdd => 'POI 추가';
 
   @override
-  String get poiTabEdit => 'POI 편집 또는 삭제';
+  String get poiTabEdit => 'POI 편집';
 
   @override
   String get poiType => 'POI 유형';
@@ -119,6 +122,21 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get body => '본문';
+
+  @override
+  String get plannedArrival => '도착 예정';
+
+  @override
+  String get plannedDeparture => '출발 예정';
+
+  @override
+  String get plannedClose => '마감';
+
+  @override
+  String get arrivalShort => '도착 예정';
+
+  @override
+  String get departureShort => '출발 예정';
 
   @override
   String get distance => '거리';
@@ -577,4 +595,23 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get volumeButtonTutorial => '기기의 볼륨 버튼으로 지도 줌 레벨을 조절할 수 있습니다';
+
+  @override
+  String get save => '저장';
+
+  @override
+  String get saveChangesConfirm => '변경 사항을 저장하시겠습니까?';
+
+  @override
+  String get setStartDate => '출발 날짜 설정';
+
+  @override
+  String get changeRideDate => '출발 날짜 변경';
+
+  @override
+  String get releaseNotesDialogTitle => '릴리스 노트';
+
+  @override
+  String get releaseNotesV11018Message =>
+      '버전 1.1에서는 브레베 주행 계획을 더 효율적으로 세울 수 있도록 POI 정보를 강화했습니다!\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!';
 }

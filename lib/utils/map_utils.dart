@@ -69,6 +69,108 @@ double distanceAlongTrackFromStart(List<LatLng> trackPoints, int toIndex) {
   return sum;
 }
 
+/// トラック上で [point] に最も近いポイントのインデックスを返す。
+int nearestTrackIndex(List<LatLng> trackPoints, LatLng point) {
+  if (trackPoints.isEmpty) return 0;
+  var bestIndex = 0;
+  var bestDist = distanceBetweenLatLng(trackPoints[0], point);
+  for (var i = 1; i < trackPoints.length; i++) {
+    final d = distanceBetweenLatLng(trackPoints[i], point);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
+
+/// [fromIndex] から [toIndex] の区間の獲得標高をメートルで返す。
+/// [threshold] 未満の上昇はノイズとして無視する（デフォルト 8m）。
+double elevationGainBetweenIndices(
+    List<double?> elevations, int fromIndex, int toIndex,
+    {double threshold = 4.0}) {
+  if (elevations.isEmpty) return 0;
+  final start = fromIndex.clamp(0, elevations.length - 1);
+  final end = toIndex.clamp(0, elevations.length - 1);
+  if (start >= end) return 0;
+  double gain = 0;
+  double? ref;
+  for (var i = start; i <= end; i++) {
+    final ele = elevations[i];
+    if (ele == null) continue;
+    if (ref == null) {
+      ref = ele;
+      continue;
+    }
+    final diff = ele - ref;
+    if (diff >= threshold) {
+      gain += diff;
+      ref = ele;
+    } else if (diff <= -threshold) {
+      ref = ele;
+    }
+  }
+  return gain;
+}
+
+// ── isolate 用（compute()）──────────────────────────────────────────────────
+
+/// compute() に渡す入力型。
+typedef PoiElevationGainInput = ({
+  List<LatLng> trackPoints,
+  List<double?> elevations,
+  List<LatLng> poiPositions,
+});
+
+/// Haversine 式による2点間距離（メートル）。
+/// isolate 内では Geolocator（プラットフォームチャネル）が使えないため純粋 Dart で実装。
+double _haversineMeters(LatLng a, LatLng b) {
+  const r = 6371000.0;
+  final lat1 = a.latitude * math.pi / 180;
+  final lat2 = b.latitude * math.pi / 180;
+  final dLat = (b.latitude - a.latitude) * math.pi / 180;
+  final dLon = (b.longitude - a.longitude) * math.pi / 180;
+  final sinA = math.sin(dLat / 2);
+  final sinB = math.sin(dLon / 2);
+  final h = sinA * sinA + math.cos(lat1) * math.cos(lat2) * sinB * sinB;
+  return r * 2 * math.asin(math.sqrt(h));
+}
+
+int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
+  if (trackPoints.isEmpty) return 0;
+  var bestIndex = 0;
+  var bestDist = _haversineMeters(trackPoints[0], point);
+  for (var i = 1; i < trackPoints.length; i++) {
+    final d = _haversineMeters(trackPoints[i], point);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
+
+/// compute() で実行する獲得標高計算。
+/// 各 POI の「前 POI（またはスタート）→ この POI」区間の獲得標高を返す。
+List<double?> computePoiElevationGains(PoiElevationGainInput input) {
+  final trackPoints = input.trackPoints;
+  final elevations = input.elevations;
+  final poiPositions = input.poiPositions;
+  if (trackPoints.isEmpty || elevations.isEmpty) {
+    return List.filled(poiPositions.length, null);
+  }
+  final indices = poiPositions
+      .map((p) => _nearestTrackIndexIsolate(trackPoints, p))
+      .toList();
+  return [
+    for (var i = 0; i < poiPositions.length; i++)
+      elevationGainBetweenIndices(
+          elevations, i > 0 ? indices[i - 1] : 0, indices[i]),
+  ];
+}
+
+// ── ここまで isolate 用 ─────────────────────────────────────────────────────
+
 /// トラック上で [point] に最も近いポイントを探し、スタートからそのポイントまでのルート沿い距離（メートル）を返す。
 /// スタートから「そのポイントに最も近いトラック上の位置」までの走行距離の目安として使える。
 double distanceFromStartToPointAlongTrack(
@@ -152,7 +254,8 @@ RouteLegResult getRouteLegWithBearing(
             trackPoints[0],
             trackPoints[1],
           );
-        } else if (c.index == trackPoints.length - 1 && trackPoints.length > 1) {
+        } else if (c.index == trackPoints.length - 1 &&
+            trackPoints.length > 1) {
           routeBearing = bearingBetweenLatLng(
             trackPoints[trackPoints.length - 2],
             trackPoints[trackPoints.length - 1],
@@ -178,7 +281,8 @@ RouteLegResult getRouteLegWithBearing(
     bestAlongM = candidates[0].alongM;
   }
 
-  final toRouteM = distanceBetweenLatLng(trackPoints[bestIndex], currentPosition);
+  final toRouteM =
+      distanceBetweenLatLng(trackPoints[bestIndex], currentPosition);
   final ratio = bestAlongM / totalM;
   final leg = ratio < 0.55 ? RouteLeg.outbound : RouteLeg.returnRoute;
   return (alongTrackM: bestAlongM, toRouteM: toRouteM, leg: leg);
@@ -285,7 +389,8 @@ RouteType detectRouteType(List<LatLng> points) {
   // 累積距離を事前計算（O(n)、以降の計算で再利用）
   final cumDist = List<double>.filled(points.length, 0);
   for (var i = 1; i < points.length; i++) {
-    cumDist[i] = cumDist[i - 1] + distanceBetweenLatLng(points[i - 1], points[i]);
+    cumDist[i] =
+        cumDist[i - 1] + distanceBetweenLatLng(points[i - 1], points[i]);
   }
   final totalDist = cumDist.last;
   if (totalDist == 0) return RouteType.pointToPoint;

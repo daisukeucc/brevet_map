@@ -111,8 +111,9 @@ Future<void> showGpxExportFlow(
 
   if (!context.mounted) return;
 
-  // インポートしたGPXのmetadata/nameがあればデフォルトに使用
+  // インポートしたGPXのmetadata/nameとブルベメタデータを読込
   final savedMetadataName = await loadGpxMetadataName();
+  final brevetMeta = await loadBrevetMeta();
   if (!context.mounted) return;
   final defaultFilename =
       (savedMetadataName != null && savedMetadataName.trim().isNotEmpty)
@@ -142,6 +143,7 @@ Future<void> showGpxExportFlow(
     gpxPois: mapState.gpxPois,
     userPois: mapState.userPois,
     filename: sanitized,
+    brevetMeta: brevetMeta,
   );
 
   try {

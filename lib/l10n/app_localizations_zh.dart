@@ -36,6 +36,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get add => '添加';
 
   @override
+  String get next => '下一个';
+
+  @override
   String get settings => '设置';
 
   @override
@@ -102,7 +105,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiTabAdd => '添加 POI';
 
   @override
-  String get poiTabEdit => '编辑或删除POI';
+  String get poiTabEdit => '编辑 POI';
 
   @override
   String get poiType => 'POI 类型';
@@ -118,6 +121,21 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get body => '正文';
+
+  @override
+  String get plannedArrival => '预计到达';
+
+  @override
+  String get plannedDeparture => '预计出发';
+
+  @override
+  String get plannedClose => '关闭时间';
+
+  @override
+  String get arrivalShort => '预计到达';
+
+  @override
+  String get departureShort => '预计出发';
 
   @override
   String get distance => '距离';
@@ -567,6 +585,25 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get volumeButtonTutorial => '您可以使用设备的音量键调整地图缩放级别';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get saveChangesConfirm => '保存更改？';
+
+  @override
+  String get setStartDate => '设置出发日期';
+
+  @override
+  String get changeRideDate => '更改出发日期';
+
+  @override
+  String get releaseNotesDialogTitle => '发行说明';
+
+  @override
+  String get releaseNotesV11018Message =>
+      '在 1.1 版本中，我们增强了 POI 信息，让您可以更高效地规划您的长距离骑行！\n此版本已解锁全部功能，欢迎体验！';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -599,6 +636,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get add => '添加';
+
+  @override
+  String get next => '下一個';
 
   @override
   String get settings => '設定';
@@ -667,7 +707,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get poiTabAdd => '添加 POI';
 
   @override
-  String get poiTabEdit => '編輯或刪除 POI';
+  String get poiTabEdit => '編輯 POI';
 
   @override
   String get poiType => 'POI 類型';
@@ -683,6 +723,21 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get body => '內容';
+
+  @override
+  String get plannedArrival => '預計到達';
+
+  @override
+  String get plannedDeparture => '預計出發';
+
+  @override
+  String get plannedClose => '關閉時間';
+
+  @override
+  String get arrivalShort => '預計到達';
+
+  @override
+  String get departureShort => '預計出發';
 
   @override
   String get distance => '距離';
@@ -1132,4 +1187,23 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get volumeButtonTutorial => '您可以使用裝置的音量鍵調整地圖縮放級別';
+
+  @override
+  String get save => '儲存';
+
+  @override
+  String get saveChangesConfirm => '儲存變更？';
+
+  @override
+  String get setStartDate => '設定出發日期';
+
+  @override
+  String get changeRideDate => '更改出發日期';
+
+  @override
+  String get releaseNotesDialogTitle => '發行說明';
+
+  @override
+  String get releaseNotesV11018Message =>
+      '在 1.1 版本中，我們強化了 POI 資訊，讓您能更有效地規劃長距離騎行！\n此版本已開放所有功能，歡迎體驗！';
 }

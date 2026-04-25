@@ -98,6 +98,9 @@ mixin _LocationStreamMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
           }
         },
         onFirstRouteShown: () => _showSampleRouteDialog(context),
+        onReturningUserMapReady: () {
+          unawaited(maybeShowReleaseNotesDialog(context));
+        },
       );
     });
   }

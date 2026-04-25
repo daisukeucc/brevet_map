@@ -24,16 +24,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ng => 'NG';
 
   @override
-  String get delete => 'Supprimer';
+  String get delete => 'Suppr.';
 
   @override
-  String get edit => 'Modifier';
+  String get edit => 'Éditer';
 
   @override
   String get change => 'Modifier';
 
   @override
   String get add => 'Ajouter';
+
+  @override
+  String get next => 'Suivant';
 
   @override
   String get settings => 'Paramètres';
@@ -105,7 +108,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiTabAdd => 'Ajouter POI';
 
   @override
-  String get poiTabEdit => 'Modifier ou supprimer un POI';
+  String get poiTabEdit => 'Éditer un POI';
 
   @override
   String get poiType => 'Type de POI';
@@ -121,6 +124,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get body => 'Texte';
+
+  @override
+  String get plannedArrival => 'Arrivée prévue';
+
+  @override
+  String get plannedDeparture => 'Départ prévu';
+
+  @override
+  String get plannedClose => 'Fermeture';
+
+  @override
+  String get arrivalShort => 'Arrivée';
+
+  @override
+  String get departureShort => 'Départ';
 
   @override
   String get distance => 'Distance';
@@ -597,4 +615,23 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'Vous pouvez ajuster le niveau de zoom de la carte avec les boutons de volume de l\'appareil';
+
+  @override
+  String get save => 'Enregistrer';
+
+  @override
+  String get saveChangesConfirm => 'Enregistrer les modifications ?';
+
+  @override
+  String get setStartDate => 'Définir la date de départ';
+
+  @override
+  String get changeRideDate => 'Modifier la date de départ';
+
+  @override
+  String get releaseNotesDialogTitle => 'Notes de version';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'Dans la version 1.1, nous avons ajouté plus de détails sur les POI pour vous aider à mieux planifier vos brevets !\nToutes les fonctionnalités sont débloquées dans cette version, alors n\'hésitez pas à l\'essayer !';
 }

@@ -36,6 +36,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get add => '追加';
 
   @override
+  String get next => '次へ';
+
+  @override
   String get settings => '設定';
 
   @override
@@ -103,7 +106,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get poiTabAdd => 'POI 追加';
 
   @override
-  String get poiTabEdit => 'POI 編集・削除';
+  String get poiTabEdit => 'POI 編集';
 
   @override
   String get poiType => 'POIタイプ';
@@ -119,6 +122,21 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get body => '本文';
+
+  @override
+  String get plannedArrival => '到着予定';
+
+  @override
+  String get plannedDeparture => '出発予定';
+
+  @override
+  String get plannedClose => 'クローズ';
+
+  @override
+  String get arrivalShort => '到着予定';
+
+  @override
+  String get departureShort => '出発予定';
 
   @override
   String get distance => '距離';
@@ -574,4 +592,23 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get volumeButtonTutorial => '端末のボリュームボタンで地図のズームレベルを調節可能です';
+
+  @override
+  String get save => '保存';
+
+  @override
+  String get saveChangesConfirm => '変更を保存しますか';
+
+  @override
+  String get setStartDate => '出走日を設定';
+
+  @override
+  String get changeRideDate => '出走日を変更';
+
+  @override
+  String get releaseNotesDialogTitle => 'リリースノート';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'ver1.1では、ブルベの走行計画が立てられるよう、POIの情報を増やしました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！';
 }

@@ -2,6 +2,9 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../domain/models/bm_extension.dart';
+
+const _keyBrevetMeta = 'brevet_meta';
 const _keyDefaultMapLat = 'default_map_lat';
 const _keyDefaultMapLng = 'default_map_lng';
 
@@ -19,6 +22,8 @@ const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
 const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
 const _keyBatteryDisplay = 'battery_display'; // true=表示, false=非表示
+const _keyLastShownReleaseNoteId =
+    'last_shown_release_note_id'; // 例: 1.1.0+18。一度表示した版は再表示しない
 
 /// フォールバック用の既定座標を保存する（表示ルートのスタートなど）
 Future<void> saveDefaultMapCoordinates(double lat, double lng) async {
@@ -99,6 +104,25 @@ Future<void> clearSavedRoute() async {
   await prefs.remove(_keyGpxPois);
   await prefs.remove(_keyGpxDotWaypoints);
   await prefs.remove(_keyGpxMetadataName);
+  await prefs.remove(_keyBrevetMeta);
+}
+
+/// ブルベメタデータ（距離・スタート時刻・制限時間）を保存する
+Future<void> saveBrevetMeta(BmBrevetMeta meta) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_keyBrevetMeta, jsonEncode(meta.toJson()));
+}
+
+/// 保存済みのブルベメタデータを返す。未保存なら null
+Future<BmBrevetMeta?> loadBrevetMeta() async {
+  final prefs = await SharedPreferences.getInstance();
+  final s = prefs.getString(_keyBrevetMeta);
+  if (s == null || s.isEmpty) return null;
+  try {
+    return BmBrevetMeta.fromJson(jsonDecode(s) as Map<String, dynamic>);
+  } catch (_) {
+    return null;
+  }
 }
 
 /// Dot ウェイポイント一覧の JSON を保存する
@@ -238,4 +262,16 @@ Future<void> saveBatteryDisplay(bool value) async {
 Future<bool> loadBatteryDisplay() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keyBatteryDisplay) ?? false;
+}
+
+/// リリースノートダイアログを最後に表示した `version+build`（未表示なら null）
+Future<String?> loadLastShownReleaseNoteId() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString(_keyLastShownReleaseNoteId);
+}
+
+/// リリースノートを表示済みにする（[id] は [PackageInfo] の `version+build`）
+Future<void> saveLastShownReleaseNoteId(String id) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString(_keyLastShownReleaseNoteId, id);
 }

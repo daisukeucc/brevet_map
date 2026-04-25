@@ -27,13 +27,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get delete => 'Löschen';
 
   @override
-  String get edit => 'Bearbeiten';
+  String get edit => 'Edit';
 
   @override
   String get change => 'Ändern';
 
   @override
   String get add => 'Hinzufügen';
+
+  @override
+  String get next => 'Weiter';
 
   @override
   String get settings => 'Einstellungen';
@@ -104,7 +107,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get poiTabAdd => 'POI hinzufügen';
 
   @override
-  String get poiTabEdit => 'POI bearbeiten oder löschen';
+  String get poiTabEdit => 'POI bearbeiten';
 
   @override
   String get poiType => 'POI-Typ';
@@ -120,6 +123,21 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get body => 'Text';
+
+  @override
+  String get plannedArrival => 'Geplante Ankunft';
+
+  @override
+  String get plannedDeparture => 'Geplante Abfahrt';
+
+  @override
+  String get plannedClose => 'Schlusszeit';
+
+  @override
+  String get arrivalShort => 'Ankunft';
+
+  @override
+  String get departureShort => 'Abfahrt';
 
   @override
   String get distance => 'Distanz';
@@ -594,4 +612,23 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'Sie können den Kartenzoom mit den Lautstärketasten des Geräts anpassen';
+
+  @override
+  String get save => 'Speichern';
+
+  @override
+  String get saveChangesConfirm => 'Änderungen speichern?';
+
+  @override
+  String get setStartDate => 'Startdatum festlegen';
+
+  @override
+  String get changeRideDate => 'Fahrdatum ändern';
+
+  @override
+  String get releaseNotesDialogTitle => 'Release Notes';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'In Version 1.1 haben wir zusätzliche POI-Details hinzugefügt, damit du deine Brevets besser planen kannst!\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!';
 }
