@@ -46,13 +46,34 @@ class UserPoi {
   /// チェックポイントか（インポート時は `<type>checkpoint</type>` 由来）
   bool get isCheckpoint => type == 0;
 
+  static bool _isBmTypeFinish(UserPoi p) => p.bmExt?.type == 'finish';
+
   /// 詳細ボトムシートなどの表示順。
   ///
-  /// - [km] がある POI … [km] 昇順（同値は [pois] の登録順）
-  /// - [km] がない POI … チェックポイント → インフォメーション、各グループは [pois] の登録順
-  ///
-  /// 両方混在するときは、まず [km] ありを距離順、その後に [km] なしを上記順。
+  /// - [bmExt.type] が `finish` の POI（ゴール）… **常に最後**（複数件ある場合は同じ下記ルールで相互に整列）
+  /// - それ以外
+  ///   - [km] がある POI … [km] 昇順（同値は [pois] の登録順）
+  ///   - [km] がない POI … チェックポイント → インフォメーション、各グループは [pois] の登録順
+  /// - 上記 2 グループは、まず非 finish ブロック、続けて finish ブロックを返す
   static List<UserPoi> orderedForDetailSheet(List<UserPoi> pois) {
+    if (pois.isEmpty) return pois;
+    final nonFinish = <UserPoi>[];
+    final finish = <UserPoi>[];
+    for (final p in pois) {
+      if (_isBmTypeFinish(p)) {
+        finish.add(p);
+      } else {
+        nonFinish.add(p);
+      }
+    }
+    return [
+      ..._orderedForDetailSheetCore(nonFinish),
+      ..._orderedForDetailSheetCore(finish),
+    ];
+  }
+
+  /// [orderedForDetailSheet] の、finish 分離前の区間用の整列（km ・CP/Info）。
+  static List<UserPoi> _orderedForDetailSheetCore(List<UserPoi> pois) {
     if (pois.isEmpty) return pois;
     final indexed = pois.asMap().entries.toList();
 
