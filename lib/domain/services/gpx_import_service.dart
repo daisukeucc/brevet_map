@@ -66,13 +66,45 @@ UserPoi _gpxPoiToUserPoi(
     km = meters / 1000;
   }
 
-  final bmExt = poi.bmPoiExt ??
-      _defaultBmPoiExtension(
-        poiType: poi.type?.trim().toLowerCase() ??
-            (poi.isCheckpoint ? 'checkpoint' : 'generic'),
-        distanceKm: km ?? 0,
-        brevetMeta: brevetMeta,
+  final gpxTypeLower = poi.type?.trim().toLowerCase() ?? '';
+  final BmPoiExtension bmExt;
+  if (poi.bmPoiExt != null) {
+    final ext = poi.bmPoiExt!;
+    if (gpxTypeLower == 'start') {
+      bmExt = BmPoiExtension(
+        type: ext.type,
+        distanceKm: ext.distanceKm,
+        schedule: BmSchedule(
+          arrival: ext.schedule.arrival,
+          departure: brevetMeta.startTime,
+          close: ext.schedule.close,
+          result: ext.schedule.result,
+        ),
       );
+    } else if (gpxTypeLower == 'finish' && ext.schedule.close == null) {
+      final close = _finishCloseFromBrevetMeta(brevetMeta) ?? ext.schedule.arrival;
+      bmExt = BmPoiExtension(
+        type: ext.type,
+        distanceKm: ext.distanceKm,
+        schedule: BmSchedule(
+          arrival: ext.schedule.arrival,
+          departure: ext.schedule.departure,
+          close: close,
+          result: ext.schedule.result,
+        ),
+      );
+    } else {
+      bmExt = ext;
+    }
+  } else {
+    bmExt = _defaultBmPoiExtension(
+      poiType: gpxTypeLower.isNotEmpty
+          ? gpxTypeLower
+          : (poi.isCheckpoint ? 'checkpoint' : 'generic'),
+      distanceKm: km ?? 0,
+      brevetMeta: brevetMeta,
+    );
+  }
 
   return UserPoi(
     type: poi.isCheckpoint ? 0 : 1,
@@ -87,6 +119,23 @@ UserPoi _gpxPoiToUserPoi(
   );
 }
 
+/// finish のクローズ＝走行日スタート＋ [BmBrevetMeta.timeLimitHours]。
+/// [BmBrevetMeta.startTime] が null の場合のみ [DateTime.now]（UTC）を仮の起点にする
+///（通常はインポート前に 6:00 既定の [brevetMeta.startTime] が入る）。
+DateTime? _finishCloseFromBrevetMeta(BmBrevetMeta brevetMeta) {
+  if (brevetMeta.timeLimitHours <= 0) return null;
+  final limitDuration =
+      Duration(minutes: (brevetMeta.timeLimitHours * 60).round());
+  final ref = brevetMeta.startTime ?? DateTime.now().toUtc();
+  return ref.add(limitDuration);
+}
+
+/// 走行日未設定時のスタート日時。POI 追加前フロー（settings_menu）と同じく当日ローカル 6:00 を UTC に直した値。
+DateTime _defaultImportStartTime() {
+  final n = DateTime.now();
+  return DateTime(n.year, n.month, n.day, 6).toUtc();
+}
+
 /// POI 種別に応じた既定の [BmPoiExtension] を生成する。
 BmPoiExtension _defaultBmPoiExtension({
   required String poiType,
@@ -99,12 +148,12 @@ BmPoiExtension _defaultBmPoiExtension({
       schedule = BmSchedule(
         departure: brevetMeta.startTime,
       );
+      break;
     case 'finish':
-      final limitDuration =
-          Duration(minutes: (brevetMeta.timeLimitHours * 60).round());
       schedule = BmSchedule(
-        arrival: brevetMeta.startTime?.add(limitDuration),
+        close: _finishCloseFromBrevetMeta(brevetMeta),
       );
+      break;
     default:
       schedule = const BmSchedule();
   }
@@ -179,7 +228,7 @@ Future<GpxImportResult?> parseAndSaveGpx(
       : 0.0;
 
   // ブルベメタデータ決定
-  final BmBrevetMeta brevetMeta;
+  BmBrevetMeta brevetMeta;
   if (result.brevetMeta != null) {
     brevetMeta = result.brevetMeta!;
   } else {
@@ -187,6 +236,13 @@ Future<GpxImportResult?> parseAndSaveGpx(
     brevetMeta = BmBrevetMeta(
       distanceKm: matched.km,
       timeLimitHours: matched.limitHours,
+    );
+  }
+  if (brevetMeta.startTime == null) {
+    brevetMeta = BmBrevetMeta(
+      distanceKm: brevetMeta.distanceKm,
+      startTime: _defaultImportStartTime(),
+      timeLimitHours: brevetMeta.timeLimitHours,
     );
   }
   await saveBrevetMeta(brevetMeta);
