@@ -1436,23 +1436,35 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   /// フォームの内容が元の POI から変更されているか判定する
   bool _hasChanged() {
-    if (_poiType != _currentPoi.type) return true;
-    if (_titleController.text.trim() != _currentPoi.title) return true;
-    if (_bodyController.text.trim() != _currentPoi.body) return true;
-
-    if (_kmController.text.trim() != _kmToDisplayText(_currentPoi.km))
+    if (_poiType != _currentPoi.type) {
       return true;
+    }
+    if (_titleController.text.trim() != _currentPoi.title) {
+      return true;
+    }
+    if (_bodyController.text.trim() != _currentPoi.body) {
+      return true;
+    }
+
+    if (_kmController.text.trim() != _kmToDisplayText(_currentPoi.km)) {
+      return true;
+    }
 
     final origArrival = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.arrival);
     final origDeparture =
         _timeOfDayFromDt(_currentPoi.bmExt?.schedule.departure);
     final origClose = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.close);
     if (_arrival?.hour != origArrival?.hour ||
-        _arrival?.minute != origArrival?.minute) return true;
-    if (_departure?.hour != origDeparture?.hour ||
-        _departure?.minute != origDeparture?.minute) return true;
-    if (_close?.hour != origClose?.hour || _close?.minute != origClose?.minute)
+        _arrival?.minute != origArrival?.minute) {
       return true;
+    }
+    if (_departure?.hour != origDeparture?.hour ||
+        _departure?.minute != origDeparture?.minute) {
+      return true;
+    }
+    if (_close?.hour != origClose?.hour || _close?.minute != origClose?.minute) {
+      return true;
+    }
 
     return false;
   }
