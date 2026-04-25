@@ -268,17 +268,27 @@ Future<void> handleEditPoiText(
   List<UserPoi> orderedPois() =>
       UserPoi.orderedForDetailSheet(ref.read(mapStateProvider).userPois);
 
+  int findIndex(List<UserPoi> list, UserPoi current) => list.indexWhere(
+        (p) =>
+            p.lat == current.lat && p.lng == current.lng && p.km == current.km,
+      );
+
   UserPoi? findNext(UserPoi current) {
     final list = orderedPois();
-    final idx = list.indexWhere(
-      (p) => p.lat == current.lat && p.lng == current.lng && p.km == current.km,
-    );
+    final idx = findIndex(list, current);
     if (idx >= 0 && idx + 1 < list.length) return list[idx + 1];
     return null;
   }
 
-  Future<UserPoi?> saveAndFindNext(
-      UserPoi currentPoi, AddPoiFormData data) async {
+  UserPoi? findPrev(UserPoi current) {
+    final list = orderedPois();
+    final idx = findIndex(list, current);
+    if (idx > 0) return list[idx - 1];
+    return null;
+  }
+
+  Future<UserPoi?> saveAndFind(
+      UserPoi currentPoi, AddPoiFormData data, bool goNext) async {
     LatLng? coord;
     final kmChanged = data.km != currentPoi.km;
     if (kmChanged &&
@@ -306,7 +316,7 @@ Future<void> handleEditPoiText(
     if (context.mounted) {
       showAppSnackBar(context, AppLocalizations.of(context)!.poiUpdated);
     }
-    return findNext(updatedPoi);
+    return goNext ? findNext(updatedPoi) : findPrev(updatedPoi);
   }
 
   await showDialog<void>(
@@ -318,7 +328,9 @@ Future<void> handleEditPoiText(
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
       onNext: findNext,
-      onSave: saveAndFindNext,
+      onPrev: findPrev,
+      onSave: (poi, data) => saveAndFind(poi, data, true),
+      onSavePrev: (poi, data) => saveAndFind(poi, data, false),
     ),
   );
 }
@@ -1178,7 +1190,9 @@ class EditPoiTextDialog extends StatefulWidget {
     required this.distanceUnit,
     this.totalRouteKm,
     required this.onNext,
+    required this.onPrev,
     required this.onSave,
+    required this.onSavePrev,
   });
 
   final UserPoi poi;
@@ -1188,9 +1202,16 @@ class EditPoiTextDialog extends StatefulWidget {
   /// 保存せずに次のPOIを返す。なければ null。
   final UserPoi? Function(UserPoi currentPoi) onNext;
 
+  /// 保存せずに前のPOIを返す。なければ null。
+  final UserPoi? Function(UserPoi currentPoi) onPrev;
+
   /// 保存して次のPOIを返す。なければ null。
   final Future<UserPoi?> Function(UserPoi currentPoi, AddPoiFormData data)
       onSave;
+
+  /// 保存して前のPOIを返す。なければ null。
+  final Future<UserPoi?> Function(UserPoi currentPoi, AddPoiFormData data)
+      onSavePrev;
 
   @override
   State<EditPoiTextDialog> createState() => _EditPoiTextDialogState();
@@ -1313,6 +1334,42 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     await widget.onSave(_currentPoi, data);
     if (!mounted) return;
     Navigator.pop(context);
+  }
+
+  /// 前のPOIへ：変更なしならそのまま移動、変更ありなら確認後に保存してから移動
+  Future<void> _handlePrev() async {
+    FocusScope.of(context).requestFocus(_dummyFocusNode);
+    if (_hasChanged()) {
+      final l10n = AppLocalizations.of(context)!;
+      final confirmed = await showConfirmDialog(
+        context,
+        message: l10n.saveChangesConfirm,
+        cancelText: l10n.cancel,
+        confirmText: l10n.save,
+      );
+      if (!mounted) return;
+      if (confirmed != true) return;
+      final data = _validate();
+      if (data == null) return;
+      setState(() => _saving = true);
+      final prevPoi = await widget.onSavePrev(_currentPoi, data);
+      if (!mounted) return;
+      if (prevPoi != null) {
+        setState(() {
+          _saving = false;
+          _loadPoiToForm(prevPoi);
+        });
+      } else {
+        Navigator.pop(context);
+      }
+      return;
+    }
+    final prevPoi = widget.onPrev(_currentPoi);
+    if (prevPoi != null) {
+      setState(() => _loadPoiToForm(prevPoi));
+    } else {
+      Navigator.pop(context);
+    }
   }
 
   /// 次のPOIへ：変更なしならそのまま移動、変更ありなら確認後に保存してから移動
@@ -1520,22 +1577,48 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
               ),
               const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  IconButton(
+                    onPressed: (!_saving && widget.onPrev(_currentPoi) != null)
+                        ? _handlePrev
+                        : null,
+                    icon: const Icon(Icons.arrow_back_ios),
+                    color: Colors.black38,
+                    disabledColor: Colors.black12,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                  ),
                   TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     onPressed: _saving ? null : () => Navigator.pop(context),
                     child: Text(AppLocalizations.of(context)!.cancel,
                         style: AppTextStyles.button),
                   ),
+                  const SizedBox(width: 8),
                   TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     onPressed: _saving ? null : _handleChange,
                     child: Text(AppLocalizations.of(context)!.change,
                         style: AppTextStyles.button),
                   ),
-                  TextButton(
-                    onPressed: _saving ? null : _handleNext,
-                    child: Text(AppLocalizations.of(context)!.next,
-                        style: AppTextStyles.button),
+                  IconButton(
+                    onPressed: (!_saving && widget.onNext(_currentPoi) != null)
+                        ? _handleNext
+                        : null,
+                    icon: const Icon(Icons.arrow_forward_ios),
+                    color: Colors.black38,
+                    disabledColor: Colors.black12,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                   ),
                 ],
               ),

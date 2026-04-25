@@ -15,7 +15,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get appTitleBrand => 'Brevet Map';
 
   @override
-  String get cancel => 'Canc.';
+  String get cancel => 'Cancelar';
 
   @override
   String get ok => 'OK';
