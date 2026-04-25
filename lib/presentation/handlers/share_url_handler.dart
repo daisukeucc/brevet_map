@@ -48,24 +48,26 @@ Future<void> handleConfirmSharePreview(
 
   onClear();
 
-  final data = await showDialog<AddPoiFormData>(
+  await showDialog<void>(
     context: context,
     barrierColor: Colors.black54,
     barrierDismissible: false,
-    builder: (context) => MapTapPoiAddDialog(initialTitle: placeName),
+    builder: (dialogContext) => MapTapPoiAddDialog(
+      initialTitle: placeName,
+      onSave: (data) async {
+        final poi = UserPoi(
+          type: data.type,
+          km: null,
+          title: data.title,
+          body: data.body,
+          lat: position.latitude,
+          lng: position.longitude,
+        );
+        await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+        if (context.mounted) {
+          showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
+        }
+      },
+    ),
   );
-  if (!context.mounted) return;
-  if (data == null) return;
-
-  final poi = UserPoi(
-    type: data.type,
-    km: null,
-    title: data.title,
-    body: data.body,
-    lat: position.latitude,
-    lng: position.longitude,
-  );
-  await ref.read(mapStateProvider.notifier).addUserPoi(poi);
-  if (!context.mounted) return;
-  showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
 }

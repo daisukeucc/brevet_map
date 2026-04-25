@@ -167,6 +167,12 @@ abstract class AppLocalizations {
   /// **'Add'**
   String get add;
 
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
   /// No description provided for @settings.
   ///
   /// In en, this message translates to:
@@ -296,7 +302,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiTabEdit.
   ///
   /// In en, this message translates to:
-  /// **'Edit or Delete POI'**
+  /// **'Edit POI'**
   String get poiTabEdit;
 
   /// No description provided for @poiType.
@@ -328,6 +334,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Body'**
   String get body;
+
+  /// No description provided for @plannedArrival.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned arrival'**
+  String get plannedArrival;
+
+  /// No description provided for @plannedDeparture.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned departure'**
+  String get plannedDeparture;
+
+  /// No description provided for @plannedClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close time'**
+  String get plannedClose;
+
+  /// No description provided for @arrivalShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get arrivalShort;
+
+  /// No description provided for @departureShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Departure'**
+  String get departureShort;
 
   /// No description provided for @distance.
   ///
@@ -1144,6 +1180,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You can adjust the map zoom level using the device\'s volume buttons'**
   String get volumeButtonTutorial;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @saveChangesConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Save changes?'**
+  String get saveChangesConfirm;
+
+  /// No description provided for @setStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Set start date'**
+  String get setStartDate;
+
+  /// No description provided for @changeRideDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Change ride date'**
+  String get changeRideDate;
+
+  /// No description provided for @releaseNotesDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Release notes'**
+  String get releaseNotesDialogTitle;
+
+  /// No description provided for @releaseNotesV11018Message.
+  ///
+  /// In en, this message translates to:
+  /// **'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!'**
+  String get releaseNotesV11018Message;
 }
 
 class _AppLocalizationsDelegate

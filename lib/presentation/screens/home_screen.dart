@@ -18,6 +18,7 @@ import '../../domain/services/share_channel_service.dart';
 import '../../domain/services/volume_zoom_handler.dart';
 import '../../utils/date_formatting_localization.dart';
 import '../../utils/map_utils.dart';
+import '../../utils/release_notes_dialog.dart';
 import '../../l10n/app_localizations.dart';
 import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
@@ -43,7 +44,7 @@ import '../widgets/connectivity_gate.dart'
         OfflinePlaceholderView;
 import '../widgets/map_screen_content.dart';
 import 'map_markers.dart';
-import '../widgets/poi_detail_sheet.dart';
+import '../widgets/poi_map_detail_sheet_controller.dart';
 
 part 'home_screen_share.dart';
 part 'home_screen_poi.dart';

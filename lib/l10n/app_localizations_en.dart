@@ -36,6 +36,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get add => 'Add';
 
   @override
+  String get next => 'Next';
+
+  @override
   String get settings => 'Settings';
 
   @override
@@ -103,7 +106,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiTabAdd => 'Add POI';
 
   @override
-  String get poiTabEdit => 'Edit or Delete POI';
+  String get poiTabEdit => 'Edit POI';
 
   @override
   String get poiType => 'POI type';
@@ -119,6 +122,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get body => 'Body';
+
+  @override
+  String get plannedArrival => 'Planned arrival';
+
+  @override
+  String get plannedDeparture => 'Planned departure';
+
+  @override
+  String get plannedClose => 'Close time';
+
+  @override
+  String get arrivalShort => 'Arrival';
+
+  @override
+  String get departureShort => 'Departure';
 
   @override
   String get distance => 'Distance';
@@ -592,4 +610,23 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'You can adjust the map zoom level using the device\'s volume buttons';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get saveChangesConfirm => 'Save changes?';
+
+  @override
+  String get setStartDate => 'Set start date';
+
+  @override
+  String get changeRideDate => 'Change ride date';
+
+  @override
+  String get releaseNotesDialogTitle => 'Release notes';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!';
 }

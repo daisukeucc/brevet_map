@@ -36,6 +36,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get add => 'เพิ่ม';
 
   @override
+  String get next => 'ถัดไป';
+
+  @override
   String get settings => 'การตั้งค่า';
 
   @override
@@ -104,7 +107,7 @@ class AppLocalizationsTh extends AppLocalizations {
   String get poiTabAdd => 'เพิ่ม POI';
 
   @override
-  String get poiTabEdit => 'แก้ไขหรือลบ POI';
+  String get poiTabEdit => 'แก้ไข POI';
 
   @override
   String get poiType => 'ประเภท POI';
@@ -120,6 +123,21 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get body => 'เนื้อหา';
+
+  @override
+  String get plannedArrival => 'เวลาถึงที่กำหนด';
+
+  @override
+  String get plannedDeparture => 'เวลาออกเดินทาง';
+
+  @override
+  String get plannedClose => 'เวลาปิด';
+
+  @override
+  String get arrivalShort => 'ถึง';
+
+  @override
+  String get departureShort => 'ออก';
 
   @override
   String get distance => 'ระยะทาง';
@@ -592,4 +610,23 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'คุณสามารถปรับระดับซูมของแผนที่โดยใช้ปุ่มปรับเสียงของอุปกรณ์';
+
+  @override
+  String get save => 'บันทึก';
+
+  @override
+  String get saveChangesConfirm => 'บันทึกการเปลี่ยนแปลงหรือไม่?';
+
+  @override
+  String get setStartDate => 'ตั้งวันที่ออกสตาร์ต';
+
+  @override
+  String get changeRideDate => 'เปลี่ยนวันที่ออกสตาร์ต';
+
+  @override
+  String get releaseNotesDialogTitle => 'บันทึกประจำรุ่น';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'ในเวอร์ชัน 1.1 เราได้เพิ่มรายละเอียด POI เพื่อช่วยให้คุณวางแผนการปั่นระยะไกลได้อย่างมีประสิทธิภาพมากขึ้น!\nเวอร์ชันนี้ปลดล็อกทุกฟีเจอร์แล้ว ลองใช้งานดูได้เลย!';
 }

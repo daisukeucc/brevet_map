@@ -1,6 +1,8 @@
 import 'package:latlong2/latlong.dart';
 import 'package:xml/xml.dart';
 
+import '../../domain/models/bm_extension.dart';
+
 /// GPXファイルのウェイポイント（POI）1件
 class GpxPoi {
   const GpxPoi({
@@ -11,6 +13,7 @@ class GpxPoi {
     this.symbol,
     this.cmt,
     this.type,
+    this.bmPoiExt,
   });
 
   final double lat;
@@ -24,6 +27,9 @@ class GpxPoi {
 
   /// GPX の `<type>`（種別）。インポート時はそのまま保持してエクスポートに使う
   final String? type;
+
+  /// `<extensions><bm:poi>` があれば保持する
+  final BmPoiExtension? bmPoiExt;
 
   LatLng get position => LatLng(lat, lng);
 
@@ -48,6 +54,7 @@ class GpxPoi {
         'sym': symbol,
         'cmt': cmt,
         'type': type,
+        if (bmPoiExt != null) 'bmPoiExt': bmPoiExt!.toJson(),
       };
 
   static GpxPoi fromJson(Map<String, dynamic> json) {
@@ -59,6 +66,9 @@ class GpxPoi {
       symbol: json['sym'] as String?,
       cmt: json['cmt'] as String?,
       type: json['type'] as String?,
+      bmPoiExt: json['bmPoiExt'] != null
+          ? BmPoiExtension.fromJson(json['bmPoiExt'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -70,6 +80,7 @@ typedef GpxParseResult = ({
   List<double?> trackElevations,
   List<GpxPoi> waypoints,
   String? metadataName,
+  BmBrevetMeta? brevetMeta,
 });
 
 /// GPX XML文字列をパースしてトラックとウェイポイントを返す。失敗時は null
@@ -80,15 +91,17 @@ GpxParseResult? parseGpx(String xmlContent) {
     final trackElevations = <double?>[];
     final waypoints = <GpxPoi>[];
 
-    // <metadata><name>...</name></metadata>
-    final metadataName = doc
-        .findAllElements('metadata')
-        .firstOrNull
+    // <metadata>
+    final metadataEl = doc.findAllElements('metadata').firstOrNull;
+    final metadataName = metadataEl
         ?.findElements('name')
         .firstOrNull
         ?.innerText
         .trim();
     final name = metadataName?.isEmpty == true ? null : metadataName;
+
+    // <metadata><extensions><bm:brevet>
+    final brevetMeta = _parseBrevetMeta(metadataEl);
 
     // <trk><trkseg><trkpt lat="..." lon="..."> ...
     for (final trk in doc.findAllElements('trk')) {
@@ -108,24 +121,26 @@ GpxParseResult? parseGpx(String xmlContent) {
       }
     }
 
-    // <wpt>…<name/><desc/><sym/><cmt/><type/></wpt>
+    // <wpt>…<name/><desc/><sym/><cmt/><type/><extensions/>
     for (final wpt in doc.findAllElements('wpt')) {
       final lat = double.tryParse(wpt.getAttribute('lat') ?? '');
       final lon = double.tryParse(wpt.getAttribute('lon') ?? '');
       if (lat != null && lon != null) {
-        final name = wpt.findElements('name').firstOrNull?.innerText.trim();
+        final wptName = wpt.findElements('name').firstOrNull?.innerText.trim();
         final desc = wpt.findElements('desc').firstOrNull?.innerText.trim();
         final sym = wpt.findElements('sym').firstOrNull?.innerText.trim();
         final cmt = wpt.findElements('cmt').firstOrNull?.innerText.trim();
         final type = wpt.findElements('type').firstOrNull?.innerText.trim();
+        final bmPoiExt = _parseBmPoiExtension(wpt);
         waypoints.add(GpxPoi(
           lat: lat,
           lng: lon,
-          name: name?.isEmpty == true ? null : name,
+          name: wptName?.isEmpty == true ? null : wptName,
           description: desc?.isEmpty == true ? null : desc,
           symbol: sym?.isEmpty == true ? null : sym,
           cmt: cmt?.isEmpty == true ? null : cmt,
           type: type?.isEmpty == true ? null : type,
+          bmPoiExt: bmPoiExt,
         ));
       }
     }
@@ -135,8 +150,85 @@ GpxParseResult? parseGpx(String xmlContent) {
       trackElevations: trackElevations,
       waypoints: waypoints,
       metadataName: name,
+      brevetMeta: brevetMeta,
     );
   } catch (_) {
     return null;
   }
+}
+
+/// `<metadata><extensions><bm:brevet>` をパースする。なければ null。
+BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
+  if (metadata == null) return null;
+  final extensions = metadata.findElements('extensions').firstOrNull;
+  if (extensions == null) return null;
+  final brevet = extensions.findElements('bm:brevet').firstOrNull;
+  if (brevet == null) return null;
+
+  final distanceKm = double.tryParse(
+        brevet.findElements('bm:distanceKm').firstOrNull?.innerText.trim() ?? '',
+      ) ??
+      0;
+  final startTimeStr =
+      brevet.findElements('bm:startTime').firstOrNull?.innerText.trim() ?? '';
+  final startTime =
+      startTimeStr.isNotEmpty ? DateTime.tryParse(startTimeStr) : null;
+  final timeLimitHours = double.tryParse(
+        brevet.findElements('bm:timeLimitHours').firstOrNull?.innerText.trim() ??
+            '',
+      ) ??
+      0;
+
+  return BmBrevetMeta(
+    distanceKm: distanceKm,
+    startTime: startTime,
+    timeLimitHours: timeLimitHours,
+  );
+}
+
+/// `<wpt><extensions><bm:poi>` をパースする。なければ null。
+BmPoiExtension? _parseBmPoiExtension(XmlElement wpt) {
+  final extensions = wpt.findElements('extensions').firstOrNull;
+  if (extensions == null) return null;
+  final bmPoi = extensions.findElements('bm:poi').firstOrNull;
+  if (bmPoi == null) return null;
+
+  final type =
+      bmPoi.findElements('bm:type').firstOrNull?.innerText.trim() ?? 'generic';
+
+  final schedEl = bmPoi.findElements('bm:schedule').firstOrNull;
+  DateTime? arrival, departure, close, result;
+  if (schedEl != null) {
+    arrival = _parseDateTime(
+        schedEl.findElements('bm:arrival').firstOrNull?.innerText.trim());
+    departure = _parseDateTime(
+        schedEl.findElements('bm:departure').firstOrNull?.innerText.trim());
+    close = _parseDateTime(
+        schedEl.findElements('bm:close').firstOrNull?.innerText.trim());
+    result = _parseDateTime(
+        schedEl.findElements('bm:result').firstOrNull?.innerText.trim());
+  }
+
+  final routeInfoEl = bmPoi.findElements('bm:routeInfo').firstOrNull;
+  final distanceKm = double.tryParse(
+        routeInfoEl
+                ?.findElements('bm:distanceKm')
+                .firstOrNull
+                ?.innerText
+                .trim() ??
+            '',
+      ) ??
+      0;
+
+  return BmPoiExtension(
+    type: type,
+    schedule: BmSchedule(
+        arrival: arrival, departure: departure, close: close, result: result),
+    distanceKm: distanceKm,
+  );
+}
+
+DateTime? _parseDateTime(String? s) {
+  if (s == null || s.isEmpty) return null;
+  return DateTime.tryParse(s);
 }

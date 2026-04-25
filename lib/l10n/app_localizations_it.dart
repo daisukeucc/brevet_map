@@ -27,13 +27,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get delete => 'Elimina';
 
   @override
-  String get edit => 'Modifica';
+  String get edit => 'Edita';
 
   @override
   String get change => 'Modifica';
 
   @override
   String get add => 'Aggiungi';
+
+  @override
+  String get next => 'Avanti';
 
   @override
   String get settings => 'Impostazioni';
@@ -104,7 +107,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get poiTabAdd => 'Aggiungi POI';
 
   @override
-  String get poiTabEdit => 'Modifica o elimina POI';
+  String get poiTabEdit => 'Modifica POI';
 
   @override
   String get poiType => 'Tipo di POI';
@@ -120,6 +123,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get body => 'Testo';
+
+  @override
+  String get plannedArrival => 'Arrivo previsto';
+
+  @override
+  String get plannedDeparture => 'Partenza prevista';
+
+  @override
+  String get plannedClose => 'Chiusura';
+
+  @override
+  String get arrivalShort => 'Arrivo';
+
+  @override
+  String get departureShort => 'Partenza';
 
   @override
   String get distance => 'Distanza';
@@ -594,4 +612,23 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get volumeButtonTutorial =>
       'È possibile regolare il livello di zoom della mappa con i pulsanti del volume del dispositivo';
+
+  @override
+  String get save => 'Salva';
+
+  @override
+  String get saveChangesConfirm => 'Salvare le modifiche?';
+
+  @override
+  String get setStartDate => 'Imposta data di partenza';
+
+  @override
+  String get changeRideDate => 'Cambia data di partenza';
+
+  @override
+  String get releaseNotesDialogTitle => 'Note di rilascio';
+
+  @override
+  String get releaseNotesV11018Message =>
+      'Nella versione 1.1 abbiamo aggiunto più dettagli sui POI per aiutarti a pianificare meglio i tuoi percorsi a lunga distanza.\nTutte le funzionalità sono sbloccate in questa versione, quindi provala!';
 }
