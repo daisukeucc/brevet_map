@@ -213,7 +213,10 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// ユーザー POI を登録して保存し、マーカーを再構築する
   Future<void> addUserPoi(UserPoi poi) async {
-    final updated = [...state.userPois, poi];
+    var updated = <UserPoi>[...state.userPois, poi];
+    if (poi.km != null) {
+      updated = UserPoi.orderedForDetailSheet(updated);
+    }
     await saveUserPois(updated);
     state = state.copyWith(userPois: updated);
     final routePoints = state.savedRoutePoints ?? _emptyRoute;
