@@ -132,9 +132,13 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
   }
 
   void _goNext() {
-    setState(() {
-      _index = (_index + 1) % widget.entries.length;
-    });
+    setState(() => _index = (_index + 1) % widget.entries.length);
+    widget.onCenterOnPoi?.call(widget.entries[_index].position);
+  }
+
+  void _goPrev() {
+    setState(() =>
+        _index = (_index - 1 + widget.entries.length) % widget.entries.length);
     widget.onCenterOnPoi?.call(widget.entries[_index].position);
   }
 
@@ -164,17 +168,48 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                   ),
                 ),
               ),
-              InkWell(
-                onTap: _goNext,
-                splashColor: Colors.grey.withValues(alpha: 0.3),
-                highlightColor: Colors.grey.withValues(alpha: 0.2),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6),
-                  child: Icon(
-                    Icons.chevron_right,
-                    size: 36,
-                    color: Colors.black38,
-                  ),
+              SizedBox(
+                width: 50,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: _goPrev,
+                        splashColor: Colors.grey.withValues(alpha: 0.3),
+                        highlightColor: Colors.grey.withValues(alpha: 0.2),
+                        child: const Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: Icon(
+                              Icons.chevron_left,
+                              size: 36,
+                              color: Colors.black38,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: InkWell(
+                        onTap: _goNext,
+                        splashColor: Colors.grey.withValues(alpha: 0.3),
+                        highlightColor: Colors.grey.withValues(alpha: 0.2),
+                        child: const Padding(
+                          padding: EdgeInsets.only(top: 10),
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Icon(
+                              Icons.chevron_right,
+                              size: 36,
+                              color: Colors.black38,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
