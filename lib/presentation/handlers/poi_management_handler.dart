@@ -6,13 +6,13 @@ import 'dart:async' show unawaited;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/models/bm_extension.dart';
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/effective_premium.dart';
 import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
 import '../theme/app_text_styles.dart';
@@ -729,11 +729,9 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
 
   Future<void> _loadPremiumStatus() async {
     try {
-      final info = await Purchases.getCustomerInfo();
+      final premium = await isEffectivePremium();
       if (!mounted) return;
-      setState(() {
-        _isPremium = info.entitlements.active.containsKey('premium');
-      });
+      setState(() => _isPremium = premium);
     } catch (_) {}
   }
 
