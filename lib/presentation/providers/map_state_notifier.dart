@@ -60,7 +60,7 @@ class MapState {
   /// ユーザーが手動で登録した POI
   final List<UserPoi> userPois;
 
-  /// orderedForDetailSheet 順の獲得標高キャッシュ（メートル値）。インポート・起動・POI変更後に更新
+  /// [userPois] リスト順の獲得標高キャッシュ（メートル値）。インポート・起動・POI変更後に更新
   final List<double?>? cachedPoiElevationGains;
 
   /// アニメーション用フルルート（animateToRouteBounds にも使う）
@@ -479,7 +479,7 @@ class MapStateNotifier extends Notifier<MapState> {
 
   // --- 内部メソッド ---
 
-  /// orderedForDetailSheet 順で全 POI の獲得標高を isolate で計算してキャッシュする。
+  /// [state.userPois] の順で全 POI の獲得標高を isolate で計算してキャッシュする。
   /// トラックまたは標高データがない場合はキャッシュをクリアする。
   Future<void> _cachePoiElevationGains() async {
     final trackPoints = state.savedRoutePoints ?? const [];
@@ -488,8 +488,8 @@ class MapStateNotifier extends Notifier<MapState> {
       state = state.copyWith(clearPoiElevationGains: true);
       return;
     }
-    final ordered = UserPoi.orderedForDetailSheet(state.userPois);
-    if (ordered.isEmpty) {
+    final pois = state.userPois;
+    if (pois.isEmpty) {
       state = state.copyWith(clearPoiElevationGains: true);
       return;
     }
@@ -498,7 +498,7 @@ class MapStateNotifier extends Notifier<MapState> {
       (
         trackPoints: trackPoints,
         elevations: elevations,
-        poiPositions: ordered.map((p) => p.position).toList(),
+        poiPositions: pois.map((p) => p.position).toList(),
       ),
     );
     state = state.copyWith(cachedPoiElevationGains: gains);

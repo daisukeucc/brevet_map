@@ -1,6 +1,8 @@
 // TODO: Radio を RadioGroup ベースに移行後に削除（Flutter 3.32+）
 // ignore_for_file: deprecated_member_use
 
+import 'dart:async' show unawaited;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
@@ -273,8 +275,9 @@ Future<void> handleEditPoiText(
       ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
       : null;
 
-  List<UserPoi> orderedPois() =>
-      UserPoi.orderedForDetailSheet(ref.read(mapStateProvider).userPois);
+  List<UserPoi> orderedPois() => List<UserPoi>.from(
+        ref.read(mapStateProvider).userPois,
+      );
 
   int findIndex(List<UserPoi> list, UserPoi current) => list.indexWhere(
         (p) =>
@@ -930,45 +933,63 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
         ),
       );
     }
-    final sorted = [...userPois]..sort(
-        (a, b) => (a.km ?? double.infinity).compareTo(b.km ?? double.infinity));
-    return ListView.builder(
-      itemCount: sorted.length,
+    return ReorderableListView.builder(
+      padding: EdgeInsets.zero,
+      buildDefaultDragHandles: true,
+      itemCount: userPois.length,
+      onReorder: (oldIndex, newIndex) {
+        if (oldIndex < newIndex) {
+          newIndex -= 1;
+        }
+        final reordered =
+            List<UserPoi>.from(ref.read(mapStateProvider).userPois);
+        final item = reordered.removeAt(oldIndex);
+        reordered.insert(newIndex, item);
+        unawaited(
+          ref.read(mapStateProvider.notifier).replaceAllUserPois(reordered),
+        );
+      },
       itemBuilder: (context, i) {
-        final poi = sorted[i];
+        final poi = userPois[i];
         final distStr =
             poi.km != null ? formatDistance(poi.km!, distanceUnit) : null;
-        return DecoratedBox(
-          decoration: const BoxDecoration(
-            border: Border(
-              bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
-            ),
+        return Material(
+          key: ValueKey(
+            '${poi.lat}_${poi.lng}_${poi.km ?? 'n'}_${poi.title}',
           ),
-          child: InkWell(
-            onTap: () => _onEditTap(poi),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      distStr != null
-                          ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
-                          : (poi.title.isEmpty
-                              ? AppLocalizations.of(context)!.titleNone
-                              : poi.title),
-                      style: AppTextStyles.bodySmall,
+          color: Colors.transparent,
+          child: DecoratedBox(
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+              ),
+            ),
+            child: InkWell(
+              onTap: () => _onEditTap(poi),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        distStr != null
+                            ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
+                            : (poi.title.isEmpty
+                                ? AppLocalizations.of(context)!.titleNone
+                                : poi.title),
+                        style: AppTextStyles.bodySmall,
+                      ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => _onDeleteTap(poi),
-                    icon: const Icon(Icons.cancel,
-                        size: 20, color: Colors.black45),
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                  ),
-                ],
+                    IconButton(
+                      onPressed: () => _onDeleteTap(poi),
+                      icon: const Icon(Icons.cancel,
+                          size: 20, color: Colors.black45),
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

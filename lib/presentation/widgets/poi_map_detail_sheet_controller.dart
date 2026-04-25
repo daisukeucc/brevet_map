@@ -21,9 +21,8 @@ abstract final class PoiMapMarkerOrder {
           if (!p.isGpxDotType && !p.isCheckpoint) p,
       ];
 
-  /// [UserPoi.orderedForDetailSheet] を参照。
-  static List<UserPoi> userPois(List<UserPoi> pois) =>
-      UserPoi.orderedForDetailSheet(pois);
+  /// 呼び出し元の [List] 順（[mapStateProvider.userPois] の永続化順。編集画面のドラッグで変更可）を使う。
+  static List<UserPoi> userPois(List<UserPoi> pois) => List<UserPoi>.from(pois);
 }
 
 bool _sameGpxPoi(GpxPoi a, GpxPoi b) =>

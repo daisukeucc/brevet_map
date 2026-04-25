@@ -309,11 +309,11 @@ Future<GpxImportResult?> parseAndSaveGpx(
           ? _createFinishPoi(trackPoints.last, totalDistanceKm, brevetMeta)
           : null);
 
-  final userPois = [
+  final userPois = UserPoi.orderedForDetailSheet([
     if (startPoi != null) startPoi,
     ...otherPois,
     if (finishPoi != null) finishPoi,
-  ];
+  ]);
 
   await saveUserPois(userPois);
 
