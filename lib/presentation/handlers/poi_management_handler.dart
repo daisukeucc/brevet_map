@@ -363,6 +363,21 @@ Future<void> handleEditPoiText(
     final isStartPoi = currentPoi.bmExt?.type == 'start';
     final newStartDep = updatedPoi.bmExt?.schedule.departure;
     final oldStartDep = currentPoi.bmExt?.schedule.departure;
+    final newArrival = updatedPoi.bmExt?.schedule.arrival;
+    final oldArrival = currentPoi.bmExt?.schedule.arrival;
+    final newDeparture = updatedPoi.bmExt?.schedule.departure;
+    final oldDeparture = currentPoi.bmExt?.schedule.departure;
+    // arrival 変化を優先し、arrival が変わらず departure だけ変わった場合は departure 差分を使う
+    final scheduleDelta = !isStartPoi
+        ? (newArrival != null && oldArrival != null && newArrival != oldArrival)
+            ? newArrival.difference(oldArrival)
+            : (newDeparture != null &&
+                    oldDeparture != null &&
+                    newDeparture != oldDeparture)
+                ? newDeparture.difference(oldDeparture)
+                : null
+        : null;
+
     if (isStartPoi && newStartDep != oldStartDep) {
       final tr = totalRouteKm ?? 0.0;
       final meta = await loadBrevetMeta();
@@ -388,6 +403,49 @@ Future<void> handleEditPoiText(
           if (list[i].bmExt?.type == 'finish') {
             list[i] = _userPoiWithFinishClose(list[i], newClose);
           }
+        }
+        await ref.read(mapStateProvider.notifier).replaceAllUserPois(list);
+      }
+    } else if (scheduleDelta != null) {
+      final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
+      final editIdx = list.indexWhere(
+        (p) =>
+            p.lat == currentPoi.lat &&
+            p.lng == currentPoi.lng &&
+            p.km == currentPoi.km,
+      );
+      if (editIdx < 0) {
+        await ref
+            .read(mapStateProvider.notifier)
+            .updateUserPoi(currentPoi, updatedPoi);
+      } else {
+        list[editIdx] = updatedPoi;
+        for (var i = editIdx + 1; i < list.length; i++) {
+          final p = list[i];
+          final e = p.bmExt;
+          if (e == null) continue;
+          final s = e.schedule;
+          if (s.arrival == null && s.departure == null) continue;
+          list[i] = UserPoi(
+            type: p.type,
+            km: p.km,
+            title: p.title,
+            body: p.body,
+            lat: p.lat,
+            lng: p.lng,
+            gpxCmt: p.gpxCmt,
+            gpxType: p.gpxType,
+            bmExt: BmPoiExtension(
+              type: e.type,
+              distanceKm: e.distanceKm,
+              schedule: BmSchedule(
+                arrival: s.arrival?.add(scheduleDelta),
+                departure: s.departure?.add(scheduleDelta),
+                close: s.close,
+                result: s.result,
+              ),
+            ),
+          );
         }
         await ref.read(mapStateProvider.notifier).replaceAllUserPois(list);
       }
