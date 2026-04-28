@@ -55,17 +55,27 @@ class GpxImportResult {
 UserPoi _gpxPoiToUserPoi(
   GpxPoi poi, {
   List<LatLng> trackPoints = const [],
+  List<double?>? trackElevations,
   required BmBrevetMeta brevetMeta,
   required double totalRouteKm,
 }) {
   final rawName = poi.name ?? '';
   final parsed = _parseNameAndKm(rawName);
   double? km = parsed.km;
-  if (km == null && trackPoints.isNotEmpty) {
-    final meters =
-        distanceFromStartToPointAlongTrack(trackPoints, poi.position);
-    km = meters / 1000;
+
+  // 最近傍インデックスを一度求めて km 計算と獲得標高計算の両方に使う
+  int? nearestIdx;
+  if (trackPoints.isNotEmpty) {
+    nearestIdx = nearestTrackIndex(trackPoints, poi.position);
+    km ??= distanceAlongTrackFromStart(trackPoints, nearestIdx) / 1000;
   }
+
+  // 獲得標高は bmPoiExt の有無にかかわらず計算（到着時刻推定で使う）
+  final elevGain = (trackElevations != null &&
+          trackElevations.isNotEmpty &&
+          nearestIdx != null)
+      ? elevationGainBetweenIndices(trackElevations, 0, nearestIdx)
+      : 0.0;
 
   final gpxTypeLower = poi.type?.trim().toLowerCase() ?? '';
   final BmPoiExtension bmExt;
@@ -82,22 +92,48 @@ UserPoi _gpxPoiToUserPoi(
           result: ext.schedule.result,
         ),
       );
-    } else if (gpxTypeLower == 'finish' && ext.schedule.close == null) {
-      final computed = _finishCloseFromBrevetMeta(
+    } else if (gpxTypeLower == 'finish') {
+      final computedClose = _finishCloseFromBrevetMeta(
         brevetMeta,
         totalRouteKm: totalRouteKm,
       );
-      final close = computed ??
+      final close = ext.schedule.close ??
+          computedClose ??
           (totalRouteKm >= kMinRouteKmForFinishClose
               ? ext.schedule.arrival
               : null);
+      final arrival = ext.schedule.arrival ??
+          _estimateArrival(
+            startTime: brevetMeta.startTime,
+            distanceKm: km ?? ext.distanceKm,
+            elevationGainM: elevGain,
+          );
       bmExt = BmPoiExtension(
         type: ext.type,
         distanceKm: ext.distanceKm,
         schedule: BmSchedule(
-          arrival: ext.schedule.arrival,
+          arrival: arrival,
           departure: ext.schedule.departure,
           close: close,
+          result: ext.schedule.result,
+        ),
+      );
+    } else if (gpxTypeLower != 'finish' &&
+        ext.schedule.arrival == null &&
+        ext.schedule.departure == null) {
+      // arrival/departure が未設定：到着時刻を推定して設定する
+      final arrival = _estimateArrival(
+        startTime: brevetMeta.startTime,
+        distanceKm: km ?? ext.distanceKm,
+        elevationGainM: elevGain,
+      );
+      bmExt = BmPoiExtension(
+        type: ext.type,
+        distanceKm: ext.distanceKm,
+        schedule: BmSchedule(
+          arrival: arrival,
+          departure: arrival?.add(const Duration(minutes: 15)),
+          close: ext.schedule.close,
           result: ext.schedule.result,
         ),
       );
@@ -112,6 +148,7 @@ UserPoi _gpxPoiToUserPoi(
       distanceKm: km ?? 0,
       brevetMeta: brevetMeta,
       totalRouteKm: totalRouteKm,
+      elevationGainM: elevGain,
     );
   }
 
@@ -150,12 +187,31 @@ DateTime _defaultImportStartTime() {
   return DateTime(n.year, n.month, n.day, 6).toUtc();
 }
 
+
+/// スタートから [distanceKm] km・[elevationGainM] m 登りの地点への到着予定時刻を返す。
+/// 速度モデル: 基本 20 km/h + 登り 800 m/h（13.3 m/分）。
+DateTime? _estimateArrival({
+  required DateTime? startTime,
+  required double distanceKm,
+  required double elevationGainM,
+}) {
+  if (startTime == null) return null;
+  const baseSpeedKmh = 20.0;
+  const climbRateMph = 800.0;
+  final raw =
+      distanceKm / baseSpeedKmh * 60 + elevationGainM / climbRateMph * 60;
+  // 15分単位に丸める
+  final minutes = (raw / 15).floor() * 15;
+  return startTime.add(Duration(minutes: minutes));
+}
+
 /// POI 種別に応じた既定の [BmPoiExtension] を生成する。
 BmPoiExtension _defaultBmPoiExtension({
   required String poiType,
   required double distanceKm,
   required BmBrevetMeta brevetMeta,
   required double totalRouteKm,
+  double elevationGainM = 0,
 }) {
   final BmSchedule schedule;
   switch (poiType) {
@@ -165,7 +221,13 @@ BmPoiExtension _defaultBmPoiExtension({
       );
       break;
     case 'finish':
+      final finishArrival = _estimateArrival(
+        startTime: brevetMeta.startTime,
+        distanceKm: distanceKm,
+        elevationGainM: elevationGainM,
+      );
       schedule = BmSchedule(
+        arrival: finishArrival,
         close: _finishCloseFromBrevetMeta(
           brevetMeta,
           totalRouteKm: totalRouteKm,
@@ -173,7 +235,15 @@ BmPoiExtension _defaultBmPoiExtension({
       );
       break;
     default:
-      schedule = const BmSchedule();
+      final arrival = _estimateArrival(
+        startTime: brevetMeta.startTime,
+        distanceKm: distanceKm,
+        elevationGainM: elevationGainM,
+      );
+      schedule = BmSchedule(
+        arrival: arrival,
+        departure: arrival?.add(const Duration(minutes: 15)),
+      );
   }
 
   return BmPoiExtension(
@@ -209,8 +279,9 @@ UserPoi _createStartPoi(
 UserPoi _createFinishPoi(
   LatLng position,
   double totalDistanceKm,
-  BmBrevetMeta brevetMeta,
-) {
+  BmBrevetMeta brevetMeta, {
+  double elevationGainM = 0,
+}) {
   return UserPoi(
     type: 1,
     km: totalDistanceKm,
@@ -223,6 +294,7 @@ UserPoi _createFinishPoi(
       distanceKm: totalDistanceKm,
       brevetMeta: brevetMeta,
       totalRouteKm: totalDistanceKm,
+      elevationGainM: elevationGainM,
     ),
   );
 }
@@ -312,12 +384,15 @@ Future<GpxImportResult?> parseAndSaveGpx(
           w.type?.trim().toLowerCase() != 'finish')
       .toList();
 
+  final trackElevations = result.trackElevations;
+
   // UserPoi に変換
   final otherPois = otherWpts
       .map(
         (w) => _gpxPoiToUserPoi(
           w,
           trackPoints: trackPoints,
+          trackElevations: trackElevations,
           brevetMeta: brevetMeta,
           totalRouteKm: totalDistanceKm,
         ),
@@ -329,6 +404,7 @@ Future<GpxImportResult?> parseAndSaveGpx(
       ? _gpxPoiToUserPoi(
           startWpt,
           trackPoints: trackPoints,
+          trackElevations: trackElevations,
           brevetMeta: brevetMeta,
           totalRouteKm: totalDistanceKm,
         )
@@ -340,15 +416,25 @@ Future<GpxImportResult?> parseAndSaveGpx(
             )
           : null);
 
+  final totalElevGain = trackElevations.isNotEmpty
+      ? elevationGainBetweenIndices(trackElevations, 0, trackPoints.length - 1)
+      : 0.0;
+
   final finishPoi = finishWpt != null
       ? _gpxPoiToUserPoi(
           finishWpt,
           trackPoints: trackPoints,
+          trackElevations: trackElevations,
           brevetMeta: brevetMeta,
           totalRouteKm: totalDistanceKm,
         )
       : (trackPoints.isNotEmpty
-          ? _createFinishPoi(trackPoints.last, totalDistanceKm, brevetMeta)
+          ? _createFinishPoi(
+              trackPoints.last,
+              totalDistanceKm,
+              brevetMeta,
+              elevationGainM: totalElevGain,
+            )
           : null);
 
   final userPois = UserPoi.orderedForDetailSheet([
