@@ -386,6 +386,10 @@ Future<void> handleEditPoiText(
         meta: meta,
         totalRouteKm: tr,
       );
+      final Duration? startCascadeDelta =
+          newStartDep != null && oldStartDep != null
+              ? newStartDep.difference(oldStartDep)
+              : null;
       final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
       final startIdx = list.indexWhere(
         (p) =>
@@ -400,8 +404,50 @@ Future<void> handleEditPoiText(
       } else {
         list[startIdx] = updatedPoi;
         for (var i = 0; i < list.length; i++) {
-          if (list[i].bmExt?.type == 'finish') {
-            list[i] = _userPoiWithFinishClose(list[i], newClose);
+          if (i == startIdx) continue;
+          final p = list[i];
+          final e = p.bmExt;
+          if (e == null) continue;
+          final s = e.schedule;
+          final afterStart = i > startIdx;
+
+          DateTime? arr = s.arrival;
+          DateTime? dep = s.departure;
+
+          if (afterStart &&
+              startCascadeDelta != null &&
+              (arr != null || dep != null)) {
+            arr = arr?.add(startCascadeDelta);
+            dep = dep?.add(startCascadeDelta);
+          }
+
+          final shifted = UserPoi(
+            type: p.type,
+            km: p.km,
+            title: p.title,
+            body: p.body,
+            lat: p.lat,
+            lng: p.lng,
+            gpxCmt: p.gpxCmt,
+            gpxType: p.gpxType,
+            bmExt: BmPoiExtension(
+              type: e.type,
+              distanceKm: e.distanceKm,
+              schedule: BmSchedule(
+                arrival: arr,
+                departure: dep,
+                close: s.close,
+                result: s.result,
+              ),
+            ),
+          );
+
+          if (e.type == 'finish') {
+            list[i] = _userPoiWithFinishClose(shifted, newClose);
+          } else if (afterStart &&
+              startCascadeDelta != null &&
+              (s.arrival != null || s.departure != null)) {
+            list[i] = shifted;
           }
         }
         await ref.read(mapStateProvider.notifier).replaceAllUserPois(list);
