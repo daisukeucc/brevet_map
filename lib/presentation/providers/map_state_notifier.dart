@@ -320,11 +320,19 @@ class MapStateNotifier extends Notifier<MapState> {
         result.userPois.map((p) => p.position).toList(),
       );
       if (bounds != null) await animateCamera(bounds);
-    } else if (result.userPois.isNotEmpty) {
-      await _refreshRouteMarkers(_emptyRoute);
-      final bounds =
-          boundsFromPoints(result.userPois.map((p) => p.position).toList());
-      if (bounds != null) await animateCamera(bounds);
+    } else {
+      // トラックなし: 古いポリラインとフルルートを消去してからマーカーを再構築する
+      _routeAnimationRunner.cancel();
+      state = state.copyWith(
+        routePolylines: const [],
+        clearFullRoutePoints: true,
+      );
+      if (result.userPois.isNotEmpty) {
+        await _refreshRouteMarkers(_emptyRoute);
+        final bounds =
+            boundsFromPoints(result.userPois.map((p) => p.position).toList());
+        if (bounds != null) await animateCamera(bounds);
+      }
     }
 
     await _cachePoiElevationGains();
