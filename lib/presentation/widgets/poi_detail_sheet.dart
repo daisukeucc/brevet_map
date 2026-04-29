@@ -114,41 +114,178 @@ bool _shouldShowElevationGainIcon({
   return m > 0.5;
 }
 
-Future<void> _openElevationFromOnDemand(
+void _openElevationFromOnDemand(
   BuildContext context,
   PoiElevationOnDemand req,
-) async {
+) {
   showDialog<void>(
     context: context,
-    barrierDismissible: false,
-    barrierColor: Colors.black26,
-    builder: (_) => const Center(child: CircularProgressIndicator()),
+    barrierColor: Colors.black54,
+    builder: (_) => _ElevationOnDemandDialog(req: req),
   );
+}
 
-  final chart = await compute(
-    computeElevationSegmentChartData,
-    (
-      trackPoints: req.trackPoints,
-      elevations: req.elevations.length == req.trackPoints.length
-          ? req.elevations
-          : List<double?>.filled(req.trackPoints.length, null),
-      poiPositions: req.poiPositions,
-      poiIndex: req.poiIndex,
-      maxSamples: 450,
-    ),
-  );
+/// グラフアイコンタップ時に表示するダイアログ。
+/// ダイアログ表示後 isolate でデータを構築し、ローディング → グラフへ切り替える。
+class _ElevationOnDemandDialog extends StatefulWidget {
+  const _ElevationOnDemandDialog({required this.req});
+  final PoiElevationOnDemand req;
 
-  if (!context.mounted) return;
-  Navigator.of(context, rootNavigator: true).pop();
+  @override
+  State<_ElevationOnDemandDialog> createState() =>
+      _ElevationOnDemandDialogState();
+}
 
-  if (chart == null || !chart.hasElevation) return;
-  if (!context.mounted) return;
-  _showPoiElevationSegmentDialog(
-    context,
-    elevationSegment: chart,
-    distanceLabel: formatDistance(chart.segmentKm, req.distanceUnit),
-    distanceUnit: req.distanceUnit,
-  );
+class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
+  ElevationSegmentChartData? _chart;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _buildChart();
+  }
+
+  Future<void> _buildChart() async {
+    final req = widget.req;
+    final chart = await compute(
+      computeElevationSegmentChartData,
+      (
+        trackPoints: req.trackPoints,
+        elevations: req.elevations.length == req.trackPoints.length
+            ? req.elevations
+            : List<double?>.filled(req.trackPoints.length, null),
+        poiPositions: req.poiPositions,
+        poiIndex: req.poiIndex,
+        maxSamples: 450,
+      ),
+    );
+    if (!mounted) return;
+    if (chart == null || !chart.hasElevation) {
+      Navigator.of(context).pop();
+      return;
+    }
+    setState(() {
+      _chart = chart;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final chart = _chart;
+    final compactButtonStyle = ButtonStyle(
+      minimumSize: WidgetStateProperty.all(Size.zero),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      titlePadding: EdgeInsets.zero,
+      contentPadding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+      content: SizedBox(
+        width: double.maxFinite,
+        height: 210,
+        child: _loading || chart == null
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      height: 180,
+                      width: double.maxFinite,
+                      child: CustomPaint(
+                        painter: _SegmentElevationAreaPainter(
+                          km: chart.kmFromSegmentStart,
+                          elevationM: chart.elevationMeters,
+                          segmentKm: chart.segmentKm,
+                          kmAlongRouteStart: chart.kmAlongRouteStart,
+                          kmAlongRouteEnd: chart.kmAlongRouteEnd,
+                          distanceUnit: widget.req.distanceUnit,
+                          textScaler: MediaQuery.textScalerOf(context),
+                          textDirection: Directionality.of(context),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.center,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                const Icon(Icons.location_on,
+                                    size: 19, color: AppColors.muted),
+                                Transform.translate(
+                                  offset: const Offset(-5, 0),
+                                  child: Text(
+                                    '...',
+                                    style: AppTextStyles.body.copyWith(
+                                      fontSize: 15,
+                                      height: 1,
+                                    ),
+                                  ),
+                                ),
+                                Transform.translate(
+                                  offset: const Offset(-10, 0),
+                                  child: const Icon(Icons.location_on,
+                                      size: 19, color: AppColors.muted),
+                                ),
+                              ],
+                            ),
+                            Transform.translate(
+                              offset: const Offset(-9, 0),
+                              child: Text(
+                                formatDistance(
+                                    chart.segmentKm, widget.req.distanceUnit),
+                                style: AppTextStyles.poiMedium,
+                                maxLines: 1,
+                                softWrap: false,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            const Icon(Icons.trending_up,
+                                size: 22, color: AppColors.muted),
+                            const SizedBox(width: 3),
+                            Text(
+                              _formatElevationGainForSheet(
+                                chart.segmentElevationGainM,
+                                widget.req.distanceUnit,
+                              ),
+                              style: AppTextStyles.poiMedium,
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+      actions: [
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+      ],
+    );
+  }
 }
 
 /// POI タップ時に表示するボトムシート。名前と説明を表示。
@@ -473,7 +610,7 @@ class _PoiContentBlock extends StatelessWidget {
                   if (hasDistance || showElevationGainIcon)
                     const SizedBox(width: 14),
                   InkWell(
-                    onTap: () async {
+                    onTap: () {
                       if (showSegmentChartPrecomputed) {
                         _showPoiElevationSegmentDialog(
                           context,
@@ -482,7 +619,7 @@ class _PoiContentBlock extends StatelessWidget {
                           distanceUnit: distanceUnit,
                         );
                       } else if (showElevationChartOnDemand) {
-                        await _openElevationFromOnDemand(
+                        _openElevationFromOnDemand(
                           context,
                           elevationOnDemand!,
                         );
