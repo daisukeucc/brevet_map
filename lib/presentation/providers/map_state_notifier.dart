@@ -139,6 +139,10 @@ class MapStateNotifier extends Notifier<MapState> {
   final RouteAnimationRunner _routeAnimationRunner = RouteAnimationRunner();
   static final List<LatLng> _emptyRoute = [];
 
+  /// [_refreshRouteMarkers] と [_cachePoiElevationGains] を直列で非同期キュー処理する。
+  /// POI 保存処理がこれらの完了を await しないようにし（ダイアログ応答など）、体感フリーズを防ぐ。
+  Future<void> _markerRebuildChain = Future<void>.value();
+
   // POIタップ時のコールバック。onMapCreated 後に Widget から設定される
   void Function(GpxPoi)? _onPoiTap;
   void Function(UserPoi)? _onUserPoiTap;
@@ -219,9 +223,7 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     await saveUserPois(updated);
     state = state.copyWith(userPois: updated);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   /// SharedPreferences から保存済みマップスタイルを読み込み、state に反映する
@@ -461,9 +463,7 @@ class MapStateNotifier extends Notifier<MapState> {
     final updated = List<UserPoi>.from(state.userPois)..removeAt(index);
     await saveUserPois(updated);
     state = state.copyWith(userPois: updated);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   /// 距離単位変更時にマーカーを再構築する
@@ -481,21 +481,28 @@ class MapStateNotifier extends Notifier<MapState> {
     final updated = List<UserPoi>.from(state.userPois)..[index] = newPoi;
     await saveUserPois(updated);
     state = state.copyWith(userPois: updated);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   /// 全ユーザー POI をまとめて置き換えて保存する（出走日変更などの一括更新用）
   Future<void> replaceAllUserPois(List<UserPoi> pois) async {
     await saveUserPois(pois);
     state = state.copyWith(userPois: pois);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   // --- 内部メソッド ---
+
+  /// マーカーを再構築し獲得標高キャッシュを更新する処理をキューへ積む（完了を POI API の await に含めない）。
+  void _enqueueMarkerRebuildAndElevationCache() {
+    _markerRebuildChain = _markerRebuildChain
+        .then((_) async {
+          final routePoints = state.savedRoutePoints ?? _emptyRoute;
+          await _refreshRouteMarkers(routePoints);
+          await _cachePoiElevationGains();
+        })
+        .catchError((_) {});
+  }
 
   /// [state.userPois] の順で全 POI の獲得標高を isolate で計算してキャッシュする。
   /// トラックまたは標高データがない場合はキャッシュをクリアする。

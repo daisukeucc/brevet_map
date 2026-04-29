@@ -321,9 +321,10 @@ Future<void> handleEditPoiText(
       ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
       : null;
 
-  final gains = mapState.cachedPoiElevationGains;
-  final orderedForGain = mapState.userPois;
   double? elevationGainFor(UserPoi p) {
+    final ms = ref.read(mapStateProvider);
+    final gains = ms.cachedPoiElevationGains;
+    final orderedForGain = ms.userPois;
     if (gains == null) return null;
     final idx = orderedForGain.indexWhere(
       (q) => q.lat == p.lat && q.lng == p.lng && q.km == p.km,
@@ -1812,8 +1813,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                                     widget.elevationGainFor?.call(_currentPoi),
                                     widget.distanceUnit,
                                   );
-                                  if (gain == null)
+                                  if (gain == null) {
                                     return const SizedBox.shrink();
+                                  }
                                   return Row(
                                     mainAxisSize: MainAxisSize.min,
                                     crossAxisAlignment:
