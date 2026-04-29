@@ -104,7 +104,7 @@ bool _shouldShowElevationGainIcon({
   required String elevationGainDisplay,
   required ElevationSegmentChartData? elevationSegment,
 }) {
-  if (isRouteStartPoi) return true;
+  if (isRouteStartPoi) return false;
   final m = _effectiveElevationGainMeters(
     elevationGainDisplay: elevationGainDisplay,
     elevationSegment: elevationSegment,
@@ -405,8 +405,13 @@ class _PoiContentBlock extends StatelessWidget {
         od.poiPositions.isNotEmpty &&
         od.poiIndex >= 0 &&
         od.poiIndex < od.poiPositions.length;
+    final effectiveGainM = _effectiveElevationGainMeters(
+      elevationGainDisplay: elevationGain,
+      elevationSegment: elevationSegment,
+    );
     final showElevationChartIcon =
-        showSegmentChartPrecomputed || showElevationChartOnDemand;
+        (showSegmentChartPrecomputed || showElevationChartOnDemand) &&
+        (isRouteStartPoi || effectiveGainM == null || effectiveGainM > 0.5);
     final showElevationGainIcon = hasElevationGainText &&
         _shouldShowElevationGainIcon(
           isRouteStartPoi: isRouteStartPoi,
@@ -749,14 +754,10 @@ class _SegmentElevationAreaPainter extends CustomPainter {
   /// [spanSegmentK] は軸に見える区間長（セグメント相対 km）。
   String _formatHorizTickKmNonTerminal(
       double cumulativeKm, double spanSegmentK) {
-    if (spanSegmentK >= 10) {
-      if (distanceUnit == 1) {
-        final mi = cumulativeKm / kmPerMile;
-        return mi.floor().toString();
-      }
-      return cumulativeKm.floor().toString();
+    if (distanceUnit == 1) {
+      return (cumulativeKm / kmPerMile).round().toString();
     }
-    return formatDistanceNumeric(cumulativeKm, distanceUnit);
+    return cumulativeKm.round().toString();
   }
 
   String _formatVertTickM(double mVal) {

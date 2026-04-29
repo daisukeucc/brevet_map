@@ -145,7 +145,10 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
       ? elevations
       : List<double?>.filled(trackPoints.length, null);
 
-  final toIdx = nearestTrackIndex(trackPoints, poiPositions[poiIndex]);
+  // 最終 POI（ゴール）は地理的近傍でなくトラック末尾を使う（折り返しルートで近傍が先頭付近になる誤りを防ぐ）
+  final toIdx = poiIndex == poiPositions.length - 1
+      ? trackPoints.length - 1
+      : nearestTrackIndex(trackPoints, poiPositions[poiIndex]);
   final fromIdx = poiIndex == 0
       ? 0
       : nearestTrackIndex(trackPoints, poiPositions[poiIndex - 1]);
@@ -325,9 +328,13 @@ List<double?> computePoiElevationGains(PoiElevationGainInput input) {
   if (trackPoints.isEmpty || elevations.isEmpty) {
     return List.filled(poiPositions.length, null);
   }
-  final indices = poiPositions
-      .map((p) => _nearestTrackIndexIsolate(trackPoints, p))
-      .toList();
+  final indices = [
+    for (var i = 0; i < poiPositions.length; i++)
+      // 最終 POI（ゴール）は地理的近傍でなくトラック末尾を使う（折り返しルートで近傍が先頭付近になる誤りを防ぐ）
+      i == poiPositions.length - 1
+          ? trackPoints.length - 1
+          : _nearestTrackIndexIsolate(trackPoints, poiPositions[i]),
+  ];
   return [
     for (var i = 0; i < poiPositions.length; i++)
       elevationGainBetweenIndices(
