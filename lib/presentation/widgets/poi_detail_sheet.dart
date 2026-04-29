@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:latlong2/latlong.dart' show LatLng;
@@ -113,19 +114,35 @@ bool _shouldShowElevationGainIcon({
   return m > 0.5;
 }
 
-void _openElevationFromOnDemand(
+Future<void> _openElevationFromOnDemand(
   BuildContext context,
   PoiElevationOnDemand req,
-) {
-  final chart = buildElevationSegmentChartData(
-    trackPoints: req.trackPoints,
-    elevations: req.elevations.length == req.trackPoints.length
-        ? req.elevations
-        : List<double?>.filled(req.trackPoints.length, null),
-    poiPositions: req.poiPositions,
-    poiIndex: req.poiIndex,
+) async {
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: Colors.black26,
+    builder: (_) => const Center(child: CircularProgressIndicator()),
   );
+
+  final chart = await compute(
+    computeElevationSegmentChartData,
+    (
+      trackPoints: req.trackPoints,
+      elevations: req.elevations.length == req.trackPoints.length
+          ? req.elevations
+          : List<double?>.filled(req.trackPoints.length, null),
+      poiPositions: req.poiPositions,
+      poiIndex: req.poiIndex,
+      maxSamples: 450,
+    ),
+  );
+
+  if (!context.mounted) return;
+  Navigator.of(context, rootNavigator: true).pop();
+
   if (chart == null || !chart.hasElevation) return;
+  if (!context.mounted) return;
   _showPoiElevationSegmentDialog(
     context,
     elevationSegment: chart,
@@ -456,7 +473,7 @@ class _PoiContentBlock extends StatelessWidget {
                   if (hasDistance || showElevationGainIcon)
                     const SizedBox(width: 14),
                   InkWell(
-                    onTap: () {
+                    onTap: () async {
                       if (showSegmentChartPrecomputed) {
                         _showPoiElevationSegmentDialog(
                           context,
@@ -465,7 +482,7 @@ class _PoiContentBlock extends StatelessWidget {
                           distanceUnit: distanceUnit,
                         );
                       } else if (showElevationChartOnDemand) {
-                        _openElevationFromOnDemand(
+                        await _openElevationFromOnDemand(
                           context,
                           elevationOnDemand!,
                         );

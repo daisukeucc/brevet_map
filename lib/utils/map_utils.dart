@@ -284,6 +284,27 @@ double elevationGainBetweenIndices(
 
 // ── isolate 用（compute()）──────────────────────────────────────────────────
 
+/// [buildElevationSegmentChartData] を compute() で実行するための入力型。
+typedef ElevationSegmentChartInput = ({
+  List<LatLng> trackPoints,
+  List<double?> elevations,
+  List<LatLng> poiPositions,
+  int poiIndex,
+  int maxSamples,
+});
+
+/// compute() で実行するグラフデータ構築。[buildElevationSegmentChartData] の薄いラッパー。
+ElevationSegmentChartData? computeElevationSegmentChartData(
+    ElevationSegmentChartInput input) {
+  return buildElevationSegmentChartData(
+    trackPoints: input.trackPoints,
+    elevations: input.elevations,
+    poiPositions: input.poiPositions,
+    poiIndex: input.poiIndex,
+    maxSamples: input.maxSamples,
+  );
+}
+
 /// compute() に渡す入力型。
 typedef PoiElevationGainInput = ({
   List<LatLng> trackPoints,
