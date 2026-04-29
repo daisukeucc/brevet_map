@@ -21,6 +21,14 @@ String formatDistance(double km, int unit) {
   return '${_formatDistanceDisplayValue(km)}km';
 }
 
+/// [formatDistance] の数値部分のみ（単位なし）。ルート表示と同じ丸め規則。
+String formatDistanceNumeric(double km, int unit) {
+  if (unit == 1) {
+    return _formatDistanceDisplayValue(km / kmPerMile);
+  }
+  return _formatDistanceDisplayValue(km);
+}
+
 /// 複数の座標を囲む [LatLngBounds] を返す。空のときは null。
 LatLngBounds? boundsFromPoints(List<LatLng> points) {
   if (points.isEmpty) return null;
@@ -67,6 +75,164 @@ double distanceAlongTrackFromStart(List<LatLng> trackPoints, int toIndex) {
     sum += distanceBetweenLatLng(trackPoints[i], trackPoints[i + 1]);
   }
   return sum;
+}
+
+/// [fromIndex] と [toIndex] の間をルートに沿って進んだときの距離（メートル）。
+/// 両端の頂点を含む。[fromIndex] > [toIndex] のときはインデックスを入れ替えて計算する。
+double distanceAlongTrackBetweenIndices(
+    List<LatLng> trackPoints, int fromIndex, int toIndex) {
+  if (trackPoints.length < 2) return 0;
+  var lo = fromIndex.clamp(0, trackPoints.length - 1);
+  var hi = toIndex.clamp(0, trackPoints.length - 1);
+  if (lo > hi) {
+    final t = lo;
+    lo = hi;
+    hi = t;
+  }
+  double sum = 0;
+  for (var i = lo; i < hi; i++) {
+    sum += distanceBetweenLatLng(trackPoints[i], trackPoints[i + 1]);
+  }
+  return sum;
+}
+
+/// POI 詳細シートの「区間標高グラフ」用。単位 km / m。
+class ElevationSegmentChartData {
+  const ElevationSegmentChartData({
+    required this.segmentKm,
+    required this.segmentElevationGainM,
+    required this.kmAlongRouteStart,
+    required this.kmAlongRouteEnd,
+    required this.kmFromSegmentStart,
+    required this.elevationMeters,
+  });
+
+  /// ルート上で「前 POI（またはスタート）〜この POI」の長さ（km）。
+  final double segmentKm;
+
+  /// 同一区間の獲得標高（メートル）。トラック上の索引は [buildElevationSegmentChartData] 内の lo〜hi。
+  final double segmentElevationGainM;
+
+  /// トラック先頭から区間始点（直前 POI に対応するトラック頂点）までの沿線距離（km）。
+  final double kmAlongRouteStart;
+
+  /// トラック先頭から区間終点（この POI に対応するトラック頂点）までの沿線距離（km）。
+  final double kmAlongRouteEnd;
+
+  /// 区間開始からの累積距離（km）。[elevationMeters] と同じ長さ。
+  final List<double> kmFromSegmentStart;
+
+  /// 各サンプル点の標高（m）。欠損は前方埋め後の値。
+  final List<double> elevationMeters;
+
+  bool get hasElevation => elevationMeters.any((e) => e.isFinite);
+}
+
+/// 「直前の POI（またはスタート）からこの POI」までのルート区間の距離・標高サンプルを構築する。
+/// [poiIndex] が 0 のときは **トラック全体**（スタート〜終点）を対象とし、それ以外は前地点から当該 POI までの区間のみとする。
+/// [elevations] がトラックと不一致または空のときは標高は前方埋めのみ試み、無ければ NaN を詰める。
+ElevationSegmentChartData? buildElevationSegmentChartData({
+  required List<LatLng> trackPoints,
+  required List<double?> elevations,
+  required List<LatLng> poiPositions,
+  required int poiIndex,
+  int maxSamples = 450,
+}) {
+  if (trackPoints.isEmpty || poiPositions.isEmpty) return null;
+  if (poiIndex < 0 || poiIndex >= poiPositions.length) return null;
+
+  final alignedElev = elevations.length == trackPoints.length
+      ? elevations
+      : List<double?>.filled(trackPoints.length, null);
+
+  final toIdx = nearestTrackIndex(trackPoints, poiPositions[poiIndex]);
+  final fromIdx = poiIndex == 0
+      ? 0
+      : nearestTrackIndex(trackPoints, poiPositions[poiIndex - 1]);
+
+  var lo = fromIdx;
+  var hi = toIdx;
+  if (lo > hi) {
+    final t = lo;
+    lo = hi;
+    hi = t;
+  }
+
+  /// スタート地点（先頭 POI）の詳細では、区間ではなくルート全体の標高プロファイルを表示する。
+  if (poiIndex == 0) {
+    lo = 0;
+    hi = trackPoints.length - 1;
+  }
+
+  final segmentM = distanceAlongTrackBetweenIndices(trackPoints, lo, hi);
+  final segmentKm = segmentM / 1000.0;
+  final segmentElevationGainM =
+      elevationGainBetweenIndices(alignedElev, lo, hi);
+
+  final kmAlongRouteStart =
+      distanceAlongTrackFromStart(trackPoints, lo) / 1000.0;
+  final kmAlongRouteEnd =
+      distanceAlongTrackFromStart(trackPoints, hi) / 1000.0;
+
+  final kmRaw = <double>[];
+  final eleNullable = <double?>[];
+
+  double cumKm = 0;
+  for (var i = lo; i <= hi; i++) {
+    if (i > lo) {
+      cumKm += distanceBetweenLatLng(trackPoints[i - 1], trackPoints[i]) /
+          1000.0;
+    }
+    kmRaw.add(cumKm);
+    eleNullable.add(i < alignedElev.length ? alignedElev[i] : null);
+  }
+
+  double? last;
+  for (var i = 0; i < eleNullable.length; i++) {
+    final e = eleNullable[i];
+    if (e != null && e.isFinite) {
+      last = e;
+    } else if (last != null) {
+      eleNullable[i] = last;
+    }
+  }
+  last = null;
+  for (var i = eleNullable.length - 1; i >= 0; i--) {
+    final e = eleNullable[i];
+    if (e != null && e.isFinite) {
+      last = e;
+    } else if (last != null) {
+      eleNullable[i] = last;
+    }
+  }
+
+  final elevFilled = <double>[];
+  for (final e in eleNullable) {
+    elevFilled.add((e != null && e.isFinite) ? e : double.nan);
+  }
+
+  final kmDown = <double>[];
+  final eleDown = <double>[];
+  if (kmRaw.length <= maxSamples) {
+    kmDown.addAll(kmRaw);
+    eleDown.addAll(elevFilled);
+  } else {
+    final step = kmRaw.length / maxSamples;
+    for (var i = 0; i < maxSamples; i++) {
+      final j = (i * step).floor().clamp(0, kmRaw.length - 1);
+      kmDown.add(kmRaw[j]);
+      eleDown.add(elevFilled[j]);
+    }
+  }
+
+  return ElevationSegmentChartData(
+    segmentKm: segmentKm,
+    segmentElevationGainM: segmentElevationGainM,
+    kmAlongRouteStart: kmAlongRouteStart,
+    kmAlongRouteEnd: kmAlongRouteEnd,
+    kmFromSegmentStart: kmDown,
+    elevationMeters: eleDown,
+  );
 }
 
 /// トラック上で [point] に最も近いポイントのインデックスを返す。

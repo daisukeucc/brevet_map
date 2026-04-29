@@ -43,6 +43,27 @@ class PoiMapDetailSheetController {
     return '${meters.round()}m';
   }
 
+  /// ルートがあれば「前地点〜このPOI」の区間プロファイル（距離ラベル付き）。
+  (ElevationSegmentChartData? chart, String? distanceLabel) _elevationSegmentFor(
+    List<LatLng> trackPoints,
+    List<double?> elevations,
+    List<LatLng> poiPositions,
+    int poiIndex,
+    int distanceUnit,
+  ) {
+    if (trackPoints.isEmpty) return (null, null);
+    final chart = buildElevationSegmentChartData(
+      trackPoints: trackPoints,
+      elevations: elevations.length == trackPoints.length
+          ? elevations
+          : List<double?>.filled(trackPoints.length, null),
+      poiPositions: poiPositions,
+      poiIndex: poiIndex,
+    );
+    if (chart == null) return (null, null);
+    return (chart, formatDistance(chart.segmentKm, distanceUnit));
+  }
+
   Future<void> animateToPoiPreservingZoom(LatLng position) async {
     final mapCtrl = _ref.read(cameraControllerProvider);
     if (mapCtrl == null) return;
@@ -60,19 +81,37 @@ class PoiMapDetailSheetController {
   ) async {
     await animateToPoiPreservingZoom(poi.position);
     if (!isMounted() || !context.mounted) return;
+    final unit = _ref.read(distanceUnitProvider);
     final ms = _ref.read(mapStateProvider);
     final ordered = PoiMapMarkerOrder.gpxPois(ms.gpxPois);
     final canNavigateInSheet = ordered.length >= 2;
+    final trackPoints = ms.savedRoutePoints ?? const <LatLng>[];
+    final elevations = ms.savedTrackElevations ?? const <double?>[];
     if (canNavigateInSheet) {
-      final entries = [
-        for (final p in ordered)
+      final positions =
+          ordered.map((p) => p.position).toList(growable: false);
+      final entries = <PoiSheetEntry>[];
+      for (var i = 0; i < ordered.length; i++) {
+        final seg = _elevationSegmentFor(
+          trackPoints,
+          elevations,
+          positions,
+          i,
+          unit,
+        );
+        entries.add(
           PoiSheetEntry(
-            name: p.name,
-            description: p.description,
-            position: p.position,
-            close: p.bmPoiExt?.schedule.close,
+            name: ordered[i].name,
+            description: ordered[i].description,
+            position: ordered[i].position,
+            close: ordered[i].bmPoiExt?.schedule.close,
+            elevationSegment: seg.$1,
+            segmentDistanceLabel: seg.$2,
+            distanceUnit: unit,
+            isRouteStartPoi: i == 0,
           ),
-      ];
+        );
+      }
       final idx = ordered.indexWhere((p) => _sameGpxPoi(p, poi));
       final safeIdx = idx >= 0 ? idx : 0;
       showPoiDetailSheet(
@@ -84,6 +123,13 @@ class PoiMapDetailSheetController {
         },
       );
     } else {
+      final seg = _elevationSegmentFor(
+        trackPoints,
+        elevations,
+        <LatLng>[poi.position],
+        0,
+        unit,
+      );
       showPoiDetailSheet(
         context,
         entries: [
@@ -92,6 +138,9 @@ class PoiMapDetailSheetController {
             description: poi.description,
             position: poi.position,
             close: poi.bmPoiExt?.schedule.close,
+            elevationSegment: seg.$1,
+            segmentDistanceLabel: seg.$2,
+            distanceUnit: unit,
           ),
         ],
       );
@@ -116,6 +165,8 @@ class PoiMapDetailSheetController {
     final ms = _ref.read(mapStateProvider);
     final ordered = PoiMapMarkerOrder.userPois(ms.userPois);
     final canNavigateInSheet = ordered.length >= 2;
+    final trackPoints = ms.savedRoutePoints ?? const <LatLng>[];
+    final elevations = ms.savedTrackElevations ?? const <double?>[];
 
     if (canNavigateInSheet) {
       final cached = ms.cachedPoiElevationGains;
@@ -123,8 +174,19 @@ class PoiMapDetailSheetController {
           ? cached
           : List<double?>.filled(ordered.length, null);
 
-      final entries = [
-        for (var i = 0; i < ordered.length; i++)
+      final positions =
+          ordered.map((p) => LatLng(p.lat, p.lng)).toList(growable: false);
+
+      final entries = <PoiSheetEntry>[];
+      for (var i = 0; i < ordered.length; i++) {
+        final seg = _elevationSegmentFor(
+          trackPoints,
+          elevations,
+          positions,
+          i,
+          unit,
+        );
+        entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
@@ -134,8 +196,13 @@ class PoiMapDetailSheetController {
             arrival: ordered[i].bmExt?.schedule.arrival,
             departure: ordered[i].bmExt?.schedule.departure,
             close: ordered[i].bmExt?.schedule.close,
+            elevationSegment: seg.$1,
+            segmentDistanceLabel: seg.$2,
+            distanceUnit: unit,
+            isRouteStartPoi: i == 0,
           ),
-      ];
+        );
+      }
       final idx = ordered.indexWhere((p) => _sameUserPoi(p, poi));
       final safeIdx = idx >= 0 ? idx : 0;
       showPoiDetailSheet(
@@ -147,6 +214,13 @@ class PoiMapDetailSheetController {
         },
       );
     } else {
+      final seg = _elevationSegmentFor(
+        trackPoints,
+        elevations,
+        <LatLng>[LatLng(poi.lat, poi.lng)],
+        0,
+        unit,
+      );
       showPoiDetailSheet(
         context,
         entries: [
@@ -159,6 +233,9 @@ class PoiMapDetailSheetController {
             arrival: poi.bmExt?.schedule.arrival,
             departure: poi.bmExt?.schedule.departure,
             close: poi.bmExt?.schedule.close,
+            elevationSegment: seg.$1,
+            segmentDistanceLabel: seg.$2,
+            distanceUnit: unit,
           ),
         ],
       );

@@ -1,7 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:latlong2/latlong.dart';
+import 'dart:math' as math;
 
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart' hide TextDirection;
+import 'package:latlong2/latlong.dart' show LatLng;
+
+import '../../l10n/app_localizations.dart';
+import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart';
 
 /// POI 詳細1件（ボトムシート用）
@@ -15,6 +19,10 @@ class PoiSheetEntry {
     this.arrival,
     this.departure,
     this.close,
+    this.elevationSegment,
+    this.segmentDistanceLabel,
+    this.distanceUnit = 0,
+    this.isRouteStartPoi = true,
   });
 
   final String? name;
@@ -31,6 +39,55 @@ class PoiSheetEntry {
 
   /// スケジュール：クローズ時刻（UTC）
   final DateTime? close;
+
+  /// ルートが読み込まれているとき「直前地点〜このPOI」の標高グラフデータ。
+  final ElevationSegmentChartData? elevationSegment;
+
+  /// [elevationSegment] の距離を表示用に整形した文字列（単位付き）。
+  final String? segmentDistanceLabel;
+
+  /// [formatDistance] と同じ。0=km/m、1=mi/ft。
+  final int distanceUnit;
+
+  /// ルート上の並びで最初の POI（スタート）。スタートでは獲得 0 でも標高行を表示する。
+  final bool isRouteStartPoi;
+}
+
+/// [poi_map_detail_sheet_controller] の `_formatElevation` と同じ規則。
+String _formatElevationGainForSheet(double metersM, int distanceUnit) {
+  if (distanceUnit == 1) return '${(metersM / 0.3048).round()}ft';
+  return '${metersM.round()}m';
+}
+
+/// 表示文字列から先頭の数値のみ取得（獲得が 0 の判定用）。
+double? _leadingElevationGainNumber(String display) {
+  final m = RegExp(r'([\d.]+)').firstMatch(display.trim());
+  if (m == null) return null;
+  return double.tryParse(m.group(1)!);
+}
+
+double? _effectiveElevationGainMeters({
+  required String? elevationGainDisplay,
+  required ElevationSegmentChartData? elevationSegment,
+}) {
+  final fromSeg = elevationSegment?.segmentElevationGainM;
+  if (fromSeg != null) return fromSeg;
+  if (elevationGainDisplay == null || elevationGainDisplay.isEmpty) return null;
+  return _leadingElevationGainNumber(elevationGainDisplay);
+}
+
+bool _shouldShowElevationGainIcon({
+  required bool isRouteStartPoi,
+  required String elevationGainDisplay,
+  required ElevationSegmentChartData? elevationSegment,
+}) {
+  if (isRouteStartPoi) return true;
+  final m = _effectiveElevationGainMeters(
+    elevationGainDisplay: elevationGainDisplay,
+    elevationSegment: elevationSegment,
+  );
+  if (m == null) return true;
+  return m > 0.5;
 }
 
 /// POI タップ時に表示するボトムシート。名前と説明を表示。
@@ -65,6 +122,10 @@ void showPoiDetailSheet(
         arrival: entries.first.arrival,
         departure: entries.first.departure,
         close: entries.first.close,
+        elevationSegment: entries.first.elevationSegment,
+        segmentDistanceLabel: entries.first.segmentDistanceLabel,
+        distanceUnit: entries.first.distanceUnit,
+        isRouteStartPoi: entries.first.isRouteStartPoi,
       );
     },
   );
@@ -79,6 +140,10 @@ class _PoiDetailSheetBody extends StatelessWidget {
     this.arrival,
     this.departure,
     this.close,
+    this.elevationSegment,
+    this.segmentDistanceLabel,
+    this.distanceUnit = 0,
+    this.isRouteStartPoi = true,
   });
 
   final String? name;
@@ -88,6 +153,10 @@ class _PoiDetailSheetBody extends StatelessWidget {
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
+  final ElevationSegmentChartData? elevationSegment;
+  final String? segmentDistanceLabel;
+  final int distanceUnit;
+  final bool isRouteStartPoi;
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +174,10 @@ class _PoiDetailSheetBody extends StatelessWidget {
             arrival: arrival,
             departure: departure,
             close: close,
+            elevationSegment: elevationSegment,
+            segmentDistanceLabel: segmentDistanceLabel,
+            distanceUnit: distanceUnit,
+            isRouteStartPoi: isRouteStartPoi,
             distanceLeft: 20,
             contentLeft: 24,
           ),
@@ -172,6 +245,10 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                     arrival: e.arrival,
                     departure: e.departure,
                     close: e.close,
+                    elevationSegment: e.elevationSegment,
+                    segmentDistanceLabel: e.segmentDistanceLabel,
+                    distanceUnit: e.distanceUnit,
+                    isRouteStartPoi: e.isRouteStartPoi,
                     distanceLeft: 20,
                     contentLeft: 24,
                   ),
@@ -239,8 +316,12 @@ class _PoiContentBlock extends StatelessWidget {
     this.arrival,
     this.departure,
     this.close,
+    this.elevationSegment,
+    this.segmentDistanceLabel,
+    this.distanceUnit = 0,
     this.distanceLeft = 0,
     this.contentLeft = 0,
+    this.isRouteStartPoi = true,
   });
 
   final String? name;
@@ -250,16 +331,31 @@ class _PoiContentBlock extends StatelessWidget {
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
+  final ElevationSegmentChartData? elevationSegment;
+  final String? segmentDistanceLabel;
+  final int distanceUnit;
   final double distanceLeft;
   final double contentLeft;
+  final bool isRouteStartPoi;
 
   String _formatTime(DateTime dt) => DateFormat.Hm().format(dt.toLocal());
 
   @override
   Widget build(BuildContext context) {
     final hasDistance = distance != null && distance!.isNotEmpty;
-    final hasElevationGain = elevationGain != null && elevationGain!.isNotEmpty;
-    final hasStats = hasDistance || hasElevationGain;
+    final hasElevationGainText =
+        elevationGain != null && elevationGain!.isNotEmpty;
+    final showSegmentChart = elevationSegment?.hasElevation == true &&
+        segmentDistanceLabel != null &&
+        segmentDistanceLabel!.isNotEmpty;
+    final showElevationGainIcon = hasElevationGainText &&
+        _shouldShowElevationGainIcon(
+          isRouteStartPoi: isRouteStartPoi,
+          elevationGainDisplay: elevationGain!,
+          elevationSegment: elevationSegment,
+        );
+    final showStatsRow =
+        hasDistance || showElevationGainIcon || showSegmentChart;
     final hasName = name != null && name!.isNotEmpty;
     final hasDescription = description != null && description!.isNotEmpty;
     final hasArrival = arrival != null;
@@ -272,10 +368,11 @@ class _PoiContentBlock extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 距離 + 獲得標高（1行）
-        if (hasStats)
+        if (showStatsRow)
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (hasDistance) ...[
                   const Icon(Icons.location_on,
@@ -283,19 +380,47 @@ class _PoiContentBlock extends StatelessWidget {
                   const SizedBox(width: 3),
                   Text(distance!, style: AppTextStyles.poiLarge),
                 ],
-                if (hasDistance && hasElevationGain) const SizedBox(width: 12),
-                if (hasElevationGain) ...[
+                if (hasDistance && showElevationGainIcon)
+                  const SizedBox(width: 12),
+                if (showElevationGainIcon) ...[
                   const Icon(Icons.trending_up,
                       size: 23, color: AppColors.muted),
                   const SizedBox(width: 3),
                   Text(elevationGain!, style: AppTextStyles.poiLarge),
+                ],
+                if (showSegmentChart) ...[
+                  if (hasDistance || showElevationGainIcon)
+                    const SizedBox(width: 14),
+                  InkWell(
+                    onTap: () => _showPoiElevationSegmentDialog(
+                      context,
+                      elevationSegment: elevationSegment!,
+                      distanceLabel: segmentDistanceLabel!,
+                      distanceUnit: distanceUnit,
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                    child: Container(
+                      width: 26,
+                      height: 26,
+                      decoration: BoxDecoration(
+                        color: AppColors.muted,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.query_stats,
+                        size: 19,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),
           ),
         // スケジュール（arrival / departure）
         if (hasSchedule) ...[
-          if (hasStats) const SizedBox(height: 3),
+          if (showStatsRow) const SizedBox(height: 3),
           Padding(
             padding: const EdgeInsets.only(left: 23),
             child: Row(
@@ -355,4 +480,489 @@ class _PoiContentBlock extends StatelessWidget {
       ],
     );
   }
+}
+
+void _showPoiElevationSegmentDialog(
+  BuildContext context, {
+  required ElevationSegmentChartData elevationSegment,
+  required String distanceLabel,
+  required int distanceUnit,
+}) {
+  final l10n = AppLocalizations.of(context)!;
+  final textScaler = MediaQuery.textScalerOf(context);
+  final textDirection = Directionality.of(context);
+  final compactButtonStyle = ButtonStyle(
+    minimumSize: WidgetStateProperty.all(Size.zero),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  );
+  showDialog<void>(
+    context: context,
+    barrierColor: Colors.black54,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      titlePadding: EdgeInsets.zero,
+      contentPadding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                height: 180,
+                width: double.maxFinite,
+                child: CustomPaint(
+                  painter: _SegmentElevationAreaPainter(
+                    km: elevationSegment.kmFromSegmentStart,
+                    elevationM: elevationSegment.elevationMeters,
+                    segmentKm: elevationSegment.segmentKm,
+                    kmAlongRouteStart: elevationSegment.kmAlongRouteStart,
+                    kmAlongRouteEnd: elevationSegment.kmAlongRouteEnd,
+                    distanceUnit: distanceUnit,
+                    textScaler: textScaler,
+                    textDirection: textDirection,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              Align(
+                alignment: Alignment.center,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Icon(Icons.location_on,
+                              size: 19, color: AppColors.muted),
+                          Transform.translate(
+                            offset: const Offset(-5, 0),
+                            child: Text(
+                              '...',
+                              style: AppTextStyles.body.copyWith(
+                                fontSize: 15,
+                                height: 1,
+                              ),
+                            ),
+                          ),
+                          Transform.translate(
+                            offset: const Offset(-10, 0),
+                            child: const Icon(Icons.location_on,
+                                size: 19, color: AppColors.muted),
+                          ),
+                        ],
+                      ),
+                      Transform.translate(
+                        offset: const Offset(-9, 0),
+                        child: Text(
+                          distanceLabel,
+                          style: AppTextStyles.poiMedium,
+                          maxLines: 1,
+                          softWrap: false,
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      const Icon(Icons.trending_up,
+                          size: 22, color: AppColors.muted),
+                      const SizedBox(width: 3),
+                      Text(
+                        _formatElevationGainForSheet(
+                          elevationSegment.segmentElevationGainM,
+                          distanceUnit,
+                        ),
+                        style: AppTextStyles.poiMedium,
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+      actions: [
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+      ],
+    ),
+  );
+}
+
+/// [ticks] が昇順であるとき、極めて近い座標を 1 本にまとめる。
+List<double> _dedupeSortedTicksNear(List<double> ticks, double span) {
+  if (ticks.length <= 1) return ticks;
+  final eps = math.max(span * 1e-11, 1e-10);
+  final out = <double>[ticks.first];
+  for (var i = 1; i < ticks.length; i++) {
+    final v = ticks[i];
+    if ((v - out.last).abs() > eps) out.add(v);
+  }
+  return out;
+}
+
+/// グラフ軸の目盛り値（データ座標）。
+List<double> _niceAxisTicks(double min, double max, int divisions) {
+  if (!(max >= min)) return [min];
+  final span = max - min;
+  if (span < 1e-15) return [min];
+  final rough = span / math.max(1, divisions - 1);
+  final exp = math.pow(10, (math.log(rough) / math.ln10).floor()).toDouble();
+  final frac = rough / exp;
+  final step = frac <= 1.5
+      ? exp
+      : frac <= 3
+          ? 2 * exp
+          : frac <= 7
+              ? 5 * exp
+              : 10 * exp;
+  final start = (min / step).ceilToDouble() * step;
+  final ticks = <double>[];
+  for (var x = start; x <= max + step * 1e-9 && ticks.length < 24; x += step) {
+    if (x >= min - step * 1e-9) ticks.add(x);
+  }
+  if (ticks.isEmpty) return [min, max];
+  if (ticks.first > min + 1e-9) ticks.insert(0, min);
+  if (ticks.last < max - 1e-9) ticks.add(max);
+  return _dedupeSortedTicksNear(ticks, span);
+}
+
+class _SegmentElevationAreaPainter extends CustomPainter {
+  _SegmentElevationAreaPainter({
+    required this.km,
+    required this.elevationM,
+    required this.segmentKm,
+    required this.kmAlongRouteStart,
+    required this.kmAlongRouteEnd,
+    required this.distanceUnit,
+    required this.textScaler,
+    required this.textDirection,
+  });
+
+  final List<double> km;
+  final List<double> elevationM;
+
+  /// ルート区間の距離（km）。[formatDistance] / シートの区間距離と一致させる。
+  final double segmentKm;
+
+  /// トラック先頭から区間始点・終点までの沿線距離（km）。横軸ラベル用。
+  final double kmAlongRouteStart;
+  final double kmAlongRouteEnd;
+
+  final int distanceUnit;
+  final TextScaler textScaler;
+  final TextDirection textDirection;
+
+  static const double _topGutter = 8;
+
+  /// チャート下端〜キャンバス下端（距離目盛り・横軸単位の帯）
+  static const double _bottomGutter = 38;
+
+  TextStyle get _tickStyle => TextStyle(
+        fontSize: 10,
+        color: Colors.black.withValues(alpha: 0.65),
+      );
+
+  /// 横軸の目盛りラベル（終端以外）。ルート全体での累積距離（km）を表示する。
+  /// [spanSegmentK] は軸に見える区間長（セグメント相対 km）。
+  String _formatHorizTickKmNonTerminal(
+      double cumulativeKm, double spanSegmentK) {
+    if (spanSegmentK >= 10) {
+      if (distanceUnit == 1) {
+        final mi = cumulativeKm / kmPerMile;
+        return mi.floor().toString();
+      }
+      return cumulativeKm.floor().toString();
+    }
+    return formatDistanceNumeric(cumulativeKm, distanceUnit);
+  }
+
+  String _formatVertTickM(double mVal) {
+    if (distanceUnit == 1) {
+      return (mVal / 0.3048).round().toString();
+    }
+    return mVal.round().toString();
+  }
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (km.isEmpty || km.length != elevationM.length) return;
+
+    final xs = <double>[];
+    final ys = <double>[];
+    for (var i = 0; i < km.length; i++) {
+      if (elevationM[i].isFinite) {
+        xs.add(km[i]);
+        ys.add(elevationM[i]);
+      }
+    }
+    if (xs.isEmpty) return;
+
+    var minK = xs.first;
+    var maxK = xs.first;
+    var minE = ys.first;
+    var maxE = ys.first;
+    for (var i = 0; i < xs.length; i++) {
+      final x = xs[i];
+      final y = ys[i];
+      if (x < minK) minK = x;
+      if (x > maxK) maxK = x;
+      if (y < minE) minE = y;
+      if (y > maxE) maxE = y;
+    }
+
+    final axisMin = minK;
+    final axisMax = segmentKm.isFinite && segmentKm > 1e-12 ? segmentKm : maxK;
+    var spanK = axisMax - axisMin;
+    if (spanK < 1e-9) spanK = 1;
+    var spanE = maxE - minE;
+    if (spanE < 1e-6) {
+      minE -= 5;
+      maxE += 5;
+      spanE = maxE - minE;
+    }
+
+    final distTicks = _niceAxisTicks(axisMin, axisMax, 6);
+    final elevTicks = _niceAxisTicks(minE, maxE, 7);
+
+    double maxLeftW = 0;
+    for (final eTick in elevTicks) {
+      final tp = TextPainter(
+        text: TextSpan(text: _formatVertTickM(eTick), style: _tickStyle),
+        textDirection: textDirection,
+        textScaler: textScaler,
+      )..layout();
+      if (tp.width > maxLeftW) maxLeftW = tp.width;
+    }
+    final leftGutter = maxLeftW + 4;
+
+    final plotLeft = leftGutter;
+    final plotRight = size.width;
+    final vertUnitStr = distanceUnit == 1 ? 'ft' : 'm';
+    final unitVertTp = TextPainter(
+      text: TextSpan(
+          text: vertUnitStr,
+          style: _tickStyle.copyWith(fontWeight: FontWeight.w600)),
+      textDirection: textDirection,
+      textScaler: textScaler,
+    )..layout();
+    final chartPlotTop = _topGutter + unitVertTp.height + 6;
+    final chartBottom = size.height - _bottomGutter;
+    final plotW = plotRight - plotLeft;
+    final plotH = chartBottom - chartPlotTop;
+    if (plotW <= 0 || plotH <= 0) return;
+
+    final distTickY = chartBottom + 4;
+    final kmUnitTop = distTickY + 14;
+
+    double txPlot(double k) {
+      final kk = k.clamp(axisMin, axisMax);
+      return plotLeft + (kk - axisMin) / spanK * plotW;
+    }
+
+    double tyPlot(double e) => chartBottom - (e - minE) / spanE * plotH;
+
+    final gridPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.14)
+      ..strokeWidth = 1;
+
+    for (final dk in distTicks) {
+      if (dk < axisMin - 1e-9 || dk > axisMax + 1e-9) continue;
+      final x = txPlot(dk);
+      canvas.drawLine(
+          Offset(x, chartPlotTop), Offset(x, chartBottom), gridPaint);
+    }
+    for (final el in elevTicks) {
+      if (el < minE - 1e-9 || el > maxE + 1e-9) continue;
+      final y = tyPlot(el);
+      canvas.drawLine(Offset(plotLeft, y), Offset(plotRight, y), gridPaint);
+    }
+
+    final topPath = Path()..moveTo(txPlot(xs.first), tyPlot(ys.first));
+    for (var i = 1; i < xs.length; i++) {
+      topPath.lineTo(txPlot(xs[i]), tyPlot(ys[i]));
+    }
+    final fillPath = Path.from(topPath)
+      ..lineTo(txPlot(xs.last), tyPlot(minE))
+      ..lineTo(txPlot(xs.first), tyPlot(minE))
+      ..close();
+
+    final shaderRect = Rect.fromLTWH(plotLeft, chartPlotTop, plotW, plotH);
+    canvas.drawPath(
+      fillPath,
+      Paint()
+        ..shader = LinearGradient(
+          colors: [
+            Colors.blue.withValues(alpha: 0.38),
+            Colors.blue.withValues(alpha: 0.06),
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ).createShader(shaderRect),
+    );
+    canvas.drawPath(
+      topPath,
+      Paint()
+        ..color = Colors.blue
+        ..strokeWidth = 1.2
+        ..style = PaintingStyle.stroke
+        ..isAntiAlias = true,
+    );
+
+    final horizTicks = <double>[];
+    for (final dk in distTicks) {
+      if (dk >= axisMin - 1e-9 && dk <= axisMax + 1e-9) {
+        horizTicks.add(dk);
+      }
+    }
+    final nHoriz = horizTicks.length;
+    const endLabelClearance = 8.0;
+
+    final lastHorizLabel = formatDistanceNumeric(kmAlongRouteEnd, distanceUnit);
+    final lastLabelTp = TextPainter(
+      text: TextSpan(text: lastHorizLabel, style: _tickStyle),
+      textDirection: textDirection,
+      textScaler: textScaler,
+    )..layout();
+
+    bool hideTickBeforeEnd = false;
+    if (nHoriz >= 3) {
+      final cxPrev = txPlot(horizTicks[nHoriz - 2]);
+      final cxLast = txPlot(horizTicks[nHoriz - 1]);
+      final prevLabel = _formatHorizTickKmNonTerminal(
+          kmAlongRouteStart + horizTicks[nHoriz - 2], spanK);
+      final prevTp = TextPainter(
+        text: TextSpan(text: prevLabel, style: _tickStyle),
+        textDirection: textDirection,
+        textScaler: textScaler,
+      )..layout();
+      final prevRight = cxPrev + prevTp.width / 2;
+      final lastLeft = cxLast - lastLabelTp.width;
+      if (lastLeft - prevRight < endLabelClearance) {
+        hideTickBeforeEnd = true;
+      }
+    } else if (nHoriz == 2) {
+      final cxFirst = txPlot(horizTicks[0]);
+      final cxLast = txPlot(horizTicks[1]);
+      final firstLabel = _formatHorizTickKmNonTerminal(
+          kmAlongRouteStart + horizTicks[0], spanK);
+      final firstTp = TextPainter(
+        text: TextSpan(text: firstLabel, style: _tickStyle),
+        textDirection: textDirection,
+        textScaler: textScaler,
+      )..layout();
+      final firstRight = cxFirst + firstTp.width;
+      final lastLeft = cxLast - lastLabelTp.width;
+      if (lastLeft - firstRight < endLabelClearance) {
+        hideTickBeforeEnd = true;
+      }
+    }
+
+    String? prevPaintedHorizLabel;
+    for (var i = 0; i < horizTicks.length; i++) {
+      final dk = horizTicks[i];
+      final cx = txPlot(dk);
+      final isFirst = i == 0;
+      final isLast = i == horizTicks.length - 1;
+
+      if (hideTickBeforeEnd && nHoriz >= 3 && i == nHoriz - 2) {
+        continue;
+      }
+      if (hideTickBeforeEnd && nHoriz == 2 && i == 0) {
+        continue;
+      }
+
+      final label = isLast
+          ? lastHorizLabel
+          : _formatHorizTickKmNonTerminal(kmAlongRouteStart + dk, spanK);
+
+      /// グリッドは細かくても、文字が同一になる目盛りは間引く（終端以外）。
+      final canCollapseInteriorDup =
+          horizTicks.length > 2 && !isFirst && !isLast;
+      if (canCollapseInteriorDup &&
+          prevPaintedHorizLabel != null &&
+          label == prevPaintedHorizLabel) {
+        continue;
+      }
+
+      final tp = isLast
+          ? lastLabelTp
+          : TextPainter(
+              text: TextSpan(text: label, style: _tickStyle),
+              textDirection: textDirection,
+              textScaler: textScaler,
+            )
+        ..layout();
+      final x = horizTicks.length == 1
+          ? cx - tp.width / 2
+          : isFirst
+              ? cx
+              : isLast
+                  ? cx - tp.width
+                  : cx - tp.width / 2;
+      final y = distTickY;
+      if (x >= plotLeft - 1 && x + tp.width <= plotRight + 1) {
+        tp.paint(canvas, Offset(x, y));
+      }
+      prevPaintedHorizLabel = label;
+    }
+
+    for (final eTick in elevTicks) {
+      if (eTick < minE - 1e-9 || eTick > maxE + 1e-9) continue;
+      final label = _formatVertTickM(eTick);
+      final tp = TextPainter(
+        text: TextSpan(text: label, style: _tickStyle),
+        textDirection: textDirection,
+        textScaler: textScaler,
+      )..layout();
+      final x = plotLeft - tp.width - 6;
+      final y = tyPlot(eTick) - tp.height / 2;
+      if (y >= chartPlotTop - 2 && y + tp.height <= chartBottom + 2) {
+        tp.paint(canvas, Offset(x, y));
+      }
+    }
+
+    final horizUnitStr = distanceUnit == 1 ? 'mi' : 'km';
+
+    final unitHorizTp = TextPainter(
+      text: TextSpan(
+          text: horizUnitStr,
+          style: _tickStyle.copyWith(fontWeight: FontWeight.w600)),
+      textDirection: textDirection,
+      textScaler: textScaler,
+    )..layout();
+    unitHorizTp.paint(
+      canvas,
+      Offset(plotRight - unitHorizTp.width, kmUnitTop),
+    );
+
+    unitVertTp.paint(
+      canvas,
+      Offset(plotLeft - unitVertTp.width - 4, _topGutter),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _SegmentElevationAreaPainter oldDelegate) =>
+      oldDelegate.km != km ||
+      oldDelegate.elevationM != elevationM ||
+      oldDelegate.segmentKm != segmentKm ||
+      oldDelegate.kmAlongRouteStart != kmAlongRouteStart ||
+      oldDelegate.kmAlongRouteEnd != kmAlongRouteEnd ||
+      oldDelegate.distanceUnit != distanceUnit ||
+      oldDelegate.textScaler != textScaler;
 }

@@ -24,6 +24,12 @@ abstract class AppTextStyles {
     color: AppColors.muted,
   );
 
+  static const TextStyle poiMedium = TextStyle(
+    fontSize: 21,
+    fontWeight: FontWeight.w700,
+    color: AppColors.muted,
+  );
+
   static const TextStyle poiScheduleLabel = TextStyle(
     fontSize: 12,
     fontWeight: FontWeight.w500,
