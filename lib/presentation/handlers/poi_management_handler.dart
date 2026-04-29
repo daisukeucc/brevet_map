@@ -56,6 +56,12 @@ class PoiEditPositionRequest {
   final UserPoi poi;
 }
 
+String? _formatElevGain(double? meters, int distanceUnit) {
+  if (meters == null || meters < 0.5) return null;
+  if (distanceUnit == 1) return '${(meters / 0.3048).round()}ft';
+  return '${meters.round()}m';
+}
+
 TimeOfDay? _timeOfDayFromDt(DateTime? dt) {
   if (dt == null) return null;
   final local = dt.toLocal();
@@ -309,10 +315,22 @@ Future<void> handleEditPoiText(
 }) async {
   if (!context.mounted) return;
   final distanceUnit = ref.read(distanceUnitProvider);
-  final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+  final mapState = ref.read(mapStateProvider);
+  final routePoints = mapState.savedRoutePoints;
   final totalRouteKm = routePoints != null && routePoints.isNotEmpty
       ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
       : null;
+
+  final gains = mapState.cachedPoiElevationGains;
+  final orderedForGain = mapState.userPois;
+  double? elevationGainFor(UserPoi p) {
+    if (gains == null) return null;
+    final idx = orderedForGain.indexWhere(
+      (q) => q.lat == p.lat && q.lng == p.lng && q.km == p.km,
+    );
+    if (idx < 0 || idx >= gains.length) return null;
+    return gains[idx];
+  }
 
   List<UserPoi> orderedPois() => List<UserPoi>.from(
         ref.read(mapStateProvider).userPois,
@@ -514,6 +532,7 @@ Future<void> handleEditPoiText(
       poi: poi,
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
+      elevationGainFor: elevationGainFor,
       onNext: findNext,
       onPrev: findPrev,
       onSave: (poi, data) => saveAndFind(poi, data, true),
@@ -1446,6 +1465,7 @@ class EditPoiTextDialog extends StatefulWidget {
     required this.poi,
     required this.distanceUnit,
     this.totalRouteKm,
+    this.elevationGainFor,
     required this.onNext,
     required this.onPrev,
     required this.onSave,
@@ -1455,6 +1475,9 @@ class EditPoiTextDialog extends StatefulWidget {
   final UserPoi poi;
   final int distanceUnit;
   final double? totalRouteKm;
+
+  /// 指定 POI の獲得標高（m）を返す。null なら非表示。
+  final double? Function(UserPoi)? elevationGainFor;
 
   /// 保存せずに次のPOIを返す。なければ null。
   final UserPoi? Function(UserPoi currentPoi) onNext;
@@ -1566,7 +1589,8 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
         _departure?.minute != origDeparture?.minute) {
       return true;
     }
-    if (_close?.hour != origClose?.hour || _close?.minute != origClose?.minute) {
+    if (_close?.hour != origClose?.hour ||
+        _close?.minute != origClose?.minute) {
       return true;
     }
 
@@ -1776,9 +1800,47 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                                 fontSize: 12,
                               ),
                             )
-                          : Text(
-                              widget.distanceUnit == 1 ? 'mi' : 'km',
-                              style: AppTextStyles.title,
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  widget.distanceUnit == 1 ? 'mi' : 'km',
+                                  style: AppTextStyles.title,
+                                ),
+                                Builder(builder: (_) {
+                                  final gain = _formatElevGain(
+                                    widget.elevationGainFor?.call(_currentPoi),
+                                    widget.distanceUnit,
+                                  );
+                                  if (gain == null)
+                                    return const SizedBox.shrink();
+                                  return Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(width: 10),
+                                      const Text(
+                                        '(',
+                                        style: AppTextStyles.title,
+                                      ),
+                                      const SizedBox(width: 2),
+                                      const Icon(
+                                        Icons.trending_up,
+                                        size: 17,
+                                        color: Colors.black54,
+                                      ),
+                                      const SizedBox(width: 3),
+                                      Text(gain, style: AppTextStyles.title),
+                                      const SizedBox(width: 3),
+                                      const Text(
+                                        ')',
+                                        style: AppTextStyles.title,
+                                      ),
+                                    ],
+                                  );
+                                }),
+                              ],
                             ),
                     ),
                   ),
