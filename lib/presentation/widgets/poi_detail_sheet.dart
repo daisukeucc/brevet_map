@@ -8,6 +8,25 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart';
 
+/// アイコンタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
+class PoiElevationOnDemand {
+  const PoiElevationOnDemand({
+    required this.trackPoints,
+    required this.elevations,
+    required this.poiPositions,
+    required this.poiIndex,
+    required this.distanceUnit,
+  });
+
+  final List<LatLng> trackPoints;
+  final List<double?> elevations;
+  final List<LatLng> poiPositions;
+  final int poiIndex;
+
+  /// [formatDistance] と同じ。0=km/m、1=mi/ft。
+  final int distanceUnit;
+}
+
 /// POI 詳細1件（ボトムシート用）
 class PoiSheetEntry {
   const PoiSheetEntry({
@@ -21,6 +40,7 @@ class PoiSheetEntry {
     this.close,
     this.elevationSegment,
     this.segmentDistanceLabel,
+    this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
   });
@@ -45,6 +65,9 @@ class PoiSheetEntry {
 
   /// [elevationSegment] の距離を表示用に整形した文字列（単位付き）。
   final String? segmentDistanceLabel;
+
+  /// 事前計算しない場合、標高グラフアイコンタップ時にプロファイルを構築する。
+  final PoiElevationOnDemand? elevationOnDemand;
 
   /// [formatDistance] と同じ。0=km/m、1=mi/ft。
   final int distanceUnit;
@@ -90,6 +113,27 @@ bool _shouldShowElevationGainIcon({
   return m > 0.5;
 }
 
+void _openElevationFromOnDemand(
+  BuildContext context,
+  PoiElevationOnDemand req,
+) {
+  final chart = buildElevationSegmentChartData(
+    trackPoints: req.trackPoints,
+    elevations: req.elevations.length == req.trackPoints.length
+        ? req.elevations
+        : List<double?>.filled(req.trackPoints.length, null),
+    poiPositions: req.poiPositions,
+    poiIndex: req.poiIndex,
+  );
+  if (chart == null || !chart.hasElevation) return;
+  _showPoiElevationSegmentDialog(
+    context,
+    elevationSegment: chart,
+    distanceLabel: formatDistance(chart.segmentKm, req.distanceUnit),
+    distanceUnit: req.distanceUnit,
+  );
+}
+
 /// POI タップ時に表示するボトムシート。名前と説明を表示。
 /// [entries] が2件以上のときは同一カテゴリ（GPX / ユーザー）内のシート内移動（＞）を表示する。
 void showPoiDetailSheet(
@@ -124,6 +168,7 @@ void showPoiDetailSheet(
         close: entries.first.close,
         elevationSegment: entries.first.elevationSegment,
         segmentDistanceLabel: entries.first.segmentDistanceLabel,
+        elevationOnDemand: entries.first.elevationOnDemand,
         distanceUnit: entries.first.distanceUnit,
         isRouteStartPoi: entries.first.isRouteStartPoi,
       );
@@ -142,6 +187,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
     this.close,
     this.elevationSegment,
     this.segmentDistanceLabel,
+    this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
   });
@@ -155,6 +201,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
   final DateTime? close;
   final ElevationSegmentChartData? elevationSegment;
   final String? segmentDistanceLabel;
+  final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
   final bool isRouteStartPoi;
 
@@ -176,6 +223,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
             close: close,
             elevationSegment: elevationSegment,
             segmentDistanceLabel: segmentDistanceLabel,
+            elevationOnDemand: elevationOnDemand,
             distanceUnit: distanceUnit,
             isRouteStartPoi: isRouteStartPoi,
             distanceLeft: 20,
@@ -247,6 +295,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                     close: e.close,
                     elevationSegment: e.elevationSegment,
                     segmentDistanceLabel: e.segmentDistanceLabel,
+                    elevationOnDemand: e.elevationOnDemand,
                     distanceUnit: e.distanceUnit,
                     isRouteStartPoi: e.isRouteStartPoi,
                     distanceLeft: 20,
@@ -318,6 +367,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.close,
     this.elevationSegment,
     this.segmentDistanceLabel,
+    this.elevationOnDemand,
     this.distanceUnit = 0,
     this.distanceLeft = 0,
     this.contentLeft = 0,
@@ -333,6 +383,7 @@ class _PoiContentBlock extends StatelessWidget {
   final DateTime? close;
   final ElevationSegmentChartData? elevationSegment;
   final String? segmentDistanceLabel;
+  final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
   final double distanceLeft;
   final double contentLeft;
@@ -345,9 +396,17 @@ class _PoiContentBlock extends StatelessWidget {
     final hasDistance = distance != null && distance!.isNotEmpty;
     final hasElevationGainText =
         elevationGain != null && elevationGain!.isNotEmpty;
-    final showSegmentChart = elevationSegment?.hasElevation == true &&
+    final showSegmentChartPrecomputed = elevationSegment?.hasElevation == true &&
         segmentDistanceLabel != null &&
         segmentDistanceLabel!.isNotEmpty;
+    final od = elevationOnDemand;
+    final showElevationChartOnDemand = od != null &&
+        od.trackPoints.length >= 2 &&
+        od.poiPositions.isNotEmpty &&
+        od.poiIndex >= 0 &&
+        od.poiIndex < od.poiPositions.length;
+    final showElevationChartIcon =
+        showSegmentChartPrecomputed || showElevationChartOnDemand;
     final showElevationGainIcon = hasElevationGainText &&
         _shouldShowElevationGainIcon(
           isRouteStartPoi: isRouteStartPoi,
@@ -355,7 +414,7 @@ class _PoiContentBlock extends StatelessWidget {
           elevationSegment: elevationSegment,
         );
     final showStatsRow =
-        hasDistance || showElevationGainIcon || showSegmentChart;
+        hasDistance || showElevationGainIcon || showElevationChartIcon;
     final hasName = name != null && name!.isNotEmpty;
     final hasDescription = description != null && description!.isNotEmpty;
     final hasArrival = arrival != null;
@@ -388,16 +447,25 @@ class _PoiContentBlock extends StatelessWidget {
                   const SizedBox(width: 3),
                   Text(elevationGain!, style: AppTextStyles.poiLarge),
                 ],
-                if (showSegmentChart) ...[
+                if (showElevationChartIcon) ...[
                   if (hasDistance || showElevationGainIcon)
                     const SizedBox(width: 14),
                   InkWell(
-                    onTap: () => _showPoiElevationSegmentDialog(
-                      context,
-                      elevationSegment: elevationSegment!,
-                      distanceLabel: segmentDistanceLabel!,
-                      distanceUnit: distanceUnit,
-                    ),
+                    onTap: () {
+                      if (showSegmentChartPrecomputed) {
+                        _showPoiElevationSegmentDialog(
+                          context,
+                          elevationSegment: elevationSegment!,
+                          distanceLabel: segmentDistanceLabel!,
+                          distanceUnit: distanceUnit,
+                        );
+                      } else if (showElevationChartOnDemand) {
+                        _openElevationFromOnDemand(
+                          context,
+                          elevationOnDemand!,
+                        );
+                      }
+                    },
                     borderRadius: BorderRadius.circular(4),
                     child: Container(
                       width: 26,

@@ -43,25 +43,21 @@ class PoiMapDetailSheetController {
     return '${meters.round()}m';
   }
 
-  /// ルートがあれば「前地点〜このPOI」の区間プロファイル（距離ラベル付き）。
-  (ElevationSegmentChartData? chart, String? distanceLabel) _elevationSegmentFor(
+  PoiElevationOnDemand? _elevationOnDemandFor(
     List<LatLng> trackPoints,
     List<double?> elevations,
     List<LatLng> poiPositions,
     int poiIndex,
     int distanceUnit,
   ) {
-    if (trackPoints.isEmpty) return (null, null);
-    final chart = buildElevationSegmentChartData(
+    if (trackPoints.length < 2) return null;
+    return PoiElevationOnDemand(
       trackPoints: trackPoints,
-      elevations: elevations.length == trackPoints.length
-          ? elevations
-          : List<double?>.filled(trackPoints.length, null),
+      elevations: elevations,
       poiPositions: poiPositions,
       poiIndex: poiIndex,
+      distanceUnit: distanceUnit,
     );
-    if (chart == null) return (null, null);
-    return (chart, formatDistance(chart.segmentKm, distanceUnit));
   }
 
   Future<void> animateToPoiPreservingZoom(LatLng position) async {
@@ -92,21 +88,19 @@ class PoiMapDetailSheetController {
           ordered.map((p) => p.position).toList(growable: false);
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
-        final seg = _elevationSegmentFor(
-          trackPoints,
-          elevations,
-          positions,
-          i,
-          unit,
-        );
         entries.add(
           PoiSheetEntry(
             name: ordered[i].name,
             description: ordered[i].description,
             position: ordered[i].position,
             close: ordered[i].bmPoiExt?.schedule.close,
-            elevationSegment: seg.$1,
-            segmentDistanceLabel: seg.$2,
+            elevationOnDemand: _elevationOnDemandFor(
+              trackPoints,
+              elevations,
+              positions,
+              i,
+              unit,
+            ),
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
           ),
@@ -123,13 +117,6 @@ class PoiMapDetailSheetController {
         },
       );
     } else {
-      final seg = _elevationSegmentFor(
-        trackPoints,
-        elevations,
-        <LatLng>[poi.position],
-        0,
-        unit,
-      );
       showPoiDetailSheet(
         context,
         entries: [
@@ -138,8 +125,13 @@ class PoiMapDetailSheetController {
             description: poi.description,
             position: poi.position,
             close: poi.bmPoiExt?.schedule.close,
-            elevationSegment: seg.$1,
-            segmentDistanceLabel: seg.$2,
+            elevationOnDemand: _elevationOnDemandFor(
+              trackPoints,
+              elevations,
+              <LatLng>[poi.position],
+              0,
+              unit,
+            ),
             distanceUnit: unit,
           ),
         ],
@@ -179,13 +171,6 @@ class PoiMapDetailSheetController {
 
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
-        final seg = _elevationSegmentFor(
-          trackPoints,
-          elevations,
-          positions,
-          i,
-          unit,
-        );
         entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
@@ -196,8 +181,13 @@ class PoiMapDetailSheetController {
             arrival: ordered[i].bmExt?.schedule.arrival,
             departure: ordered[i].bmExt?.schedule.departure,
             close: ordered[i].bmExt?.schedule.close,
-            elevationSegment: seg.$1,
-            segmentDistanceLabel: seg.$2,
+            elevationOnDemand: _elevationOnDemandFor(
+              trackPoints,
+              elevations,
+              positions,
+              i,
+              unit,
+            ),
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
           ),
@@ -214,13 +204,6 @@ class PoiMapDetailSheetController {
         },
       );
     } else {
-      final seg = _elevationSegmentFor(
-        trackPoints,
-        elevations,
-        <LatLng>[LatLng(poi.lat, poi.lng)],
-        0,
-        unit,
-      );
       showPoiDetailSheet(
         context,
         entries: [
@@ -233,8 +216,13 @@ class PoiMapDetailSheetController {
             arrival: poi.bmExt?.schedule.arrival,
             departure: poi.bmExt?.schedule.departure,
             close: poi.bmExt?.schedule.close,
-            elevationSegment: seg.$1,
-            segmentDistanceLabel: seg.$2,
+            elevationOnDemand: _elevationOnDemandFor(
+              trackPoints,
+              elevations,
+              <LatLng>[LatLng(poi.lat, poi.lng)],
+              0,
+              unit,
+            ),
             distanceUnit: unit,
           ),
         ],
