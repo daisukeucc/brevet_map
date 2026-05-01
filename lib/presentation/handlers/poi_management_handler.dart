@@ -25,6 +25,11 @@ import '../widgets/text_menu_dialog.dart';
 // POI管理のハンドラとダイアログ
 // ---------------------------------------------------------------------------
 
+/// POI「タイトル」「本文」TextField の入力域まわりの余白（主に下端）。
+/// [InputDecoration.contentPadding] で調整する。
+const EdgeInsets _kPoiTitleBodyFieldContentPadding =
+    EdgeInsets.fromLTRB(0, 12, 0, 8);
+
 /// POIフォームの入力データ
 class AddPoiFormData {
   const AddPoiFormData({
@@ -534,6 +539,7 @@ Future<void> handleEditPoiText(
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
       elevationGainFor: elevationGainFor,
+      findPreviousPoi: findPrev,
       onNext: findNext,
       onPrev: findPrev,
       onSave: (poi, data) => saveAndFind(poi, data, true),
@@ -842,8 +848,9 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.title,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -851,8 +858,9 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.body,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
                 maxLines: 3,
                 minLines: 3,
               ),
@@ -1399,8 +1407,9 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.title,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1408,8 +1417,9 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.body,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
                 maxLines: 3,
                 minLines: 3,
               ),
@@ -1467,6 +1477,7 @@ class EditPoiTextDialog extends StatefulWidget {
     required this.distanceUnit,
     this.totalRouteKm,
     this.elevationGainFor,
+    this.findPreviousPoi,
     required this.onNext,
     required this.onPrev,
     required this.onSave,
@@ -1479,6 +1490,9 @@ class EditPoiTextDialog extends StatefulWidget {
 
   /// 指定 POI の獲得標高（m）を返す。null なら非表示。
   final double? Function(UserPoi)? elevationGainFor;
+
+  /// 一覧順で直前の POI（同一ルート上の前チェックポイント）。区間距離計算用。
+  final UserPoi? Function(UserPoi currentPoi)? findPreviousPoi;
 
   /// 保存せずに次のPOIを返す。なければ null。
   final UserPoi? Function(UserPoi currentPoi) onNext;
@@ -1522,7 +1536,13 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _kmFocusNode = FocusNode();
     _dummyFocusNode = FocusNode();
     _kmFocusNode.addListener(_onKmFocusChange);
+    _kmController.addListener(_onKmChanged);
     _loadPoiToForm(widget.poi);
+  }
+
+  void _onKmChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _onKmFocusChange() {
@@ -1533,6 +1553,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   @override
   void dispose() {
+    _kmController.removeListener(_onKmChanged);
     _kmFocusNode.removeListener(_onKmFocusChange);
     _kmFocusNode.dispose();
     _dummyFocusNode.dispose();
@@ -1560,6 +1581,70 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _departure = _timeOfDayFromDt(poi.bmExt?.schedule.departure);
     _close = _timeOfDayFromDt(poi.bmExt?.schedule.close);
     _kmError = null;
+  }
+
+  double? _parsedKmFromField() {
+    final text = _kmController.text.trim();
+    if (text.isEmpty) return null;
+    final value = double.tryParse(text);
+    if (value == null || value < 0) return null;
+    return widget.distanceUnit == 1 ? value * kmPerMile : value;
+  }
+
+  String _segmentDistanceDisplay() {
+    final cumulative = _parsedKmFromField();
+    if (cumulative == null) return '--';
+    final prev = widget.findPreviousPoi?.call(_currentPoi);
+    final prevKm = prev?.km;
+    final segmentKm = prevKm != null ? cumulative - prevKm : cumulative;
+    final clamped = segmentKm < 0 ? 0.0 : segmentKm;
+    return formatDistance(clamped, widget.distanceUnit);
+  }
+
+  String _elevationGainDisplay() {
+    final raw = widget.elevationGainFor?.call(_currentPoi);
+    return _formatElevGain(raw, widget.distanceUnit) ?? '0m';
+  }
+
+  Widget _segmentElevationSummaryBar() {
+    const style = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: Colors.white,
+      height: 1.25,
+    );
+    const iconSize = 14.0;
+    const iconColor = Colors.white;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade700,
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.route, size: iconSize, color: iconColor),
+          const SizedBox(width: 8),
+          const Icon(Icons.add, size: iconSize, color: iconColor),
+          const SizedBox(width: 4),
+          Text(
+            _segmentDistanceDisplay(),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.trending_up, size: iconSize, color: iconColor),
+          const SizedBox(width: 4),
+          Text(
+            _elevationGainDisplay(),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 
   /// フォームの内容が元の POI から変更されているか判定する
@@ -1801,48 +1886,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                                 fontSize: 12,
                               ),
                             )
-                          : Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  widget.distanceUnit == 1 ? 'mi' : 'km',
-                                  style: AppTextStyles.title,
-                                ),
-                                Builder(builder: (_) {
-                                  final gain = _formatElevGain(
-                                    widget.elevationGainFor?.call(_currentPoi),
-                                    widget.distanceUnit,
-                                  );
-                                  if (gain == null) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  return Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      const SizedBox(width: 10),
-                                      const Text(
-                                        '(',
-                                        style: AppTextStyles.title,
-                                      ),
-                                      const SizedBox(width: 2),
-                                      const Icon(
-                                        Icons.trending_up,
-                                        size: 17,
-                                        color: Colors.black54,
-                                      ),
-                                      const SizedBox(width: 3),
-                                      Text(gain, style: AppTextStyles.title),
-                                      const SizedBox(width: 3),
-                                      const Text(
-                                        ')',
-                                        style: AppTextStyles.title,
-                                      ),
-                                    ],
-                                  );
-                                }),
-                              ],
+                          : Text(
+                              widget.distanceUnit == 1 ? 'mi' : 'km',
+                              style: AppTextStyles.title,
                             ),
                     ),
                   ),
@@ -1904,8 +1950,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.title,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1913,12 +1960,15 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 decoration: InputDecoration(
                   labelText: AppLocalizations.of(context)!.body,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
                 maxLines: 3,
                 minLines: 3,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 18),
+              _segmentElevationSummaryBar(),
+              const SizedBox(height: 14),
               _TimePickerRow(
                 label: AppLocalizations.of(context)!.plannedArrival,
                 time: _arrival,
