@@ -29,6 +29,47 @@ String formatDistanceNumeric(double km, int unit) {
   return _formatDistanceDisplayValue(km);
 }
 
+/// 標高変化（獲得など）をシート・グラフ共通で表示。m/ft を基本とし、丸め整数が ≥1000 のとき km/mi。
+/// [distanceUnit]: 0=metric, 1=imperial（[formatDistance] と同じ）。
+String formatElevationChange(double metersM, int distanceUnit) {
+  const metersPerStatuteMile = 1000 * kmPerMile;
+
+  String compactVertical(double majorUnits, String suffix) {
+    final s = majorUnits.toStringAsFixed(1);
+    final body = s.endsWith('.0') ? s.substring(0, s.length - 2) : s;
+    return '$body$suffix';
+  }
+
+  if (distanceUnit == 1) {
+    final ft = metersM / 0.3048;
+    if (ft.round().abs() >= 1000) {
+      final mi = metersM / metersPerStatuteMile;
+      return compactVertical(mi, 'mi');
+    }
+    return '${ft.round()}ft';
+  }
+  if (metersM.round().abs() >= 1000) {
+    return compactVertical(metersM / 1000, 'km');
+  }
+  return '${metersM.round()}m';
+}
+
+/// [formatElevationChange] の表示文字列からおおよそのメートル値を復元（アイコン表示判定用）。
+double? parseElevationChangeDisplayToMeters(String display) {
+  final trimmed = display.trim();
+  if (trimmed.isEmpty) return null;
+  final m = RegExp(r'^([\d.]+)').firstMatch(trimmed);
+  if (m == null) return null;
+  final v = double.tryParse(m.group(1)!);
+  if (v == null) return null;
+  final lower = trimmed.toLowerCase();
+  if (lower.endsWith('km')) return v * 1000;
+  if (lower.endsWith('mi')) return v * 1000 * kmPerMile;
+  if (lower.endsWith('ft')) return v * 0.3048;
+  if (lower.endsWith('m')) return v;
+  return null;
+}
+
 /// 複数の座標を囲む [LatLngBounds] を返す。空のときは null。
 LatLngBounds? boundsFromPoints(List<LatLng> points) {
   if (points.isEmpty) return null;
@@ -101,6 +142,7 @@ class ElevationSegmentChartData {
   const ElevationSegmentChartData({
     required this.segmentKm,
     required this.segmentElevationGainM,
+    required this.segmentElevationLossM,
     required this.kmAlongRouteStart,
     required this.kmAlongRouteEnd,
     required this.kmFromSegmentStart,
@@ -112,6 +154,9 @@ class ElevationSegmentChartData {
 
   /// 同一区間の獲得標高（メートル）。トラック上の索引は [buildElevationSegmentChartData] 内の lo〜hi。
   final double segmentElevationGainM;
+
+  /// 同一区間の獲得下降（メートル）。[segmentElevationGainM] と同じインデックス区間。
+  final double segmentElevationLossM;
 
   /// トラック先頭から区間始点（直前 POI に対応するトラック頂点）までの沿線距離（km）。
   final double kmAlongRouteStart;
@@ -171,6 +216,8 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
   final segmentKm = segmentM / 1000.0;
   final segmentElevationGainM =
       elevationGainBetweenIndices(alignedElev, lo, hi);
+  final segmentElevationLossM =
+      elevationLossBetweenIndices(alignedElev, lo, hi);
 
   final kmAlongRouteStart =
       distanceAlongTrackFromStart(trackPoints, lo) / 1000.0;
@@ -231,6 +278,7 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
   return ElevationSegmentChartData(
     segmentKm: segmentKm,
     segmentElevationGainM: segmentElevationGainM,
+    segmentElevationLossM: segmentElevationLossM,
     kmAlongRouteStart: kmAlongRouteStart,
     kmAlongRouteEnd: kmAlongRouteEnd,
     kmFromSegmentStart: kmDown,
@@ -280,6 +328,35 @@ double elevationGainBetweenIndices(
     }
   }
   return gain;
+}
+
+/// [fromIndex] から [toIndex] の区間の累積下降（獲得下降）をメートルで返す。
+/// [elevationGainBetweenIndices] と対称な閾値ロジック（ノイズ除去）。
+double elevationLossBetweenIndices(
+    List<double?> elevations, int fromIndex, int toIndex,
+    {double threshold = 4.0}) {
+  if (elevations.isEmpty) return 0;
+  final start = fromIndex.clamp(0, elevations.length - 1);
+  final end = toIndex.clamp(0, elevations.length - 1);
+  if (start >= end) return 0;
+  double loss = 0;
+  double? ref;
+  for (var i = start; i <= end; i++) {
+    final ele = elevations[i];
+    if (ele == null) continue;
+    if (ref == null) {
+      ref = ele;
+      continue;
+    }
+    final diff = ele - ref;
+    if (diff <= -threshold) {
+      loss -= diff;
+      ref = ele;
+    } else if (diff >= threshold) {
+      ref = ele;
+    }
+  }
+  return loss;
 }
 
 // ── isolate 用（compute()）──────────────────────────────────────────────────
@@ -340,14 +417,19 @@ int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
   return bestIndex;
 }
 
-/// compute() で実行する獲得標高計算。
-/// 各 POI の「前 POI（またはスタート）→ この POI」区間の獲得標高を返す。
-List<double?> computePoiElevationGains(PoiElevationGainInput input) {
+/// compute() で実行する獲得標高・獲得下降計算。
+/// 各 POI の「前 POI（またはスタート）→ この POI」区間のメートル値を返す。
+({List<double?> gains, List<double?> losses}) computePoiElevationGainAndLoss(
+    PoiElevationGainInput input) {
   final trackPoints = input.trackPoints;
   final elevations = input.elevations;
   final poiPositions = input.poiPositions;
+  final n = poiPositions.length;
   if (trackPoints.isEmpty || elevations.isEmpty) {
-    return List.filled(poiPositions.length, null);
+    return (
+      gains: List<double?>.filled(n, null),
+      losses: List<double?>.filled(n, null),
+    );
   }
   final indices = [
     for (var i = 0; i < poiPositions.length; i++)
@@ -356,11 +438,15 @@ List<double?> computePoiElevationGains(PoiElevationGainInput input) {
           ? trackPoints.length - 1
           : _nearestTrackIndexIsolate(trackPoints, poiPositions[i]),
   ];
-  return [
-    for (var i = 0; i < poiPositions.length; i++)
-      elevationGainBetweenIndices(
-          elevations, i > 0 ? indices[i - 1] : 0, indices[i]),
-  ];
+  final gains = <double?>[];
+  final losses = <double?>[];
+  for (var i = 0; i < poiPositions.length; i++) {
+    final from = i > 0 ? indices[i - 1] : 0;
+    final to = indices[i];
+    gains.add(elevationGainBetweenIndices(elevations, from, to));
+    losses.add(elevationLossBetweenIndices(elevations, from, to));
+  }
+  return (gains: gains, losses: losses);
 }
 
 // ── ここまで isolate 用 ─────────────────────────────────────────────────────

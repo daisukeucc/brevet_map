@@ -33,6 +33,7 @@ class MapState {
     this.gpxDotWaypoints = const [],
     this.userPois = const [],
     this.cachedPoiElevationGains,
+    this.cachedPoiElevationLosses,
     this.fullRoutePoints,
     this.savedZoomLevel,
     this.hasStartedInitialRouteFetch = false,
@@ -63,6 +64,9 @@ class MapState {
   /// [userPois] リスト順の獲得標高キャッシュ（メートル値）。インポート・起動・POI変更後に更新
   final List<double?>? cachedPoiElevationGains;
 
+  /// [userPois] リスト順の獲得下降キャッシュ（メートル値）。[cachedPoiElevationGains] と同タイミングで更新
+  final List<double?>? cachedPoiElevationLosses;
+
   /// アニメーション用フルルート（animateToRouteBounds にも使う）
   final List<LatLng>? fullRoutePoints;
 
@@ -89,6 +93,7 @@ class MapState {
     List<GpxPoi>? gpxDotWaypoints,
     List<UserPoi>? userPois,
     List<double?>? cachedPoiElevationGains,
+    List<double?>? cachedPoiElevationLosses,
     List<LatLng>? fullRoutePoints,
     double? savedZoomLevel,
     bool? hasStartedInitialRouteFetch,
@@ -117,6 +122,9 @@ class MapState {
       cachedPoiElevationGains: clearPoiElevationGains
           ? null
           : (cachedPoiElevationGains ?? this.cachedPoiElevationGains),
+      cachedPoiElevationLosses: clearPoiElevationGains
+          ? null
+          : (cachedPoiElevationLosses ?? this.cachedPoiElevationLosses),
       fullRoutePoints: clearFullRoutePoints
           ? null
           : (fullRoutePoints ?? this.fullRoutePoints),
@@ -518,15 +526,18 @@ class MapStateNotifier extends Notifier<MapState> {
       state = state.copyWith(clearPoiElevationGains: true);
       return;
     }
-    final gains = await compute(
-      computePoiElevationGains,
+    final metrics = await compute(
+      computePoiElevationGainAndLoss,
       (
         trackPoints: trackPoints,
         elevations: elevations,
         poiPositions: pois.map((p) => p.position).toList(),
       ),
     );
-    state = state.copyWith(cachedPoiElevationGains: gains);
+    state = state.copyWith(
+      cachedPoiElevationGains: metrics.gains,
+      cachedPoiElevationLosses: metrics.losses,
+    );
   }
 
   /// スタート・ゴール・POI マーカーを再構築して state を更新する

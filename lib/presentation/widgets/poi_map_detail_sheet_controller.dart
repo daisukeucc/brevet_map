@@ -37,12 +37,6 @@ class PoiMapDetailSheetController {
 
   final WidgetRef _ref;
 
-  String? _formatElevation(double? meters, int unit) {
-    if (meters == null) return null;
-    if (unit == 1) return '${(meters / 0.3048).round()}ft';
-    return '${meters.round()}m';
-  }
-
   PoiElevationOnDemand? _elevationOnDemandFor(
     List<LatLng> trackPoints,
     List<double?> elevations,
@@ -175,7 +169,9 @@ class PoiMapDetailSheetController {
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
-            elevationGain: _formatElevation(rawGains[i], unit),
+            elevationGain: rawGains[i] != null
+                ? formatElevationChange(rawGains[i]!, unit)
+                : null,
             description: ordered[i].body,
             position: ordered[i].position,
             arrival: ordered[i].bmExt?.schedule.arrival,

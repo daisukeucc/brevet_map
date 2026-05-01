@@ -77,19 +77,6 @@ class PoiSheetEntry {
   final bool isRouteStartPoi;
 }
 
-/// [poi_map_detail_sheet_controller] の `_formatElevation` と同じ規則。
-String _formatElevationGainForSheet(double metersM, int distanceUnit) {
-  if (distanceUnit == 1) return '${(metersM / 0.3048).round()}ft';
-  return '${metersM.round()}m';
-}
-
-/// 表示文字列から先頭の数値のみ取得（獲得が 0 の判定用）。
-double? _leadingElevationGainNumber(String display) {
-  final m = RegExp(r'([\d.]+)').firstMatch(display.trim());
-  if (m == null) return null;
-  return double.tryParse(m.group(1)!);
-}
-
 double? _effectiveElevationGainMeters({
   required String? elevationGainDisplay,
   required ElevationSegmentChartData? elevationSegment,
@@ -97,7 +84,7 @@ double? _effectiveElevationGainMeters({
   final fromSeg = elevationSegment?.segmentElevationGainM;
   if (fromSeg != null) return fromSeg;
   if (elevationGainDisplay == null || elevationGainDisplay.isEmpty) return null;
-  return _leadingElevationGainNumber(elevationGainDisplay);
+  return parseElevationChangeDisplayToMeters(elevationGainDisplay);
 }
 
 bool _shouldShowElevationGainIcon({
@@ -222,46 +209,36 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                const Icon(Icons.location_on,
-                                    size: 19, color: AppColors.muted),
-                                Transform.translate(
-                                  offset: const Offset(-5, 0),
-                                  child: Text(
-                                    '...',
-                                    style: AppTextStyles.body.copyWith(
-                                      fontSize: 15,
-                                      height: 1,
-                                    ),
-                                  ),
-                                ),
-                                Transform.translate(
-                                  offset: const Offset(-10, 0),
-                                  child: const Icon(Icons.location_on,
-                                      size: 19, color: AppColors.muted),
-                                ),
-                              ],
+                            const Icon(Icons.add,
+                                size: 18, color: AppColors.muted),
+                            const SizedBox(width: 1),
+                            Text(
+                              formatDistance(
+                                  chart.segmentKm, widget.req.distanceUnit),
+                              style: AppTextStyles.poiMedium,
+                              maxLines: 1,
+                              softWrap: false,
                             ),
-                            Transform.translate(
-                              offset: const Offset(-9, 0),
-                              child: Text(
-                                formatDistance(
-                                    chart.segmentKm, widget.req.distanceUnit),
-                                style: AppTextStyles.poiMedium,
-                                maxLines: 1,
-                                softWrap: false,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
+                            const SizedBox(width: 10),
                             const Icon(Icons.trending_up,
-                                size: 22, color: AppColors.muted),
+                                size: 18, color: AppColors.muted),
                             const SizedBox(width: 3),
                             Text(
-                              _formatElevationGainForSheet(
+                              formatElevationChange(
                                 chart.segmentElevationGainM,
+                                widget.req.distanceUnit,
+                              ),
+                              style: AppTextStyles.poiMedium,
+                              maxLines: 1,
+                              softWrap: false,
+                            ),
+                            const SizedBox(width: 10),
+                            const Icon(Icons.trending_down,
+                                size: 18, color: AppColors.muted),
+                            const SizedBox(width: 3),
+                            Text(
+                              formatElevationChange(
+                                chart.segmentElevationLossM,
                                 widget.req.distanceUnit,
                               ),
                               style: AppTextStyles.poiMedium,
@@ -550,9 +527,10 @@ class _PoiContentBlock extends StatelessWidget {
     final hasDistance = distance != null && distance!.isNotEmpty;
     final hasElevationGainText =
         elevationGain != null && elevationGain!.isNotEmpty;
-    final showSegmentChartPrecomputed = elevationSegment?.hasElevation == true &&
-        segmentDistanceLabel != null &&
-        segmentDistanceLabel!.isNotEmpty;
+    final showSegmentChartPrecomputed =
+        elevationSegment?.hasElevation == true &&
+            segmentDistanceLabel != null &&
+            segmentDistanceLabel!.isNotEmpty;
     final od = elevationOnDemand;
     final showElevationChartOnDemand = od != null &&
         od.trackPoints.length >= 2 &&
@@ -565,7 +543,7 @@ class _PoiContentBlock extends StatelessWidget {
     );
     final showElevationChartIcon =
         (showSegmentChartPrecomputed || showElevationChartOnDemand) &&
-        (isRouteStartPoi || effectiveGainM == null || effectiveGainM > 0.5);
+            (isRouteStartPoi || effectiveGainM == null || effectiveGainM > 0.5);
     final showElevationGainIcon = hasElevationGainText &&
         _shouldShowElevationGainIcon(
           isRouteStartPoi: isRouteStartPoi,
@@ -608,7 +586,7 @@ class _PoiContentBlock extends StatelessWidget {
                 ],
                 if (showElevationChartIcon) ...[
                   if (hasDistance || showElevationGainIcon)
-                    const SizedBox(width: 14),
+                    const SizedBox(width: 12),
                   InkWell(
                     onTap: () {
                       if (showSegmentChartPrecomputed) {
@@ -626,18 +604,12 @@ class _PoiContentBlock extends StatelessWidget {
                       }
                     },
                     borderRadius: BorderRadius.circular(4),
-                    child: Container(
-                      width: 26,
-                      height: 26,
-                      decoration: BoxDecoration(
+                    child: const Padding(
+                      padding: EdgeInsets.all(2),
+                      child: Icon(
+                        Icons.area_chart,
+                        size: 24,
                         color: AppColors.muted,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      alignment: Alignment.center,
-                      child: const Icon(
-                        Icons.query_stats,
-                        size: 19,
-                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -765,45 +737,34 @@ void _showPoiElevationSegmentDialog(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          const Icon(Icons.location_on,
-                              size: 19, color: AppColors.muted),
-                          Transform.translate(
-                            offset: const Offset(-5, 0),
-                            child: Text(
-                              '...',
-                              style: AppTextStyles.body.copyWith(
-                                fontSize: 15,
-                                height: 1,
-                              ),
-                            ),
-                          ),
-                          Transform.translate(
-                            offset: const Offset(-10, 0),
-                            child: const Icon(Icons.location_on,
-                                size: 19, color: AppColors.muted),
-                          ),
-                        ],
-                      ),
-                      Transform.translate(
-                        offset: const Offset(-9, 0),
-                        child: Text(
-                          distanceLabel,
-                          style: AppTextStyles.poiMedium,
-                          maxLines: 1,
-                          softWrap: false,
-                        ),
+                      const Icon(Icons.add, size: 22, color: AppColors.muted),
+                      const SizedBox(width: 3),
+                      Text(
+                        distanceLabel,
+                        style: AppTextStyles.poiMedium,
+                        maxLines: 1,
+                        softWrap: false,
                       ),
                       const SizedBox(width: 5),
                       const Icon(Icons.trending_up,
                           size: 22, color: AppColors.muted),
                       const SizedBox(width: 3),
                       Text(
-                        _formatElevationGainForSheet(
+                        formatElevationChange(
                           elevationSegment.segmentElevationGainM,
+                          distanceUnit,
+                        ),
+                        style: AppTextStyles.poiMedium,
+                        maxLines: 1,
+                        softWrap: false,
+                      ),
+                      const SizedBox(width: 10),
+                      const Icon(Icons.trending_down,
+                          size: 22, color: AppColors.muted),
+                      const SizedBox(width: 3),
+                      Text(
+                        formatElevationChange(
+                          elevationSegment.segmentElevationLossM,
                           distanceUnit,
                         ),
                         style: AppTextStyles.poiMedium,

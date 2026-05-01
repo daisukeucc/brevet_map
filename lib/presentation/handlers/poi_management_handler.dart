@@ -61,11 +61,8 @@ class PoiEditPositionRequest {
   final UserPoi poi;
 }
 
-String? _formatElevGain(double? meters, int distanceUnit) {
-  if (meters == null || meters < 0.5) return null;
-  if (distanceUnit == 1) return '${(meters / 0.3048).round()}ft';
-  return '${meters.round()}m';
-}
+String _elevationEditDisplay(double? metersM, int distanceUnit) =>
+    formatElevationChange(metersM ?? 0, distanceUnit);
 
 TimeOfDay? _timeOfDayFromDt(DateTime? dt) {
   if (dt == null) return null;
@@ -338,6 +335,18 @@ Future<void> handleEditPoiText(
     return gains[idx];
   }
 
+  double? elevationLossFor(UserPoi p) {
+    final ms = ref.read(mapStateProvider);
+    final losses = ms.cachedPoiElevationLosses;
+    final ordered = ms.userPois;
+    if (losses == null) return null;
+    final idx = ordered.indexWhere(
+      (q) => q.lat == p.lat && q.lng == p.lng && q.km == p.km,
+    );
+    if (idx < 0 || idx >= losses.length) return null;
+    return losses[idx];
+  }
+
   List<UserPoi> orderedPois() => List<UserPoi>.from(
         ref.read(mapStateProvider).userPois,
       );
@@ -539,6 +548,7 @@ Future<void> handleEditPoiText(
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
       elevationGainFor: elevationGainFor,
+      elevationLossFor: elevationLossFor,
       findPreviousPoi: findPrev,
       onNext: findNext,
       onPrev: findPrev,
@@ -1477,6 +1487,7 @@ class EditPoiTextDialog extends StatefulWidget {
     required this.distanceUnit,
     this.totalRouteKm,
     this.elevationGainFor,
+    this.elevationLossFor,
     this.findPreviousPoi,
     required this.onNext,
     required this.onPrev,
@@ -1490,6 +1501,9 @@ class EditPoiTextDialog extends StatefulWidget {
 
   /// 指定 POI の獲得標高（m）を返す。null なら非表示。
   final double? Function(UserPoi)? elevationGainFor;
+
+  /// 指定 POI の獲得下降（m）を返す。null なら非表示。
+  final double? Function(UserPoi)? elevationLossFor;
 
   /// 一覧順で直前の POI（同一ルート上の前チェックポイント）。区間距離計算用。
   final UserPoi? Function(UserPoi currentPoi)? findPreviousPoi;
@@ -1603,7 +1617,12 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   String _elevationGainDisplay() {
     final raw = widget.elevationGainFor?.call(_currentPoi);
-    return _formatElevGain(raw, widget.distanceUnit) ?? '0m';
+    return _elevationEditDisplay(raw, widget.distanceUnit);
+  }
+
+  String _elevationLossDisplay() {
+    final raw = widget.elevationLossFor?.call(_currentPoi);
+    return _elevationEditDisplay(raw, widget.distanceUnit);
   }
 
   Widget _segmentElevationSummaryBar() {
@@ -1626,7 +1645,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
           const Icon(Icons.route, size: iconSize, color: iconColor),
           const SizedBox(width: 8),
           const Icon(Icons.add, size: iconSize, color: iconColor),
-          const SizedBox(width: 4),
+          const SizedBox(width: 2),
           Text(
             _segmentDistanceDisplay(),
             style: style,
@@ -1635,9 +1654,18 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
           ),
           const SizedBox(width: 10),
           const Icon(Icons.trending_up, size: iconSize, color: iconColor),
-          const SizedBox(width: 4),
+          const SizedBox(width: 3),
           Text(
             _elevationGainDisplay(),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.trending_down, size: iconSize, color: iconColor),
+          const SizedBox(width: 3),
+          Text(
+            _elevationLossDisplay(),
             style: style,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,

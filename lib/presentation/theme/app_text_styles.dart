@@ -35,7 +35,7 @@ abstract class AppTextStyles {
   );
 
   static const TextStyle poiMedium = TextStyle(
-    fontSize: 21,
+    fontSize: 18,
     fontWeight: FontWeight.w700,
     color: AppColors.muted,
   );
