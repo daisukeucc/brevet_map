@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show compute;
@@ -134,28 +135,40 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   }
 
   Future<void> _buildChart() async {
-    final req = widget.req;
-    final chart = await compute(
-      computeElevationSegmentChartData,
-      (
-        trackPoints: req.trackPoints,
-        elevations: req.elevations.length == req.trackPoints.length
-            ? req.elevations
-            : List<double?>.filled(req.trackPoints.length, null),
-        poiPositions: req.poiPositions,
-        poiIndex: req.poiIndex,
-        maxSamples: 450,
-      ),
-    );
-    if (!mounted) return;
-    if (chart == null || !chart.hasElevation) {
+    try {
+      final req = widget.req;
+      final chart = await compute(
+        computeElevationSegmentChartData,
+        (
+          trackPoints: req.trackPoints,
+          elevations: req.elevations.length == req.trackPoints.length
+              ? req.elevations
+              : List<double?>.filled(req.trackPoints.length, null),
+          poiPositions: req.poiPositions,
+          poiIndex: req.poiIndex,
+          maxSamples: 450,
+        ),
+      ).timeout(
+        const Duration(seconds: 45),
+        onTimeout: () => throw TimeoutException(
+          'computeElevationSegmentChartData',
+          const Duration(seconds: 45),
+        ),
+      );
+      if (!mounted) return;
+      if (chart == null || !chart.hasElevation) {
+        Navigator.of(context).pop();
+        return;
+      }
+      setState(() {
+        _chart = chart;
+        _loading = false;
+      });
+    } catch (e, st) {
+      debugPrint('Elevation chart compute failed: $e\n$st');
+      if (!mounted) return;
       Navigator.of(context).pop();
-      return;
     }
-    setState(() {
-      _chart = chart;
-      _loading = false;
-    });
   }
 
   @override
