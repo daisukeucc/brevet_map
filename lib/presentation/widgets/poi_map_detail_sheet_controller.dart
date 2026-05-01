@@ -28,9 +28,6 @@ abstract final class PoiMapMarkerOrder {
 bool _sameGpxPoi(GpxPoi a, GpxPoi b) =>
     (a.lat - b.lat).abs() < 1e-9 && (a.lng - b.lng).abs() < 1e-9;
 
-bool _sameUserPoi(UserPoi a, UserPoi b) =>
-    (a.lat - b.lat).abs() < 1e-9 && (a.lng - b.lng).abs() < 1e-9;
-
 /// 地図上の POI タップから詳細ボトムシート表示・シート内移動時の地図追従までを担当する。
 class PoiMapDetailSheetController {
   PoiMapDetailSheetController(this._ref);
@@ -189,7 +186,7 @@ class PoiMapDetailSheetController {
           ),
         );
       }
-      final idx = ordered.indexWhere((p) => _sameUserPoi(p, poi));
+      final idx = UserPoi.indexInList(ordered, poi);
       final safeIdx = idx >= 0 ? idx : 0;
       showPoiDetailSheet(
         context,

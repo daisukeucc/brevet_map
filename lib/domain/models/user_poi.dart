@@ -43,6 +43,18 @@ class UserPoi {
 
   LatLng get position => LatLng(lat, lng);
 
+  /// [list] 内での [target] のインデックス。
+  ///
+  /// 同一座標・[km] の行が複数ある場合は、[identical] で一致する要素を優先する（GPX の重複 wpt など）。
+  static int indexInList(List<UserPoi> list, UserPoi target) {
+    final byRef = list.indexWhere((p) => identical(p, target));
+    if (byRef >= 0) return byRef;
+    return list.indexWhere(
+      (p) =>
+          p.lat == target.lat && p.lng == target.lng && p.km == target.km,
+    );
+  }
+
   /// チェックポイントか（インポート時は `<type>checkpoint</type>` 由来）
   bool get isCheckpoint => type == 0;
 

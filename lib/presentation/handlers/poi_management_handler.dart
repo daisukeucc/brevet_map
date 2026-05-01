@@ -328,9 +328,7 @@ Future<void> handleEditPoiText(
     final gains = ms.cachedPoiElevationGains;
     final orderedForGain = ms.userPois;
     if (gains == null) return null;
-    final idx = orderedForGain.indexWhere(
-      (q) => q.lat == p.lat && q.lng == p.lng && q.km == p.km,
-    );
+    final idx = UserPoi.indexInList(orderedForGain, p);
     if (idx < 0 || idx >= gains.length) return null;
     return gains[idx];
   }
@@ -340,9 +338,7 @@ Future<void> handleEditPoiText(
     final losses = ms.cachedPoiElevationLosses;
     final ordered = ms.userPois;
     if (losses == null) return null;
-    final idx = ordered.indexWhere(
-      (q) => q.lat == p.lat && q.lng == p.lng && q.km == p.km,
-    );
+    final idx = UserPoi.indexInList(ordered, p);
     if (idx < 0 || idx >= losses.length) return null;
     return losses[idx];
   }
@@ -351,21 +347,16 @@ Future<void> handleEditPoiText(
         ref.read(mapStateProvider).userPois,
       );
 
-  int findIndex(List<UserPoi> list, UserPoi current) => list.indexWhere(
-        (p) =>
-            p.lat == current.lat && p.lng == current.lng && p.km == current.km,
-      );
-
   UserPoi? findNext(UserPoi current) {
     final list = orderedPois();
-    final idx = findIndex(list, current);
+    final idx = UserPoi.indexInList(list, current);
     if (idx >= 0 && idx + 1 < list.length) return list[idx + 1];
     return null;
   }
 
   UserPoi? findPrev(UserPoi current) {
     final list = orderedPois();
-    final idx = findIndex(list, current);
+    final idx = UserPoi.indexInList(list, current);
     if (idx > 0) return list[idx - 1];
     return null;
   }
@@ -424,12 +415,7 @@ Future<void> handleEditPoiText(
               ? newStartDep.difference(oldStartDep)
               : null;
       final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
-      final startIdx = list.indexWhere(
-        (p) =>
-            p.lat == currentPoi.lat &&
-            p.lng == currentPoi.lng &&
-            p.km == currentPoi.km,
-      );
+      final startIdx = UserPoi.indexInList(list, currentPoi);
       if (startIdx < 0) {
         await ref
             .read(mapStateProvider.notifier)
@@ -487,12 +473,7 @@ Future<void> handleEditPoiText(
       }
     } else if (scheduleDelta != null) {
       final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
-      final editIdx = list.indexWhere(
-        (p) =>
-            p.lat == currentPoi.lat &&
-            p.lng == currentPoi.lng &&
-            p.km == currentPoi.km,
-      );
+      final editIdx = UserPoi.indexInList(list, currentPoi);
       if (editIdx < 0) {
         await ref
             .read(mapStateProvider.notifier)

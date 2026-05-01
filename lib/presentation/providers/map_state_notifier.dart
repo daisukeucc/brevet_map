@@ -464,9 +464,7 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// ユーザー POI を削除して保存し、マーカーを再構築する
   Future<void> deleteUserPoi(UserPoi poi) async {
-    final index = state.userPois.indexWhere(
-      (p) => p.lat == poi.lat && p.lng == poi.lng && p.km == poi.km,
-    );
+    final index = UserPoi.indexInList(state.userPois, poi);
     if (index < 0) return;
     final updated = List<UserPoi>.from(state.userPois)..removeAt(index);
     await saveUserPois(updated);
@@ -482,9 +480,7 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// 既存のユーザー POI を新しい内容で上書きして保存する
   Future<void> updateUserPoi(UserPoi oldPoi, UserPoi newPoi) async {
-    final index = state.userPois.indexWhere(
-      (p) => p.lat == oldPoi.lat && p.lng == oldPoi.lng && p.km == oldPoi.km,
-    );
+    final index = UserPoi.indexInList(state.userPois, oldPoi);
     if (index < 0) return;
     final updated = List<UserPoi>.from(state.userPois)..[index] = newPoi;
     await saveUserPois(updated);
