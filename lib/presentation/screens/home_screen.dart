@@ -68,8 +68,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         _BuildMixin {
   late final VolumeZoomHandler _volumeZoomHandler;
 
-  /// 初回インストールか（null=確認中、true=初回、false=2回目以降）
-  bool? _isFirstLaunch;
+  late bool _isFirstLaunch;
 
   @override
   Position _positionFromLatLng(double lat, double lng) {
@@ -157,14 +156,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
     ref.read(mapStateProvider.notifier).loadSavedRouteIfNeeded();
 
-    // 初回インストール判定（例外・タイムアウト時は false にフォールバック）
-    isFirstLaunch()
-        .timeout(const Duration(seconds: 3), onTimeout: () => false)
-        .then((first) {
-      if (mounted) setState(() => _isFirstLaunch = first);
-    }).catchError((_) {
-      if (mounted) setState(() => _isFirstLaunch = false);
-    });
+    // main() で事前ロード済みの値を同期で取得。非同期待ちなし。
+    _isFirstLaunch = ref.read(cachedFirstLaunchProvider);
 
     _initShareFlow();
 
@@ -240,30 +233,28 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     return Stack(
       children: [
         Scaffold(
-          body: _isFirstLaunch == null
-              ? const ConnectivityCheckingView()
-              : _isFirstLaunch!
-                  ? ConnectivityGate(
-                      onOnline: () {
-                        ref
-                            .read(cameraControllerProvider.notifier)
-                            .clearController();
-                        setState(() => _hasTriggeredInitialRouteFetch = false);
-                        ref
-                            .read(mapStateProvider.notifier)
-                            .resetInitialRouteFetchForRetry();
-                      },
-                      builder: (context, gateState, onRetry) {
-                        if (gateState == ConnectivityGateState.checking) {
-                          return const ConnectivityCheckingView();
-                        }
-                        if (gateState == ConnectivityGateState.offline) {
-                          return OfflinePlaceholderView(onRetry: onRetry);
-                        }
-                        return _buildBody(context);
-                      },
-                    )
-                  : _buildBody(context),
+          body: _isFirstLaunch
+              ? ConnectivityGate(
+                  onOnline: () {
+                    ref
+                        .read(cameraControllerProvider.notifier)
+                        .clearController();
+                    setState(() => _hasTriggeredInitialRouteFetch = false);
+                    ref
+                        .read(mapStateProvider.notifier)
+                        .resetInitialRouteFetchForRetry();
+                  },
+                  builder: (context, gateState, onRetry) {
+                    if (gateState == ConnectivityGateState.checking) {
+                      return const ConnectivityCheckingView();
+                    }
+                    if (gateState == ConnectivityGateState.offline) {
+                      return OfflinePlaceholderView(onRetry: onRetry);
+                    }
+                    return _buildBody(context);
+                  },
+                )
+              : _buildBody(context),
         ),
         ..._buildDragModeOverlays(context),
         ..._buildPoiAddModeOverlays(context),

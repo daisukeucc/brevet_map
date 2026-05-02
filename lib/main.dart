@@ -8,6 +8,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 
 import 'config/tile_config.dart';
+import 'data/repositories/first_launch_repository.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/providers/providers.dart';
 import 'presentation/screens/home_screen.dart';
@@ -46,12 +47,24 @@ Future<void> main() async {
   _initRevenueCat();
 
   await TileConfig.initUserAgentPackageName();
+
+  // 初回起動判定を main() で事前ロードする。
+  // initState() での SharedPreferences 初期化は RevenueCat の
+  // ネイティブ処理と競合して 1〜3 秒遅延することがあり、
+  // その間 ConnectivityCheckingView が表示されてスプラッシュが固着して見えるため。
+  bool firstLaunch = false;
+  try {
+    firstLaunch = await isFirstLaunch()
+        .timeout(const Duration(seconds: 3), onTimeout: () => false);
+  } catch (_) {}
+
   // FMTC（タイルキャッシュ）は allowFirstFrame 後に [_FmtcBackgroundInit] で起動。
   // main で await するとスプラッシュが長く止まるため。
 
   runApp(
-    const ProviderScope(
-      child: _FmtcBackgroundInit(
+    ProviderScope(
+      overrides: [cachedFirstLaunchProvider.overrideWithValue(firstLaunch)],
+      child: const _FmtcBackgroundInit(
         child: MyApp(),
       ),
     ),
