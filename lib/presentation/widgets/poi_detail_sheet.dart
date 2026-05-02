@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:latlong2/latlong.dart' show LatLng;
 
-import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart';
 
@@ -102,13 +101,40 @@ bool _shouldShowElevationGainIcon({
   return m > 0.5;
 }
 
+/// オーバーレイ無しの標高ダイアログ用。周囲に軽いシャドウのみ付与する。
+Widget _elevationDialogPanel({
+  required EdgeInsetsGeometry padding,
+  required Widget child,
+}) {
+  return DecoratedBox(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.10),
+          blurRadius: 14,
+          spreadRadius: 0,
+          offset: const Offset(0, 4),
+        ),
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 4,
+          spreadRadius: 0,
+          offset: const Offset(0, 1),
+        ),
+      ],
+    ),
+    child: Padding(padding: padding, child: child),
+  );
+}
+
 void _openElevationFromOnDemand(
   BuildContext context,
   PoiElevationOnDemand req,
 ) {
   showDialog<void>(
     context: context,
-    barrierColor: Colors.black54,
+    barrierColor: Colors.transparent,
     builder: (_) => _ElevationOnDemandDialog(req: req),
   );
 }
@@ -173,107 +199,99 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     final chart = _chart;
-    final compactButtonStyle = ButtonStyle(
-      minimumSize: WidgetStateProperty.all(Size.zero),
-      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    );
     return AlertDialog(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shadowColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       titlePadding: EdgeInsets.zero,
-      contentPadding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-      content: SizedBox(
-        width: double.maxFinite,
-        height: 210,
-        child: _loading || chart == null
-            ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SizedBox(
-                      height: 180,
-                      width: double.maxFinite,
-                      child: CustomPaint(
-                        painter: _SegmentElevationAreaPainter(
-                          km: chart.kmFromSegmentStart,
-                          elevationM: chart.elevationMeters,
-                          segmentKm: chart.segmentKm,
-                          kmAlongRouteStart: chart.kmAlongRouteStart,
-                          kmAlongRouteEnd: chart.kmAlongRouteEnd,
-                          distanceUnit: widget.req.distanceUnit,
-                          textScaler: MediaQuery.textScalerOf(context),
-                          textDirection: Directionality.of(context),
+      contentPadding: EdgeInsets.zero,
+      content: _elevationDialogPanel(
+        padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
+        child: SizedBox(
+          width: double.maxFinite,
+          height: 210,
+          child: _loading || chart == null
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        height: 180,
+                        width: double.maxFinite,
+                        child: CustomPaint(
+                          painter: _SegmentElevationAreaPainter(
+                            km: chart.kmFromSegmentStart,
+                            elevationM: chart.elevationMeters,
+                            segmentKm: chart.segmentKm,
+                            kmAlongRouteStart: chart.kmAlongRouteStart,
+                            kmAlongRouteEnd: chart.kmAlongRouteEnd,
+                            distanceUnit: widget.req.distanceUnit,
+                            textScaler: MediaQuery.textScalerOf(context),
+                            textDirection: Directionality.of(context),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 6),
-                    Align(
-                      alignment: Alignment.center,
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
+                      const SizedBox(height: 6),
+                      Align(
                         alignment: Alignment.center,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.add,
-                                size: 18, color: AppColors.muted),
-                            const SizedBox(width: 1),
-                            Text(
-                              formatDistance(
-                                  chart.segmentKm, widget.req.distanceUnit),
-                              style: AppTextStyles.poiMedium,
-                              maxLines: 1,
-                              softWrap: false,
-                            ),
-                            const SizedBox(width: 10),
-                            const Icon(Icons.trending_up,
-                                size: 18, color: AppColors.muted),
-                            const SizedBox(width: 3),
-                            Text(
-                              formatElevationChange(
-                                chart.segmentElevationGainM,
-                                widget.req.distanceUnit,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.add,
+                                  size: 18, color: AppColors.muted),
+                              const SizedBox(width: 1),
+                              Text(
+                                formatDistance(
+                                    chart.segmentKm, widget.req.distanceUnit),
+                                style: AppTextStyles.poiMedium,
+                                maxLines: 1,
+                                softWrap: false,
                               ),
-                              style: AppTextStyles.poiMedium,
-                              maxLines: 1,
-                              softWrap: false,
-                            ),
-                            const SizedBox(width: 10),
-                            const Icon(Icons.trending_down,
-                                size: 18, color: AppColors.muted),
-                            const SizedBox(width: 3),
-                            Text(
-                              formatElevationChange(
-                                chart.segmentElevationLossM,
-                                widget.req.distanceUnit,
+                              const SizedBox(width: 10),
+                              const Icon(Icons.trending_up,
+                                  size: 18, color: AppColors.muted),
+                              const SizedBox(width: 3),
+                              Text(
+                                formatElevationChange(
+                                  chart.segmentElevationGainM,
+                                  widget.req.distanceUnit,
+                                ),
+                                style: AppTextStyles.poiMedium,
+                                maxLines: 1,
+                                softWrap: false,
                               ),
-                              style: AppTextStyles.poiMedium,
-                              maxLines: 1,
-                              softWrap: false,
-                            ),
-                          ],
+                              const SizedBox(width: 10),
+                              const Icon(Icons.trending_down,
+                                  size: 18, color: AppColors.muted),
+                              const SizedBox(width: 3),
+                              Text(
+                                formatElevationChange(
+                                  chart.segmentElevationLossM,
+                                  widget.req.distanceUnit,
+                                ),
+                                style: AppTextStyles.poiMedium,
+                                maxLines: 1,
+                                softWrap: false,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-      ),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-      actions: [
-        TextButton(
-          style: compactButtonStyle,
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.ok, style: AppTextStyles.button),
         ),
-      ],
+      ),
     );
   }
 }
@@ -700,106 +718,98 @@ void _showPoiElevationSegmentDialog(
   required String distanceLabel,
   required int distanceUnit,
 }) {
-  final l10n = AppLocalizations.of(context)!;
   final textScaler = MediaQuery.textScalerOf(context);
   final textDirection = Directionality.of(context);
-  final compactButtonStyle = ButtonStyle(
-    minimumSize: WidgetStateProperty.all(Size.zero),
-    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-  );
   showDialog<void>(
     context: context,
-    barrierColor: Colors.black54,
-    builder: (ctx) => AlertDialog(
-      backgroundColor: Colors.white,
+    barrierColor: Colors.transparent,
+    builder: (_) => AlertDialog(
+      backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shadowColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       titlePadding: EdgeInsets.zero,
-      contentPadding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                height: 180,
-                width: double.maxFinite,
-                child: CustomPaint(
-                  painter: _SegmentElevationAreaPainter(
-                    km: elevationSegment.kmFromSegmentStart,
-                    elevationM: elevationSegment.elevationMeters,
-                    segmentKm: elevationSegment.segmentKm,
-                    kmAlongRouteStart: elevationSegment.kmAlongRouteStart,
-                    kmAlongRouteEnd: elevationSegment.kmAlongRouteEnd,
-                    distanceUnit: distanceUnit,
-                    textScaler: textScaler,
-                    textDirection: textDirection,
+      contentPadding: EdgeInsets.zero,
+      content: _elevationDialogPanel(
+        padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
+        child: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  height: 180,
+                  width: double.maxFinite,
+                  child: CustomPaint(
+                    painter: _SegmentElevationAreaPainter(
+                      km: elevationSegment.kmFromSegmentStart,
+                      elevationM: elevationSegment.elevationMeters,
+                      segmentKm: elevationSegment.segmentKm,
+                      kmAlongRouteStart: elevationSegment.kmAlongRouteStart,
+                      kmAlongRouteEnd: elevationSegment.kmAlongRouteEnd,
+                      distanceUnit: distanceUnit,
+                      textScaler: textScaler,
+                      textDirection: textDirection,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 6),
-              Align(
-                alignment: Alignment.center,
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
+                const SizedBox(height: 6),
+                Align(
                   alignment: Alignment.center,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.add, size: 22, color: AppColors.muted),
-                      const SizedBox(width: 3),
-                      Text(
-                        distanceLabel,
-                        style: AppTextStyles.poiMedium,
-                        maxLines: 1,
-                        softWrap: false,
-                      ),
-                      const SizedBox(width: 5),
-                      const Icon(Icons.trending_up,
-                          size: 22, color: AppColors.muted),
-                      const SizedBox(width: 3),
-                      Text(
-                        formatElevationChange(
-                          elevationSegment.segmentElevationGainM,
-                          distanceUnit,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add, size: 22, color: AppColors.muted),
+                        const SizedBox(width: 3),
+                        Text(
+                          distanceLabel,
+                          style: AppTextStyles.poiMedium,
+                          maxLines: 1,
+                          softWrap: false,
                         ),
-                        style: AppTextStyles.poiMedium,
-                        maxLines: 1,
-                        softWrap: false,
-                      ),
-                      const SizedBox(width: 10),
-                      const Icon(Icons.trending_down,
-                          size: 22, color: AppColors.muted),
-                      const SizedBox(width: 3),
-                      Text(
-                        formatElevationChange(
-                          elevationSegment.segmentElevationLossM,
-                          distanceUnit,
+                        const SizedBox(width: 5),
+                        const Icon(Icons.trending_up,
+                            size: 22, color: AppColors.muted),
+                        const SizedBox(width: 3),
+                        Text(
+                          formatElevationChange(
+                            elevationSegment.segmentElevationGainM,
+                            distanceUnit,
+                          ),
+                          style: AppTextStyles.poiMedium,
+                          maxLines: 1,
+                          softWrap: false,
                         ),
-                        style: AppTextStyles.poiMedium,
-                        maxLines: 1,
-                        softWrap: false,
-                      ),
-                    ],
+                        const SizedBox(width: 10),
+                        const Icon(Icons.trending_down,
+                            size: 22, color: AppColors.muted),
+                        const SizedBox(width: 3),
+                        Text(
+                          formatElevationChange(
+                            elevationSegment.segmentElevationLossM,
+                            distanceUnit,
+                          ),
+                          style: AppTextStyles.poiMedium,
+                          maxLines: 1,
+                          softWrap: false,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-      actionsPadding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
-      actions: [
-        TextButton(
-          style: compactButtonStyle,
-          onPressed: () => Navigator.pop(ctx),
-          child: Text(l10n.ok, style: AppTextStyles.button),
-        ),
-      ],
     ),
   );
 }
