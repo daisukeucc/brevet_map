@@ -183,17 +183,23 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
       );
       if (!mounted) return;
       if (chart == null || !chart.hasElevation) {
-        Navigator.of(context).pop();
+        Navigator.of(context).maybePop();
         return;
       }
-      setState(() {
-        _chart = chart;
-        _loading = false;
-      });
+      try {
+        setState(() {
+          _chart = chart;
+          _loading = false;
+        });
+      } catch (e, st) {
+        debugPrint('Elevation chart setState failed: $e\n$st');
+        if (!mounted) return;
+        Navigator.of(context).maybePop();
+      }
     } catch (e, st) {
       debugPrint('Elevation chart compute failed: $e\n$st');
       if (!mounted) return;
-      Navigator.of(context).pop();
+      Navigator.of(context).maybePop();
     }
   }
 
