@@ -173,6 +173,66 @@ class ElevationSegmentChartData {
   bool get hasElevation => elevationMeters.any((e) => e.isFinite);
 }
 
+/// [buildElevationSegmentChartData] と同一ルールのトラック索引区間（両端を含むサンプル範囲）。
+({int lo, int hi})? segmentIndicesForElevationChart(
+  List<LatLng> trackPoints,
+  List<LatLng> poiPositions,
+  int poiIndex,
+) {
+  if (trackPoints.isEmpty || poiPositions.isEmpty) return null;
+  if (poiIndex < 0 || poiIndex >= poiPositions.length) return null;
+
+  final toIdx = poiIndex == poiPositions.length - 1
+      ? trackPoints.length - 1
+      : nearestTrackIndex(trackPoints, poiPositions[poiIndex]);
+  final fromIdx = poiIndex == 0
+      ? 0
+      : nearestTrackIndex(trackPoints, poiPositions[poiIndex - 1]);
+
+  var lo = fromIdx;
+  var hi = toIdx;
+  if (lo > hi) {
+    final t = lo;
+    lo = hi;
+    hi = t;
+  }
+
+  if (poiIndex == 0) {
+    lo = 0;
+    hi = trackPoints.length - 1;
+  }
+
+  return (lo: lo, hi: hi);
+}
+
+/// 標高グラフダイアログのテキスト先行表示用。[buildElevationSegmentChartData] と同じ区間の
+/// 距離（km）・獲得・下降をメイン isolate 上で同期計算する。
+({double segmentKm, double gainM, double lossM})?
+    elevationSegmentMetricsPreview({
+  required List<LatLng> trackPoints,
+  required List<double?> elevations,
+  required List<LatLng> poiPositions,
+  required int poiIndex,
+}) {
+  final bounds = segmentIndicesForElevationChart(
+    trackPoints,
+    poiPositions,
+    poiIndex,
+  );
+  if (bounds == null) return null;
+
+  final alignedElev = elevations.length == trackPoints.length
+      ? elevations
+      : List<double?>.filled(trackPoints.length, null);
+
+  final segmentM =
+      distanceAlongTrackBetweenIndices(trackPoints, bounds.lo, bounds.hi);
+  final segmentKm = segmentM / 1000.0;
+  final gainM = elevationGainBetweenIndices(alignedElev, bounds.lo, bounds.hi);
+  final lossM = elevationLossBetweenIndices(alignedElev, bounds.lo, bounds.hi);
+  return (segmentKm: segmentKm, gainM: gainM, lossM: lossM);
+}
+
 /// 「直前の POI（またはスタート）からこの POI」までのルート区間の距離・標高サンプルを構築する。
 /// [poiIndex] が 0 のときは **トラック全体**（スタート〜終点）を対象とし、それ以外は前地点から当該 POI までの区間のみとする。
 /// [elevations] がトラックと不一致または空のときは標高は前方埋めのみ試み、無ければ NaN を詰める。
@@ -190,27 +250,15 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
       ? elevations
       : List<double?>.filled(trackPoints.length, null);
 
-  // 最終 POI（ゴール）は地理的近傍でなくトラック末尾を使う（折り返しルートで近傍が先頭付近になる誤りを防ぐ）
-  final toIdx = poiIndex == poiPositions.length - 1
-      ? trackPoints.length - 1
-      : nearestTrackIndex(trackPoints, poiPositions[poiIndex]);
-  final fromIdx = poiIndex == 0
-      ? 0
-      : nearestTrackIndex(trackPoints, poiPositions[poiIndex - 1]);
+  final bounds = segmentIndicesForElevationChart(
+    trackPoints,
+    poiPositions,
+    poiIndex,
+  );
+  if (bounds == null) return null;
 
-  var lo = fromIdx;
-  var hi = toIdx;
-  if (lo > hi) {
-    final t = lo;
-    lo = hi;
-    hi = t;
-  }
-
-  /// スタート地点（先頭 POI）の詳細では、区間ではなくルート全体の標高プロファイルを表示する。
-  if (poiIndex == 0) {
-    lo = 0;
-    hi = trackPoints.length - 1;
-  }
+  final lo = bounds.lo;
+  final hi = bounds.hi;
 
   final segmentM = distanceAlongTrackBetweenIndices(trackPoints, lo, hi);
   final segmentKm = segmentM / 1000.0;

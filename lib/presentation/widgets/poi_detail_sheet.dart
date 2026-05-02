@@ -153,10 +153,28 @@ class _ElevationOnDemandDialog extends StatefulWidget {
 class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   ElevationSegmentChartData? _chart;
   bool _loading = true;
+  String? _previewDistLabel;
+  String? _previewGainLabel;
+  String? _previewLossLabel;
 
   @override
   void initState() {
     super.initState();
+    final req = widget.req;
+    final alignedElev = req.elevations.length == req.trackPoints.length
+        ? req.elevations
+        : List<double?>.filled(req.trackPoints.length, null);
+    final m = elevationSegmentMetricsPreview(
+      trackPoints: req.trackPoints,
+      elevations: alignedElev,
+      poiPositions: req.poiPositions,
+      poiIndex: req.poiIndex,
+    );
+    if (m != null) {
+      _previewDistLabel = formatDistance(m.segmentKm, req.distanceUnit);
+      _previewGainLabel = formatElevationChange(m.gainM, req.distanceUnit);
+      _previewLossLabel = formatElevationChange(m.lossM, req.distanceUnit);
+    }
     _buildChart();
   }
 
@@ -206,6 +224,19 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   @override
   Widget build(BuildContext context) {
     final chart = _chart;
+    final req = widget.req;
+    final showChart = !_loading && chart != null;
+
+    final distText = showChart
+        ? formatDistance(chart.segmentKm, req.distanceUnit)
+        : (_previewDistLabel ?? '—');
+    final gainText = showChart
+        ? formatElevationChange(chart.segmentElevationGainM, req.distanceUnit)
+        : (_previewGainLabel ?? '—');
+    final lossText = showChart
+        ? formatElevationChange(chart.segmentElevationLossM, req.distanceUnit)
+        : (_previewLossLabel ?? '—');
+
     return AlertDialog(
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -216,86 +247,85 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
       contentPadding: EdgeInsets.zero,
       content: _elevationDialogPanel(
         padding: const EdgeInsets.fromLTRB(24, 18, 24, 24),
-        child: SizedBox(
-          width: double.maxFinite,
-          height: 210,
-          child: _loading || chart == null
-              ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        height: 180,
-                        width: double.maxFinite,
-                        child: CustomPaint(
-                          painter: _SegmentElevationAreaPainter(
-                            km: chart.kmFromSegmentStart,
-                            elevationM: chart.elevationMeters,
-                            segmentKm: chart.segmentKm,
-                            kmAlongRouteStart: chart.kmAlongRouteStart,
-                            kmAlongRouteEnd: chart.kmAlongRouteEnd,
-                            distanceUnit: widget.req.distanceUnit,
-                            textScaler: MediaQuery.textScalerOf(context),
-                            textDirection: Directionality.of(context),
-                          ),
-                        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 180,
+              width: double.maxFinite,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  const ColoredBox(color: Colors.white),
+                  if (showChart)
+                    CustomPaint(
+                      painter: _SegmentElevationAreaPainter(
+                        km: chart.kmFromSegmentStart,
+                        elevationM: chart.elevationMeters,
+                        segmentKm: chart.segmentKm,
+                        kmAlongRouteStart: chart.kmAlongRouteStart,
+                        kmAlongRouteEnd: chart.kmAlongRouteEnd,
+                        distanceUnit: req.distanceUnit,
+                        textScaler: MediaQuery.textScalerOf(context),
+                        textDirection: Directionality.of(context),
                       ),
-                      const SizedBox(height: 6),
-                      Align(
-                        alignment: Alignment.center,
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.center,
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.add,
-                                  size: 18, color: AppColors.muted),
-                              const SizedBox(width: 1),
-                              Text(
-                                formatDistance(
-                                    chart.segmentKm, widget.req.distanceUnit),
-                                style: AppTextStyles.poiMedium,
-                                maxLines: 1,
-                                softWrap: false,
-                              ),
-                              const SizedBox(width: 10),
-                              const Icon(Icons.trending_up,
-                                  size: 18, color: AppColors.muted),
-                              const SizedBox(width: 3),
-                              Text(
-                                formatElevationChange(
-                                  chart.segmentElevationGainM,
-                                  widget.req.distanceUnit,
-                                ),
-                                style: AppTextStyles.poiMedium,
-                                maxLines: 1,
-                                softWrap: false,
-                              ),
-                              const SizedBox(width: 10),
-                              const Icon(Icons.trending_down,
-                                  size: 18, color: AppColors.muted),
-                              const SizedBox(width: 3),
-                              Text(
-                                formatElevationChange(
-                                  chart.segmentElevationLossM,
-                                  widget.req.distanceUnit,
-                                ),
-                                style: AppTextStyles.poiMedium,
-                                maxLines: 1,
-                                softWrap: false,
-                              ),
-                            ],
-                          ),
-                        ),
+                    )
+                  else
+                    const Center(
+                      child: SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
                       ),
-                    ],
-                  ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 3),
+            Align(
+              alignment: Alignment.center,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.center,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add, size: 18, color: AppColors.muted),
+                    const SizedBox(width: 1),
+                    Text(
+                      distText,
+                      style: AppTextStyles.poiMedium,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                    const SizedBox(width: 10),
+                    const Icon(Icons.trending_up,
+                        size: 18, color: AppColors.muted),
+                    const SizedBox(width: 3),
+                    Text(
+                      gainText,
+                      style: AppTextStyles.poiMedium,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                    const SizedBox(width: 10),
+                    const Icon(Icons.trending_down,
+                        size: 18, color: AppColors.muted),
+                    const SizedBox(width: 3),
+                    Text(
+                      lossText,
+                      style: AppTextStyles.poiMedium,
+                      maxLines: 1,
+                      softWrap: false,
+                    ),
+                  ],
                 ),
+              ),
+            ),
+          ],
         ),
       ),
     );
