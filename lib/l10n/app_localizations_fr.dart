@@ -126,13 +126,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get body => 'Texte';
 
   @override
-  String get plannedArrival => 'Arrivée prévue';
+  String get plannedArrival => 'Arrivée';
 
   @override
-  String get plannedDeparture => 'Départ prévu';
+  String get plannedDeparture => 'Départ';
 
   @override
-  String get plannedClose => 'Fermeture';
+  String get plannedClose => 'Heure limite';
 
   @override
   String get arrivalShort => 'Arrivée';

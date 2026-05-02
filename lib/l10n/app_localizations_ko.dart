@@ -124,19 +124,19 @@ class AppLocalizationsKo extends AppLocalizations {
   String get body => '본문';
 
   @override
-  String get plannedArrival => '도착 예정';
+  String get plannedArrival => '도착';
 
   @override
-  String get plannedDeparture => '출발 예정';
+  String get plannedDeparture => '출발';
 
   @override
-  String get plannedClose => '마감';
+  String get plannedClose => '마감 시간';
 
   @override
-  String get arrivalShort => '도착 예정';
+  String get arrivalShort => '도착';
 
   @override
-  String get departureShort => '출발 예정';
+  String get departureShort => '출발';
 
   @override
   String get distance => '거리';

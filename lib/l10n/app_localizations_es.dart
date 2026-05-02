@@ -125,13 +125,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get body => 'Texto';
 
   @override
-  String get plannedArrival => 'Llegada prevista';
+  String get plannedArrival => 'Llegada';
 
   @override
-  String get plannedDeparture => 'Salida prevista';
+  String get plannedDeparture => 'Salida';
 
   @override
-  String get plannedClose => 'Cierre';
+  String get plannedClose => 'Hora límite';
 
   @override
   String get arrivalShort => 'Llegada';

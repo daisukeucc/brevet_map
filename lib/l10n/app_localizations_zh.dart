@@ -123,19 +123,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get body => '正文';
 
   @override
-  String get plannedArrival => '预计到达';
+  String get plannedArrival => '到达';
 
   @override
-  String get plannedDeparture => '预计出发';
+  String get plannedDeparture => '出发';
 
   @override
-  String get plannedClose => '关闭时间';
+  String get plannedClose => '截止时间';
 
   @override
-  String get arrivalShort => '预计到达';
+  String get arrivalShort => '到达';
 
   @override
-  String get departureShort => '预计出发';
+  String get departureShort => '出发';
 
   @override
   String get distance => '距离';
@@ -725,19 +725,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get body => '內容';
 
   @override
-  String get plannedArrival => '預計到達';
+  String get plannedArrival => '到達';
 
   @override
-  String get plannedDeparture => '預計出發';
+  String get plannedDeparture => '出發';
 
   @override
-  String get plannedClose => '關閉時間';
+  String get plannedClose => '截止時間';
 
   @override
-  String get arrivalShort => '預計到達';
+  String get arrivalShort => '到達';
 
   @override
-  String get departureShort => '預計出發';
+  String get departureShort => '出發';
 
   @override
   String get distance => '距離';
