@@ -1147,9 +1147,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
         final distStr =
             poi.km != null ? formatDistance(poi.km!, distanceUnit) : null;
         return Material(
-          key: ValueKey(
-            '${poi.lat}_${poi.lng}_${poi.km ?? 'n'}_${poi.title}',
-          ),
+          key: ObjectKey(poi),
           color: Colors.transparent,
           child: DecoratedBox(
             decoration: const BoxDecoration(
@@ -1859,193 +1857,198 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 72,
-                    child: TextField(
-                      controller: _kmController,
-                      focusNode: _kmFocusNode,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!.distance,
-                        isDense: true,
-                        errorText: _kmError != null ? ' ' : null,
-                        errorStyle: const TextStyle(height: 0, fontSize: 0),
+          child: KeyedSubtree(
+            key: ObjectKey(_currentPoi),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 72,
+                      child: TextField(
+                        controller: _kmController,
+                        focusNode: _kmFocusNode,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.distance,
+                          isDense: true,
+                          errorText: _kmError != null ? ' ' : null,
+                          errorStyle: const TextStyle(height: 0, fontSize: 0),
+                        ),
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(fontSize: 17),
                       ),
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(fontSize: 17),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: _kmError != null
-                          ? Text(
-                              _kmError!,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontSize: 12,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: _kmError != null
+                            ? Text(
+                                _kmError!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontSize: 12,
+                                ),
+                              )
+                            : Text(
+                                widget.distanceUnit == 1 ? 'mi' : 'km',
+                                style: AppTextStyles.title,
                               ),
-                            )
-                          : Text(
-                              widget.distanceUnit == 1 ? 'mi' : 'km',
-                              style: AppTextStyles.title,
-                            ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(AppLocalizations.of(context)!.poiType,
-                  style: AppTextStyles.body),
-              const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 0);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 0,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(AppLocalizations.of(context)!.checkpoint,
-                        style: AppTextStyles.body),
                   ],
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 1);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                const SizedBox(height: 16),
+                Text(AppLocalizations.of(context)!.poiType,
+                    style: AppTextStyles.body),
+                const SizedBox(height: 4),
+                GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    setState(() => _poiType = 0);
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<int>(
+                        value: 0,
+                        groupValue: _poiType,
+                        onChanged: (v) {
+                          FocusScope.of(context).unfocus();
+                          setState(() => _poiType = v!);
+                        },
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      Text(AppLocalizations.of(context)!.checkpoint,
+                          style: AppTextStyles.body),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    setState(() => _poiType = 1);
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Radio<int>(
+                        value: 1,
+                        groupValue: _poiType,
+                        onChanged: (v) {
+                          FocusScope.of(context).unfocus();
+                          setState(() => _poiType = v!);
+                        },
+                        visualDensity: VisualDensity.compact,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      Text(AppLocalizations.of(context)!.information,
+                          style: AppTextStyles.body),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.title,
+                    isDense: true,
+                    contentPadding: _kPoiTitleBodyFieldContentPadding,
+                  ),
+                  style: AppTextStyles.poiFormTitleBody,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _bodyController,
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.body,
+                    isDense: true,
+                    contentPadding: _kPoiTitleBodyFieldContentPadding,
+                  ),
+                  style: AppTextStyles.poiFormTitleBody,
+                  maxLines: 3,
+                  minLines: 3,
+                ),
+                const SizedBox(height: 18),
+                _segmentElevationSummaryBar(),
+                const SizedBox(height: 14),
+                _TimePickerRow(
+                  label: AppLocalizations.of(context)!.plannedArrival,
+                  time: _arrival,
+                  onTap: () => _pickTime(isArrival: true),
+                  onClear: () => setState(() => _arrival = null),
+                ),
+                const SizedBox(height: 8),
+                _TimePickerRow(
+                  label: AppLocalizations.of(context)!.plannedDeparture,
+                  time: _departure,
+                  onTap: () => _pickTime(isArrival: false),
+                  onClear: () => setState(() => _departure = null),
+                ),
+                const SizedBox(height: 8),
+                _TimePickerRow(
+                  label: AppLocalizations.of(context)!.plannedClose,
+                  time: _close,
+                  onTap: _pickClose,
+                  onClear: () => setState(() => _close = null),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Radio<int>(
-                      value: 1,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    IconButton(
+                      onPressed:
+                          (!_saving && widget.onPrev(_currentPoi) != null)
+                              ? _handlePrev
+                              : null,
+                      icon: const Icon(Icons.arrow_back_ios),
+                      color: Colors.black38,
+                      disabledColor: Colors.black12,
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
                     ),
-                    Text(AppLocalizations.of(context)!.information,
-                        style: AppTextStyles.body),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: _saving ? null : () => Navigator.pop(context),
+                      child: Text(AppLocalizations.of(context)!.cancel,
+                          style: AppTextStyles.button),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: _saving ? null : _handleChange,
+                      child: Text(AppLocalizations.of(context)!.change,
+                          style: AppTextStyles.button),
+                    ),
+                    IconButton(
+                      onPressed:
+                          (!_saving && widget.onNext(_currentPoi) != null)
+                              ? _handleNext
+                              : null,
+                      icon: const Icon(Icons.arrow_forward_ios),
+                      color: Colors.black38,
+                      disabledColor: Colors.black12,
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.title,
-                  isDense: true,
-                  contentPadding: _kPoiTitleBodyFieldContentPadding,
-                ),
-                style: AppTextStyles.poiFormTitleBody,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _bodyController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.body,
-                  isDense: true,
-                  contentPadding: _kPoiTitleBodyFieldContentPadding,
-                ),
-                style: AppTextStyles.poiFormTitleBody,
-                maxLines: 3,
-                minLines: 3,
-              ),
-              const SizedBox(height: 18),
-              _segmentElevationSummaryBar(),
-              const SizedBox(height: 14),
-              _TimePickerRow(
-                label: AppLocalizations.of(context)!.plannedArrival,
-                time: _arrival,
-                onTap: () => _pickTime(isArrival: true),
-                onClear: () => setState(() => _arrival = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: AppLocalizations.of(context)!.plannedDeparture,
-                time: _departure,
-                onTap: () => _pickTime(isArrival: false),
-                onClear: () => setState(() => _departure = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: AppLocalizations.of(context)!.plannedClose,
-                time: _close,
-                onTap: _pickClose,
-                onClear: () => setState(() => _close = null),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: (!_saving && widget.onPrev(_currentPoi) != null)
-                        ? _handlePrev
-                        : null,
-                    icon: const Icon(Icons.arrow_back_ios),
-                    color: Colors.black38,
-                    disabledColor: Colors.black12,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                  ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: _saving ? null : () => Navigator.pop(context),
-                    child: Text(AppLocalizations.of(context)!.cancel,
-                        style: AppTextStyles.button),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: _saving ? null : _handleChange,
-                    child: Text(AppLocalizations.of(context)!.change,
-                        style: AppTextStyles.button),
-                  ),
-                  IconButton(
-                    onPressed: (!_saving && widget.onNext(_currentPoi) != null)
-                        ? _handleNext
-                        : null,
-                    icon: const Icon(Icons.arrow_forward_ios),
-                    color: Colors.black38,
-                    disabledColor: Colors.black12,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
