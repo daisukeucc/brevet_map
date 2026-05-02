@@ -2091,7 +2091,7 @@ class _TimePickerRow extends StatelessWidget {
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onClear,
-            child: const Icon(Icons.close, size: 16, color: Colors.black38),
+            child: const Icon(Icons.close, size: 18, color: Colors.black38),
           ),
         ] else
           const SizedBox(width: 20),
