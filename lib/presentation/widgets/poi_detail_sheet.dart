@@ -653,30 +653,37 @@ class _PoiContentBlock extends StatelessWidget {
                 ],
                 if (showElevationChartIcon) ...[
                   if (hasDistance || showElevationGainIcon)
-                    const SizedBox(width: 12),
-                  InkWell(
-                    onTap: () {
-                      if (showSegmentChartPrecomputed) {
-                        _showPoiElevationSegmentDialog(
-                          context,
-                          elevationSegment: elevationSegment!,
-                          distanceLabel: segmentDistanceLabel!,
-                          distanceUnit: distanceUnit,
-                        );
-                      } else if (showElevationChartOnDemand) {
-                        _openElevationFromOnDemand(
-                          context,
-                          elevationOnDemand!,
-                        );
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(4),
-                    child: const Padding(
-                      padding: EdgeInsets.all(2),
-                      child: Icon(
-                        Icons.area_chart,
-                        size: 24,
-                        color: AppColors.muted,
+                    const SizedBox(width: 15),
+                  Material(
+                    color: Colors.grey.shade600,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(6),
+                      onTap: () {
+                        if (showSegmentChartPrecomputed) {
+                          _showPoiElevationSegmentDialog(
+                            context,
+                            elevationSegment: elevationSegment!,
+                            distanceLabel: segmentDistanceLabel!,
+                            distanceUnit: distanceUnit,
+                          );
+                        } else if (showElevationChartOnDemand) {
+                          _openElevationFromOnDemand(
+                            context,
+                            elevationOnDemand!,
+                          );
+                        }
+                      },
+                      child: const Padding(
+                        padding: EdgeInsets.all(3),
+                        child: Icon(
+                          Icons.query_stats,
+                          size: 22,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
