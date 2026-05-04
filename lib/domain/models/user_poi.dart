@@ -58,6 +58,10 @@ class UserPoi {
   /// チェックポイントか（インポート時は `<type>checkpoint</type>` 由来）
   bool get isCheckpoint => type == 0;
 
+  /// `<cmt>photo</cmt>` 由来など、GPX 上でフォト用 CP として扱うとき true
+  bool get isPhotoCheckpointMarker =>
+      isCheckpoint && gpxCmt?.trim().toLowerCase() == 'photo';
+
   static bool _isBmTypeFinish(UserPoi p) => p.bmExt?.type == 'finish';
 
   /// 詳細ボトムシートなどの表示順。

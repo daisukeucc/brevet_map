@@ -53,6 +53,7 @@ Future<List<Marker>> buildRouteMarkers({
   Widget? goalIcon;
   Widget? poiIconOrange;
   Widget? poiIconCheckpoint;
+  Widget? poiIconCheckpointPhoto;
 
   try {
     if (routePoints.isNotEmpty) {
@@ -69,6 +70,7 @@ Future<List<Marker>> buildRouteMarkers({
     if (hasVisibleGpxPoi || userPois.isNotEmpty) {
       poiIconOrange = await createPoiInfoMarkerIcon();
       poiIconCheckpoint = await createPoiCheckpointMarkerIcon();
+      poiIconCheckpointPhoto = await createPoiCheckpointPhotoMarkerIcon();
     }
   } catch (_) {
     return markers;
@@ -105,9 +107,19 @@ Future<List<Marker>> buildRouteMarkers({
     }
   }
 
-  if (pois.isNotEmpty && poiIconOrange != null && poiIconCheckpoint != null) {
+  if (pois.isNotEmpty &&
+      poiIconOrange != null &&
+      poiIconCheckpoint != null &&
+      poiIconCheckpointPhoto != null) {
     void addGpxPoiMarker(GpxPoi poi) {
-      final icon = poi.isCheckpoint ? poiIconCheckpoint : poiIconOrange;
+      final Widget icon;
+      if (!poi.isCheckpoint) {
+        icon = poiIconOrange!;
+      } else if (poi.isPhotoCheckpointMarker) {
+        icon = poiIconCheckpointPhoto!;
+      } else {
+        icon = poiIconCheckpoint!;
+      }
       markers.add(Marker(
         point: poi.position,
         width: _markerSize,
@@ -132,13 +144,21 @@ Future<List<Marker>> buildRouteMarkers({
 
   if (userPois.isNotEmpty &&
       poiIconOrange != null &&
-      poiIconCheckpoint != null) {
+      poiIconCheckpoint != null &&
+      poiIconCheckpointPhoto != null) {
     void addUserPoiMarker(UserPoi poi) {
       // start/finish は緑・赤マーカーでタップを処理するためスキップ
       final bmType = poi.bmExt?.type;
       if (bmType == 'start' || bmType == 'finish') return;
 
-      final icon = poi.isCheckpoint ? poiIconCheckpoint : poiIconOrange;
+      final Widget icon;
+      if (!poi.isCheckpoint) {
+        icon = poiIconOrange!;
+      } else if (poi.isPhotoCheckpointMarker) {
+        icon = poiIconCheckpointPhoto!;
+      } else {
+        icon = poiIconCheckpoint!;
+      }
       final isDragging = draggingPoi != null &&
           poi.lat == draggingPoi.lat &&
           poi.lng == draggingPoi.lng;

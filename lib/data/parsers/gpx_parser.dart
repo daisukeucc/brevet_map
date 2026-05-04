@@ -40,6 +40,10 @@ class GpxPoi {
     return t == 'checkpoint';
   }
 
+  /// `<cmt>photo</cmt>` のチェックポイント（撮影系）→ 地図ではカメラマーカー
+  bool get isPhotoCheckpointMarker =>
+      isCheckpoint && cmt?.trim().toLowerCase() == 'photo';
+
   /// `<type>Dot</type>`（大文字小文字無視）。アプリ表示では無視し、エクスポート用に別保持する。
   bool get isGpxDotType {
     final t = type?.trim().toLowerCase();

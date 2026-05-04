@@ -14,7 +14,8 @@ Future<Widget> createRoundedSquareMarkerIcon({
   const pixelRatio = 2.0;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)
+    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
   final outerRrect = RRect.fromRectAndRadius(
     const Rect.fromLTWH(0, 0, size, size),
@@ -48,7 +49,8 @@ Future<Widget> createRoundedSquareMarkerIcon({
     const iconSize = 35.0;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
-        const Rect.fromLTWH(cx - iconSize / 2, cy - iconSize / 2, iconSize, iconSize),
+        const Rect.fromLTWH(
+            cx - iconSize / 2, cy - iconSize / 2, iconSize, iconSize),
         const Radius.circular(0),
       ),
       iconPaint,
@@ -93,7 +95,79 @@ Widget _sizedIcon(Uint8List bytes, double size) {
   );
 }
 
-/// インフォメーションPOI用
+void _paintPoiMarkerDisk({
+  required Canvas canvas,
+  required double cx,
+  required double cy,
+  required double radius,
+  required Color fillColor,
+}) {
+  final circlePaint = Paint()
+    ..color = fillColor
+    ..style = PaintingStyle.fill;
+  canvas.drawCircle(Offset(cx, cy), radius, circlePaint);
+
+  final borderPaint = Paint()
+    ..color = Colors.white
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 6;
+  canvas.drawCircle(Offset(cx, cy), radius, borderPaint);
+}
+
+/// Material のチェック形に近い太線のチェック（フォントの Icons.check より線幅を制御しやすい）
+void _paintThickCheckMark(Canvas canvas, double cx, double cy) {
+  const strokeWidth = 9.0;
+  final checkPath = Path()
+    ..moveTo(cx - 13, cy)
+    ..lineTo(cx - 2, cy + 11)
+    ..lineTo(cx + 15, cy - 13);
+  canvas.drawPath(
+    checkPath,
+    Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round,
+  );
+}
+
+void _paintCircleMaterialIcon({
+  required Canvas canvas,
+  required double cx,
+  required double cy,
+  required double radius,
+  required Color fillColor,
+  required IconData icon,
+  double iconFontSize = 44,
+}) {
+  _paintPoiMarkerDisk(
+    canvas: canvas,
+    cx: cx,
+    cy: cy,
+    radius: radius,
+    fillColor: fillColor,
+  );
+
+  final textPainter = TextPainter(
+    text: TextSpan(
+      text: String.fromCharCode(icon.codePoint),
+      style: TextStyle(
+        fontFamily: icon.fontFamily,
+        package: icon.fontPackage,
+        color: Colors.white,
+        fontSize: iconFontSize,
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout();
+  textPainter.paint(
+    canvas,
+    Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
+  );
+}
+
+/// インフォメーションPOI用（白文字の「i」）
 Future<Widget> createPoiInfoMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
@@ -102,18 +176,16 @@ Future<Widget> createPoiInfoMarkerIcon() async {
   const cy = size / 2;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)
+    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
-  final circlePaint = Paint()
-    ..color = Colors.orange.shade600
-    ..style = PaintingStyle.fill;
-  canvas.drawCircle(const Offset(cx, cy), radius, circlePaint);
-
-  final borderPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 6;
-  canvas.drawCircle(const Offset(cx, cy), radius, borderPaint);
+  _paintPoiMarkerDisk(
+    canvas: canvas,
+    cx: cx,
+    cy: cy,
+    radius: radius,
+    fillColor: Colors.orange.shade600,
+  );
 
   const text = 'i';
   final textPainter = TextPainter(
@@ -121,8 +193,8 @@ Future<Widget> createPoiInfoMarkerIcon() async {
       text: text,
       style: TextStyle(
         color: Colors.white,
-        fontSize: 48,
-        fontWeight: FontWeight.w600,
+        fontSize: 54,
+        fontWeight: FontWeight.w800,
         fontFamily: 'sans-serif',
       ),
     ),
@@ -131,6 +203,39 @@ Future<Widget> createPoiInfoMarkerIcon() async {
   textPainter.paint(
     canvas,
     Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
+  );
+
+  final picture = recorder.endRecording();
+  final w = (size * pixelRatio).round();
+  final h = (size * pixelRatio).round();
+  final image = await picture.toImage(w, h);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return _sizedIcon(byteData.buffer.asUint8List(), 72);
+}
+
+/// `<type>checkpoint</type>` + `<cmt>photo</cmt>` 用（水色ディスク + カメラ）
+Future<Widget> createPoiCheckpointPhotoMarkerIcon() async {
+  const size = 102.0;
+  const radius = 40.0;
+  const pixelRatio = 2.0;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)
+    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
+
+  _paintCircleMaterialIcon(
+    canvas: canvas,
+    cx: cx,
+    cy: cy,
+    radius: radius,
+    fillColor: Colors.lightBlue,
+    icon: Icons.photo_camera,
+    iconFontSize: 50,
   );
 
   final picture = recorder.endRecording();
@@ -258,7 +363,8 @@ Future<Widget> createSharePreviewMarkerIcon() async {
   const cy = size / 2;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)
+    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
   final circlePaint = Paint()
     ..color = Colors.blue
@@ -300,7 +406,7 @@ Future<Widget> createSharePreviewMarkerIcon() async {
   return _sizedIcon(byteData.buffer.asUint8List(), 72);
 }
 
-/// チェックポイントPOI用
+/// チェックポイントPOI用（太線の Check マーク）
 Future<Widget> createPoiCheckpointMarkerIcon() async {
   const size = 102.0;
   const radius = 40.0;
@@ -309,30 +415,17 @@ Future<Widget> createPoiCheckpointMarkerIcon() async {
   const cy = size / 2;
 
   final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)..clipRect(const Rect.fromLTWH(0, 0, size, size));
+  final canvas = Canvas(recorder)
+    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
 
-  final circlePaint = Paint()
-    ..color = Colors.lightBlue
-    ..style = PaintingStyle.fill;
-  canvas.drawCircle(const Offset(cx, cy), radius, circlePaint);
-
-  final borderPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 6;
-  canvas.drawCircle(const Offset(cx, cy), radius, borderPaint);
-
-  final checkPath = Path()
-    ..moveTo(cx - 13, cy)
-    ..lineTo(cx - 2, cy + 11)
-    ..lineTo(cx + 15, cy - 13);
-  final checkPaint = Paint()
-    ..color = Colors.white
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 6
-    ..strokeCap = StrokeCap.round
-    ..strokeJoin = StrokeJoin.round;
-  canvas.drawPath(checkPath, checkPaint);
+  _paintPoiMarkerDisk(
+    canvas: canvas,
+    cx: cx,
+    cy: cy,
+    radius: radius,
+    fillColor: Colors.lightBlue,
+  );
+  _paintThickCheckMark(canvas, cx - 1, cy + 2);
 
   final picture = recorder.endRecording();
   final w = (size * pixelRatio).round();

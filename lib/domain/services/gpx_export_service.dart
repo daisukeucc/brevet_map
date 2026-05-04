@@ -137,9 +137,15 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
   final desc = poi.body.isEmpty ? null : poi.body;
   final sym = isStartOrFinish ? 'Flag' : 'Dot';
   final typeOut = poiType;
-  final cmtOut = isStartOrFinish
-      ? null
-      : (poiType == 'checkpoint' ? 'control' : 'generic');
+  final String? cmtOut;
+  if (isStartOrFinish) {
+    cmtOut = null;
+  } else if (poiType == 'checkpoint') {
+    cmtOut =
+        poi.gpxCmt?.trim().toLowerCase() == 'photo' ? 'photo' : 'control';
+  } else {
+    cmtOut = 'generic';
+  }
 
   _addWpt(
     builder,
