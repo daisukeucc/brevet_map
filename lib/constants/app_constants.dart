@@ -22,9 +22,11 @@ const String kManageSubscriptionAndroidUrl =
 /// [pubspec.yaml] の `version: x.y.z+build` と同じ表記（例 `1.1.0+18`）を [Set] に追加する。
 const Set<String> kAppVersionsWithFullFeatureUnlock = {
   '1.1.0+18',
+  '1.2.0+19',
 };
 
 /// リリースノート（バージョン説明）ダイアログを出す [pubspec] の `x.y.z+build` 一覧。文言は l10n（例: releaseNotesV11018Message）と `release_notes_dialog` の分岐を対に追加する。
 const Set<String> kReleaseNoteDialogVersionBuildIds = {
   '1.1.0+18',
+  '1.2.0+19',
 };
