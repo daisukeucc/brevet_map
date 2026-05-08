@@ -37,6 +37,7 @@ class AddPoiFormData {
     required this.type,
     required this.title,
     required this.body,
+    required this.url,
     this.arrival,
     this.departure,
     this.close,
@@ -45,6 +46,7 @@ class AddPoiFormData {
   final int type;
   final String title;
   final String body;
+  final String url;
   final TimeOfDay? arrival;
   final TimeOfDay? departure;
   final TimeOfDay? close;
@@ -97,6 +99,7 @@ UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
     km: poi.km,
     title: poi.title,
     body: poi.body,
+    url: poi.url,
     lat: poi.lat,
     lng: poi.lng,
     gpxCmt: poi.gpxCmt,
@@ -208,6 +211,7 @@ UserPoi _userPoiWithFinishClose(UserPoi p, DateTime? close) {
     km: p.km,
     title: p.title,
     body: p.body,
+    url: p.url,
     lat: p.lat,
     lng: p.lng,
     gpxCmt: p.gpxCmt,
@@ -277,6 +281,7 @@ Future<void> handleDistanceInputPoiAdd(
           km: data.km,
           title: data.title,
           body: data.body,
+          url: data.url,
           lat: coord.latitude,
           lng: coord.longitude,
           bmExt: bmExt,
@@ -313,6 +318,7 @@ Future<void> handleMapLongPressPoiAdd(
           km: null,
           title: data.title,
           body: data.body,
+          url: data.url,
           lat: position.latitude,
           lng: position.longitude,
           bmExt: bmExt,
@@ -397,6 +403,7 @@ Future<void> handleEditPoiText(
       km: data.km,
       title: data.title,
       body: data.body,
+      url: data.url,
       lat: coord?.latitude ?? currentPoi.lat,
       lng: coord?.longitude ?? currentPoi.lng,
       gpxCmt: currentPoi.gpxCmt,
@@ -464,6 +471,7 @@ Future<void> handleEditPoiText(
             km: p.km,
             title: p.title,
             body: p.body,
+            url: p.url,
             lat: p.lat,
             lng: p.lng,
             gpxCmt: p.gpxCmt,
@@ -510,6 +518,7 @@ Future<void> handleEditPoiText(
             km: p.km,
             title: p.title,
             body: p.body,
+            url: p.url,
             lat: p.lat,
             lng: p.lng,
             gpxCmt: p.gpxCmt,
@@ -605,6 +614,7 @@ Future<void> handlePoiDragEnd(
     km: poi.km,
     title: poi.title,
     body: poi.body,
+    url: poi.url,
     lat: newLatLng.latitude,
     lng: newLatLng.longitude,
     gpxCmt: poi.gpxCmt,
@@ -640,6 +650,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
   final _kmController = TextEditingController();
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
+  final _urlController = TextEditingController();
   String? _kmError;
   late final FocusNode _kmFocusNode;
   TimeOfDay? _arrival;
@@ -667,6 +678,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
     _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
@@ -687,6 +699,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
       type: _poiType,
       title: _titleController.text.trim(),
       body: _bodyController.text.trim(),
+      url: _urlController.text.trim(),
       arrival: _arrival,
       departure: _departure,
       close: _close,
@@ -830,7 +843,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                     },
                     style: AppTextStyles.body.copyWith(color: Colors.black87),
                   ),
-              ),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -853,6 +866,17 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                 style: AppTextStyles.poiFormTitleBody,
                 maxLines: 3,
                 minLines: 3,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _urlController,
+                keyboardType: TextInputType.url,
+                decoration: const InputDecoration(
+                  labelText: 'URL',
+                  isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
+                ),
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 20),
               _TimePickerRow(
@@ -1247,6 +1271,7 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
   int _poiType = 0;
   late final TextEditingController _titleController;
   final _bodyController = TextEditingController();
+  final _urlController = TextEditingController();
   TimeOfDay? _arrival;
   TimeOfDay? _departure;
   TimeOfDay? _close;
@@ -1262,6 +1287,7 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
   void dispose() {
     _titleController.dispose();
     _bodyController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
@@ -1316,6 +1342,7 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
         type: _poiType,
         title: _titleController.text.trim(),
         body: _bodyController.text.trim(),
+        url: _urlController.text.trim(),
         arrival: _arrival,
         departure: _departure,
         close: _close,
@@ -1367,7 +1394,7 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                     },
                     style: AppTextStyles.body.copyWith(color: Colors.black87),
                   ),
-              ),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -1390,6 +1417,17 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                 style: AppTextStyles.poiFormTitleBody,
                 maxLines: 3,
                 minLines: 3,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _urlController,
+                keyboardType: TextInputType.url,
+                decoration: const InputDecoration(
+                  labelText: 'URL',
+                  isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
+                ),
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 20),
               _TimePickerRow(
@@ -1489,6 +1527,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   late int _poiType;
   late final TextEditingController _titleController;
   late final TextEditingController _bodyController;
+  late final TextEditingController _urlController;
   late final TextEditingController _kmController;
   late final FocusNode _kmFocusNode;
   late final FocusNode _dummyFocusNode;
@@ -1504,6 +1543,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _currentPoi = widget.poi;
     _titleController = TextEditingController();
     _bodyController = TextEditingController();
+    _urlController = TextEditingController();
     _kmController = TextEditingController();
     _kmFocusNode = FocusNode();
     _dummyFocusNode = FocusNode();
@@ -1532,6 +1572,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
@@ -1548,6 +1589,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _poiType = _normalizePoiTypeForForm(poi.type);
     _titleController.text = poi.title;
     _bodyController.text = poi.body;
+    _urlController.text = poi.url ?? '';
     _kmController.text = _kmToDisplayText(poi.km);
     _arrival = _timeOfDayFromDt(poi.bmExt?.schedule.arrival);
     _departure = _timeOfDayFromDt(poi.bmExt?.schedule.departure);
@@ -1644,6 +1686,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (_bodyController.text.trim() != _currentPoi.body) {
       return true;
     }
+    if (_urlController.text.trim() != (_currentPoi.url ?? '')) {
+      return true;
+    }
 
     if (_kmController.text.trim() != _kmToDisplayText(_currentPoi.km)) {
       return true;
@@ -1692,6 +1737,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       type: _poiType,
       title: _titleController.text.trim(),
       body: _bodyController.text.trim(),
+      url: _urlController.text.trim(),
       arrival: _arrival,
       departure: _departure,
       close: _close,
@@ -1931,6 +1977,17 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                   style: AppTextStyles.poiFormTitleBody,
                   maxLines: 3,
                   minLines: 3,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _urlController,
+                  keyboardType: TextInputType.url,
+                  decoration: const InputDecoration(
+                    labelText: 'URL',
+                    isDense: true,
+                    contentPadding: _kPoiTitleBodyFieldContentPadding,
+                  ),
+                  style: AppTextStyles.poiFormTitleBody,
                 ),
                 const SizedBox(height: 18),
                 _segmentElevationSummaryBar(),

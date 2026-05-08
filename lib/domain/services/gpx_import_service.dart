@@ -159,6 +159,7 @@ UserPoi _gpxPoiToUserPoi(
     km: km,
     title: parsed.title,
     body: poi.description ?? '',
+    url: poi.linkHref,
     lat: poi.lat,
     lng: poi.lng,
     gpxCmt: poi.cmt,
@@ -188,7 +189,6 @@ DateTime _defaultImportStartTime() {
   final n = DateTime.now();
   return DateTime(n.year, n.month, n.day, 6).toUtc();
 }
-
 
 /// スタートから [distanceKm] km・[elevationGainM] m 登りの地点への到着予定時刻を返す。
 /// 速度モデル: 基本 20 km/h + 登り 800 m/h（13.3 m/分）。

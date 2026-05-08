@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:latlong2/latlong.dart' show LatLng;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart';
@@ -33,6 +34,7 @@ class PoiSheetEntry {
   const PoiSheetEntry({
     required this.name,
     required this.description,
+    this.url,
     required this.position,
     this.distance,
     this.elevationGain,
@@ -50,6 +52,7 @@ class PoiSheetEntry {
   final String? distance;
   final String? elevationGain;
   final String? description;
+  final String? url;
   final LatLng position;
 
   /// スケジュール：到着時刻（UTC）
@@ -361,6 +364,7 @@ void showPoiDetailSheet(
         distance: entries.first.distance,
         elevationGain: entries.first.elevationGain,
         description: entries.first.description,
+        url: entries.first.url,
         arrival: entries.first.arrival,
         departure: entries.first.departure,
         close: entries.first.close,
@@ -380,6 +384,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
     required this.distance,
     required this.elevationGain,
     required this.description,
+    this.url,
     this.arrival,
     this.departure,
     this.close,
@@ -394,6 +399,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
   final String? distance;
   final String? elevationGain;
   final String? description;
+  final String? url;
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
@@ -416,6 +422,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
             distance: distance,
             elevationGain: elevationGain,
             description: description,
+            url: url,
             arrival: arrival,
             departure: departure,
             close: close,
@@ -488,6 +495,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                     distance: e.distance,
                     elevationGain: e.elevationGain,
                     description: e.description,
+                    url: e.url,
                     arrival: e.arrival,
                     departure: e.departure,
                     close: e.close,
@@ -560,6 +568,7 @@ class _PoiContentBlock extends StatelessWidget {
     required this.distance,
     required this.elevationGain,
     required this.description,
+    this.url,
     this.arrival,
     this.departure,
     this.close,
@@ -576,6 +585,7 @@ class _PoiContentBlock extends StatelessWidget {
   final String? distance;
   final String? elevationGain;
   final String? description;
+  final String? url;
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
@@ -588,6 +598,19 @@ class _PoiContentBlock extends StatelessWidget {
   final bool isRouteStartPoi;
 
   String _formatTime(DateTime dt) => DateFormat.Hm().format(dt.toLocal());
+
+  Uri? _parseOpenableUrl(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) return null;
+    var uri = Uri.tryParse(trimmed);
+    if (uri == null) return null;
+    if (!uri.hasScheme) {
+      uri = Uri.tryParse('https://$trimmed');
+      if (uri == null) return null;
+    }
+    if (uri.scheme != 'http' && uri.scheme != 'https') return null;
+    return uri;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -621,6 +644,8 @@ class _PoiContentBlock extends StatelessWidget {
         hasDistance || showElevationGainIcon || showElevationChartIcon;
     final hasName = name != null && name!.isNotEmpty;
     final hasDescription = description != null && description!.isNotEmpty;
+    final parsedUrl = url != null ? _parseOpenableUrl(url!) : null;
+    final hasUrl = parsedUrl != null;
     final hasArrival = arrival != null;
     final hasDeparture = departure != null;
     final hasClose = close != null;
@@ -734,8 +759,44 @@ class _PoiContentBlock extends StatelessWidget {
         if (hasName)
           Padding(
             padding: EdgeInsets.only(left: contentLeft),
-            child: Text(
-              name!.replaceAll('　', ' '),
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(text: name!.replaceAll('　', ' ')),
+                  if (hasUrl)
+                    const WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: SizedBox(width: 4),
+                    ),
+                  if (hasUrl)
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(14),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(14),
+                          splashColor: Colors.grey.withValues(alpha: 0.30),
+                          highlightColor: Colors.grey.withValues(alpha: 0.20),
+                          onTap: () async {
+                            await launchUrl(
+                              parsedUrl,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.all(3),
+                            child: Icon(
+                              Icons.link,
+                              size: 24,
+                              color: AppColors.muted,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               style: AppTextStyles.poiTitle.copyWith(height: 1.6),
             ),
           ),

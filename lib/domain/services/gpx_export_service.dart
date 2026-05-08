@@ -43,7 +43,8 @@ String buildGpxXml({
       });
       if (brevetMeta != null) {
         builder.element('extensions', nest: () {
-          builder.element('bm:brevet', attributes: {'version': '1.0'}, nest: () {
+          builder.element('bm:brevet', attributes: {'version': '1.0'},
+              nest: () {
             builder.element('bm:distanceKm', nest: () {
               builder.text(_formatNumber(brevetMeta.distanceKm));
             });
@@ -65,6 +66,7 @@ String buildGpxXml({
       _addWpt(builder, poi.lat, poi.lng,
           name: poi.name?.isNotEmpty == true ? poi.name : filename,
           desc: poi.description,
+          linkHref: poi.linkHref,
           sym: poi.symbol,
           cmt: poi.cmt,
           type: poi.type);
@@ -73,6 +75,7 @@ String buildGpxXml({
       _addWpt(builder, poi.lat, poi.lng,
           name: poi.name?.isNotEmpty == true ? poi.name : filename,
           desc: poi.description,
+          linkHref: poi.linkHref,
           sym: poi.symbol,
           cmt: poi.cmt,
           type: poi.type);
@@ -141,8 +144,7 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
   if (isStartOrFinish) {
     cmtOut = null;
   } else if (poiType == 'checkpoint') {
-    cmtOut =
-        poi.gpxCmt?.trim().toLowerCase() == 'photo' ? 'photo' : 'control';
+    cmtOut = poi.gpxCmt?.trim().toLowerCase() == 'photo' ? 'photo' : 'control';
   } else {
     cmtOut = 'generic';
   }
@@ -153,6 +155,7 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
     poi.lng,
     name: name,
     desc: isStartOrFinish ? null : desc,
+    linkHref: poi.url?.trim().isNotEmpty == true ? poi.url!.trim() : null,
     sym: sym,
     cmt: cmtOut,
     type: typeOut,
@@ -166,6 +169,7 @@ void _addWpt(
   double lng, {
   String? name,
   String? desc,
+  String? linkHref,
   String? sym,
   String? cmt,
   String? type,
@@ -184,6 +188,9 @@ void _addWpt(
       builder.element('desc', nest: () {
         builder.text(desc);
       });
+    }
+    if (linkHref != null && linkHref.isNotEmpty) {
+      builder.element('link', attributes: {'href': linkHref});
     }
     if (sym != null && sym.isNotEmpty) {
       builder.element('sym', nest: () {

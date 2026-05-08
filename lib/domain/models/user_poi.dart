@@ -109,6 +109,7 @@ class UserPoi {
     required this.km,
     required this.title,
     required this.body,
+    this.url,
     required this.lat,
     required this.lng,
 
@@ -129,6 +130,7 @@ class UserPoi {
 
   final String title;
   final String body;
+  final String? url;
   final double lat;
   final double lng;
 
@@ -224,6 +226,7 @@ class UserPoi {
         'km': km,
         'title': title,
         'body': body,
+        if (url != null && url!.isNotEmpty) 'url': url,
         'lat': lat,
         'lng': lng,
         if (gpxCmt != null) 'gpxCmt': gpxCmt,
@@ -236,6 +239,7 @@ class UserPoi {
         km: json['km'] != null ? (json['km'] as num).toDouble() : null,
         title: json['title'] as String? ?? '',
         body: json['body'] as String? ?? '',
+        url: json['url'] as String?,
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
         gpxCmt: json['gpxCmt'] as String?,

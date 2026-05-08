@@ -10,6 +10,7 @@ class GpxPoi {
     required this.lng,
     this.name,
     this.description,
+    this.linkHref,
     this.symbol,
     this.cmt,
     this.type,
@@ -20,6 +21,7 @@ class GpxPoi {
   final double lng;
   final String? name;
   final String? description;
+  final String? linkHref;
   final String? symbol;
 
   /// GPXの <cmt>（コメント）
@@ -55,6 +57,7 @@ class GpxPoi {
         'lng': lng,
         'name': name,
         'desc': description,
+        'linkHref': linkHref,
         'sym': symbol,
         'cmt': cmt,
         'type': type,
@@ -67,6 +70,7 @@ class GpxPoi {
       lng: (json['lng'] as num).toDouble(),
       name: json['name'] as String?,
       description: json['desc'] as String?,
+      linkHref: json['linkHref'] as String?,
       symbol: json['sym'] as String?,
       cmt: json['cmt'] as String?,
       type: json['type'] as String?,
@@ -97,11 +101,8 @@ GpxParseResult? parseGpx(String xmlContent) {
 
     // <metadata>
     final metadataEl = doc.findAllElements('metadata').firstOrNull;
-    final metadataName = metadataEl
-        ?.findElements('name')
-        .firstOrNull
-        ?.innerText
-        .trim();
+    final metadataName =
+        metadataEl?.findElements('name').firstOrNull?.innerText.trim();
     final name = metadataName?.isEmpty == true ? null : metadataName;
 
     // <metadata><extensions><bm:brevet>
@@ -115,7 +116,8 @@ GpxParseResult? parseGpx(String xmlContent) {
           final lon = double.tryParse(pt.getAttribute('lon') ?? '');
           if (lat != null && lon != null) {
             trackPoints.add(LatLng(lat, lon));
-            final eleText = pt.findElements('ele').firstOrNull?.innerText.trim();
+            final eleText =
+                pt.findElements('ele').firstOrNull?.innerText.trim();
             final ele = eleText == null || eleText.isEmpty
                 ? null
                 : double.tryParse(eleText);
@@ -125,13 +127,15 @@ GpxParseResult? parseGpx(String xmlContent) {
       }
     }
 
-    // <wpt>…<name/><desc/><sym/><cmt/><type/><extensions/>
+    // <wpt>…<name/><desc/><link href="..."/><sym/><cmt/><type/><extensions/>
     for (final wpt in doc.findAllElements('wpt')) {
       final lat = double.tryParse(wpt.getAttribute('lat') ?? '');
       final lon = double.tryParse(wpt.getAttribute('lon') ?? '');
       if (lat != null && lon != null) {
         final wptName = wpt.findElements('name').firstOrNull?.innerText.trim();
         final desc = wpt.findElements('desc').firstOrNull?.innerText.trim();
+        final linkHref =
+            wpt.findElements('link').firstOrNull?.getAttribute('href')?.trim();
         final sym = wpt.findElements('sym').firstOrNull?.innerText.trim();
         final cmt = wpt.findElements('cmt').firstOrNull?.innerText.trim();
         final type = wpt.findElements('type').firstOrNull?.innerText.trim();
@@ -141,6 +145,7 @@ GpxParseResult? parseGpx(String xmlContent) {
           lng: lon,
           name: wptName?.isEmpty == true ? null : wptName,
           description: desc?.isEmpty == true ? null : desc,
+          linkHref: linkHref?.isEmpty == true ? null : linkHref,
           symbol: sym?.isEmpty == true ? null : sym,
           cmt: cmt?.isEmpty == true ? null : cmt,
           type: type?.isEmpty == true ? null : type,
@@ -170,7 +175,8 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
   if (brevet == null) return null;
 
   final distanceKm = double.tryParse(
-        brevet.findElements('bm:distanceKm').firstOrNull?.innerText.trim() ?? '',
+        brevet.findElements('bm:distanceKm').firstOrNull?.innerText.trim() ??
+            '',
       ) ??
       0;
   final startTimeStr =
@@ -178,7 +184,11 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
   final startTime =
       startTimeStr.isNotEmpty ? DateTime.tryParse(startTimeStr) : null;
   final timeLimitHours = double.tryParse(
-        brevet.findElements('bm:timeLimitHours').firstOrNull?.innerText.trim() ??
+        brevet
+                .findElements('bm:timeLimitHours')
+                .firstOrNull
+                ?.innerText
+                .trim() ??
             '',
       ) ??
       0;

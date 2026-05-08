@@ -75,8 +75,7 @@ class PoiMapDetailSheetController {
     final trackPoints = ms.savedRoutePoints ?? const <LatLng>[];
     final elevations = ms.savedTrackElevations ?? const <double?>[];
     if (canNavigateInSheet) {
-      final positions =
-          ordered.map((p) => p.position).toList(growable: false);
+      final positions = ordered.map((p) => p.position).toList(growable: false);
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
         entries.add(
@@ -170,6 +169,7 @@ class PoiMapDetailSheetController {
                 ? formatElevationChange(rawGains[i]!, unit)
                 : null,
             description: ordered[i].body,
+            url: ordered[i].url,
             position: ordered[i].position,
             arrival: ordered[i].bmExt?.schedule.arrival,
             departure: ordered[i].bmExt?.schedule.departure,
@@ -205,6 +205,7 @@ class PoiMapDetailSheetController {
             distance: distanceFor(poi),
             elevationGain: null,
             description: poi.body,
+            url: poi.url,
             position: poi.position,
             arrival: poi.bmExt?.schedule.arrival,
             departure: poi.bmExt?.schedule.departure,
