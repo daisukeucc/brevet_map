@@ -3,6 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 
+import '../models/user_poi.dart';
+
 /// 角丸の正方形マーカー（スタート・ゴール用）
 Future<Widget> createRoundedSquareMarkerIcon({
   required Color backgroundColor,
@@ -140,6 +142,8 @@ void _paintCircleMaterialIcon({
   required Color fillColor,
   required IconData icon,
   double iconFontSize = 44,
+  double iconOffsetX = 0,
+  double iconOffsetY = 0,
 }) {
   _paintPoiMarkerDisk(
     canvas: canvas,
@@ -163,91 +167,124 @@ void _paintCircleMaterialIcon({
   )..layout();
   textPainter.paint(
     canvas,
-    Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
+    Offset(
+      cx - textPainter.width / 2 + iconOffsetX,
+      cy - textPainter.height / 2 + iconOffsetY,
+    ),
   );
+}
+
+const double _kPoiMarkerCanvasSize = 102.0;
+const double _kPoiMarkerRadius = 40.0;
+const double _kPoiMarkerPixelRatio = 2.0;
+const double _kPoiMarkerWidgetSize = 72.0;
+
+Future<Widget> _encodePoiMarkerIcon(
+  void Function(Canvas canvas, double cx, double cy) paintIcon,
+) async {
+  const size = _kPoiMarkerCanvasSize;
+  const cx = size / 2;
+  const cy = size / 2;
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder)
+    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
+
+  paintIcon(canvas, cx, cy);
+
+  final picture = recorder.endRecording();
+  final w = (size * _kPoiMarkerPixelRatio).round();
+  final h = (size * _kPoiMarkerPixelRatio).round();
+  final image = await picture.toImage(w, h);
+  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+  if (byteData == null) {
+    throw StateError('Failed to encode marker icon');
+  }
+  return _sizedIcon(byteData.buffer.asUint8List(), _kPoiMarkerWidgetSize);
+}
+
+Future<Widget> createPoiTypeMarkerIcon(UserPoiType type) async {
+  return _encodePoiMarkerIcon((canvas, cx, cy) {
+    switch (type) {
+      case UserPoiType.checkpoint:
+        _paintPoiMarkerDisk(
+          canvas: canvas,
+          cx: cx,
+          cy: cy,
+          radius: _kPoiMarkerRadius,
+          fillColor: type.markerFillColor,
+        );
+        _paintThickCheckMark(canvas, cx - 1, cy + 2);
+        break;
+      case UserPoiType.information:
+        _paintPoiMarkerDisk(
+          canvas: canvas,
+          cx: cx,
+          cy: cy,
+          radius: _kPoiMarkerRadius,
+          fillColor: type.markerFillColor,
+        );
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: 'i',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: type.markerIconFontSize,
+              fontWeight: FontWeight.w800,
+              fontFamily: 'sans-serif',
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        textPainter.paint(
+          canvas,
+          Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
+        );
+        break;
+      case UserPoiType.photo:
+      case UserPoiType.store:
+      case UserPoiType.hotel:
+      case UserPoiType.dining:
+      case UserPoiType.station:
+        final offset = type.markerIconOffset;
+        _paintCircleMaterialIcon(
+          canvas: canvas,
+          cx: cx,
+          cy: cy,
+          radius: _kPoiMarkerRadius,
+          fillColor: type.markerFillColor,
+          icon: type.icon,
+          iconFontSize: type.markerIconFontSize,
+          iconOffsetX: offset.dx,
+          iconOffsetY: offset.dy,
+        );
+        break;
+    }
+  });
 }
 
 /// インフォメーションPOI用（白文字の「i」）
-Future<Widget> createPoiInfoMarkerIcon() async {
-  const size = 102.0;
-  const radius = 40.0;
-  const pixelRatio = 2.0;
-  const cx = size / 2;
-  const cy = size / 2;
+Future<Widget> createPoiInfoMarkerIcon() =>
+    createPoiTypeMarkerIcon(UserPoiType.information);
 
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)
-    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
+/// フォトPOI用
+Future<Widget> createPoiCheckpointPhotoMarkerIcon() =>
+    createPoiTypeMarkerIcon(UserPoiType.photo);
 
-  _paintPoiMarkerDisk(
-    canvas: canvas,
-    cx: cx,
-    cy: cy,
-    radius: radius,
-    fillColor: Colors.orange.shade600,
-  );
+/// ストアPOI用
+Future<Widget> createPoiStoreMarkerIcon() =>
+    createPoiTypeMarkerIcon(UserPoiType.store);
 
-  const text = 'i';
-  final textPainter = TextPainter(
-    text: const TextSpan(
-      text: text,
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: 54,
-        fontWeight: FontWeight.w800,
-        fontFamily: 'sans-serif',
-      ),
-    ),
-    textDirection: TextDirection.ltr,
-  )..layout();
-  textPainter.paint(
-    canvas,
-    Offset(cx - textPainter.width / 2, cy - textPainter.height / 2),
-  );
+/// ホテルPOI用
+Future<Widget> createPoiHotelMarkerIcon() =>
+    createPoiTypeMarkerIcon(UserPoiType.hotel);
 
-  final picture = recorder.endRecording();
-  final w = (size * pixelRatio).round();
-  final h = (size * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  if (byteData == null) {
-    throw StateError('Failed to encode marker icon');
-  }
-  return _sizedIcon(byteData.buffer.asUint8List(), 72);
-}
+/// 食事POI用
+Future<Widget> createPoiDiningMarkerIcon() =>
+    createPoiTypeMarkerIcon(UserPoiType.dining);
 
-/// `<type>checkpoint</type>` + `<cmt>photo</cmt>` 用（水色ディスク + カメラ）
-Future<Widget> createPoiCheckpointPhotoMarkerIcon() async {
-  const size = 102.0;
-  const radius = 40.0;
-  const pixelRatio = 2.0;
-  const cx = size / 2;
-  const cy = size / 2;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)
-    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
-
-  _paintCircleMaterialIcon(
-    canvas: canvas,
-    cx: cx,
-    cy: cy,
-    radius: radius,
-    fillColor: Colors.lightBlue,
-    icon: Icons.photo_camera,
-    iconFontSize: 50,
-  );
-
-  final picture = recorder.endRecording();
-  final w = (size * pixelRatio).round();
-  final h = (size * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  if (byteData == null) {
-    throw StateError('Failed to encode marker icon');
-  }
-  return _sizedIcon(byteData.buffer.asUint8List(), 72);
-}
+/// 駅POI用
+Future<Widget> createPoiStationMarkerIcon() =>
+    createPoiTypeMarkerIcon(UserPoiType.station);
 
 /// 距離マーカー用の円アイコン（未使用・将来用）
 Future<Widget> createSmallCircleMarkerIcon({
@@ -407,33 +444,5 @@ Future<Widget> createSharePreviewMarkerIcon() async {
 }
 
 /// チェックポイントPOI用（太線の Check マーク）
-Future<Widget> createPoiCheckpointMarkerIcon() async {
-  const size = 102.0;
-  const radius = 40.0;
-  const pixelRatio = 2.0;
-  const cx = size / 2;
-  const cy = size / 2;
-
-  final recorder = ui.PictureRecorder();
-  final canvas = Canvas(recorder)
-    ..clipRect(const Rect.fromLTWH(0, 0, size, size));
-
-  _paintPoiMarkerDisk(
-    canvas: canvas,
-    cx: cx,
-    cy: cy,
-    radius: radius,
-    fillColor: Colors.lightBlue,
-  );
-  _paintThickCheckMark(canvas, cx - 1, cy + 2);
-
-  final picture = recorder.endRecording();
-  final w = (size * pixelRatio).round();
-  final h = (size * pixelRatio).round();
-  final image = await picture.toImage(w, h);
-  final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-  if (byteData == null) {
-    throw StateError('Failed to encode marker icon');
-  }
-  return _sizedIcon(byteData.buffer.asUint8List(), 72);
-}
+Future<Widget> createPoiCheckpointMarkerIcon() =>
+    createPoiTypeMarkerIcon(UserPoiType.checkpoint);

@@ -119,6 +119,21 @@ class AppLocalizationsIt extends AppLocalizations {
   String get information => 'Informazione';
 
   @override
+  String get poiTypePhotoCheck => 'Foto';
+
+  @override
+  String get poiTypeStore => 'Negozio';
+
+  @override
+  String get poiTypeHotel => 'Hotel';
+
+  @override
+  String get poiTypeDining => 'Ristorante';
+
+  @override
+  String get poiTypeStation => 'Stazione';
+
+  @override
   String get title => 'Titolo';
 
   @override

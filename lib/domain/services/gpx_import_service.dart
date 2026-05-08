@@ -153,7 +153,9 @@ UserPoi _gpxPoiToUserPoi(
   }
 
   return UserPoi(
-    type: poi.isCheckpoint ? 0 : 1,
+    type: poi.isCheckpoint
+        ? UserPoiType.checkpoint.value
+        : UserPoiType.information.value,
     km: km,
     title: parsed.title,
     body: poi.description ?? '',
@@ -260,7 +262,7 @@ UserPoi _createStartPoi(
   required double totalRouteKm,
 }) {
   return UserPoi(
-    type: 1,
+    type: UserPoiType.information.value,
     km: 0,
     title: 'Start',
     body: '',
@@ -283,7 +285,7 @@ UserPoi _createFinishPoi(
   double elevationGainM = 0,
 }) {
   return UserPoi(
-    type: 1,
+    type: UserPoiType.information.value,
     km: totalDistanceKm,
     title: 'Goal',
     body: '',

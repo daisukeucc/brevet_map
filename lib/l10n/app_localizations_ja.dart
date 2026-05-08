@@ -118,6 +118,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get information => 'インフォメーション';
 
   @override
+  String get poiTypePhotoCheck => 'フォトチェック';
+
+  @override
+  String get poiTypeStore => 'コンビニ';
+
+  @override
+  String get poiTypeHotel => 'ホテル';
+
+  @override
+  String get poiTypeDining => '食事';
+
+  @override
+  String get poiTypeStation => '駅';
+
+  @override
   String get title => 'タイトル';
 
   @override

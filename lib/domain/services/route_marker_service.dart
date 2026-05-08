@@ -54,6 +54,10 @@ Future<List<Marker>> buildRouteMarkers({
   Widget? poiIconOrange;
   Widget? poiIconCheckpoint;
   Widget? poiIconCheckpointPhoto;
+  Widget? poiIconStore;
+  Widget? poiIconHotel;
+  Widget? poiIconDining;
+  Widget? poiIconStation;
 
   try {
     if (routePoints.isNotEmpty) {
@@ -71,6 +75,10 @@ Future<List<Marker>> buildRouteMarkers({
       poiIconOrange = await createPoiInfoMarkerIcon();
       poiIconCheckpoint = await createPoiCheckpointMarkerIcon();
       poiIconCheckpointPhoto = await createPoiCheckpointPhotoMarkerIcon();
+      poiIconStore = await createPoiStoreMarkerIcon();
+      poiIconHotel = await createPoiHotelMarkerIcon();
+      poiIconDining = await createPoiDiningMarkerIcon();
+      poiIconStation = await createPoiStationMarkerIcon();
     }
   } catch (_) {
     return markers;
@@ -145,19 +153,39 @@ Future<List<Marker>> buildRouteMarkers({
   if (userPois.isNotEmpty &&
       poiIconOrange != null &&
       poiIconCheckpoint != null &&
-      poiIconCheckpointPhoto != null) {
+      poiIconCheckpointPhoto != null &&
+      poiIconStore != null &&
+      poiIconHotel != null &&
+      poiIconDining != null &&
+      poiIconStation != null) {
     void addUserPoiMarker(UserPoi poi) {
       // start/finish は緑・赤マーカーでタップを処理するためスキップ
       final bmType = poi.bmExt?.type;
       if (bmType == 'start' || bmType == 'finish') return;
 
       final Widget icon;
-      if (!poi.isCheckpoint) {
-        icon = poiIconOrange!;
-      } else if (poi.isPhotoCheckpointMarker) {
-        icon = poiIconCheckpointPhoto!;
-      } else {
-        icon = poiIconCheckpoint!;
+      switch (poi.poiType) {
+        case UserPoiType.checkpoint:
+          icon = poiIconCheckpoint!;
+          break;
+        case UserPoiType.information:
+          icon = poiIconOrange!;
+          break;
+        case UserPoiType.photo:
+          icon = poiIconCheckpointPhoto!;
+          break;
+        case UserPoiType.store:
+          icon = poiIconStore!;
+          break;
+        case UserPoiType.hotel:
+          icon = poiIconHotel!;
+          break;
+        case UserPoiType.dining:
+          icon = poiIconDining!;
+          break;
+        case UserPoiType.station:
+          icon = poiIconStation!;
+          break;
       }
       final isDragging = draggingPoi != null &&
           poi.lat == draggingPoi.lat &&

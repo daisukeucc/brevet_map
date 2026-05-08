@@ -118,6 +118,21 @@ class AppLocalizationsKo extends AppLocalizations {
   String get information => '정보';
 
   @override
+  String get poiTypePhotoCheck => '포토';
+
+  @override
+  String get poiTypeStore => '상점';
+
+  @override
+  String get poiTypeHotel => '호텔';
+
+  @override
+  String get poiTypeDining => '식사';
+
+  @override
+  String get poiTypeStation => '역';
+
+  @override
   String get title => '제목';
 
   @override

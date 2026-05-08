@@ -120,6 +120,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get information => 'Information';
 
   @override
+  String get poiTypePhotoCheck => 'Photo';
+
+  @override
+  String get poiTypeStore => 'Magasin';
+
+  @override
+  String get poiTypeHotel => 'Hôtel';
+
+  @override
+  String get poiTypeDining => 'Restaurant';
+
+  @override
+  String get poiTypeStation => 'Gare';
+
+  @override
   String get title => 'Titre';
 
   @override

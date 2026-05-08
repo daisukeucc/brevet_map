@@ -119,6 +119,21 @@ class AppLocalizationsTh extends AppLocalizations {
   String get information => 'ข้อมูล';
 
   @override
+  String get poiTypePhotoCheck => 'รูป';
+
+  @override
+  String get poiTypeStore => 'ร้านค้า';
+
+  @override
+  String get poiTypeHotel => 'โรงแรม';
+
+  @override
+  String get poiTypeDining => 'ร้านอาหาร';
+
+  @override
+  String get poiTypeStation => 'สถานี';
+
+  @override
   String get title => 'ชื่อเรื่อง';
 
   @override

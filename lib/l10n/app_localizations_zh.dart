@@ -117,6 +117,21 @@ class AppLocalizationsZh extends AppLocalizations {
   String get information => '信息';
 
   @override
+  String get poiTypePhotoCheck => '照片';
+
+  @override
+  String get poiTypeStore => '商店';
+
+  @override
+  String get poiTypeHotel => '酒店';
+
+  @override
+  String get poiTypeDining => '餐厅';
+
+  @override
+  String get poiTypeStation => '车站';
+
+  @override
   String get title => '标题';
 
   @override
@@ -717,6 +732,21 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get information => '資訊';
+
+  @override
+  String get poiTypePhotoCheck => '照片';
+
+  @override
+  String get poiTypeStore => '商店';
+
+  @override
+  String get poiTypeHotel => '飯店';
+
+  @override
+  String get poiTypeDining => '餐廳';
+
+  @override
+  String get poiTypeStation => '車站';
 
   @override
   String get title => '標題';

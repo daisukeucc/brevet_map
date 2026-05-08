@@ -70,6 +70,24 @@ TimeOfDay? _timeOfDayFromDt(DateTime? dt) {
   return TimeOfDay(hour: local.hour, minute: local.minute);
 }
 
+int _normalizePoiTypeForForm(int type) {
+  return UserPoiType.fromValue(type).value;
+}
+
+List<DropdownMenuItem<int>> _buildPoiTypeDropdownItems(AppLocalizations l10n) {
+  return UserPoiType.dropdownOrder
+      .map(
+        (type) => DropdownMenuItem<int>(
+          value: type.value,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text(type.localizedLabel(l10n)),
+          ),
+        ),
+      )
+      .toList(growable: false);
+}
+
 /// POI スケジュール内の全日時フィールドを [delta] だけシフトする。
 UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
   final ext = poi.bmExt;
@@ -114,7 +132,7 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   final meta = await loadBrevetMeta();
   final refDate = meta?.startTime ?? DateTime.now().toUtc();
   return BmPoiExtension(
-    type: data.type == 0 ? 'checkpoint' : 'generic',
+    type: data.type == UserPoiType.checkpoint.value ? 'checkpoint' : 'generic',
     distanceKm: km ?? 0,
     schedule: BmSchedule(
       arrival:
@@ -153,7 +171,8 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
     }
   }
   return BmPoiExtension(
-    type: existing?.type ?? (data.type == 0 ? 'checkpoint' : 'generic'),
+    type: existing?.type ??
+        (data.type == UserPoiType.checkpoint.value ? 'checkpoint' : 'generic'),
     distanceKm: existing?.distanceKm ?? data.km ?? 0,
     schedule: BmSchedule(
       arrival: data.arrival != null
@@ -789,49 +808,29 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
               const SizedBox(height: 28),
               Text(l10n.poiType, style: AppTextStyles.body),
               const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 0);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 0,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: DropdownButtonFormField<int>(
+                    value: _normalizePoiTypeForForm(_poiType),
+                    menuMaxHeight: 360,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                     ),
-                    Text(l10n.checkpoint, style: AppTextStyles.body),
-                  ],
-                ),
+                    items: _buildPoiTypeDropdownItems(l10n),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      FocusScope.of(context).unfocus();
+                      setState(() => _poiType = value);
+                    },
+                    style: AppTextStyles.body.copyWith(color: Colors.black87),
+                  ),
               ),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 1);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 1,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(l10n.information, style: AppTextStyles.body),
-                  ],
-                ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -1346,49 +1345,29 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
             children: [
               Text(l10n.poiType, style: AppTextStyles.body),
               const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 0);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 0,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: DropdownButtonFormField<int>(
+                    value: _normalizePoiTypeForForm(_poiType),
+                    menuMaxHeight: 360,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                     ),
-                    Text(l10n.checkpoint, style: AppTextStyles.body),
-                  ],
-                ),
+                    items: _buildPoiTypeDropdownItems(l10n),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      FocusScope.of(context).unfocus();
+                      setState(() => _poiType = value);
+                    },
+                    style: AppTextStyles.body.copyWith(color: Colors.black87),
+                  ),
               ),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 1);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 1,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(l10n.information, style: AppTextStyles.body),
-                  ],
-                ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -1566,7 +1545,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   void _loadPoiToForm(UserPoi poi) {
     _currentPoi = poi;
-    _poiType = poi.type;
+    _poiType = _normalizePoiTypeForForm(poi.type);
     _titleController.text = poi.title;
     _bodyController.text = poi.body;
     _kmController.text = _kmToDisplayText(poi.km);
@@ -1850,6 +1829,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Dialog(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
@@ -1904,60 +1884,37 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text(AppLocalizations.of(context)!.poiType,
-                    style: AppTextStyles.body),
+                Text(l10n.poiType, style: AppTextStyles.body),
                 const SizedBox(height: 4),
-                GestureDetector(
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                    setState(() => _poiType = 0);
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Radio<int>(
-                        value: 0,
-                        groupValue: _poiType,
-                        onChanged: (v) {
-                          FocusScope.of(context).unfocus();
-                          setState(() => _poiType = v!);
-                        },
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: DropdownButtonFormField<int>(
+                      value: _normalizePoiTypeForForm(_poiType),
+                      menuMaxHeight: 360,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                       ),
-                      Text(AppLocalizations.of(context)!.checkpoint,
-                          style: AppTextStyles.body),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                    setState(() => _poiType = 1);
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Radio<int>(
-                        value: 1,
-                        groupValue: _poiType,
-                        onChanged: (v) {
-                          FocusScope.of(context).unfocus();
-                          setState(() => _poiType = v!);
-                        },
-                        visualDensity: VisualDensity.compact,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      Text(AppLocalizations.of(context)!.information,
-                          style: AppTextStyles.body),
-                    ],
+                      items: _buildPoiTypeDropdownItems(l10n),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        FocusScope.of(context).unfocus();
+                        setState(() => _poiType = value);
+                      },
+                      style: AppTextStyles.body.copyWith(color: Colors.black87),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: _titleController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.title,
+                    labelText: l10n.title,
                     isDense: true,
                     contentPadding: _kPoiTitleBodyFieldContentPadding,
                   ),
@@ -1967,7 +1924,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 TextField(
                   controller: _bodyController,
                   decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context)!.body,
+                    labelText: l10n.body,
                     isDense: true,
                     contentPadding: _kPoiTitleBodyFieldContentPadding,
                   ),
@@ -1979,21 +1936,21 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 _segmentElevationSummaryBar(),
                 const SizedBox(height: 14),
                 _TimePickerRow(
-                  label: AppLocalizations.of(context)!.plannedArrival,
+                  label: l10n.plannedArrival,
                   time: _arrival,
                   onTap: () => _pickTime(isArrival: true),
                   onClear: () => setState(() => _arrival = null),
                 ),
                 const SizedBox(height: 8),
                 _TimePickerRow(
-                  label: AppLocalizations.of(context)!.plannedDeparture,
+                  label: l10n.plannedDeparture,
                   time: _departure,
                   onTap: () => _pickTime(isArrival: false),
                   onClear: () => setState(() => _departure = null),
                 ),
                 const SizedBox(height: 8),
                 _TimePickerRow(
-                  label: AppLocalizations.of(context)!.plannedClose,
+                  label: l10n.plannedClose,
                   time: _close,
                   onTap: _pickClose,
                   onClear: () => setState(() => _close = null),
@@ -2020,8 +1977,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       onPressed: _saving ? null : () => Navigator.pop(context),
-                      child: Text(AppLocalizations.of(context)!.cancel,
-                          style: AppTextStyles.button),
+                      child: Text(l10n.cancel, style: AppTextStyles.button),
                     ),
                     const SizedBox(width: 8),
                     TextButton(
@@ -2030,8 +1986,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       onPressed: _saving ? null : _handleChange,
-                      child: Text(AppLocalizations.of(context)!.change,
-                          style: AppTextStyles.button),
+                      child: Text(l10n.change, style: AppTextStyles.button),
                     ),
                     IconButton(
                       onPressed:

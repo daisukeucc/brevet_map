@@ -115,7 +115,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkpoint => 'Checkpoint';
 
   @override
-  String get information => 'Information';
+  String get information => 'Info';
+
+  @override
+  String get poiTypePhotoCheck => 'Photo';
+
+  @override
+  String get poiTypeStore => 'Store';
+
+  @override
+  String get poiTypeHotel => 'Hotel';
+
+  @override
+  String get poiTypeDining => 'Restaurant';
+
+  @override
+  String get poiTypeStation => 'Station';
 
   @override
   String get title => 'Title';

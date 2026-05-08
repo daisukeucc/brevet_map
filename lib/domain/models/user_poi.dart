@@ -1,6 +1,106 @@
+import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'bm_extension.dart';
+
+/// ユーザーPOIタイプ（保存値とUIアイコン定義）。
+enum UserPoiType {
+  checkpoint(0, Icons.check),
+  information(1, Icons.info),
+  photo(2, Icons.photo_camera),
+  store(3, Icons.shopping_basket),
+  hotel(4, Icons.hotel),
+  dining(5, Icons.restaurant),
+  station(6, Icons.train);
+
+  const UserPoiType(this.value, this.icon);
+
+  final int value;
+  final IconData icon;
+
+  /// POIタイプ選択UIでの表示順。
+  static const List<UserPoiType> dropdownOrder = [
+    UserPoiType.checkpoint,
+    UserPoiType.photo,
+    UserPoiType.information,
+    UserPoiType.store,
+    UserPoiType.hotel,
+    UserPoiType.dining,
+    UserPoiType.station,
+  ];
+
+  static UserPoiType fromValue(int value) {
+    for (final t in UserPoiType.values) {
+      if (t.value == value) return t;
+    }
+    return UserPoiType.information;
+  }
+
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case UserPoiType.checkpoint:
+        return l10n.checkpoint;
+      case UserPoiType.information:
+        return l10n.information;
+      case UserPoiType.photo:
+        return l10n.poiTypePhotoCheck;
+      case UserPoiType.store:
+        return l10n.poiTypeStore;
+      case UserPoiType.hotel:
+        return l10n.poiTypeHotel;
+      case UserPoiType.dining:
+        return l10n.poiTypeDining;
+      case UserPoiType.station:
+        return l10n.poiTypeStation;
+    }
+  }
+
+  Color get markerFillColor {
+    switch (this) {
+      case UserPoiType.checkpoint:
+      case UserPoiType.photo:
+        return Colors.lightBlue.shade600;
+      case UserPoiType.information:
+      case UserPoiType.store:
+      case UserPoiType.hotel:
+      case UserPoiType.dining:
+      case UserPoiType.station:
+        return Colors.orange.shade800;
+    }
+  }
+
+  double get markerIconFontSize {
+    switch (this) {
+      case UserPoiType.checkpoint:
+      case UserPoiType.information:
+      case UserPoiType.photo:
+      case UserPoiType.dining:
+        return 54;
+      case UserPoiType.store:
+      case UserPoiType.hotel:
+        return 55;
+      case UserPoiType.station:
+        return 56;
+    }
+  }
+
+  Offset get markerIconOffset {
+    switch (this) {
+      case UserPoiType.photo:
+      case UserPoiType.station:
+        return const Offset(0, 1);
+      case UserPoiType.store:
+      case UserPoiType.hotel:
+        return const Offset(0, -2);
+      case UserPoiType.dining:
+        return const Offset(-2, 1);
+      case UserPoiType.checkpoint:
+      case UserPoiType.information:
+        return Offset.zero;
+    }
+  }
+}
 
 /// ユーザーが手動で登録した POI。SharedPreferences に JSON で保存する。
 class UserPoi {
@@ -22,7 +122,7 @@ class UserPoi {
     this.bmExt,
   });
 
-  /// 0=チェックポイント（GPX の `<type>checkpoint</type>` に相当）, 1=インフォメーション
+  /// 0=チェックポイント, 1=インフォメーション, 2=フォト, 3=ストア, 4=ホテル, 5=食事, 6=駅
   final int type;
 
   final double? km;
@@ -42,6 +142,7 @@ class UserPoi {
   final BmPoiExtension? bmExt;
 
   LatLng get position => LatLng(lat, lng);
+  UserPoiType get poiType => UserPoiType.fromValue(type);
 
   /// [list] 内での [target] のインデックス。
   ///
@@ -50,13 +151,12 @@ class UserPoi {
     final byRef = list.indexWhere((p) => identical(p, target));
     if (byRef >= 0) return byRef;
     return list.indexWhere(
-      (p) =>
-          p.lat == target.lat && p.lng == target.lng && p.km == target.km,
+      (p) => p.lat == target.lat && p.lng == target.lng && p.km == target.km,
     );
   }
 
   /// チェックポイントか（インポート時は `<type>checkpoint</type>` 由来）
-  bool get isCheckpoint => type == 0;
+  bool get isCheckpoint => poiType == UserPoiType.checkpoint;
 
   /// `<cmt>photo</cmt>` 由来など、GPX 上でフォト用 CP として扱うとき true
   bool get isPhotoCheckpointMarker =>

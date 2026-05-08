@@ -320,8 +320,38 @@ abstract class AppLocalizations {
   /// No description provided for @information.
   ///
   /// In en, this message translates to:
-  /// **'Information'**
+  /// **'Info'**
   String get information;
+
+  /// No description provided for @poiTypePhotoCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get poiTypePhotoCheck;
+
+  /// No description provided for @poiTypeStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get poiTypeStore;
+
+  /// No description provided for @poiTypeHotel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel'**
+  String get poiTypeHotel;
+
+  /// No description provided for @poiTypeDining.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant'**
+  String get poiTypeDining;
+
+  /// No description provided for @poiTypeStation.
+  ///
+  /// In en, this message translates to:
+  /// **'Station'**
+  String get poiTypeStation;
 
   /// No description provided for @title.
   ///
