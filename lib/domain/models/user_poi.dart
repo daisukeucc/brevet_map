@@ -4,20 +4,57 @@ import 'package:latlong2/latlong.dart';
 import '../../l10n/app_localizations.dart';
 import 'bm_extension.dart';
 
+/// GPX の `<type>` / `<cmt>` ペア。
+class GpxPoiTag {
+  const GpxPoiTag({
+    required this.type,
+    required this.cmt,
+  });
+
+  final String type;
+  final String cmt;
+
+  static const GpxPoiTag checkpoint =
+      GpxPoiTag(type: 'checkpoint', cmt: 'control');
+  static const GpxPoiTag photo = GpxPoiTag(type: 'checkpoint', cmt: 'photo');
+  static const GpxPoiTag information =
+      GpxPoiTag(type: 'generic', cmt: 'generic');
+  static const GpxPoiTag hotel = GpxPoiTag(type: 'hotel', cmt: 'hotel');
+  static const GpxPoiTag store = GpxPoiTag(type: 'store', cmt: 'store');
+  static const GpxPoiTag dining = GpxPoiTag(type: 'food', cmt: 'food');
+  static const GpxPoiTag station = GpxPoiTag(type: 'station', cmt: 'station');
+
+  // GPX type (special waypoints)
+  static const String typeStart = 'start';
+  static const String typeFinish = 'finish';
+  static const String nameStart = 'Start';
+  static const String nameGoal = 'Goal';
+  static const String symFlag = 'Flag';
+  static const String symDot = 'Dot';
+
+  static bool isStartType(String? type) =>
+      type?.trim().toLowerCase() == typeStart;
+  static bool isFinishType(String? type) =>
+      type?.trim().toLowerCase() == typeFinish;
+  static bool isStartOrFinishType(String? type) =>
+      isStartType(type) || isFinishType(type);
+}
+
 /// ユーザーPOIタイプ（保存値とUIアイコン定義）。
 enum UserPoiType {
-  checkpoint(0, Icons.check),
-  information(1, Icons.info),
-  photo(2, Icons.photo_camera),
-  store(3, Icons.shopping_basket),
-  hotel(4, Icons.hotel),
-  dining(5, Icons.restaurant),
-  station(6, Icons.train);
+  checkpoint(0, Icons.check, GpxPoiTag.checkpoint),
+  information(1, Icons.info, GpxPoiTag.information),
+  photo(2, Icons.photo_camera, GpxPoiTag.photo),
+  store(3, Icons.shopping_basket, GpxPoiTag.store),
+  hotel(4, Icons.hotel, GpxPoiTag.hotel),
+  dining(5, Icons.restaurant, GpxPoiTag.dining),
+  station(6, Icons.train, GpxPoiTag.station);
 
-  const UserPoiType(this.value, this.icon);
+  const UserPoiType(this.value, this.icon, this.gpxTag);
 
   final int value;
   final IconData icon;
+  final GpxPoiTag gpxTag;
 
   /// POIタイプ選択UIでの表示順。
   static const List<UserPoiType> dropdownOrder = [
@@ -34,6 +71,46 @@ enum UserPoiType {
     for (final t in UserPoiType.values) {
       if (t.value == value) return t;
     }
+    return UserPoiType.information;
+  }
+
+  static UserPoiType fromGpxTag({
+    required String? type,
+    required String? cmt,
+  }) {
+    final typeLower = type?.trim().toLowerCase() ?? '';
+    final cmtLower = cmt?.trim().toLowerCase() ?? '';
+
+    if (typeLower == GpxPoiTag.checkpoint.type) {
+      return cmtLower == GpxPoiTag.photo.cmt
+          ? UserPoiType.photo
+          : UserPoiType.checkpoint;
+    }
+    if (typeLower == GpxPoiTag.information.type) {
+      return UserPoiType.information;
+    }
+    if (typeLower == GpxPoiTag.hotel.type) {
+      return UserPoiType.hotel;
+    }
+    if (typeLower == GpxPoiTag.store.type) {
+      return UserPoiType.store;
+    }
+    if (typeLower == GpxPoiTag.dining.type) {
+      return UserPoiType.dining;
+    }
+    if (typeLower == GpxPoiTag.station.type) {
+      return UserPoiType.station;
+    }
+    if (typeLower == GpxPoiTag.typeStart || typeLower == GpxPoiTag.typeFinish) {
+      return UserPoiType.information;
+    }
+
+    if (cmtLower == GpxPoiTag.photo.cmt) return UserPoiType.photo;
+    if (cmtLower == GpxPoiTag.checkpoint.cmt) return UserPoiType.checkpoint;
+    if (cmtLower == GpxPoiTag.hotel.cmt) return UserPoiType.hotel;
+    if (cmtLower == GpxPoiTag.store.cmt) return UserPoiType.store;
+    if (cmtLower == GpxPoiTag.dining.cmt) return UserPoiType.dining;
+    if (cmtLower == GpxPoiTag.station.cmt) return UserPoiType.station;
     return UserPoiType.information;
   }
 
@@ -60,13 +137,13 @@ enum UserPoiType {
     switch (this) {
       case UserPoiType.checkpoint:
       case UserPoiType.photo:
-        return Colors.lightBlue.shade600;
+        return Colors.lightBlue.shade500;
       case UserPoiType.information:
       case UserPoiType.store:
       case UserPoiType.hotel:
       case UserPoiType.dining:
       case UserPoiType.station:
-        return Colors.orange.shade800;
+        return Colors.orange.shade700;
     }
   }
 
@@ -100,6 +177,9 @@ enum UserPoiType {
         return Offset.zero;
     }
   }
+
+  /// BrevetMap 拡張 (`bm:type`) の既定値。
+  String get defaultBmPoiType => gpxTag.type;
 }
 
 /// ユーザーが手動で登録した POI。SharedPreferences に JSON で保存する。

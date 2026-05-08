@@ -126,28 +126,25 @@ String buildGpxXml({
 /// bmExt がある場合は `<extensions><bm:poi>` を付加し、種別に応じた sym/type/cmt を設定する。
 void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
   final bmExt = poi.bmExt;
-  final poiType = bmExt?.type ?? (poi.isCheckpoint ? 'checkpoint' : 'generic');
-  final isStartOrFinish = poiType == 'start' || poiType == 'finish';
+  final poiType = bmExt?.type ??
+      (poi.isCheckpoint
+          ? GpxPoiTag.checkpoint.type
+          : GpxPoiTag.information.type);
+  final isStartOrFinish = GpxPoiTag.isStartOrFinishType(poiType);
 
   final String? name;
-  if (poiType == 'start') {
-    name = poi.title.isEmpty ? 'Start' : poi.title;
-  } else if (poiType == 'finish') {
-    name = poi.title.isEmpty ? 'Goal' : poi.title;
+  if (GpxPoiTag.isStartType(poiType)) {
+    name = poi.title.isEmpty ? GpxPoiTag.nameStart : poi.title;
+  } else if (GpxPoiTag.isFinishType(poiType)) {
+    name = poi.title.isEmpty ? GpxPoiTag.nameGoal : poi.title;
   } else {
     name = poi.title.isEmpty ? null : poi.title;
   }
   final desc = poi.body.isEmpty ? null : poi.body;
-  final sym = isStartOrFinish ? 'Flag' : 'Dot';
-  final typeOut = poiType;
-  final String? cmtOut;
-  if (isStartOrFinish) {
-    cmtOut = null;
-  } else if (poiType == 'checkpoint') {
-    cmtOut = poi.gpxCmt?.trim().toLowerCase() == 'photo' ? 'photo' : 'control';
-  } else {
-    cmtOut = 'generic';
-  }
+  final sym = isStartOrFinish ? GpxPoiTag.symFlag : GpxPoiTag.symDot;
+  final gpxTag = poi.poiType.gpxTag;
+  final typeOut = isStartOrFinish ? poiType : gpxTag.type;
+  final cmtOut = isStartOrFinish ? null : gpxTag.cmt;
 
   _addWpt(
     builder,
