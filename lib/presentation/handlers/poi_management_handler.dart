@@ -1644,7 +1644,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
         children: [
           const Icon(Icons.route, size: iconSize, color: iconColor),
           const SizedBox(width: 8),
-          const Icon(Icons.add, size: iconSize, color: iconColor),
+          const Icon(Icons.swap_horiz, size: iconSize, color: iconColor),
           const SizedBox(width: 2),
           Text(
             _segmentDistanceDisplay(),
