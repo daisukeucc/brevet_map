@@ -597,7 +597,21 @@ class _PoiContentBlock extends StatelessWidget {
   final double contentLeft;
   final bool isRouteStartPoi;
 
-  String _formatTime(DateTime dt) => DateFormat.Hm().format(dt.toLocal());
+  String _formatTime(DateTime dt, BuildContext context) {
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat('H:mm', locale).format(dt.toLocal());
+  }
+  String _formatLocalizedDateTime(DateTime dt, BuildContext context) {
+    final locale = Localizations.localeOf(context).toString();
+    final datePart = DateFormat.Md(locale).format(dt.toLocal());
+    final timePart = DateFormat('H:mm', locale).format(dt.toLocal());
+    return '$datePart $timePart';
+  }
+
+  String _formatArrival(DateTime dt, BuildContext context) =>
+      _formatLocalizedDateTime(dt, context);
+  String _formatDeparture(DateTime dt, BuildContext context) =>
+      _formatLocalizedDateTime(dt, context);
 
   Uri? _parseOpenableUrl(String raw) {
     final trimmed = raw.trim();
@@ -653,6 +667,8 @@ class _PoiContentBlock extends StatelessWidget {
     final hasDeparture = departure != null;
     final hasClose = close != null;
     final hasSchedule = hasArrival || hasDeparture || hasClose;
+    final showDateOnArrival = hasArrival;
+    final showDateOnDeparture = !hasArrival && hasDeparture;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -729,24 +745,32 @@ class _PoiContentBlock extends StatelessWidget {
                 if (hasArrival) ...[
                   const Icon(Icons.arrow_downward,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 4),
-                  Text(_formatTime(arrival!), style: AppTextStyles.poiSchedule),
+                  const SizedBox(width: 2),
+                  Text(
+                      showDateOnArrival
+                          ? _formatArrival(arrival!, context)
+                          : _formatTime(arrival!, context),
+                      style: AppTextStyles.poiSchedule),
                 ],
-                if (hasArrival && hasDeparture) const SizedBox(width: 12),
+                if (hasArrival && hasDeparture) const SizedBox(width: 10),
                 if (hasDeparture) ...[
                   const Icon(Icons.arrow_upward,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 4),
-                  Text(_formatTime(departure!),
+                  const SizedBox(width: 2),
+                  Text(
+                      showDateOnDeparture
+                          ? _formatDeparture(departure!, context)
+                          : _formatTime(departure!, context),
                       style: AppTextStyles.poiSchedule),
                 ],
                 if ((hasArrival || hasDeparture) && hasClose)
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                 if (hasClose) ...[
                   const Icon(Icons.lock_outline,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 3),
-                  Text(_formatTime(close!), style: AppTextStyles.poiSchedule),
+                  const SizedBox(width: 1),
+                  Text(_formatTime(close!, context),
+                      style: AppTextStyles.poiSchedule),
                 ],
               ],
             ),
