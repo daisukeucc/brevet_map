@@ -622,7 +622,10 @@ class _PoiContentBlock extends StatelessWidget {
             segmentDistanceLabel != null &&
             segmentDistanceLabel!.isNotEmpty;
     final od = elevationOnDemand;
+    final hasOnDemandElevationData =
+        od != null && od.elevations.any((e) => e?.isFinite == true);
     final showElevationChartOnDemand = od != null &&
+        hasOnDemandElevationData &&
         od.trackPoints.length >= 2 &&
         od.poiPositions.isNotEmpty &&
         od.poiIndex >= 0 &&
