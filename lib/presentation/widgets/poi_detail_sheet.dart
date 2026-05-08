@@ -520,7 +520,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                         splashColor: Colors.grey.withValues(alpha: 0.3),
                         highlightColor: Colors.grey.withValues(alpha: 0.2),
                         child: const Padding(
-                          padding: EdgeInsets.only(bottom: 10),
+                          padding: EdgeInsets.only(top: 10, bottom: 10),
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Icon(
@@ -538,7 +538,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                         splashColor: Colors.grey.withValues(alpha: 0.3),
                         highlightColor: Colors.grey.withValues(alpha: 0.2),
                         child: const Padding(
-                          padding: EdgeInsets.only(top: 10),
+                          padding: EdgeInsets.only(top: 10, bottom: 10),
                           child: Align(
                             alignment: Alignment.topCenter,
                             child: Icon(
@@ -749,12 +749,16 @@ class _PoiContentBlock extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 12),
-        Padding(
-          padding: EdgeInsets.only(left: distanceLeft),
-          child: const Divider(height: 1, thickness: 1, color: Colors.black26),
-        ),
-        const SizedBox(height: 12),
+        if (hasDistance) ...[
+          const SizedBox(height: 12),
+          Padding(
+            padding: EdgeInsets.only(left: distanceLeft),
+            child:
+                const Divider(height: 1, thickness: 1, color: Colors.black26),
+          ),
+          const SizedBox(height: 12),
+        ] else
+          const SizedBox(height: 12),
         // タイトル
         if (hasName)
           Padding(
