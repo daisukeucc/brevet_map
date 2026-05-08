@@ -296,8 +296,9 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Icon(Icons.add, size: 18, color: AppColors.muted),
-                    const SizedBox(width: 1),
+                    const Icon(Icons.swap_horiz,
+                        size: 21, color: AppColors.muted),
+                    const SizedBox(width: 3),
                     Text(
                       distText,
                       style: AppTextStyles.poiMedium,
@@ -601,6 +602,7 @@ class _PoiContentBlock extends StatelessWidget {
     final locale = Localizations.localeOf(context).toString();
     return DateFormat('H:mm', locale).format(dt.toLocal());
   }
+
   String _formatLocalizedDateTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
     final datePart = DateFormat.Md(locale).format(dt.toLocal());
@@ -902,7 +904,8 @@ void _showPoiElevationSegmentDialog(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const Icon(Icons.add, size: 22, color: AppColors.muted),
+                        const Icon(Icons.swap_horiz,
+                            size: 22, color: AppColors.muted),
                         const SizedBox(width: 3),
                         Text(
                           distanceLabel,
