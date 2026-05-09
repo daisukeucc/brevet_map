@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
@@ -67,8 +68,14 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
         _LocationStreamMixin,
         _BuildMixin {
   late final VolumeZoomHandler _volumeZoomHandler;
+  bool _loggedFirstBuild = false;
 
   late bool _isFirstLaunch;
+
+  void _bootHomeLog(String message) {
+    if (!kDebugMode) return;
+    debugPrint('[BOOT_HOME] $message');
+  }
 
   @override
   Position _positionFromLatLng(double lat, double lng) {
@@ -110,6 +117,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
   @override
   void initState() {
     super.initState();
+    _bootHomeLog('MyHomePage.initState');
     WidgetsBinding.instance.addObserver(this);
 
     _volumeZoomHandler = VolumeZoomHandler(
@@ -160,6 +168,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     _isFirstLaunch = ref.read(cachedFirstLaunchProvider);
 
     _initShareFlow();
+    _bootHomeLog('MyHomePage.initState end');
 
     GpxChannelService.setMethodCallHandler((content) {
       if (mounted) {
@@ -196,6 +205,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _bootHomeLog('lifecycle -> $state');
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
       saveMapStyleMode(ref.read(mapStateProvider).mapStyleMode);
@@ -230,6 +240,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
 
   @override
   Widget build(BuildContext context) {
+    if (!_loggedFirstBuild) {
+      _loggedFirstBuild = true;
+      _bootHomeLog('MyHomePage.firstBuild firstLaunch=$_isFirstLaunch');
+    }
     return Stack(
       children: [
         Scaffold(
