@@ -1152,8 +1152,8 @@ class _SegmentElevationAreaPainter extends CustomPainter {
       Paint()
         ..shader = LinearGradient(
           colors: [
-            Colors.blue.withValues(alpha: 0.38),
-            Colors.blue.withValues(alpha: 0.06),
+            Colors.blue.shade600.withValues(alpha: 0.7),
+            Colors.blue.shade600.withValues(alpha: 0.06),
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -1162,8 +1162,8 @@ class _SegmentElevationAreaPainter extends CustomPainter {
     canvas.drawPath(
       topPath,
       Paint()
-        ..color = Colors.blue
-        ..strokeWidth = 1.2
+        ..color = Colors.blue.shade600
+        ..strokeWidth = 0.6
         ..style = PaintingStyle.stroke
         ..isAntiAlias = true,
     );
