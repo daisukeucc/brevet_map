@@ -747,14 +747,14 @@ class _PoiContentBlock extends StatelessWidget {
                 if (hasArrival) ...[
                   const Icon(Icons.arrow_downward,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 2),
+                  const SizedBox(width: 3),
                   Text(
                       showDateOnArrival
                           ? _formatArrival(arrival!, context)
                           : _formatTime(arrival!, context),
                       style: AppTextStyles.poiSchedule),
                 ],
-                if (hasArrival && hasDeparture) const SizedBox(width: 10),
+                if (hasArrival && hasDeparture) const SizedBox(width: 11),
                 if (hasDeparture) ...[
                   const Icon(Icons.arrow_upward,
                       size: 17, color: AppColors.muted),
@@ -766,11 +766,11 @@ class _PoiContentBlock extends StatelessWidget {
                       style: AppTextStyles.poiSchedule),
                 ],
                 if ((hasArrival || hasDeparture) && hasClose)
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                 if (hasClose) ...[
                   const Icon(Icons.lock_outline,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 1),
+                  const SizedBox(width: 2),
                   Text(_formatTime(close!, context),
                       style: AppTextStyles.poiSchedule),
                 ],
