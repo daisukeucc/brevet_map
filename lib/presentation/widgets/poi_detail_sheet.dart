@@ -416,25 +416,23 @@ class _PoiDetailSheetBody extends StatelessWidget {
       width: double.infinity,
       child: SafeArea(
         bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(0, 20, 20, 25),
-          child: _PoiContentBlock(
-            name: name,
-            distance: distance,
-            elevationGain: elevationGain,
-            description: description,
-            url: url,
-            arrival: arrival,
-            departure: departure,
-            close: close,
-            elevationSegment: elevationSegment,
-            segmentDistanceLabel: segmentDistanceLabel,
-            elevationOnDemand: elevationOnDemand,
-            distanceUnit: distanceUnit,
-            isRouteStartPoi: isRouteStartPoi,
-            distanceLeft: 20,
-            contentLeft: 24,
-          ),
+        child: _PoiContentBlock(
+          name: name,
+          distance: distance,
+          elevationGain: elevationGain,
+          description: description,
+          url: url,
+          arrival: arrival,
+          departure: departure,
+          close: close,
+          elevationSegment: elevationSegment,
+          segmentDistanceLabel: segmentDistanceLabel,
+          elevationOnDemand: elevationOnDemand,
+          distanceUnit: distanceUnit,
+          isRouteStartPoi: isRouteStartPoi,
+          sheetPadding: const EdgeInsets.fromLTRB(0, 20, 20, 25),
+          distanceLeft: 20,
+          contentLeft: 24,
         ),
       ),
     );
@@ -489,25 +487,23 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 20, 15, 25),
-                  child: _PoiContentBlock(
-                    name: e.name,
-                    distance: e.distance,
-                    elevationGain: e.elevationGain,
-                    description: e.description,
-                    url: e.url,
-                    arrival: e.arrival,
-                    departure: e.departure,
-                    close: e.close,
-                    elevationSegment: e.elevationSegment,
-                    segmentDistanceLabel: e.segmentDistanceLabel,
-                    elevationOnDemand: e.elevationOnDemand,
-                    distanceUnit: e.distanceUnit,
-                    isRouteStartPoi: e.isRouteStartPoi,
-                    distanceLeft: 20,
-                    contentLeft: 24,
-                  ),
+                child: _PoiContentBlock(
+                  name: e.name,
+                  distance: e.distance,
+                  elevationGain: e.elevationGain,
+                  description: e.description,
+                  url: e.url,
+                  arrival: e.arrival,
+                  departure: e.departure,
+                  close: e.close,
+                  elevationSegment: e.elevationSegment,
+                  segmentDistanceLabel: e.segmentDistanceLabel,
+                  elevationOnDemand: e.elevationOnDemand,
+                  distanceUnit: e.distanceUnit,
+                  isRouteStartPoi: e.isRouteStartPoi,
+                  sheetPadding: const EdgeInsets.fromLTRB(0, 20, 15, 25),
+                  distanceLeft: 20,
+                  contentLeft: 24,
                 ),
               ),
               SizedBox(
@@ -577,6 +573,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.segmentDistanceLabel,
     this.elevationOnDemand,
     this.distanceUnit = 0,
+    required this.sheetPadding,
     this.distanceLeft = 0,
     this.contentLeft = 0,
     this.isRouteStartPoi = true,
@@ -594,6 +591,7 @@ class _PoiContentBlock extends StatelessWidget {
   final String? segmentDistanceLabel;
   final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
+  final EdgeInsetsGeometry sheetPadding;
   final double distanceLeft;
   final double contentLeft;
   final bool isRouteStartPoi;
@@ -603,17 +601,10 @@ class _PoiContentBlock extends StatelessWidget {
     return DateFormat('H:mm', locale).format(dt.toLocal());
   }
 
-  String _formatLocalizedDateTime(DateTime dt, BuildContext context) {
+  String _formatDate(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
-    final datePart = DateFormat.Md(locale).format(dt.toLocal());
-    final timePart = DateFormat('H:mm', locale).format(dt.toLocal());
-    return '$datePart $timePart';
+    return DateFormat.Md(locale).format(dt.toLocal());
   }
-
-  String _formatArrival(DateTime dt, BuildContext context) =>
-      _formatLocalizedDateTime(dt, context);
-  String _formatDeparture(DateTime dt, BuildContext context) =>
-      _formatLocalizedDateTime(dt, context);
 
   Uri? _parseOpenableUrl(String raw) {
     final trimmed = raw.trim();
@@ -626,6 +617,23 @@ class _PoiContentBlock extends StatelessWidget {
     }
     if (uri.scheme != 'http' && uri.scheme != 'https') return null;
     return uri;
+  }
+
+  Widget _buildDateBadge(DateTime dt, BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.muted,
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        _formatDate(dt, context),
+        style: AppTextStyles.bodySmall.copyWith(
+          color: Colors.white,
+          height: 1.0,
+        ),
+      ),
+    );
   }
 
   @override
@@ -659,6 +667,8 @@ class _PoiContentBlock extends StatelessWidget {
           elevationGainDisplay: elevationGain!,
           elevationSegment: elevationSegment,
         );
+    final canTapSheetForElevationChart =
+        showSegmentChartPrecomputed || showElevationChartOnDemand;
     final showStatsRow =
         hasDistance || showElevationGainIcon || showElevationChartIcon;
     final hasName = name != null && name!.isNotEmpty;
@@ -669,10 +679,24 @@ class _PoiContentBlock extends StatelessWidget {
     final hasDeparture = departure != null;
     final hasClose = close != null;
     final hasSchedule = hasArrival || hasDeparture || hasClose;
-    final showDateOnArrival = hasArrival;
-    final showDateOnDeparture = !hasArrival && hasDeparture;
 
-    return Column(
+    void openElevationChart() {
+      if (showSegmentChartPrecomputed) {
+        _showPoiElevationSegmentDialog(
+          context,
+          elevationSegment: elevationSegment!,
+          distanceLabel: segmentDistanceLabel!,
+          distanceUnit: distanceUnit,
+        );
+      } else if (showElevationChartOnDemand) {
+        _openElevationFromOnDemand(
+          context,
+          elevationOnDemand!,
+        );
+      }
+    }
+
+    final column = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -697,43 +721,6 @@ class _PoiContentBlock extends StatelessWidget {
                   const SizedBox(width: 3),
                   Text(elevationGain!, style: AppTextStyles.poiLarge),
                 ],
-                if (showElevationChartIcon) ...[
-                  if (hasDistance || showElevationGainIcon)
-                    const SizedBox(width: 15),
-                  Material(
-                    color: Colors.grey.shade600,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(6),
-                      onTap: () {
-                        if (showSegmentChartPrecomputed) {
-                          _showPoiElevationSegmentDialog(
-                            context,
-                            elevationSegment: elevationSegment!,
-                            distanceLabel: segmentDistanceLabel!,
-                            distanceUnit: distanceUnit,
-                          );
-                        } else if (showElevationChartOnDemand) {
-                          _openElevationFromOnDemand(
-                            context,
-                            elevationOnDemand!,
-                          );
-                        }
-                      },
-                      child: const Padding(
-                        padding: EdgeInsets.all(3),
-                        child: Icon(
-                          Icons.query_stats,
-                          size: 22,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -744,33 +731,36 @@ class _PoiContentBlock extends StatelessWidget {
             padding: const EdgeInsets.only(left: 23),
             child: Row(
               children: [
+                _buildDateBadge(
+                  (arrival ?? departure ?? close)!,
+                  context,
+                ),
+                const SizedBox(width: 6),
                 if (hasArrival) ...[
                   const Icon(Icons.arrow_downward,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 3),
+                  const SizedBox(width: 1),
                   Text(
-                      showDateOnArrival
-                          ? _formatArrival(arrival!, context)
-                          : _formatTime(arrival!, context),
-                      style: AppTextStyles.poiSchedule),
+                    _formatTime(arrival!, context),
+                    style: AppTextStyles.poiSchedule,
+                  ),
                 ],
-                if (hasArrival && hasDeparture) const SizedBox(width: 11),
+                if (hasArrival && hasDeparture) const SizedBox(width: 8),
                 if (hasDeparture) ...[
                   const Icon(Icons.arrow_upward,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 2),
+                  const SizedBox(width: 1),
                   Text(
-                      showDateOnDeparture
-                          ? _formatDeparture(departure!, context)
-                          : _formatTime(departure!, context),
-                      style: AppTextStyles.poiSchedule),
+                    _formatTime(departure!, context),
+                    style: AppTextStyles.poiSchedule,
+                  ),
                 ],
                 if ((hasArrival || hasDeparture) && hasClose)
-                  const SizedBox(width: 14),
+                  const SizedBox(width: 12),
                 if (hasClose) ...[
                   const Icon(Icons.lock_outline,
                       size: 17, color: AppColors.muted),
-                  const SizedBox(width: 2),
+                  const SizedBox(width: 1),
                   Text(_formatTime(close!, context),
                       style: AppTextStyles.poiSchedule),
                 ],
@@ -846,6 +836,24 @@ class _PoiContentBlock extends StatelessWidget {
         ],
       ],
     );
+
+    final paddedContent = Padding(
+      padding: sheetPadding,
+      child: SizedBox(width: double.infinity, child: column),
+    );
+
+    if (canTapSheetForElevationChart) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: openElevationChart,
+          splashColor: Colors.grey.withValues(alpha: 0.25),
+          highlightColor: Colors.grey.withValues(alpha: 0.12),
+          child: paddedContent,
+        ),
+      );
+    }
+    return paddedContent;
   }
 }
 
