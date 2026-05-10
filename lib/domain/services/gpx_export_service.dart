@@ -122,14 +122,21 @@ String buildGpxXml({
   return builder.buildDocument().toXmlString(pretty: true);
 }
 
+/// [UserPoi] に対応する GPX / `bm:type` 用の種別文字列（手動追加で [UserPoi.bmExt] が null でも正しい値）
+String _bmPoiTypeForExport(UserPoi poi) {
+  final fromExt = poi.bmExt?.type;
+  if (fromExt != null && fromExt.isNotEmpty) return fromExt;
+  final gt = poi.gpxType?.trim().toLowerCase();
+  if (gt == GpxPoiTag.typeStart) return GpxPoiTag.typeStart;
+  if (gt == GpxPoiTag.typeFinish) return GpxPoiTag.typeFinish;
+  return poi.poiType.defaultBmPoiType;
+}
+
 /// UserPoi を `<wpt>` として出力する。
-/// bmExt がある場合は `<extensions><bm:poi>` を付加し、種別に応じた sym/type/cmt を設定する。
+/// [UserPoi.bmExt] が無くても `<extensions><bm:poi><bm:type>` は出す（距離・時刻なし POI 用）。
 void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
   final bmExt = poi.bmExt;
-  final poiType = bmExt?.type ??
-      (poi.isCheckpoint
-          ? GpxPoiTag.checkpoint.type
-          : GpxPoiTag.information.type);
+  final poiType = _bmPoiTypeForExport(poi);
   final isStartOrFinish = GpxPoiTag.isStartOrFinishType(poiType);
 
   final String? name;
@@ -143,8 +150,16 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
   final desc = poi.body.isEmpty ? null : poi.body;
   final sym = isStartOrFinish ? GpxPoiTag.symFlag : GpxPoiTag.symDot;
   final gpxTag = poi.poiType.gpxTag;
-  final typeOut = isStartOrFinish ? poiType : gpxTag.type;
+  // `<wpt><type>` は `<bm:type>` と同一ソース（[poiType]）に揃える
+  final typeOut = poiType;
   final cmtOut = isStartOrFinish ? null : gpxTag.cmt;
+
+  final bmPoiExtForExport = bmExt ??
+      BmPoiExtension(
+        type: poiType,
+        schedule: const BmSchedule(),
+        distanceKm: 0,
+      );
 
   _addWpt(
     builder,
@@ -156,7 +171,7 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
     sym: sym,
     cmt: cmtOut,
     type: typeOut,
-    bmPoiExt: bmExt,
+    bmPoiExt: bmPoiExtForExport,
     userPoiKm: poi.km,
   );
 }
