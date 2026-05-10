@@ -15,6 +15,7 @@ class GpxPoi {
     this.cmt,
     this.type,
     this.bmPoiExt,
+    this.bmRouteInfoInGpx = false,
   });
 
   final double lat;
@@ -32,6 +33,9 @@ class GpxPoi {
 
   /// `<extensions><bm:poi>` があれば保持する
   final BmPoiExtension? bmPoiExt;
+
+  /// GPX に `<bm:routeInfo>` が存在したか。再インポート時に沿線距離を [UserPoi.km] に載せるかの判定に使う。
+  final bool bmRouteInfoInGpx;
 
   LatLng get position => LatLng(lat, lng);
 
@@ -62,6 +66,7 @@ class GpxPoi {
         'cmt': cmt,
         'type': type,
         if (bmPoiExt != null) 'bmPoiExt': bmPoiExt!.toJson(),
+        'bmRouteInfoInGpx': bmRouteInfoInGpx,
       };
 
   static GpxPoi fromJson(Map<String, dynamic> json) {
@@ -77,6 +82,7 @@ class GpxPoi {
       bmPoiExt: json['bmPoiExt'] != null
           ? BmPoiExtension.fromJson(json['bmPoiExt'] as Map<String, dynamic>)
           : null,
+      bmRouteInfoInGpx: json['bmRouteInfoInGpx'] as bool? ?? false,
     );
   }
 }
@@ -139,7 +145,7 @@ GpxParseResult? parseGpx(String xmlContent) {
         final sym = wpt.findElements('sym').firstOrNull?.innerText.trim();
         final cmt = wpt.findElements('cmt').firstOrNull?.innerText.trim();
         final type = wpt.findElements('type').firstOrNull?.innerText.trim();
-        final bmPoiExt = _parseBmPoiExtension(wpt);
+        final parsedBm = _parseBmPoiExtension(wpt);
         waypoints.add(GpxPoi(
           lat: lat,
           lng: lon,
@@ -149,7 +155,8 @@ GpxParseResult? parseGpx(String xmlContent) {
           symbol: sym?.isEmpty == true ? null : sym,
           cmt: cmt?.isEmpty == true ? null : cmt,
           type: type?.isEmpty == true ? null : type,
-          bmPoiExt: bmPoiExt,
+          bmPoiExt: parsedBm?.ext,
+          bmRouteInfoInGpx: parsedBm?.hasRouteInfo ?? false,
         ));
       }
     }
@@ -201,7 +208,9 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
 }
 
 /// `<wpt><extensions><bm:poi>` をパースする。なければ null。
-BmPoiExtension? _parseBmPoiExtension(XmlElement wpt) {
+/// [hasRouteInfo] は `<bm:routeInfo>` 要素が GPX に存在したか（要素が無いのと距離 0 は区別するため）。
+({BmPoiExtension ext, bool hasRouteInfo})? _parseBmPoiExtension(
+    XmlElement wpt) {
   final extensions = wpt.findElements('extensions').firstOrNull;
   if (extensions == null) return null;
   final bmPoi = extensions.findElements('bm:poi').firstOrNull;
@@ -224,21 +233,29 @@ BmPoiExtension? _parseBmPoiExtension(XmlElement wpt) {
   }
 
   final routeInfoEl = bmPoi.findElements('bm:routeInfo').firstOrNull;
-  final distanceKm = double.tryParse(
-        routeInfoEl
-                ?.findElements('bm:distanceKm')
-                .firstOrNull
-                ?.innerText
-                .trim() ??
-            '',
-      ) ??
-      0;
+  final double distanceKm = routeInfoEl != null
+      ? (double.tryParse(
+              routeInfoEl
+                      .findElements('bm:distanceKm')
+                      .firstOrNull
+                      ?.innerText
+                      .trim() ??
+                  '',
+            ) ??
+          0.0)
+      : 0.0;
 
-  return BmPoiExtension(
-    type: type,
-    schedule: BmSchedule(
-        arrival: arrival, departure: departure, close: close, result: result),
-    distanceKm: distanceKm,
+  return (
+    ext: BmPoiExtension(
+      type: type,
+      schedule: BmSchedule(
+          arrival: arrival,
+          departure: departure,
+          close: close,
+          result: result),
+      distanceKm: distanceKm,
+    ),
+    hasRouteInfo: routeInfoEl != null,
   );
 }
 

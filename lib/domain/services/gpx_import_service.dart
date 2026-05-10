@@ -51,7 +51,8 @@ class GpxImportResult {
 }
 
 /// GpxPoi を UserPoi に変換する（Dot 以外のみ）。
-/// 既存の `<bm:poi>` があればそれを使い、なければ [brevetMeta] から既定値を生成する。
+/// `<extensions><bm:poi>` がある場合は GPX の内容をそのまま用い、沿線距離・時刻の自動推定はしない。
+/// 拡張が無い外部 GPX では、[brevetMeta] とトラックから距離・到着/出発を推定する。
 UserPoi _gpxPoiToUserPoi(
   GpxPoi poi, {
   List<LatLng> trackPoints = const [],
@@ -63,15 +64,16 @@ UserPoi _gpxPoiToUserPoi(
   final parsed = _parseNameAndKm(rawName);
   double? km = parsed.km;
 
-  // 最近傍インデックスを一度求めて km 計算と獲得標高計算の両方に使う
+  final hasBmExtensions = poi.bmPoiExt != null;
   int? nearestIdx;
-  if (trackPoints.isNotEmpty) {
+
+  if (!hasBmExtensions && trackPoints.isNotEmpty) {
     nearestIdx = nearestTrackIndex(trackPoints, poi.position);
     km ??= distanceAlongTrackFromStart(trackPoints, nearestIdx) / 1000;
   }
 
-  // 獲得標高は bmPoiExt の有無にかかわらず計算（到着時刻推定で使う）
-  final elevGain = (trackElevations != null &&
+  final elevGain = (!hasBmExtensions &&
+          trackElevations != null &&
           trackElevations.isNotEmpty &&
           nearestIdx != null)
       ? elevationGainBetweenIndices(trackElevations, 0, nearestIdx)
@@ -80,68 +82,19 @@ UserPoi _gpxPoiToUserPoi(
   final gpxTypeLower = poi.type?.trim().toLowerCase() ?? '';
   final mappedUserPoiType =
       UserPoiType.fromGpxTag(type: poi.type, cmt: poi.cmt);
+
   final BmPoiExtension bmExt;
-  if (poi.bmPoiExt != null) {
+  if (hasBmExtensions) {
     final ext = poi.bmPoiExt!;
-    if (gpxTypeLower == GpxPoiTag.typeStart) {
-      bmExt = BmPoiExtension(
-        type: ext.type,
-        distanceKm: ext.distanceKm,
-        schedule: BmSchedule(
-          arrival: ext.schedule.arrival,
-          departure: brevetMeta.startTime,
-          close: ext.schedule.close,
-          result: ext.schedule.result,
-        ),
-      );
-    } else if (gpxTypeLower == GpxPoiTag.typeFinish) {
-      final computedClose = _finishCloseFromBrevetMeta(
-        brevetMeta,
-        totalRouteKm: totalRouteKm,
-      );
-      final close = ext.schedule.close ??
-          computedClose ??
-          (totalRouteKm >= kMinRouteKmForFinishClose
-              ? ext.schedule.arrival
-              : null);
-      final arrival = ext.schedule.arrival ??
-          _estimateArrival(
-            startTime: brevetMeta.startTime,
-            distanceKm: km ?? ext.distanceKm,
-            elevationGainM: elevGain,
-          );
-      bmExt = BmPoiExtension(
-        type: ext.type,
-        distanceKm: ext.distanceKm,
-        schedule: BmSchedule(
-          arrival: arrival,
-          departure: ext.schedule.departure,
-          close: close,
-          result: ext.schedule.result,
-        ),
-      );
-    } else if (gpxTypeLower != GpxPoiTag.typeFinish &&
-        ext.schedule.arrival == null &&
-        ext.schedule.departure == null) {
-      // arrival/departure が未設定：到着時刻を推定して設定する
-      final arrival = _estimateArrival(
-        startTime: brevetMeta.startTime,
-        distanceKm: km ?? ext.distanceKm,
-        elevationGainM: elevGain,
-      );
-      bmExt = BmPoiExtension(
-        type: ext.type,
-        distanceKm: ext.distanceKm,
-        schedule: BmSchedule(
-          arrival: arrival,
-          departure: arrival?.add(const Duration(minutes: 15)),
-          close: ext.schedule.close,
-          result: ext.schedule.result,
-        ),
-      );
-    } else {
-      bmExt = ext;
+    if (parsed.km == null && poi.bmRouteInfoInGpx) {
+      km = ext.distanceKm;
     }
+    final dKm = poi.bmRouteInfoInGpx ? ext.distanceKm : (km ?? 0);
+    bmExt = BmPoiExtension(
+      type: ext.type,
+      distanceKm: dKm,
+      schedule: ext.schedule,
+    );
   } else {
     final fallbackBmType = mappedUserPoiType.defaultBmPoiType;
     bmExt = _defaultBmPoiExtension(
