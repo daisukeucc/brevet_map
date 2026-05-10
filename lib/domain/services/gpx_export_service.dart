@@ -80,8 +80,8 @@ String buildGpxXml({
           cmt: poi.cmt,
           type: poi.type);
     }
-    for (final poi in userPois) {
-      _addUserPoiWpt(builder, poi);
+    for (var i = 0; i < userPois.length; i++) {
+      _addUserPoiWpt(builder, userPois[i], displayOrder: i);
     }
 
     // trk
@@ -134,7 +134,9 @@ String _bmPoiTypeForExport(UserPoi poi) {
 
 /// UserPoi を `<wpt>` として出力する。
 /// [UserPoi.bmExt] が無くても `<extensions><bm:poi><bm:type>` は出す（距離・時刻なし POI 用）。
-void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
+/// [displayOrder] は [userPois] リスト上の位置（往復インポートで順序を復元する）。
+void _addUserPoiWpt(XmlBuilder builder, UserPoi poi,
+    {required int displayOrder}) {
   final bmExt = poi.bmExt;
   final poiType = _bmPoiTypeForExport(poi);
   final isStartOrFinish = GpxPoiTag.isStartOrFinishType(poiType);
@@ -154,12 +156,18 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
   final typeOut = poiType;
   final cmtOut = isStartOrFinish ? null : gpxTag.cmt;
 
-  final bmPoiExtForExport = bmExt ??
+  final src = bmExt ??
       BmPoiExtension(
         type: poiType,
         schedule: const BmSchedule(),
         distanceKm: 0,
       );
+  final bmPoiExtForExport = BmPoiExtension(
+    type: src.type,
+    schedule: src.schedule,
+    distanceKm: src.distanceKm,
+    displayOrder: displayOrder,
+  );
 
   _addWpt(
     builder,
@@ -228,6 +236,11 @@ void _addWpt(
           builder.element('bm:type', nest: () {
             builder.text(bmPoiExt.type);
           });
+          if (bmPoiExt.displayOrder != null) {
+            builder.element('bm:displayOrder', nest: () {
+              builder.text(bmPoiExt.displayOrder.toString());
+            });
+          }
           if (!bmPoiExt.schedule.isEmpty) {
             builder.element('bm:schedule', nest: () {
               if (bmPoiExt.schedule.arrival != null) {

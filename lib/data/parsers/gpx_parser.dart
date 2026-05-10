@@ -245,6 +245,10 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
           0.0)
       : 0.0;
 
+  final orderText =
+      bmPoi.findElements('bm:displayOrder').firstOrNull?.innerText.trim();
+  final displayOrder = int.tryParse(orderText ?? '');
+
   return (
     ext: BmPoiExtension(
       type: type,
@@ -254,6 +258,7 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
           close: close,
           result: result),
       distanceKm: distanceKm,
+      displayOrder: displayOrder,
     ),
     hasRouteInfo: routeInfoEl != null,
   );

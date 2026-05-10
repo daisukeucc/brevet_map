@@ -119,6 +119,7 @@ UserPoi _gpxPoiToUserPoi(
       type: ext.type,
       distanceKm: dKm,
       schedule: ext.schedule,
+      displayOrder: ext.displayOrder,
     );
   } else {
     final fallbackBmType = mappedUserPoiType.defaultBmPoiType;
@@ -410,11 +411,22 @@ Future<GpxImportResult?> parseAndSaveGpx(
             )
           : null);
 
-  final userPois = UserPoi.orderedForDetailSheet([
+  final mergeCandidates = <UserPoi>[
     if (startPoi != null) startPoi,
     ...otherPois,
     if (finishPoi != null) finishPoi,
-  ]);
+  ];
+
+  final List<UserPoi> userPois;
+  final allHaveDisplayOrder = mergeCandidates.isNotEmpty &&
+      mergeCandidates.every((p) => p.bmExt?.displayOrder != null);
+  if (allHaveDisplayOrder) {
+    userPois = List<UserPoi>.from(mergeCandidates)
+      ..sort((a, b) =>
+          a.bmExt!.displayOrder!.compareTo(b.bmExt!.displayOrder!));
+  } else {
+    userPois = UserPoi.orderedForDetailSheet(mergeCandidates);
+  }
 
   await saveUserPois(userPois);
 
