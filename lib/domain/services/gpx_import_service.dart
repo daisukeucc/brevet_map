@@ -149,14 +149,11 @@ DateTime? _estimateArrival({
   required double distanceKm,
   required double elevationGainM,
 }) {
-  if (startTime == null) return null;
-  const baseSpeedKmh = 20.0;
-  const climbRateMph = 800.0;
-  final raw =
-      distanceKm / baseSpeedKmh * 60 + elevationGainM / climbRateMph * 60;
-  // 15分単位に丸める
-  final minutes = (raw / 15).floor() * 15;
-  return startTime.add(Duration(minutes: minutes));
+  return estimateArrivalFromRouteStart(
+    brevetStartTimeUtc: startTime,
+    distanceKm: distanceKm,
+    elevationGainFromStartMeters: elevationGainM,
+  );
 }
 
 /// POI 種別に応じた既定の [BmPoiExtension] を生成する。

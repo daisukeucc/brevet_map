@@ -344,6 +344,8 @@ Future<void> handleEditPoiText(
   if (!context.mounted) return;
   final distanceUnit = ref.read(distanceUnitProvider);
   final mapState = ref.read(mapStateProvider);
+  final brevetMeta = await loadBrevetMeta();
+  if (!context.mounted) return;
   final routePoints = mapState.savedRoutePoints;
   final totalRouteKm = routePoints != null && routePoints.isNotEmpty
       ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
@@ -549,6 +551,20 @@ Future<void> handleEditPoiText(
     return goNext ? findNext(updatedPoi) : findPrev(updatedPoi);
   }
 
+  double? elevationGainFromRouteStart(UserPoi p) {
+    final ms = ref.read(mapStateProvider);
+    final pts = ms.savedRoutePoints;
+    final elevs = ms.savedTrackElevations;
+    if (pts == null ||
+        pts.isEmpty ||
+        elevs == null ||
+        elevs.length != pts.length) {
+      return null;
+    }
+    final i = nearestTrackIndex(pts, p.position);
+    return elevationGainBetweenIndices(elevs, 0, i);
+  }
+
   await showDialog<void>(
     context: context,
     barrierColor: transparentBarrier ? Colors.transparent : Colors.black54,
@@ -557,6 +573,8 @@ Future<void> handleEditPoiText(
       poi: poi,
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
+      brevetStartTimeUtc: brevetMeta?.startTime,
+      elevationGainFromRouteStart: elevationGainFromRouteStart,
       elevationGainFor: elevationGainFor,
       elevationLossFor: elevationLossFor,
       findPreviousPoi: findPrev,
@@ -654,9 +672,6 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
   final _urlController = TextEditingController();
   String? _kmError;
   late final FocusNode _kmFocusNode;
-  TimeOfDay? _arrival;
-  TimeOfDay? _departure;
-  TimeOfDay? _close;
   bool _saving = false;
 
   @override
@@ -701,9 +716,6 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
       title: _titleController.text.trim(),
       body: _bodyController.text.trim(),
       url: _urlController.text.trim(),
-      arrival: _arrival,
-      departure: _departure,
-      close: _close,
     );
   }
 
@@ -715,52 +727,6 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
     await widget.onSave(data);
     if (!mounted) return;
     Navigator.pop(context);
-  }
-
-  Future<void> _pickTime({required bool isArrival}) async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final current = isArrival ? _arrival : _departure;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: current ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() {
-        if (isArrival) {
-          _arrival = picked;
-          final totalMin = picked.hour * 60 + picked.minute + 15;
-          _departure =
-              TimeOfDay(hour: (totalMin ~/ 60) % 24, minute: totalMin % 60);
-        } else {
-          _departure = picked;
-        }
-      });
-    }
-  }
-
-  Future<void> _pickClose() async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _close ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() => _close = picked);
-    }
   }
 
   @override
@@ -878,27 +844,6 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                   contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
                 style: AppTextStyles.poiFormTitleBody,
-              ),
-              const SizedBox(height: 20),
-              _TimePickerRow(
-                label: l10n.plannedArrival,
-                time: _arrival,
-                onTap: () => _pickTime(isArrival: true),
-                onClear: () => setState(() => _arrival = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedDeparture,
-                time: _departure,
-                onTap: () => _pickTime(isArrival: false),
-                onClear: () => setState(() => _departure = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedClose,
-                time: _close,
-                onTap: _pickClose,
-                onClear: () => setState(() => _close = null),
               ),
               const SizedBox(height: 16),
               Row(
@@ -1273,9 +1218,6 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
   late final TextEditingController _titleController;
   final _bodyController = TextEditingController();
   final _urlController = TextEditingController();
-  TimeOfDay? _arrival;
-  TimeOfDay? _departure;
-  TimeOfDay? _close;
   bool _saving = false;
 
   @override
@@ -1292,61 +1234,12 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
     super.dispose();
   }
 
-  Future<void> _pickTime({required bool isArrival}) async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final current = isArrival ? _arrival : _departure;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: current ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() {
-        if (isArrival) {
-          _arrival = picked;
-          final totalMin = picked.hour * 60 + picked.minute + 15;
-          _departure =
-              TimeOfDay(hour: (totalMin ~/ 60) % 24, minute: totalMin % 60);
-        } else {
-          _departure = picked;
-        }
-      });
-    }
-  }
-
-  Future<void> _pickClose() async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _close ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() => _close = picked);
-    }
-  }
-
   AddPoiFormData _buildFormData() => AddPoiFormData(
         km: null,
         type: _poiType,
         title: _titleController.text.trim(),
         body: _bodyController.text.trim(),
         url: _urlController.text.trim(),
-        arrival: _arrival,
-        departure: _departure,
-        close: _close,
       );
 
   Future<void> _handleAdd() async {
@@ -1430,27 +1323,6 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                 ),
                 style: AppTextStyles.poiFormTitleBody,
               ),
-              const SizedBox(height: 20),
-              _TimePickerRow(
-                label: l10n.plannedArrival,
-                time: _arrival,
-                onTap: () => _pickTime(isArrival: true),
-                onClear: () => setState(() => _arrival = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedDeparture,
-                time: _departure,
-                onTap: () => _pickTime(isArrival: false),
-                onClear: () => setState(() => _departure = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedClose,
-                time: _close,
-                onTap: _pickClose,
-                onClear: () => setState(() => _close = null),
-              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -1483,6 +1355,8 @@ class EditPoiTextDialog extends StatefulWidget {
     required this.poi,
     required this.distanceUnit,
     this.totalRouteKm,
+    this.brevetStartTimeUtc,
+    this.elevationGainFromRouteStart,
     this.elevationGainFor,
     this.elevationLossFor,
     this.findPreviousPoi,
@@ -1495,6 +1369,12 @@ class EditPoiTextDialog extends StatefulWidget {
   final UserPoi poi;
   final int distanceUnit;
   final double? totalRouteKm;
+
+  /// [loadBrevetMeta] のスタート時刻（UTC）。到着の自動推定に使う。
+  final DateTime? brevetStartTimeUtc;
+
+  /// ルート始点から当該 POI までの累積獲得標高（m）。トラック標高が無ければ null を返す。
+  final double? Function(UserPoi)? elevationGainFromRouteStart;
 
   /// 指定 POI の獲得標高（m）を返す。null なら非表示。
   final double? Function(UserPoi)? elevationGainFor;
@@ -1553,6 +1433,40 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _loadPoiToForm(widget.poi);
   }
 
+  /// 距離あり・スタート時刻ありのとき、到着・出発を推定してフォームへ入れる。
+  /// 出発は到着の 15 分後（GPX インポートのチェックポイント既定と同じ）。
+  /// 既に到着だけ保存されている POI では、出発が空なら到着+15分で補う。
+  void _maybeAutofillScheduleFromDistance(UserPoi poi) {
+    if (poi.km == null) return;
+    if (GpxPoiTag.isStartType(poi.bmExt?.type)) return;
+    final start = widget.brevetStartTimeUtc;
+    if (start == null) return;
+
+    if (_arrival == null) {
+      final elevM = widget.elevationGainFromRouteStart?.call(poi) ?? 0.0;
+      final est = estimateArrivalFromRouteStart(
+        brevetStartTimeUtc: start,
+        distanceKm: poi.km!,
+        elevationGainFromStartMeters: elevM,
+      );
+      if (est == null) return;
+      _arrival = _timeOfDayFromDt(est);
+      if (_departure == null) {
+        _departure =
+            _timeOfDayFromDt(est.add(const Duration(minutes: 15)));
+      }
+      return;
+    }
+
+    if (_departure == null) {
+      final arrDt = poi.bmExt?.schedule.arrival;
+      if (arrDt != null) {
+        _departure =
+            _timeOfDayFromDt(arrDt.add(const Duration(minutes: 15)));
+      }
+    }
+  }
+
   void _onKmChanged() {
     if (!mounted) return;
     setState(() {});
@@ -1594,6 +1508,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _kmController.text = _kmToDisplayText(poi.km);
     _arrival = _timeOfDayFromDt(poi.bmExt?.schedule.arrival);
     _departure = _timeOfDayFromDt(poi.bmExt?.schedule.departure);
+    _maybeAutofillScheduleFromDistance(poi);
     _close = _timeOfDayFromDt(poi.bmExt?.schedule.close);
     _kmError = null;
   }

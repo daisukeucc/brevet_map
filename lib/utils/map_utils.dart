@@ -29,6 +29,22 @@ String formatDistanceNumeric(double km, int unit) {
   return _formatDistanceDisplayValue(km);
 }
 
+/// ブルベスタート（UTC）・当該地点までの累積距離（km）・**ルート始点からの**累積獲得標高（m）から到着予定時刻を推定する。
+/// GPX インポート時の推定と同一モデル（平地 20 km/h、登り 800 m/h、15 分刻み）。
+DateTime? estimateArrivalFromRouteStart({
+  required DateTime? brevetStartTimeUtc,
+  required double distanceKm,
+  double elevationGainFromStartMeters = 0,
+}) {
+  if (brevetStartTimeUtc == null) return null;
+  const baseSpeedKmh = 20.0;
+  const climbRateMph = 800.0;
+  final raw = distanceKm / baseSpeedKmh * 60 +
+      elevationGainFromStartMeters / climbRateMph * 60;
+  final minutes = (raw / 15).floor() * 15;
+  return brevetStartTimeUtc.add(Duration(minutes: minutes));
+}
+
 /// 標高変化（獲得など）をシート・グラフ共通で表示。m/ft を基本とし、丸め整数が ≥1000 のとき km/mi。
 /// [distanceUnit]: 0=metric, 1=imperial（[formatDistance] と同じ）。
 String formatElevationChange(double metersM, int distanceUnit) {
