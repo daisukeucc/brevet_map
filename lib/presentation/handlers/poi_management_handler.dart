@@ -570,6 +570,7 @@ Future<void> handleEditPoiText(
     barrierColor: transparentBarrier ? Colors.transparent : Colors.black54,
     barrierDismissible: false,
     builder: (dialogContext) => EditPoiTextDialog(
+      ref: ref,
       poi: poi,
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
@@ -1352,6 +1353,7 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
 class EditPoiTextDialog extends StatefulWidget {
   const EditPoiTextDialog({
     super.key,
+    required this.ref,
     required this.poi,
     required this.distanceUnit,
     this.totalRouteKm,
@@ -1365,6 +1367,8 @@ class EditPoiTextDialog extends StatefulWidget {
     required this.onSave,
     required this.onSavePrev,
   });
+
+  final WidgetRef ref;
 
   final UserPoi poi;
   final int distanceUnit;
@@ -1522,6 +1526,32 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   }
 
   String _segmentDistanceDisplay() {
+    final ms = widget.ref.read(mapStateProvider);
+    final track = ms.savedRoutePoints;
+    if (track != null && track.isNotEmpty) {
+      final ordered = List<UserPoi>.from(ms.userPois);
+      final idx = UserPoi.indexInList(ordered, _currentPoi);
+      if (idx < 0) return '--';
+
+      final positions = ordered.map((p) => LatLng(p.lat, p.lng)).toList();
+      final poiHasKm = ordered.map((p) => p.km != null).toList();
+      if (idx < poiHasKm.length) {
+        poiHasKm[idx] = _parsedKmFromField() != null;
+      }
+
+      final bounds = segmentIndicesForElevationChart(
+        track,
+        positions,
+        idx,
+        poiHasDistanceKm: poiHasKm,
+      );
+      if (bounds == null) return '--';
+      final segmentM =
+          distanceAlongTrackBetweenIndices(track, bounds.lo, bounds.hi);
+      return formatDistance(segmentM / 1000.0, widget.distanceUnit);
+    }
+
+    // トラックが無いときは従来どおり（累積 km の差）
     final cumulative = _parsedKmFromField();
     if (cumulative == null) return '--';
     final prev = widget.findPreviousPoi?.call(_currentPoi);
