@@ -152,18 +152,19 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi,
   final desc = poi.body.isEmpty ? null : poi.body;
   final sym = isStartOrFinish ? GpxPoiTag.symFlag : GpxPoiTag.symDot;
   final gpxTag = poi.poiType.gpxTag;
-  // `<wpt><type>` は `<bm:type>` と同一ソース（[poiType]）に揃える
-  final typeOut = poiType;
+  // スタート／ゴール以外は [UserPoiType.gpxTag] を GPX `<type>`/`<cmt>` と `bm:type` の正とする
+  //（例: フォト CP は `<type>checkpoint</type>` `<cmt>photo</cmt>`）。
+  final typeOut = isStartOrFinish ? poiType : gpxTag.type;
   final cmtOut = isStartOrFinish ? null : gpxTag.cmt;
 
   final src = bmExt ??
       BmPoiExtension(
-        type: poiType,
+        type: typeOut,
         schedule: const BmSchedule(),
         distanceKm: 0,
       );
   final bmPoiExtForExport = BmPoiExtension(
-    type: src.type,
+    type: typeOut,
     schedule: src.schedule,
     distanceKm: src.distanceKm,
     displayOrder: displayOrder,
