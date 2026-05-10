@@ -166,7 +166,7 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
     poi.lat,
     poi.lng,
     name: name,
-    desc: isStartOrFinish ? null : desc,
+    desc: desc,
     linkHref: poi.url?.trim().isNotEmpty == true ? poi.url!.trim() : null,
     sym: sym,
     cmt: cmtOut,
@@ -201,7 +201,7 @@ void _addWpt(
     }
     if (desc != null && desc.isNotEmpty) {
       builder.element('desc', nest: () {
-        builder.text(desc);
+        _writeWptDesc(builder, desc);
       });
     }
     if (linkHref != null && linkHref.isNotEmpty) {
@@ -263,6 +263,25 @@ void _addWpt(
       });
     }
   });
+}
+
+/// `<desc>` を書く。`toXmlString(pretty: true)` は通常のテキストノード内の改行を空白に潰すため、
+/// 改行を含むときは CDATA を使う。CDATA 内に `]]>` を含む場合は複数ノードに分割する。
+void _writeWptDesc(XmlBuilder builder, String desc) {
+  final useCdata = desc.contains('\n') || desc.contains('\r');
+  if (!useCdata) {
+    builder.text(desc);
+    return;
+  }
+  var remaining = desc;
+  while (remaining.contains(']]>')) {
+    final i = remaining.indexOf(']]>');
+    builder.cdata(remaining.substring(0, i + 2));
+    remaining = remaining.substring(i + 2);
+  }
+  if (remaining.isNotEmpty) {
+    builder.cdata(remaining);
+  }
 }
 
 /// 整数なら小数点なし、小数点以下がある場合は最小桁数で出力する。
