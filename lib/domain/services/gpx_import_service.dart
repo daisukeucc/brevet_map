@@ -50,6 +50,32 @@ class GpxImportResult {
   return (km: km, title: title);
 }
 
+/// `<extensions><bm:poi><bm:type>` がある場合は、アプリの [UserPoiType] ルールに沿って種別を決める。
+///
+/// - `checkpoint` … [UserPoiType.fromGpxTag] と同様、`<cmt>photo</cmt>` ならフォト CP
+/// - `generic` …標準 GPX の `<type>` / `<cmt>` で [UserPoiType.fromGpxTag]
+/// - それ以外の bm 種別（例: `hotel`）…その文字列を GPX [type] 相当として解釈
+UserPoiType _userPoiTypeForImportedWaypoint(GpxPoi poi) {
+  final ext = poi.bmPoiExt;
+  if (ext != null) {
+    final bmType = ext.type.trim().toLowerCase();
+    if (bmType == GpxPoiTag.typeStart || bmType == GpxPoiTag.typeFinish) {
+      return UserPoiType.information;
+    }
+    if (bmType == GpxPoiTag.checkpoint.type) {
+      final cmtLower = poi.cmt?.trim().toLowerCase() ?? '';
+      return cmtLower == GpxPoiTag.photo.cmt
+          ? UserPoiType.photo
+          : UserPoiType.checkpoint;
+    }
+    if (bmType == GpxPoiTag.information.type) {
+      return UserPoiType.fromGpxTag(type: poi.type, cmt: poi.cmt);
+    }
+    return UserPoiType.fromGpxTag(type: bmType, cmt: poi.cmt);
+  }
+  return UserPoiType.fromGpxTag(type: poi.type, cmt: poi.cmt);
+}
+
 /// GpxPoi を UserPoi に変換する（Dot 以外のみ）。
 /// `<extensions><bm:poi>` がある場合は GPX の内容をそのまま用い、沿線距離・時刻の自動推定はしない。
 /// 拡張が無い外部 GPX では、[brevetMeta] とトラックから距離・到着/出発を推定する。
@@ -80,8 +106,7 @@ UserPoi _gpxPoiToUserPoi(
       : 0.0;
 
   final gpxTypeLower = poi.type?.trim().toLowerCase() ?? '';
-  final mappedUserPoiType =
-      UserPoiType.fromGpxTag(type: poi.type, cmt: poi.cmt);
+  final mappedUserPoiType = _userPoiTypeForImportedWaypoint(poi);
 
   final BmPoiExtension bmExt;
   if (hasBmExtensions) {

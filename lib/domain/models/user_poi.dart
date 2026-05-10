@@ -87,6 +87,7 @@ enum UserPoiType {
           : UserPoiType.checkpoint;
     }
     if (typeLower == GpxPoiTag.information.type) {
+      if (cmtLower == GpxPoiTag.photo.cmt) return UserPoiType.photo;
       return UserPoiType.information;
     }
     if (typeLower == GpxPoiTag.hotel.type) {
