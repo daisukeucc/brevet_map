@@ -194,7 +194,8 @@ Future<void> showGpxExportFlow(
       // 共有シートから「ファイルに保存」で iCloud / オンマイフォン直下などへ出すと通常のファイルとして扱える。
       //
       // AirDrop 等は Documents 直下の fileURL を渡すと「共有モードの取得に失敗」することがあるため、
-      // 共有専用に一時フォルダへコピーしてから UIActivityViewController に渡す。
+      // 共有専用に一時領域へコピーする。受け側の表示名は実ファイルのベース名が使われるため、
+      // ユニークなサブフォルダの下に [displayFilename] そのもので保存する（プレフィックス付きファイル名を避ける）。
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$displayFilename');
       await file.writeAsString(gpxXml);
@@ -202,9 +203,11 @@ Future<void> showGpxExportFlow(
       if (!context.mounted) return;
       try {
         final tempDir = await getTemporaryDirectory();
-        final sharePath =
-            '${tempDir.path}/gpx_airdrop_${DateTime.now().microsecondsSinceEpoch}_$displayFilename';
-        final shareCopy = await file.copy(sharePath);
+        final shareParent = Directory(
+          '${tempDir.path}/gpx_share_${DateTime.now().microsecondsSinceEpoch}',
+        );
+        await shareParent.create(recursive: false);
+        final shareCopy = await file.copy('${shareParent.path}/$displayFilename');
         await Share.shareXFiles(
           [
             XFile(
@@ -218,9 +221,11 @@ Future<void> showGpxExportFlow(
             const Offset(1, 1),
           ),
         );
-        unawaited(Future<void>.delayed(const Duration(minutes: 2), () async {
+        unawaited(Future<void>.delayed(const Duration(minutes: 10), () async {
           try {
-            if (await shareCopy.exists()) await shareCopy.delete();
+            if (await shareParent.exists()) {
+              await shareParent.delete(recursive: true);
+            }
           } catch (_) {}
         }));
       } catch (_) {}
