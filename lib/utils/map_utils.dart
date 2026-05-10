@@ -173,21 +173,43 @@ class ElevationSegmentChartData {
   bool get hasElevation => elevationMeters.any((e) => e.isFinite);
 }
 
+/// 距離（沿線 km）を持つ直前の POI のインデックス。無ければ -1。
+int _previousPoiWithDistanceIndex(int poiIndex, List<bool> hasKm) {
+  for (var j = poiIndex - 1; j >= 0; j--) {
+    if (hasKm[j]) return j;
+  }
+  return -1;
+}
+
 /// [buildElevationSegmentChartData] と同一ルールのトラック索引区間（両端を含むサンプル範囲）。
+/// [poiHasDistanceKm] が [poiPositions] と同長のとき、距離未登録の POI は区間の端にならない（直前の距離付き POI までさかのぼる）。
 ({int lo, int hi})? segmentIndicesForElevationChart(
   List<LatLng> trackPoints,
   List<LatLng> poiPositions,
-  int poiIndex,
-) {
+  int poiIndex, {
+  List<bool>? poiHasDistanceKm,
+}) {
   if (trackPoints.isEmpty || poiPositions.isEmpty) return null;
   if (poiIndex < 0 || poiIndex >= poiPositions.length) return null;
+
+  final useKm = poiHasDistanceKm != null &&
+      poiHasDistanceKm.length == poiPositions.length;
+  if (useKm && !poiHasDistanceKm[poiIndex]) return null;
 
   final toIdx = poiIndex == poiPositions.length - 1
       ? trackPoints.length - 1
       : nearestTrackIndex(trackPoints, poiPositions[poiIndex]);
-  final fromIdx = poiIndex == 0
-      ? 0
-      : nearestTrackIndex(trackPoints, poiPositions[poiIndex - 1]);
+
+  final int fromIdx;
+  if (poiIndex == 0) {
+    fromIdx = 0;
+  } else if (useKm) {
+    final prev = _previousPoiWithDistanceIndex(poiIndex, poiHasDistanceKm);
+    fromIdx =
+        prev < 0 ? 0 : nearestTrackIndex(trackPoints, poiPositions[prev]);
+  } else {
+    fromIdx = nearestTrackIndex(trackPoints, poiPositions[poiIndex - 1]);
+  }
 
   var lo = fromIdx;
   var hi = toIdx;
@@ -213,11 +235,13 @@ class ElevationSegmentChartData {
   required List<double?> elevations,
   required List<LatLng> poiPositions,
   required int poiIndex,
+  List<bool>? poiHasDistanceKm,
 }) {
   final bounds = segmentIndicesForElevationChart(
     trackPoints,
     poiPositions,
     poiIndex,
+    poiHasDistanceKm: poiHasDistanceKm,
   );
   if (bounds == null) return null;
 
@@ -242,6 +266,7 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
   required List<LatLng> poiPositions,
   required int poiIndex,
   int maxSamples = 450,
+  List<bool>? poiHasDistanceKm,
 }) {
   if (trackPoints.isEmpty || poiPositions.isEmpty) return null;
   if (poiIndex < 0 || poiIndex >= poiPositions.length) return null;
@@ -254,6 +279,7 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
     trackPoints,
     poiPositions,
     poiIndex,
+    poiHasDistanceKm: poiHasDistanceKm,
   );
   if (bounds == null) return null;
 
@@ -416,6 +442,7 @@ typedef ElevationSegmentChartInput = ({
   List<LatLng> poiPositions,
   int poiIndex,
   int maxSamples,
+  List<bool>? poiHasDistanceKm,
 });
 
 /// compute() で実行するグラフデータ構築。[buildElevationSegmentChartData] の薄いラッパー。
@@ -427,6 +454,7 @@ ElevationSegmentChartData? computeElevationSegmentChartData(
     poiPositions: input.poiPositions,
     poiIndex: input.poiIndex,
     maxSamples: input.maxSamples,
+    poiHasDistanceKm: input.poiHasDistanceKm,
   );
 }
 
@@ -435,6 +463,7 @@ typedef PoiElevationGainInput = ({
   List<LatLng> trackPoints,
   List<double?> elevations,
   List<LatLng> poiPositions,
+  List<bool>? poiHasDistanceKm,
 });
 
 /// Haversine 式による2点間距離（メートル）。
@@ -466,7 +495,8 @@ int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
 }
 
 /// compute() で実行する獲得標高・獲得下降計算。
-/// 各 POI の「前 POI（またはスタート）→ この POI」区間のメートル値を返す。
+/// [poiHasDistanceKm] が [poiPositions] と同長のとき、距離未登録（false）の POI は null を返し、
+/// 区間は「直前の距離登録 POI（無ければトラック始端）→ 当該 POI」で計算する。
 ({List<double?> gains, List<double?> losses}) computePoiElevationGainAndLoss(
     PoiElevationGainInput input) {
   final trackPoints = input.trackPoints;
@@ -479,6 +509,9 @@ int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
       losses: List<double?>.filled(n, null),
     );
   }
+  final hasKm = input.poiHasDistanceKm;
+  final useKm = hasKm != null && hasKm.length == n;
+
   final indices = [
     for (var i = 0; i < poiPositions.length; i++)
       // 最終 POI（ゴール）は地理的近傍でなくトラック末尾を使う（折り返しルートで近傍が先頭付近になる誤りを防ぐ）
@@ -489,7 +522,20 @@ int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
   final gains = <double?>[];
   final losses = <double?>[];
   for (var i = 0; i < poiPositions.length; i++) {
-    final from = i > 0 ? indices[i - 1] : 0;
+    if (useKm && !hasKm[i]) {
+      gains.add(null);
+      losses.add(null);
+      continue;
+    }
+    final int from;
+    if (i == 0) {
+      from = 0;
+    } else if (useKm) {
+      final prev = _previousPoiWithDistanceIndex(i, hasKm);
+      from = prev < 0 ? 0 : indices[prev];
+    } else {
+      from = indices[i - 1];
+    }
     final to = indices[i];
     gains.add(elevationGainBetweenIndices(elevations, from, to));
     losses.add(elevationLossBetweenIndices(elevations, from, to));

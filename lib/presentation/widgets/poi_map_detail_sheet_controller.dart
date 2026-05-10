@@ -39,8 +39,9 @@ class PoiMapDetailSheetController {
     List<double?> elevations,
     List<LatLng> poiPositions,
     int poiIndex,
-    int distanceUnit,
-  ) {
+    int distanceUnit, {
+    List<bool>? poiHasDistanceKm,
+  }) {
     if (trackPoints.length < 2) return null;
     return PoiElevationOnDemand(
       trackPoints: trackPoints,
@@ -48,6 +49,7 @@ class PoiMapDetailSheetController {
       poiPositions: poiPositions,
       poiIndex: poiIndex,
       distanceUnit: distanceUnit,
+      poiHasDistanceKm: poiHasDistanceKm,
     );
   }
 
@@ -158,14 +160,17 @@ class PoiMapDetailSheetController {
 
       final positions =
           ordered.map((p) => LatLng(p.lat, p.lng)).toList(growable: false);
+      final poiHasKm =
+          ordered.map((p) => p.km != null).toList(growable: false);
 
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
+        final hasKm = poiHasKm[i];
         entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
-            elevationGain: rawGains[i] != null
+            elevationGain: hasKm && rawGains[i] != null
                 ? formatElevationChange(rawGains[i]!, unit)
                 : null,
             description: ordered[i].body,
@@ -174,13 +179,16 @@ class PoiMapDetailSheetController {
             arrival: ordered[i].bmExt?.schedule.arrival,
             departure: ordered[i].bmExt?.schedule.departure,
             close: ordered[i].bmExt?.schedule.close,
-            elevationOnDemand: _elevationOnDemandFor(
-              trackPoints,
-              elevations,
-              positions,
-              i,
-              unit,
-            ),
+            elevationOnDemand: hasKm
+                ? _elevationOnDemandFor(
+                    trackPoints,
+                    elevations,
+                    positions,
+                    i,
+                    unit,
+                    poiHasDistanceKm: poiHasKm,
+                  )
+                : null,
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
           ),
@@ -210,13 +218,16 @@ class PoiMapDetailSheetController {
             arrival: poi.bmExt?.schedule.arrival,
             departure: poi.bmExt?.schedule.departure,
             close: poi.bmExt?.schedule.close,
-            elevationOnDemand: _elevationOnDemandFor(
-              trackPoints,
-              elevations,
-              <LatLng>[LatLng(poi.lat, poi.lng)],
-              0,
-              unit,
-            ),
+            elevationOnDemand: poi.km != null
+                ? _elevationOnDemandFor(
+                    trackPoints,
+                    elevations,
+                    <LatLng>[LatLng(poi.lat, poi.lng)],
+                    0,
+                    unit,
+                    poiHasDistanceKm: const [true],
+                  )
+                : null,
             distanceUnit: unit,
           ),
         ],

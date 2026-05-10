@@ -18,6 +18,7 @@ class PoiElevationOnDemand {
     required this.poiPositions,
     required this.poiIndex,
     required this.distanceUnit,
+    this.poiHasDistanceKm,
   });
 
   final List<LatLng> trackPoints;
@@ -27,6 +28,9 @@ class PoiElevationOnDemand {
 
   /// [formatDistance] と同じ。0=km/m、1=mi/ft。
   final int distanceUnit;
+
+  /// [poiPositions] と同長のとき、距離未登録（false）POI は標高区間から除外する（User POI 用）。
+  final List<bool>? poiHasDistanceKm;
 }
 
 /// POI 詳細1件（ボトムシート用）
@@ -172,6 +176,7 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
       elevations: alignedElev,
       poiPositions: req.poiPositions,
       poiIndex: req.poiIndex,
+      poiHasDistanceKm: req.poiHasDistanceKm,
     );
     if (m != null) {
       _previewDistLabel = formatDistance(m.segmentKm, req.distanceUnit);
@@ -194,6 +199,7 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
           poiPositions: req.poiPositions,
           poiIndex: req.poiIndex,
           maxSamples: 450,
+          poiHasDistanceKm: req.poiHasDistanceKm,
         ),
       ).timeout(
         const Duration(seconds: 45),
