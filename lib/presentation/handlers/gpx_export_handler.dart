@@ -1,3 +1,4 @@
+import 'dart:async' show unawaited;
 import 'dart:io';
 
 import 'package:downloadsfolder/downloadsfolder.dart' as downloads;
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/services/gpx_export_service.dart';
@@ -185,10 +187,43 @@ Future<void> showGpxExportFlow(
         );
       }
     } else {
-      // iOS: アプリのドキュメントフォルダ（UIFileSharingEnabled で「ファイル」アプリからアクセス可能）
+      // iOS: ドキュメントフォルダへ保存（「ファイル」> この iPhone 内 > アプリ名）
+      //
+      // コンテナ内ファイルを Files で別フォルダへ移動／コピーすると、File Provider 連携の
+      // 「ヘルパーアプリケーションと通信できませんでした」が出ることがある。
+      // 共有シートから「ファイルに保存」で iCloud / オンマイフォン直下などへ出すと通常のファイルとして扱える。
+      //
+      // AirDrop 等は Documents 直下の fileURL を渡すと「共有モードの取得に失敗」することがあるため、
+      // 共有専用に一時フォルダへコピーしてから UIActivityViewController に渡す。
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$displayFilename');
       await file.writeAsString(gpxXml);
+
+      if (!context.mounted) return;
+      try {
+        final tempDir = await getTemporaryDirectory();
+        final sharePath =
+            '${tempDir.path}/gpx_airdrop_${DateTime.now().microsecondsSinceEpoch}_$displayFilename';
+        final shareCopy = await file.copy(sharePath);
+        await Share.shareXFiles(
+          [
+            XFile(
+              shareCopy.path,
+              mimeType: 'application/gpx+xml',
+              name: displayFilename,
+            ),
+          ],
+          sharePositionOrigin: Rect.fromPoints(
+            const Offset(0, 0),
+            const Offset(1, 1),
+          ),
+        );
+        unawaited(Future<void>.delayed(const Duration(minutes: 2), () async {
+          try {
+            if (await shareCopy.exists()) await shareCopy.delete();
+          } catch (_) {}
+        }));
+      } catch (_) {}
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
