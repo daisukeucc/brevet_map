@@ -148,7 +148,8 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   );
 }
 
-/// 既存 POI の BmPoiExtension を更新する。arrival/departure/close を上書きし、result・type・distanceKm は保持する。
+/// 既存 POI の BmPoiExtension を更新する。arrival/departure/close を上書きし、result・type は保持する。
+/// 距離は編集フォーム（[AddPoiFormData.km]）を正とする。空欄なら [BmPoiExtension.distanceKm] は 0。
 /// EditPoiTextDialog は既存値で初期化されるため、data.arrival/departure/close が最終状態（null = クリア済み）。
 Future<BmPoiExtension?> _buildBmPoiExtForEdit({
   required AddPoiFormData data,
@@ -176,7 +177,7 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
   return BmPoiExtension(
     type: existing?.type ??
         (data.type == UserPoiType.checkpoint.value ? 'checkpoint' : 'generic'),
-    distanceKm: existing?.distanceKm ?? data.km ?? 0,
+    distanceKm: data.km ?? 0,
     schedule: BmSchedule(
       arrival: data.arrival != null
           ? _applyTimeOfDay(data.arrival!, refDate!)

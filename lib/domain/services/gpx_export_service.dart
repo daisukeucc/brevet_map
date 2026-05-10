@@ -157,6 +157,7 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
     cmt: cmtOut,
     type: typeOut,
     bmPoiExt: bmExt,
+    userPoiKm: poi.km,
   );
 }
 
@@ -171,6 +172,8 @@ void _addWpt(
   String? cmt,
   String? type,
   BmPoiExtension? bmPoiExt,
+  /// [UserPoi] のときルート距離（km）。null のとき `<bm:routeInfo>` は出さない。
+  double? userPoiKm,
 }) {
   builder.element('wpt', attributes: {
     'lat': lat.toString(),
@@ -234,11 +237,13 @@ void _addWpt(
               }
             });
           }
-          builder.element('bm:routeInfo', nest: () {
-            builder.element('bm:distanceKm', nest: () {
-              builder.text(_formatNumber(bmPoiExt.distanceKm));
+          if (userPoiKm != null) {
+            builder.element('bm:routeInfo', nest: () {
+              builder.element('bm:distanceKm', nest: () {
+                builder.text(_formatNumber(userPoiKm));
+              });
             });
-          });
+          }
         });
       });
     }
