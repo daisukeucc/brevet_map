@@ -1634,9 +1634,8 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       );
       if (est == null) return;
       _arrival = _timeOfDayFromDt(est);
-      if (_departure == null) {
-        _departure = _timeOfDayFromDt(est.add(const Duration(minutes: 15)));
-      }
+      _departure ??=
+          _timeOfDayFromDt(est.add(const Duration(minutes: 15)));
       return;
     }
 
