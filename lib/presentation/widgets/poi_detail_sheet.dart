@@ -484,6 +484,13 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
   @override
   Widget build(BuildContext context) {
     final e = widget.entries[_index];
+    final hasDistance = e.distance != null && e.distance!.trim().isNotEmpty;
+    final prevPadding = hasDistance
+        ? const EdgeInsets.only(top: 20, bottom: 10)
+        : const EdgeInsets.only(top: 20, bottom: 5);
+    final nextPadding = hasDistance
+        ? const EdgeInsets.only(top: 10, bottom: 20)
+        : const EdgeInsets.only(top: 5, bottom: 20);
     return SizedBox(
       width: double.infinity,
       child: SafeArea(
@@ -522,9 +529,9 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                         onTap: _goPrev,
                         splashColor: Colors.grey.withValues(alpha: 0.3),
                         highlightColor: Colors.grey.withValues(alpha: 0.2),
-                        child: const Padding(
-                          padding: EdgeInsets.only(top: 10, bottom: 10),
-                          child: Align(
+                        child: Padding(
+                          padding: prevPadding,
+                          child: const Align(
                             alignment: Alignment.bottomCenter,
                             child: Icon(
                               Icons.chevron_left,
@@ -540,9 +547,9 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                         onTap: _goNext,
                         splashColor: Colors.grey.withValues(alpha: 0.3),
                         highlightColor: Colors.grey.withValues(alpha: 0.2),
-                        child: const Padding(
-                          padding: EdgeInsets.only(top: 10, bottom: 10),
-                          child: Align(
+                        child: Padding(
+                          padding: nextPadding,
+                          child: const Align(
                             alignment: Alignment.topCenter,
                             child: Icon(
                               Icons.chevron_right,
