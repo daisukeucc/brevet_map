@@ -47,12 +47,17 @@
   "poiTabEdit": "Edit POI",
   "poiType": "POI type",
   "checkpoint": "Checkpoint",
-  "information": "Information",
+  "information": "Info",
+  "poiTypePhotoCheck": "Photo",
+  "poiTypeStore": "Store",
+  "poiTypeHotel": "Hotel",
+  "poiTypeDining": "Restaurant",
+  "poiTypeStation": "Station",
   "title": "Title",
   "body": "Body",
-  "plannedArrival": "Planned arrival",
-  "plannedDeparture": "Planned departure",
-  "plannedClose": "Close time",
+  "plannedArrival": "Arrival",
+  "plannedDeparture": "Departure",
+  "plannedClose": "Cutoff",
   "arrivalShort": "Arrival",
   "departureShort": "Departure",
   "distance": "Distance",
@@ -316,5 +321,11 @@
   "setStartDate": "Set start date",
   "changeRideDate": "Change ride date",
   "releaseNotesDialogTitle": "Release notes",
-  "releaseNotesV11018Message": "In version 1.1, we've added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!"
+  "releaseNotesV11018Message": "In version 1.1, we've added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!",
+  "releaseNotesV12019Message": "In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs",
+  "poiSaveAsNote": "Save as note",
+  "brevetTimeLimitLabel": "Time limit",
+  "@brevetTimeLimitLabel": {
+    "description": "Label for brevet time limit hours on the start POI elevation dialog (shown before a colon and the hours value)."
+  }
 }

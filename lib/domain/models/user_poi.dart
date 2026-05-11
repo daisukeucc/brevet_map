@@ -1,6 +1,187 @@
+import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../l10n/app_localizations.dart';
 import 'bm_extension.dart';
+
+/// GPX の `<type>` / `<cmt>` ペア。
+class GpxPoiTag {
+  const GpxPoiTag({
+    required this.type,
+    required this.cmt,
+  });
+
+  final String type;
+  final String cmt;
+
+  static const GpxPoiTag checkpoint =
+      GpxPoiTag(type: 'checkpoint', cmt: 'control');
+  static const GpxPoiTag photo = GpxPoiTag(type: 'checkpoint', cmt: 'photo');
+  static const GpxPoiTag information =
+      GpxPoiTag(type: 'generic', cmt: 'generic');
+  static const GpxPoiTag hotel = GpxPoiTag(type: 'hotel', cmt: 'hotel');
+  static const GpxPoiTag store = GpxPoiTag(type: 'store', cmt: 'store');
+  static const GpxPoiTag dining = GpxPoiTag(type: 'food', cmt: 'food');
+  static const GpxPoiTag station = GpxPoiTag(type: 'station', cmt: 'station');
+
+  // GPX type (special waypoints)
+  static const String typeStart = 'start';
+  static const String typeFinish = 'finish';
+  static const String nameStart = 'Start';
+  static const String nameGoal = 'Goal';
+  static const String symFlag = 'Flag';
+  static const String symDot = 'Dot';
+
+  static bool isStartType(String? type) =>
+      type?.trim().toLowerCase() == typeStart;
+  static bool isFinishType(String? type) =>
+      type?.trim().toLowerCase() == typeFinish;
+  static bool isStartOrFinishType(String? type) =>
+      isStartType(type) || isFinishType(type);
+}
+
+/// ユーザーPOIタイプ（保存値とUIアイコン定義）。
+enum UserPoiType {
+  checkpoint(0, Icons.check, GpxPoiTag.checkpoint),
+  information(1, Icons.info, GpxPoiTag.information),
+  photo(2, Icons.photo_camera, GpxPoiTag.photo),
+  store(3, Icons.shopping_basket, GpxPoiTag.store),
+  hotel(4, Icons.hotel, GpxPoiTag.hotel),
+  dining(5, Icons.restaurant, GpxPoiTag.dining),
+  station(6, Icons.train, GpxPoiTag.station);
+
+  const UserPoiType(this.value, this.icon, this.gpxTag);
+
+  final int value;
+  final IconData icon;
+  final GpxPoiTag gpxTag;
+
+  /// POIタイプ選択UIでの表示順。
+  static const List<UserPoiType> dropdownOrder = [
+    UserPoiType.checkpoint,
+    UserPoiType.photo,
+    UserPoiType.information,
+    UserPoiType.store,
+    UserPoiType.hotel,
+    UserPoiType.dining,
+    UserPoiType.station,
+  ];
+
+  static UserPoiType fromValue(int value) {
+    for (final t in UserPoiType.values) {
+      if (t.value == value) return t;
+    }
+    return UserPoiType.information;
+  }
+
+  static UserPoiType fromGpxTag({
+    required String? type,
+    required String? cmt,
+  }) {
+    final typeLower = type?.trim().toLowerCase() ?? '';
+    final cmtLower = cmt?.trim().toLowerCase() ?? '';
+
+    if (typeLower == GpxPoiTag.checkpoint.type) {
+      return cmtLower == GpxPoiTag.photo.cmt
+          ? UserPoiType.photo
+          : UserPoiType.checkpoint;
+    }
+    if (typeLower == GpxPoiTag.information.type) {
+      if (cmtLower == GpxPoiTag.photo.cmt) return UserPoiType.photo;
+      return UserPoiType.information;
+    }
+    if (typeLower == GpxPoiTag.hotel.type) {
+      return UserPoiType.hotel;
+    }
+    if (typeLower == GpxPoiTag.store.type) {
+      return UserPoiType.store;
+    }
+    if (typeLower == GpxPoiTag.dining.type) {
+      return UserPoiType.dining;
+    }
+    if (typeLower == GpxPoiTag.station.type) {
+      return UserPoiType.station;
+    }
+    if (typeLower == GpxPoiTag.typeStart || typeLower == GpxPoiTag.typeFinish) {
+      return UserPoiType.information;
+    }
+
+    if (cmtLower == GpxPoiTag.photo.cmt) return UserPoiType.photo;
+    if (cmtLower == GpxPoiTag.checkpoint.cmt) return UserPoiType.checkpoint;
+    if (cmtLower == GpxPoiTag.hotel.cmt) return UserPoiType.hotel;
+    if (cmtLower == GpxPoiTag.store.cmt) return UserPoiType.store;
+    if (cmtLower == GpxPoiTag.dining.cmt) return UserPoiType.dining;
+    if (cmtLower == GpxPoiTag.station.cmt) return UserPoiType.station;
+    return UserPoiType.information;
+  }
+
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case UserPoiType.checkpoint:
+        return l10n.checkpoint;
+      case UserPoiType.information:
+        return l10n.information;
+      case UserPoiType.photo:
+        return l10n.poiTypePhotoCheck;
+      case UserPoiType.store:
+        return l10n.poiTypeStore;
+      case UserPoiType.hotel:
+        return l10n.poiTypeHotel;
+      case UserPoiType.dining:
+        return l10n.poiTypeDining;
+      case UserPoiType.station:
+        return l10n.poiTypeStation;
+    }
+  }
+
+  Color get markerFillColor {
+    switch (this) {
+      case UserPoiType.checkpoint:
+      case UserPoiType.photo:
+        return Colors.lightBlue.shade500;
+      case UserPoiType.information:
+      case UserPoiType.store:
+      case UserPoiType.hotel:
+      case UserPoiType.dining:
+      case UserPoiType.station:
+        return Colors.orange.shade700;
+    }
+  }
+
+  double get markerIconFontSize {
+    switch (this) {
+      case UserPoiType.checkpoint:
+      case UserPoiType.information:
+      case UserPoiType.photo:
+      case UserPoiType.dining:
+        return 54;
+      case UserPoiType.store:
+      case UserPoiType.hotel:
+        return 55;
+      case UserPoiType.station:
+        return 56;
+    }
+  }
+
+  Offset get markerIconOffset {
+    switch (this) {
+      case UserPoiType.photo:
+      case UserPoiType.station:
+        return const Offset(0, 1);
+      case UserPoiType.store:
+      case UserPoiType.hotel:
+        return const Offset(0, -2);
+      case UserPoiType.dining:
+        return const Offset(-2, 1);
+      case UserPoiType.checkpoint:
+      case UserPoiType.information:
+        return Offset.zero;
+    }
+  }
+
+  /// BrevetMap 拡張 (`bm:type`) の既定値。
+  String get defaultBmPoiType => gpxTag.type;
+}
 
 /// ユーザーが手動で登録した POI。SharedPreferences に JSON で保存する。
 class UserPoi {
@@ -9,6 +190,7 @@ class UserPoi {
     required this.km,
     required this.title,
     required this.body,
+    this.url,
     required this.lat,
     required this.lng,
 
@@ -20,15 +202,19 @@ class UserPoi {
 
     /// BrevetMap 独自拡張データ（`<bm:poi>`）
     this.bmExt,
+
+    /// メモ POI。区間距離・獲得標高の集計から除外し、GPX に `<bm:isNote>` で出力する。
+    this.isNote = false,
   });
 
-  /// 0=チェックポイント（GPX の `<type>checkpoint</type>` に相当）, 1=インフォメーション
+  /// 0=チェックポイント, 1=インフォメーション, 2=フォト, 3=ストア, 4=ホテル, 5=食事, 6=駅
   final int type;
 
   final double? km;
 
   final String title;
   final String body;
+  final String? url;
   final double lat;
   final double lng;
 
@@ -41,10 +227,29 @@ class UserPoi {
   /// BrevetMap 独自拡張データ。インポート / 新規追加時に設定される。
   final BmPoiExtension? bmExt;
 
+  /// メモとして保存（集計・標高区間から除外）。
+  final bool isNote;
+
   LatLng get position => LatLng(lat, lng);
+  UserPoiType get poiType => UserPoiType.fromValue(type);
+
+  /// [list] 内での [target] のインデックス。
+  ///
+  /// 同一座標・[km] の行が複数ある場合は、[identical] で一致する要素を優先する（GPX の重複 wpt など）。
+  static int indexInList(List<UserPoi> list, UserPoi target) {
+    final byRef = list.indexWhere((p) => identical(p, target));
+    if (byRef >= 0) return byRef;
+    return list.indexWhere(
+      (p) => p.lat == target.lat && p.lng == target.lng && p.km == target.km,
+    );
+  }
 
   /// チェックポイントか（インポート時は `<type>checkpoint</type>` 由来）
-  bool get isCheckpoint => type == 0;
+  bool get isCheckpoint => poiType == UserPoiType.checkpoint;
+
+  /// `<cmt>photo</cmt>` 由来など、GPX 上でフォト用 CP として扱うとき true
+  bool get isPhotoCheckpointMarker =>
+      isCheckpoint && gpxCmt?.trim().toLowerCase() == 'photo';
 
   static bool _isBmTypeFinish(UserPoi p) => p.bmExt?.type == 'finish';
 
@@ -108,11 +313,13 @@ class UserPoi {
         'km': km,
         'title': title,
         'body': body,
+        if (url != null && url!.isNotEmpty) 'url': url,
         'lat': lat,
         'lng': lng,
         if (gpxCmt != null) 'gpxCmt': gpxCmt,
         if (gpxType != null) 'gpxType': gpxType,
         if (bmExt != null) 'bmExt': bmExt!.toJson(),
+        if (isNote) 'isNote': true,
       };
 
   static UserPoi fromJson(Map<String, dynamic> json) => UserPoi(
@@ -120,6 +327,7 @@ class UserPoi {
         km: json['km'] != null ? (json['km'] as num).toDouble() : null,
         title: json['title'] as String? ?? '',
         body: json['body'] as String? ?? '',
+        url: json['url'] as String?,
         lat: (json['lat'] as num).toDouble(),
         lng: (json['lng'] as num).toDouble(),
         gpxCmt: json['gpxCmt'] as String?,
@@ -127,5 +335,6 @@ class UserPoi {
         bmExt: json['bmExt'] != null
             ? BmPoiExtension.fromJson(json['bmExt'] as Map<String, dynamic>)
             : null,
+        isNote: json['isNote'] == true,
       );
 }

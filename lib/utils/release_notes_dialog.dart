@@ -15,6 +15,8 @@ String? _messageForVersionBuild(
   switch (versionBuildId) {
     case '1.1.0+18':
       return l10n.releaseNotesV11018Message;
+    case '1.2.0+19':
+      return l10n.releaseNotesV12019Message;
     default:
       return null;
   }

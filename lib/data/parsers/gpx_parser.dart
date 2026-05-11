@@ -10,16 +10,19 @@ class GpxPoi {
     required this.lng,
     this.name,
     this.description,
+    this.linkHref,
     this.symbol,
     this.cmt,
     this.type,
     this.bmPoiExt,
+    this.bmRouteInfoInGpx = false,
   });
 
   final double lat;
   final double lng;
   final String? name;
   final String? description;
+  final String? linkHref;
   final String? symbol;
 
   /// GPXの <cmt>（コメント）
@@ -31,6 +34,9 @@ class GpxPoi {
   /// `<extensions><bm:poi>` があれば保持する
   final BmPoiExtension? bmPoiExt;
 
+  /// GPX に `<bm:routeInfo>` が存在したか。再インポート時に沿線距離を [UserPoi.km] に載せるかの判定に使う。
+  final bool bmRouteInfoInGpx;
+
   LatLng get position => LatLng(lat, lng);
 
   /// チェックポイントとして扱うか（`UserPoi.type` 0 用）
@@ -39,6 +45,10 @@ class GpxPoi {
     final t = type?.trim().toLowerCase();
     return t == 'checkpoint';
   }
+
+  /// `<cmt>photo</cmt>` のチェックポイント（撮影系）→ 地図ではカメラマーカー
+  bool get isPhotoCheckpointMarker =>
+      isCheckpoint && cmt?.trim().toLowerCase() == 'photo';
 
   /// `<type>Dot</type>`（大文字小文字無視）。アプリ表示では無視し、エクスポート用に別保持する。
   bool get isGpxDotType {
@@ -51,10 +61,12 @@ class GpxPoi {
         'lng': lng,
         'name': name,
         'desc': description,
+        'linkHref': linkHref,
         'sym': symbol,
         'cmt': cmt,
         'type': type,
         if (bmPoiExt != null) 'bmPoiExt': bmPoiExt!.toJson(),
+        'bmRouteInfoInGpx': bmRouteInfoInGpx,
       };
 
   static GpxPoi fromJson(Map<String, dynamic> json) {
@@ -63,12 +75,14 @@ class GpxPoi {
       lng: (json['lng'] as num).toDouble(),
       name: json['name'] as String?,
       description: json['desc'] as String?,
+      linkHref: json['linkHref'] as String?,
       symbol: json['sym'] as String?,
       cmt: json['cmt'] as String?,
       type: json['type'] as String?,
       bmPoiExt: json['bmPoiExt'] != null
           ? BmPoiExtension.fromJson(json['bmPoiExt'] as Map<String, dynamic>)
           : null,
+      bmRouteInfoInGpx: json['bmRouteInfoInGpx'] as bool? ?? false,
     );
   }
 }
@@ -93,11 +107,8 @@ GpxParseResult? parseGpx(String xmlContent) {
 
     // <metadata>
     final metadataEl = doc.findAllElements('metadata').firstOrNull;
-    final metadataName = metadataEl
-        ?.findElements('name')
-        .firstOrNull
-        ?.innerText
-        .trim();
+    final metadataName =
+        metadataEl?.findElements('name').firstOrNull?.innerText.trim();
     final name = metadataName?.isEmpty == true ? null : metadataName;
 
     // <metadata><extensions><bm:brevet>
@@ -111,7 +122,8 @@ GpxParseResult? parseGpx(String xmlContent) {
           final lon = double.tryParse(pt.getAttribute('lon') ?? '');
           if (lat != null && lon != null) {
             trackPoints.add(LatLng(lat, lon));
-            final eleText = pt.findElements('ele').firstOrNull?.innerText.trim();
+            final eleText =
+                pt.findElements('ele').firstOrNull?.innerText.trim();
             final ele = eleText == null || eleText.isEmpty
                 ? null
                 : double.tryParse(eleText);
@@ -121,26 +133,30 @@ GpxParseResult? parseGpx(String xmlContent) {
       }
     }
 
-    // <wpt>…<name/><desc/><sym/><cmt/><type/><extensions/>
+    // <wpt>…<name/><desc/><link href="..."/><sym/><cmt/><type/><extensions/>
     for (final wpt in doc.findAllElements('wpt')) {
       final lat = double.tryParse(wpt.getAttribute('lat') ?? '');
       final lon = double.tryParse(wpt.getAttribute('lon') ?? '');
       if (lat != null && lon != null) {
         final wptName = wpt.findElements('name').firstOrNull?.innerText.trim();
         final desc = wpt.findElements('desc').firstOrNull?.innerText.trim();
+        final linkHref =
+            wpt.findElements('link').firstOrNull?.getAttribute('href')?.trim();
         final sym = wpt.findElements('sym').firstOrNull?.innerText.trim();
         final cmt = wpt.findElements('cmt').firstOrNull?.innerText.trim();
         final type = wpt.findElements('type').firstOrNull?.innerText.trim();
-        final bmPoiExt = _parseBmPoiExtension(wpt);
+        final parsedBm = _parseBmPoiExtension(wpt);
         waypoints.add(GpxPoi(
           lat: lat,
           lng: lon,
           name: wptName?.isEmpty == true ? null : wptName,
           description: desc?.isEmpty == true ? null : desc,
+          linkHref: linkHref?.isEmpty == true ? null : linkHref,
           symbol: sym?.isEmpty == true ? null : sym,
           cmt: cmt?.isEmpty == true ? null : cmt,
           type: type?.isEmpty == true ? null : type,
-          bmPoiExt: bmPoiExt,
+          bmPoiExt: parsedBm?.ext,
+          bmRouteInfoInGpx: parsedBm?.hasRouteInfo ?? false,
         ));
       }
     }
@@ -166,7 +182,8 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
   if (brevet == null) return null;
 
   final distanceKm = double.tryParse(
-        brevet.findElements('bm:distanceKm').firstOrNull?.innerText.trim() ?? '',
+        brevet.findElements('bm:distanceKm').firstOrNull?.innerText.trim() ??
+            '',
       ) ??
       0;
   final startTimeStr =
@@ -174,7 +191,11 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
   final startTime =
       startTimeStr.isNotEmpty ? DateTime.tryParse(startTimeStr) : null;
   final timeLimitHours = double.tryParse(
-        brevet.findElements('bm:timeLimitHours').firstOrNull?.innerText.trim() ??
+        brevet
+                .findElements('bm:timeLimitHours')
+                .firstOrNull
+                ?.innerText
+                .trim() ??
             '',
       ) ??
       0;
@@ -187,7 +208,9 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
 }
 
 /// `<wpt><extensions><bm:poi>` をパースする。なければ null。
-BmPoiExtension? _parseBmPoiExtension(XmlElement wpt) {
+/// [hasRouteInfo] は `<bm:routeInfo>` 要素が GPX に存在したか（要素が無いのと距離 0 は区別するため）。
+({BmPoiExtension ext, bool hasRouteInfo})? _parseBmPoiExtension(
+    XmlElement wpt) {
   final extensions = wpt.findElements('extensions').firstOrNull;
   if (extensions == null) return null;
   final bmPoi = extensions.findElements('bm:poi').firstOrNull;
@@ -210,21 +233,39 @@ BmPoiExtension? _parseBmPoiExtension(XmlElement wpt) {
   }
 
   final routeInfoEl = bmPoi.findElements('bm:routeInfo').firstOrNull;
-  final distanceKm = double.tryParse(
-        routeInfoEl
-                ?.findElements('bm:distanceKm')
-                .firstOrNull
-                ?.innerText
-                .trim() ??
-            '',
-      ) ??
-      0;
+  final double distanceKm = routeInfoEl != null
+      ? (double.tryParse(
+              routeInfoEl
+                      .findElements('bm:distanceKm')
+                      .firstOrNull
+                      ?.innerText
+                      .trim() ??
+                  '',
+            ) ??
+          0.0)
+      : 0.0;
 
-  return BmPoiExtension(
-    type: type,
-    schedule: BmSchedule(
-        arrival: arrival, departure: departure, close: close, result: result),
-    distanceKm: distanceKm,
+  final orderText =
+      bmPoi.findElements('bm:displayOrder').firstOrNull?.innerText.trim();
+  final displayOrder = int.tryParse(orderText ?? '');
+
+  final isNoteText =
+      bmPoi.findElements('bm:isNote').firstOrNull?.innerText.trim().toLowerCase();
+  final isNote = isNoteText == 'true' || isNoteText == '1';
+
+  return (
+    ext: BmPoiExtension(
+      type: type,
+      schedule: BmSchedule(
+          arrival: arrival,
+          departure: departure,
+          close: close,
+          result: result),
+      distanceKm: distanceKm,
+      displayOrder: displayOrder,
+      isNote: isNote,
+    ),
+    hasRouteInfo: routeInfoEl != null,
   );
 }
 

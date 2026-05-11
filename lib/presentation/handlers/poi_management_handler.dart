@@ -25,6 +25,11 @@ import '../widgets/text_menu_dialog.dart';
 // POI管理のハンドラとダイアログ
 // ---------------------------------------------------------------------------
 
+/// POI「タイトル」「本文」TextField の入力域まわりの余白（主に下端）。
+/// [InputDecoration.contentPadding] で調整する。
+const EdgeInsets _kPoiTitleBodyFieldContentPadding =
+    EdgeInsets.fromLTRB(0, 12, 0, 8);
+
 /// POIフォームの入力データ
 class AddPoiFormData {
   const AddPoiFormData({
@@ -32,17 +37,21 @@ class AddPoiFormData {
     required this.type,
     required this.title,
     required this.body,
+    required this.url,
     this.arrival,
     this.departure,
     this.close,
+    this.isNote = false,
   });
   final double? km;
   final int type;
   final String title;
   final String body;
+  final String url;
   final TimeOfDay? arrival;
   final TimeOfDay? departure;
   final TimeOfDay? close;
+  final bool isNote;
 }
 
 /// 地図タップでPOI追加を選択した場合のリクエスト
@@ -56,10 +65,31 @@ class PoiEditPositionRequest {
   final UserPoi poi;
 }
 
+String _elevationEditDisplay(double? metersM, int distanceUnit) =>
+    formatElevationChange(metersM ?? 0, distanceUnit);
+
 TimeOfDay? _timeOfDayFromDt(DateTime? dt) {
   if (dt == null) return null;
   final local = dt.toLocal();
   return TimeOfDay(hour: local.hour, minute: local.minute);
+}
+
+int _normalizePoiTypeForForm(int type) {
+  return UserPoiType.fromValue(type).value;
+}
+
+List<DropdownMenuItem<int>> _buildPoiTypeDropdownItems(AppLocalizations l10n) {
+  return UserPoiType.dropdownOrder
+      .map(
+        (type) => DropdownMenuItem<int>(
+          value: type.value,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text(type.localizedLabel(l10n)),
+          ),
+        ),
+      )
+      .toList(growable: false);
 }
 
 /// POI スケジュール内の全日時フィールドを [delta] だけシフトする。
@@ -71,13 +101,16 @@ UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
     km: poi.km,
     title: poi.title,
     body: poi.body,
+    url: poi.url,
     lat: poi.lat,
     lng: poi.lng,
     gpxCmt: poi.gpxCmt,
     gpxType: poi.gpxType,
+    isNote: poi.isNote,
     bmExt: BmPoiExtension(
       type: ext.type,
       distanceKm: ext.distanceKm,
+      displayOrder: ext.displayOrder,
       schedule: BmSchedule(
         arrival: ext.schedule.arrival?.add(delta),
         departure: ext.schedule.departure?.add(delta),
@@ -106,7 +139,7 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   final meta = await loadBrevetMeta();
   final refDate = meta?.startTime ?? DateTime.now().toUtc();
   return BmPoiExtension(
-    type: data.type == 0 ? 'checkpoint' : 'generic',
+    type: data.type == UserPoiType.checkpoint.value ? 'checkpoint' : 'generic',
     distanceKm: km ?? 0,
     schedule: BmSchedule(
       arrival:
@@ -119,7 +152,8 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   );
 }
 
-/// 既存 POI の BmPoiExtension を更新する。arrival/departure/close を上書きし、result・type・distanceKm は保持する。
+/// 既存 POI の BmPoiExtension を更新する。arrival/departure/close を上書きし、result・type は保持する。
+/// 距離は編集フォーム（[AddPoiFormData.km]）を正とする。空欄なら [BmPoiExtension.distanceKm] は 0。
 /// EditPoiTextDialog は既存値で初期化されるため、data.arrival/departure/close が最終状態（null = クリア済み）。
 Future<BmPoiExtension?> _buildBmPoiExtForEdit({
   required AddPoiFormData data,
@@ -145,8 +179,9 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
     }
   }
   return BmPoiExtension(
-    type: existing?.type ?? (data.type == 0 ? 'checkpoint' : 'generic'),
-    distanceKm: existing?.distanceKm ?? data.km ?? 0,
+    type: existing?.type ??
+        (data.type == UserPoiType.checkpoint.value ? 'checkpoint' : 'generic'),
+    distanceKm: data.km ?? 0,
     schedule: BmSchedule(
       arrival: data.arrival != null
           ? _applyTimeOfDay(data.arrival!, refDate!)
@@ -181,13 +216,16 @@ UserPoi _userPoiWithFinishClose(UserPoi p, DateTime? close) {
     km: p.km,
     title: p.title,
     body: p.body,
+    url: p.url,
     lat: p.lat,
     lng: p.lng,
     gpxCmt: p.gpxCmt,
     gpxType: p.gpxType,
+    isNote: p.isNote,
     bmExt: BmPoiExtension(
       type: ext.type,
       distanceKm: ext.distanceKm,
+      displayOrder: ext.displayOrder,
       schedule: BmSchedule(
         arrival: ext.schedule.arrival,
         departure: ext.schedule.departure,
@@ -250,9 +288,11 @@ Future<void> handleDistanceInputPoiAdd(
           km: data.km,
           title: data.title,
           body: data.body,
+          url: data.url,
           lat: coord.latitude,
           lng: coord.longitude,
           bmExt: bmExt,
+          isNote: data.isNote,
         );
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
         if (context.mounted) {
@@ -260,6 +300,26 @@ Future<void> handleDistanceInputPoiAdd(
         }
       },
     ),
+  );
+}
+
+/// [MapTapPoiAddDialog] の入力から [UserPoi] を生成する（共有 URL プレビューからも利用）。
+Future<UserPoi> userPoiFromMapTapAddForm({
+  required AddPoiFormData data,
+  required LatLng position,
+}) async {
+  final bmExt = await _buildBmPoiExtForAdd(data: data, km: data.km);
+  final url = data.url.trim();
+  return UserPoi(
+    type: data.type,
+    km: data.km,
+    title: data.title,
+    body: data.body,
+    url: url.isEmpty ? null : url,
+    lat: position.latitude,
+    lng: position.longitude,
+    bmExt: bmExt,
+    isNote: data.isNote,
   );
 }
 
@@ -273,23 +333,30 @@ Future<void> handleMapLongPressPoiAdd(
 }) async {
   if (!context.mounted) return;
 
+  final distanceUnit = ref.read(distanceUnitProvider);
+  final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+  final totalRouteKm = routePoints != null && routePoints.isNotEmpty
+      ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
+      : null;
+  String? initialKmText;
+  if (routePoints != null && routePoints.isNotEmpty) {
+    final alongM = distanceFromStartToPointAlongTrack(routePoints, position);
+    final kmAlong = alongM / 1000.0;
+    initialKmText = formatDistanceNumeric(kmAlong, distanceUnit);
+  }
+
   await showDialog<void>(
     context: context,
     barrierColor: Colors.black54,
     barrierDismissible: false,
     builder: (dialogContext) => MapTapPoiAddDialog(
       initialTitle: initialTitle,
+      distanceUnit: distanceUnit,
+      totalRouteKm: totalRouteKm,
+      initialKmText: initialKmText,
       onSave: (data) async {
-        final bmExt = await _buildBmPoiExtForAdd(data: data, km: null);
-        final poi = UserPoi(
-          type: data.type,
-          km: null,
-          title: data.title,
-          body: data.body,
-          lat: position.latitude,
-          lng: position.longitude,
-          bmExt: bmExt,
-        );
+        final poi =
+            await userPoiFromMapTapAddForm(data: data, position: position);
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
         if (context.mounted) {
           showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
@@ -309,30 +376,50 @@ Future<void> handleEditPoiText(
 }) async {
   if (!context.mounted) return;
   final distanceUnit = ref.read(distanceUnitProvider);
-  final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+  final mapState = ref.read(mapStateProvider);
+  final brevetMeta = await loadBrevetMeta();
+  if (!context.mounted) return;
+  final routePoints = mapState.savedRoutePoints;
   final totalRouteKm = routePoints != null && routePoints.isNotEmpty
       ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
       : null;
+
+  double? elevationGainFor(UserPoi p) {
+    if (p.isNote) return null;
+    final ms = ref.read(mapStateProvider);
+    final gains = ms.cachedPoiElevationGains;
+    final orderedForGain = ms.userPois;
+    if (gains == null) return null;
+    final idx = UserPoi.indexInList(orderedForGain, p);
+    if (idx < 0 || idx >= gains.length) return null;
+    return gains[idx];
+  }
+
+  double? elevationLossFor(UserPoi p) {
+    if (p.isNote) return null;
+    final ms = ref.read(mapStateProvider);
+    final losses = ms.cachedPoiElevationLosses;
+    final ordered = ms.userPois;
+    if (losses == null) return null;
+    final idx = UserPoi.indexInList(ordered, p);
+    if (idx < 0 || idx >= losses.length) return null;
+    return losses[idx];
+  }
 
   List<UserPoi> orderedPois() => List<UserPoi>.from(
         ref.read(mapStateProvider).userPois,
       );
 
-  int findIndex(List<UserPoi> list, UserPoi current) => list.indexWhere(
-        (p) =>
-            p.lat == current.lat && p.lng == current.lng && p.km == current.km,
-      );
-
   UserPoi? findNext(UserPoi current) {
     final list = orderedPois();
-    final idx = findIndex(list, current);
+    final idx = UserPoi.indexInList(list, current);
     if (idx >= 0 && idx + 1 < list.length) return list[idx + 1];
     return null;
   }
 
   UserPoi? findPrev(UserPoi current) {
     final list = orderedPois();
-    final idx = findIndex(list, current);
+    final idx = UserPoi.indexInList(list, current);
     if (idx > 0) return list[idx - 1];
     return null;
   }
@@ -354,15 +441,32 @@ Future<void> handleEditPoiText(
       km: data.km,
       title: data.title,
       body: data.body,
+      url: data.url,
       lat: coord?.latitude ?? currentPoi.lat,
       lng: coord?.longitude ?? currentPoi.lng,
       gpxCmt: currentPoi.gpxCmt,
       gpxType: currentPoi.gpxType,
       bmExt: newBmExt,
+      isNote: data.isNote,
     );
     final isStartPoi = currentPoi.bmExt?.type == 'start';
     final newStartDep = updatedPoi.bmExt?.schedule.departure;
     final oldStartDep = currentPoi.bmExt?.schedule.departure;
+    final newArrival = updatedPoi.bmExt?.schedule.arrival;
+    final oldArrival = currentPoi.bmExt?.schedule.arrival;
+    final newDeparture = updatedPoi.bmExt?.schedule.departure;
+    final oldDeparture = currentPoi.bmExt?.schedule.departure;
+    // arrival 変化を優先し、arrival が変わらず departure だけ変わった場合は departure 差分を使う
+    final scheduleDelta = !isStartPoi
+        ? (newArrival != null && oldArrival != null && newArrival != oldArrival)
+            ? newArrival.difference(oldArrival)
+            : (newDeparture != null &&
+                    oldDeparture != null &&
+                    newDeparture != oldDeparture)
+                ? newDeparture.difference(oldDeparture)
+                : null
+        : null;
+
     if (isStartPoi && newStartDep != oldStartDep) {
       final tr = totalRouteKm ?? 0.0;
       final meta = await loadBrevetMeta();
@@ -371,23 +475,117 @@ Future<void> handleEditPoiText(
         meta: meta,
         totalRouteKm: tr,
       );
+      Duration? startCascadeDelta;
+      if (newStartDep != null) {
+        if (oldStartDep != null) {
+          startCascadeDelta = newStartDep.difference(oldStartDep);
+        } else if (meta?.startTime != null) {
+          startCascadeDelta = newStartDep.difference(meta!.startTime!);
+        }
+      }
       final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
-      final startIdx = list.indexWhere(
-        (p) =>
-            p.lat == currentPoi.lat &&
-            p.lng == currentPoi.lng &&
-            p.km == currentPoi.km,
-      );
+      final startIdx = UserPoi.indexInList(list, currentPoi);
       if (startIdx < 0) {
         await ref
             .read(mapStateProvider.notifier)
             .updateUserPoi(currentPoi, updatedPoi);
       } else {
         list[startIdx] = updatedPoi;
+        final ordered = UserPoi.orderedForDetailSheet(list);
+        final startRouteIdx = UserPoi.indexInList(ordered, updatedPoi);
         for (var i = 0; i < list.length; i++) {
-          if (list[i].bmExt?.type == 'finish') {
-            list[i] = _userPoiWithFinishClose(list[i], newClose);
+          if (i == startIdx) continue;
+          final p = list[i];
+          final e = p.bmExt;
+          if (e == null) continue;
+          final s = e.schedule;
+          final routeIdx = UserPoi.indexInList(ordered, p);
+          final afterStart = startRouteIdx >= 0 && routeIdx >= 0
+              ? routeIdx > startRouteIdx
+              : i > startIdx;
+
+          DateTime? arr = s.arrival;
+          DateTime? dep = s.departure;
+
+          if (afterStart &&
+              startCascadeDelta != null &&
+              (arr != null || dep != null)) {
+            arr = arr?.add(startCascadeDelta);
+            dep = dep?.add(startCascadeDelta);
           }
+
+          final shifted = UserPoi(
+            type: p.type,
+            km: p.km,
+            title: p.title,
+            body: p.body,
+            url: p.url,
+            lat: p.lat,
+            lng: p.lng,
+            gpxCmt: p.gpxCmt,
+            gpxType: p.gpxType,
+            isNote: p.isNote,
+            bmExt: BmPoiExtension(
+              type: e.type,
+              distanceKm: e.distanceKm,
+              displayOrder: e.displayOrder,
+              schedule: BmSchedule(
+                arrival: arr,
+                departure: dep,
+                close: s.close,
+                result: s.result,
+              ),
+            ),
+          );
+
+          if (e.type == 'finish') {
+            list[i] = _userPoiWithFinishClose(shifted, newClose);
+          } else if (afterStart &&
+              startCascadeDelta != null &&
+              (s.arrival != null || s.departure != null)) {
+            list[i] = shifted;
+          }
+        }
+        await ref.read(mapStateProvider.notifier).replaceAllUserPois(list);
+      }
+    } else if (scheduleDelta != null) {
+      final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
+      final editIdx = UserPoi.indexInList(list, currentPoi);
+      if (editIdx < 0) {
+        await ref
+            .read(mapStateProvider.notifier)
+            .updateUserPoi(currentPoi, updatedPoi);
+      } else {
+        list[editIdx] = updatedPoi;
+        for (var i = editIdx + 1; i < list.length; i++) {
+          final p = list[i];
+          final e = p.bmExt;
+          if (e == null) continue;
+          final s = e.schedule;
+          if (s.arrival == null && s.departure == null) continue;
+          list[i] = UserPoi(
+            type: p.type,
+            km: p.km,
+            title: p.title,
+            body: p.body,
+            url: p.url,
+            lat: p.lat,
+            lng: p.lng,
+            gpxCmt: p.gpxCmt,
+            gpxType: p.gpxType,
+            isNote: p.isNote,
+            bmExt: BmPoiExtension(
+              type: e.type,
+              distanceKm: e.distanceKm,
+              displayOrder: e.displayOrder,
+              schedule: BmSchedule(
+                arrival: s.arrival?.add(scheduleDelta),
+                departure: s.departure?.add(scheduleDelta),
+                close: s.close,
+                result: s.result,
+              ),
+            ),
+          );
         }
         await ref.read(mapStateProvider.notifier).replaceAllUserPois(list);
       }
@@ -402,14 +600,34 @@ Future<void> handleEditPoiText(
     return goNext ? findNext(updatedPoi) : findPrev(updatedPoi);
   }
 
+  double? elevationGainFromRouteStart(UserPoi p) {
+    final ms = ref.read(mapStateProvider);
+    final pts = ms.savedRoutePoints;
+    final elevs = ms.savedTrackElevations;
+    if (pts == null ||
+        pts.isEmpty ||
+        elevs == null ||
+        elevs.length != pts.length) {
+      return null;
+    }
+    final i = nearestTrackIndex(pts, p.position);
+    return elevationGainBetweenIndices(elevs, 0, i);
+  }
+
   await showDialog<void>(
     context: context,
     barrierColor: transparentBarrier ? Colors.transparent : Colors.black54,
     barrierDismissible: false,
     builder: (dialogContext) => EditPoiTextDialog(
+      ref: ref,
       poi: poi,
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
+      brevetStartTimeUtc: brevetMeta?.startTime,
+      elevationGainFromRouteStart: elevationGainFromRouteStart,
+      elevationGainFor: elevationGainFor,
+      elevationLossFor: elevationLossFor,
+      findPreviousPoi: findPrev,
       onNext: findNext,
       onPrev: findPrev,
       onSave: (poi, data) => saveAndFind(poi, data, true),
@@ -465,11 +683,13 @@ Future<void> handlePoiDragEnd(
     km: poi.km,
     title: poi.title,
     body: poi.body,
+    url: poi.url,
     lat: newLatLng.latitude,
     lng: newLatLng.longitude,
     gpxCmt: poi.gpxCmt,
     gpxType: poi.gpxType,
     bmExt: poi.bmExt,
+    isNote: poi.isNote,
   );
   await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
   if (!context.mounted) return;
@@ -500,11 +720,9 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
   final _kmController = TextEditingController();
   final _titleController = TextEditingController();
   final _bodyController = TextEditingController();
+  final _urlController = TextEditingController();
   String? _kmError;
   late final FocusNode _kmFocusNode;
-  TimeOfDay? _arrival;
-  TimeOfDay? _departure;
-  TimeOfDay? _close;
   bool _saving = false;
 
   @override
@@ -527,6 +745,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
     _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
@@ -547,9 +766,8 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
       type: _poiType,
       title: _titleController.text.trim(),
       body: _bodyController.text.trim(),
-      arrival: _arrival,
-      departure: _departure,
-      close: _close,
+      url: _urlController.text.trim(),
+      isNote: false,
     );
   }
 
@@ -561,52 +779,6 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
     await widget.onSave(data);
     if (!mounted) return;
     Navigator.pop(context);
-  }
-
-  Future<void> _pickTime({required bool isArrival}) async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final current = isArrival ? _arrival : _departure;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: current ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() {
-        if (isArrival) {
-          _arrival = picked;
-          final totalMin = picked.hour * 60 + picked.minute + 15;
-          _departure =
-              TimeOfDay(hour: (totalMin ~/ 60) % 24, minute: totalMin % 60);
-        } else {
-          _departure = picked;
-        }
-      });
-    }
-  }
-
-  Future<void> _pickClose() async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _close ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() => _close = picked);
-    }
   }
 
   @override
@@ -668,48 +840,28 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
               const SizedBox(height: 28),
               Text(l10n.poiType, style: AppTextStyles.body),
               const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 0);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 0,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: DropdownButtonFormField<int>(
+                    value: _normalizePoiTypeForForm(_poiType),
+                    menuMaxHeight: 360,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                     ),
-                    Text(l10n.checkpoint, style: AppTextStyles.body),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 1);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 1,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(l10n.information, style: AppTextStyles.body),
-                  ],
+                    items: _buildPoiTypeDropdownItems(l10n),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      FocusScope.of(context).unfocus();
+                      setState(() => _poiType = value);
+                    },
+                    style: AppTextStyles.body.copyWith(color: Colors.black87),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -718,8 +870,9 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.title,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -727,31 +880,22 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.body,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
                 maxLines: 3,
                 minLines: 3,
               ),
-              const SizedBox(height: 20),
-              _TimePickerRow(
-                label: l10n.plannedArrival,
-                time: _arrival,
-                onTap: () => _pickTime(isArrival: true),
-                onClear: () => setState(() => _arrival = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedDeparture,
-                time: _departure,
-                onTap: () => _pickTime(isArrival: false),
-                onClear: () => setState(() => _departure = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedClose,
-                time: _close,
-                onTap: _pickClose,
-                onClear: () => setState(() => _close = null),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _urlController,
+                keyboardType: TextInputType.url,
+                decoration: const InputDecoration(
+                  labelText: 'URL',
+                  isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
+                ),
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 16),
               Row(
@@ -1024,9 +1168,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
         final distStr =
             poi.km != null ? formatDistance(poi.km!, distanceUnit) : null;
         return Material(
-          key: ValueKey(
-            '${poi.lat}_${poi.lng}_${poi.km ?? 'n'}_${poi.title}',
-          ),
+          key: ObjectKey(poi),
           color: Colors.transparent,
           child: DecoratedBox(
             decoration: const BoxDecoration(
@@ -1043,7 +1185,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                     Expanded(
                       child: Text(
                         distStr != null
-                            ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
+                            ? '$distStr : ${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
                             : (poi.title.isEmpty
                                 ? AppLocalizations.of(context)!.titleNone
                                 : poi.title),
@@ -1106,17 +1248,28 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
 }
 
 // ---------------------------------------------------------------------------
-// 地図タップでPOI登録ダイアログ（km入力なし）
+// 地図タップでPOI登録ダイアログ（距離・メモフラグ）
 // ---------------------------------------------------------------------------
 
 class MapTapPoiAddDialog extends StatefulWidget {
   const MapTapPoiAddDialog({
     super.key,
     this.initialTitle,
+    required this.distanceUnit,
+    this.totalRouteKm,
+    this.initialKmText,
     required this.onSave,
   });
 
   final String? initialTitle;
+  final int distanceUnit;
+
+  /// ルート沿い長さ（km）。null のときは距離上限チェックを省略。
+  final double? totalRouteKm;
+
+  /// 距離フィールドの初期表示（ユーザー設定単位の数値文字列）。
+  final String? initialKmText;
+
   final Future<void> Function(AddPoiFormData data) onSave;
 
   @override
@@ -1125,86 +1278,73 @@ class MapTapPoiAddDialog extends StatefulWidget {
 
 class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
   int _poiType = 0;
+  final _kmController = TextEditingController();
   late final TextEditingController _titleController;
   final _bodyController = TextEditingController();
-  TimeOfDay? _arrival;
-  TimeOfDay? _departure;
-  TimeOfDay? _close;
+  final _urlController = TextEditingController();
+  String? _kmError;
+  late final FocusNode _kmFocusNode;
+  bool _saveAsNote = true;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.initialTitle ?? '');
+    _kmFocusNode = FocusNode();
+    _kmFocusNode.addListener(_onKmFocusChange);
+    if (widget.initialKmText != null && widget.initialKmText!.isNotEmpty) {
+      _kmController.text = widget.initialKmText!;
+    }
+    _titleController =
+        TextEditingController(text: widget.initialTitle?.trim() ?? '');
+  }
+
+  void _onKmFocusChange() {
+    if (_kmFocusNode.hasFocus && _kmError != null && mounted) {
+      setState(() => _kmError = null);
+    }
   }
 
   @override
   void dispose() {
+    _kmFocusNode.removeListener(_onKmFocusChange);
+    _kmFocusNode.dispose();
+    _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
-  Future<void> _pickTime({required bool isArrival}) async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final current = isArrival ? _arrival : _departure;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: current ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() {
-        if (isArrival) {
-          _arrival = picked;
-          final totalMin = picked.hour * 60 + picked.minute + 15;
-          _departure =
-              TimeOfDay(hour: (totalMin ~/ 60) % 24, minute: totalMin % 60);
-        } else {
-          _departure = picked;
-        }
-      });
+  AddPoiFormData? _validate() {
+    final value = double.tryParse(_kmController.text.trim());
+    if (value == null || value <= 0) {
+      setState(() => _kmError = AppLocalizations.of(context)!.kmRequired);
+      return null;
     }
-  }
-
-  Future<void> _pickClose() async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _close ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() => _close = picked);
+    final km = widget.distanceUnit == 1 ? value * kmPerMile : value;
+    final cap = widget.totalRouteKm;
+    if (cap != null && km > cap + 5) {
+      setState(() => _kmError = AppLocalizations.of(context)!.kmExceedsRoute);
+      return null;
     }
+    setState(() => _kmError = null);
+    return AddPoiFormData(
+      km: km,
+      type: _poiType,
+      title: _titleController.text.trim(),
+      body: _bodyController.text.trim(),
+      url: _urlController.text.trim(),
+      isNote: _saveAsNote,
+    );
   }
-
-  AddPoiFormData _buildFormData() => AddPoiFormData(
-        km: null,
-        type: _poiType,
-        title: _titleController.text.trim(),
-        body: _bodyController.text.trim(),
-        arrival: _arrival,
-        departure: _departure,
-        close: _close,
-      );
 
   Future<void> _handleAdd() async {
     FocusScope.of(context).unfocus();
+    final data = _validate();
+    if (data == null) return;
     setState(() => _saving = true);
-    await widget.onSave(_buildFormData());
+    await widget.onSave(data);
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -1223,50 +1363,74 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 72,
+                    child: TextField(
+                      controller: _kmController,
+                      focusNode: _kmFocusNode,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (_) {
+                        if (_kmError != null) setState(() => _kmError = null);
+                      },
+                      decoration: InputDecoration(
+                        labelText: l10n.distance,
+                        isDense: true,
+                        errorText: _kmError != null ? ' ' : null,
+                        errorStyle: const TextStyle(height: 0, fontSize: 0),
+                      ),
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(fontSize: 17),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: _kmError != null
+                          ? Text(
+                              _kmError!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            )
+                          : Text(
+                              widget.distanceUnit == 1 ? 'mi' : 'km',
+                              style: AppTextStyles.title,
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Text(l10n.poiType, style: AppTextStyles.body),
               const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 0);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 0,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: DropdownButtonFormField<int>(
+                    value: _normalizePoiTypeForForm(_poiType),
+                    menuMaxHeight: 360,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                     ),
-                    Text(l10n.checkpoint, style: AppTextStyles.body),
-                  ],
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 1);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 1,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(l10n.information, style: AppTextStyles.body),
-                  ],
+                    items: _buildPoiTypeDropdownItems(l10n),
+                    onChanged: (value) {
+                      if (value == null) return;
+                      FocusScope.of(context).unfocus();
+                      setState(() => _poiType = value);
+                    },
+                    style: AppTextStyles.body.copyWith(color: Colors.black87),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -1275,8 +1439,9 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.title,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -1284,33 +1449,59 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                 decoration: InputDecoration(
                   labelText: l10n.body,
                   isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
-                style: AppTextStyles.title,
+                style: AppTextStyles.poiFormTitleBody,
                 maxLines: 3,
                 minLines: 3,
               ),
-              const SizedBox(height: 20),
-              _TimePickerRow(
-                label: l10n.plannedArrival,
-                time: _arrival,
-                onTap: () => _pickTime(isArrival: true),
-                onClear: () => setState(() => _arrival = null),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _urlController,
+                keyboardType: TextInputType.url,
+                decoration: const InputDecoration(
+                  labelText: 'URL',
+                  isDense: true,
+                  contentPadding: _kPoiTitleBodyFieldContentPadding,
+                ),
+                style: AppTextStyles.poiFormTitleBody,
+              ),
+              const SizedBox(height: 15),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _saving
+                      ? null
+                      : () {
+                          FocusScope.of(context).unfocus();
+                          setState(() => _saveAsNote = !_saveAsNote);
+                        },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Checkbox(
+                        value: _saveAsNote,
+                        onChanged: _saving
+                            ? null
+                            : (v) {
+                                FocusScope.of(context).unfocus();
+                                setState(() => _saveAsNote = v ?? true);
+                              },
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Expanded(
+                        child: Text(
+                          l10n.poiSaveAsNote,
+                          style: AppTextStyles.checkBoxLabel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedDeparture,
-                time: _departure,
-                onTap: () => _pickTime(isArrival: false),
-                onClear: () => setState(() => _departure = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: l10n.plannedClose,
-                time: _close,
-                onTap: _pickClose,
-                onClear: () => setState(() => _close = null),
-              ),
-              const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -1339,18 +1530,41 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
 class EditPoiTextDialog extends StatefulWidget {
   const EditPoiTextDialog({
     super.key,
+    required this.ref,
     required this.poi,
     required this.distanceUnit,
     this.totalRouteKm,
+    this.brevetStartTimeUtc,
+    this.elevationGainFromRouteStart,
+    this.elevationGainFor,
+    this.elevationLossFor,
+    this.findPreviousPoi,
     required this.onNext,
     required this.onPrev,
     required this.onSave,
     required this.onSavePrev,
   });
 
+  final WidgetRef ref;
+
   final UserPoi poi;
   final int distanceUnit;
   final double? totalRouteKm;
+
+  /// [loadBrevetMeta] のスタート時刻（UTC）。到着の自動推定に使う。
+  final DateTime? brevetStartTimeUtc;
+
+  /// ルート始点から当該 POI までの累積獲得標高（m）。トラック標高が無ければ null を返す。
+  final double? Function(UserPoi)? elevationGainFromRouteStart;
+
+  /// 指定 POI の獲得標高（m）を返す。null なら非表示。
+  final double? Function(UserPoi)? elevationGainFor;
+
+  /// 指定 POI の獲得下降（m）を返す。null なら非表示。
+  final double? Function(UserPoi)? elevationLossFor;
+
+  /// 一覧順で直前の POI（同一ルート上の前チェックポイント）。区間距離計算用。
+  final UserPoi? Function(UserPoi currentPoi)? findPreviousPoi;
 
   /// 保存せずに次のPOIを返す。なければ null。
   final UserPoi? Function(UserPoi currentPoi) onNext;
@@ -1375,6 +1589,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   late int _poiType;
   late final TextEditingController _titleController;
   late final TextEditingController _bodyController;
+  late final TextEditingController _urlController;
   late final TextEditingController _kmController;
   late final FocusNode _kmFocusNode;
   late final FocusNode _dummyFocusNode;
@@ -1383,6 +1598,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   TimeOfDay? _departure;
   TimeOfDay? _close;
   bool _saving = false;
+  bool _isNote = false;
 
   @override
   void initState() {
@@ -1390,11 +1606,50 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _currentPoi = widget.poi;
     _titleController = TextEditingController();
     _bodyController = TextEditingController();
+    _urlController = TextEditingController();
     _kmController = TextEditingController();
     _kmFocusNode = FocusNode();
     _dummyFocusNode = FocusNode();
     _kmFocusNode.addListener(_onKmFocusChange);
+    _kmController.addListener(_onKmChanged);
     _loadPoiToForm(widget.poi);
+  }
+
+  /// 距離あり・スタート時刻ありのとき、到着・出発を推定してフォームへ入れる。
+  /// 出発は到着の 15 分後（GPX インポートのチェックポイント既定と同じ）。
+  /// 既に到着だけ保存されている POI では、出発が空なら到着+15分で補う。
+  void _maybeAutofillScheduleFromDistance(UserPoi poi) {
+    if (poi.isNote) return;
+    if (poi.km == null) return;
+    if (GpxPoiTag.isStartType(poi.bmExt?.type)) return;
+    final start = widget.brevetStartTimeUtc;
+    if (start == null) return;
+
+    if (_arrival == null) {
+      final elevM = widget.elevationGainFromRouteStart?.call(poi) ?? 0.0;
+      final est = estimateArrivalFromRouteStart(
+        brevetStartTimeUtc: start,
+        distanceKm: poi.km!,
+        elevationGainFromStartMeters: elevM,
+      );
+      if (est == null) return;
+      _arrival = _timeOfDayFromDt(est);
+      _departure ??=
+          _timeOfDayFromDt(est.add(const Duration(minutes: 15)));
+      return;
+    }
+
+    if (_departure == null) {
+      final arrDt = poi.bmExt?.schedule.arrival;
+      if (arrDt != null) {
+        _departure = _timeOfDayFromDt(arrDt.add(const Duration(minutes: 15)));
+      }
+    }
+  }
+
+  void _onKmChanged() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   void _onKmFocusChange() {
@@ -1403,14 +1658,27 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     }
   }
 
+  /// メモとして保存をオンにしたとき、到着・出発予定時刻をクリアする。
+  void _setIsNoteAndClearScheduleIfMemo(bool value) {
+    setState(() {
+      _isNote = value;
+      if (value) {
+        _arrival = null;
+        _departure = null;
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _kmController.removeListener(_onKmChanged);
     _kmFocusNode.removeListener(_onKmFocusChange);
     _kmFocusNode.dispose();
     _dummyFocusNode.dispose();
     _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
@@ -1424,14 +1692,121 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   void _loadPoiToForm(UserPoi poi) {
     _currentPoi = poi;
-    _poiType = poi.type;
+    _poiType = _normalizePoiTypeForForm(poi.type);
     _titleController.text = poi.title;
     _bodyController.text = poi.body;
+    _urlController.text = poi.url ?? '';
     _kmController.text = _kmToDisplayText(poi.km);
     _arrival = _timeOfDayFromDt(poi.bmExt?.schedule.arrival);
     _departure = _timeOfDayFromDt(poi.bmExt?.schedule.departure);
+    _maybeAutofillScheduleFromDistance(poi);
     _close = _timeOfDayFromDt(poi.bmExt?.schedule.close);
     _kmError = null;
+    _isNote = poi.isNote;
+  }
+
+  double? _parsedKmFromField() {
+    final text = _kmController.text.trim();
+    if (text.isEmpty) return null;
+    final value = double.tryParse(text);
+    if (value == null || value < 0) return null;
+    return widget.distanceUnit == 1 ? value * kmPerMile : value;
+  }
+
+  String _segmentDistanceDisplay() {
+    final ms = widget.ref.read(mapStateProvider);
+    final track = ms.savedRoutePoints;
+    if (track != null && track.isNotEmpty) {
+      final ordered = List<UserPoi>.from(ms.userPois);
+      final idx = UserPoi.indexInList(ordered, _currentPoi);
+      if (idx < 0) return '--';
+
+      final positions = ordered.map((p) => LatLng(p.lat, p.lng)).toList();
+      final poiHasKm = ordered.map((p) => p.km != null && !p.isNote).toList();
+      if (idx < poiHasKm.length) {
+        poiHasKm[idx] = _parsedKmFromField() != null && !_isNote;
+      }
+
+      final bounds = segmentIndicesForElevationChart(
+        track,
+        positions,
+        idx,
+        poiHasDistanceKm: poiHasKm,
+      );
+      if (bounds == null) return '--';
+      final segmentM =
+          distanceAlongTrackBetweenIndices(track, bounds.lo, bounds.hi);
+      return formatDistance(segmentM / 1000.0, widget.distanceUnit);
+    }
+
+    // トラックが無いときは従来どおり（累積 km の差）
+    final cumulative = _parsedKmFromField();
+    if (cumulative == null) return '--';
+    final prev = widget.findPreviousPoi?.call(_currentPoi);
+    final prevKm = prev?.km;
+    final segmentKm = prevKm != null ? cumulative - prevKm : cumulative;
+    final clamped = segmentKm < 0 ? 0.0 : segmentKm;
+    return formatDistance(clamped, widget.distanceUnit);
+  }
+
+  String _elevationGainDisplay() {
+    final raw = widget.elevationGainFor?.call(_currentPoi);
+    return _elevationEditDisplay(raw, widget.distanceUnit);
+  }
+
+  String _elevationLossDisplay() {
+    final raw = widget.elevationLossFor?.call(_currentPoi);
+    return _elevationEditDisplay(raw, widget.distanceUnit);
+  }
+
+  Widget _segmentElevationSummaryBar() {
+    const style = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w500,
+      color: Colors.white,
+      height: 1.25,
+    );
+    const iconSize = 14.0;
+    const iconColor = Colors.white;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade700,
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.route, size: iconSize, color: iconColor),
+          const SizedBox(width: 8),
+          const Icon(Icons.swap_horiz, size: iconSize, color: iconColor),
+          const SizedBox(width: 2),
+          Text(
+            _segmentDistanceDisplay(),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.trending_up, size: iconSize, color: iconColor),
+          const SizedBox(width: 3),
+          Text(
+            _elevationGainDisplay(),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(width: 10),
+          const Icon(Icons.trending_down, size: iconSize, color: iconColor),
+          const SizedBox(width: 3),
+          Text(
+            _elevationLossDisplay(),
+            style: style,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
   }
 
   /// フォームの内容が元の POI から変更されているか判定する
@@ -1445,8 +1820,15 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (_bodyController.text.trim() != _currentPoi.body) {
       return true;
     }
+    if (_urlController.text.trim() != (_currentPoi.url ?? '')) {
+      return true;
+    }
 
     if (_kmController.text.trim() != _kmToDisplayText(_currentPoi.km)) {
+      return true;
+    }
+
+    if (_isNote != _currentPoi.isNote) {
       return true;
     }
 
@@ -1462,7 +1844,8 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
         _departure?.minute != origDeparture?.minute) {
       return true;
     }
-    if (_close?.hour != origClose?.hour || _close?.minute != origClose?.minute) {
+    if (_close?.hour != origClose?.hour ||
+        _close?.minute != origClose?.minute) {
       return true;
     }
 
@@ -1492,9 +1875,11 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       type: _poiType,
       title: _titleController.text.trim(),
       body: _bodyController.text.trim(),
+      url: _urlController.text.trim(),
       arrival: _arrival,
       departure: _departure,
       close: _close,
+      isNote: _isNote,
     );
   }
 
@@ -1629,6 +2014,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Dialog(
       backgroundColor: Colors.white,
       surfaceTintColor: Colors.transparent,
@@ -1636,189 +2022,220 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
         child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 72,
-                    child: TextField(
-                      controller: _kmController,
-                      focusNode: _kmFocusNode,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      decoration: InputDecoration(
-                        labelText: AppLocalizations.of(context)!.distance,
-                        isDense: true,
-                        errorText: _kmError != null ? ' ' : null,
-                        errorStyle: const TextStyle(height: 0, fontSize: 0),
+          child: KeyedSubtree(
+            key: ObjectKey(_currentPoi),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 72,
+                      child: TextField(
+                        controller: _kmController,
+                        focusNode: _kmFocusNode,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        decoration: InputDecoration(
+                          labelText: AppLocalizations.of(context)!.distance,
+                          isDense: true,
+                          errorText: _kmError != null ? ' ' : null,
+                          errorStyle: const TextStyle(height: 0, fontSize: 0),
+                        ),
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(fontSize: 17),
                       ),
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(fontSize: 17),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: _kmError != null
-                          ? Text(
-                              _kmError!,
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                                fontSize: 12,
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: _kmError != null
+                            ? Text(
+                                _kmError!,
+                                style: TextStyle(
+                                  color: Theme.of(context).colorScheme.error,
+                                  fontSize: 12,
+                                ),
+                              )
+                            : Text(
+                                widget.distanceUnit == 1 ? 'mi' : 'km',
+                                style: AppTextStyles.title,
                               ),
-                            )
-                          : Text(
-                              widget.distanceUnit == 1 ? 'mi' : 'km',
-                              style: AppTextStyles.title,
-                            ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(AppLocalizations.of(context)!.poiType,
-                  style: AppTextStyles.body),
-              const SizedBox(height: 4),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 0);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 0,
-                      groupValue: _poiType,
-                      onChanged: (v) {
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
-                      },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    Text(AppLocalizations.of(context)!.checkpoint,
-                        style: AppTextStyles.body),
                   ],
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  FocusScope.of(context).unfocus();
-                  setState(() => _poiType = 1);
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Radio<int>(
-                      value: 1,
-                      groupValue: _poiType,
-                      onChanged: (v) {
+                const SizedBox(height: 16),
+                Text(l10n.poiType, style: AppTextStyles.body),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 220),
+                    child: DropdownButtonFormField<int>(
+                      value: _normalizePoiTypeForForm(_poiType),
+                      menuMaxHeight: 360,
+                      decoration: const InputDecoration(
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                      ),
+                      items: _buildPoiTypeDropdownItems(l10n),
+                      onChanged: (value) {
+                        if (value == null) return;
                         FocusScope.of(context).unfocus();
-                        setState(() => _poiType = v!);
+                        setState(() => _poiType = value);
                       },
-                      visualDensity: VisualDensity.compact,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      style: AppTextStyles.body.copyWith(color: Colors.black87),
                     ),
-                    Text(AppLocalizations.of(context)!.information,
-                        style: AppTextStyles.body),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    labelText: l10n.title,
+                    isDense: true,
+                    contentPadding: _kPoiTitleBodyFieldContentPadding,
+                  ),
+                  style: AppTextStyles.poiFormTitleBody,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _bodyController,
+                  decoration: InputDecoration(
+                    labelText: l10n.body,
+                    isDense: true,
+                    contentPadding: _kPoiTitleBodyFieldContentPadding,
+                  ),
+                  style: AppTextStyles.poiFormTitleBody,
+                  maxLines: 3,
+                  minLines: 3,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _urlController,
+                  keyboardType: TextInputType.url,
+                  decoration: const InputDecoration(
+                    labelText: 'URL',
+                    isDense: true,
+                    contentPadding: _kPoiTitleBodyFieldContentPadding,
+                  ),
+                  style: AppTextStyles.poiFormTitleBody,
+                ),
+                const SizedBox(height: 15),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _saving
+                        ? null
+                        : () {
+                            FocusScope.of(context).unfocus();
+                            _setIsNoteAndClearScheduleIfMemo(!_isNote);
+                          },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _isNote,
+                          onChanged: _saving
+                              ? null
+                              : (v) {
+                                  FocusScope.of(context).unfocus();
+                                  _setIsNoteAndClearScheduleIfMemo(v ?? false);
+                                },
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        Expanded(
+                          child: Text(
+                            l10n.poiSaveAsNote,
+                            style: AppTextStyles.checkBoxLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
+                _segmentElevationSummaryBar(),
+                const SizedBox(height: 15),
+                _TimePickerRow(
+                  label: l10n.plannedArrival,
+                  time: _arrival,
+                  onTap: () => _pickTime(isArrival: true),
+                  onClear: () => setState(() => _arrival = null),
+                ),
+                const SizedBox(height: 8),
+                _TimePickerRow(
+                  label: l10n.plannedDeparture,
+                  time: _departure,
+                  onTap: () => _pickTime(isArrival: false),
+                  onClear: () => setState(() => _departure = null),
+                ),
+                const SizedBox(height: 8),
+                _TimePickerRow(
+                  label: l10n.plannedClose,
+                  time: _close,
+                  onTap: _pickClose,
+                  onClear: () => setState(() => _close = null),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      onPressed:
+                          (!_saving && widget.onPrev(_currentPoi) != null)
+                              ? _handlePrev
+                              : null,
+                      icon: const Icon(Icons.arrow_back_ios),
+                      color: Colors.black38,
+                      disabledColor: Colors.black12,
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                    ),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: _saving ? null : () => Navigator.pop(context),
+                      child: Text(l10n.cancel, style: AppTextStyles.button),
+                    ),
+                    const SizedBox(width: 8),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      onPressed: _saving ? null : _handleChange,
+                      child: Text(l10n.change, style: AppTextStyles.button),
+                    ),
+                    IconButton(
+                      onPressed:
+                          (!_saving && widget.onNext(_currentPoi) != null)
+                              ? _handleNext
+                              : null,
+                      icon: const Icon(Icons.arrow_forward_ios),
+                      color: Colors.black38,
+                      disabledColor: Colors.black12,
+                      padding: EdgeInsets.zero,
+                      constraints:
+                          const BoxConstraints(minWidth: 36, minHeight: 36),
+                    ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.title,
-                  isDense: true,
-                ),
-                style: AppTextStyles.title,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _bodyController,
-                decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.body,
-                  isDense: true,
-                ),
-                style: AppTextStyles.title,
-                maxLines: 3,
-                minLines: 3,
-              ),
-              const SizedBox(height: 20),
-              _TimePickerRow(
-                label: AppLocalizations.of(context)!.plannedArrival,
-                time: _arrival,
-                onTap: () => _pickTime(isArrival: true),
-                onClear: () => setState(() => _arrival = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: AppLocalizations.of(context)!.plannedDeparture,
-                time: _departure,
-                onTap: () => _pickTime(isArrival: false),
-                onClear: () => setState(() => _departure = null),
-              ),
-              const SizedBox(height: 8),
-              _TimePickerRow(
-                label: AppLocalizations.of(context)!.plannedClose,
-                time: _close,
-                onTap: _pickClose,
-                onClear: () => setState(() => _close = null),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: (!_saving && widget.onPrev(_currentPoi) != null)
-                        ? _handlePrev
-                        : null,
-                    icon: const Icon(Icons.arrow_back_ios),
-                    color: Colors.black38,
-                    disabledColor: Colors.black12,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                  ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: _saving ? null : () => Navigator.pop(context),
-                    child: Text(AppLocalizations.of(context)!.cancel,
-                        style: AppTextStyles.button),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: _saving ? null : _handleChange,
-                    child: Text(AppLocalizations.of(context)!.change,
-                        style: AppTextStyles.button),
-                  ),
-                  IconButton(
-                    onPressed: (!_saving && widget.onNext(_currentPoi) != null)
-                        ? _handleNext
-                        : null,
-                    icon: const Icon(Icons.arrow_forward_ios),
-                    color: Colors.black38,
-                    disabledColor: Colors.black12,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                  ),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -1861,7 +2278,7 @@ class _TimePickerRow extends StatelessWidget {
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onClear,
-            child: const Icon(Icons.close, size: 16, color: Colors.black38),
+            child: const Icon(Icons.close, size: 18, color: Colors.black38),
           ),
         ] else
           const SizedBox(width: 20),

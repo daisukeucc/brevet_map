@@ -33,6 +33,7 @@ class MapState {
     this.gpxDotWaypoints = const [],
     this.userPois = const [],
     this.cachedPoiElevationGains,
+    this.cachedPoiElevationLosses,
     this.fullRoutePoints,
     this.savedZoomLevel,
     this.hasStartedInitialRouteFetch = false,
@@ -63,6 +64,9 @@ class MapState {
   /// [userPois] リスト順の獲得標高キャッシュ（メートル値）。インポート・起動・POI変更後に更新
   final List<double?>? cachedPoiElevationGains;
 
+  /// [userPois] リスト順の獲得下降キャッシュ（メートル値）。[cachedPoiElevationGains] と同タイミングで更新
+  final List<double?>? cachedPoiElevationLosses;
+
   /// アニメーション用フルルート（animateToRouteBounds にも使う）
   final List<LatLng>? fullRoutePoints;
 
@@ -89,6 +93,7 @@ class MapState {
     List<GpxPoi>? gpxDotWaypoints,
     List<UserPoi>? userPois,
     List<double?>? cachedPoiElevationGains,
+    List<double?>? cachedPoiElevationLosses,
     List<LatLng>? fullRoutePoints,
     double? savedZoomLevel,
     bool? hasStartedInitialRouteFetch,
@@ -117,6 +122,9 @@ class MapState {
       cachedPoiElevationGains: clearPoiElevationGains
           ? null
           : (cachedPoiElevationGains ?? this.cachedPoiElevationGains),
+      cachedPoiElevationLosses: clearPoiElevationGains
+          ? null
+          : (cachedPoiElevationLosses ?? this.cachedPoiElevationLosses),
       fullRoutePoints: clearFullRoutePoints
           ? null
           : (fullRoutePoints ?? this.fullRoutePoints),
@@ -138,6 +146,10 @@ class MapState {
 class MapStateNotifier extends Notifier<MapState> {
   final RouteAnimationRunner _routeAnimationRunner = RouteAnimationRunner();
   static final List<LatLng> _emptyRoute = [];
+
+  /// [_refreshRouteMarkers] と [_cachePoiElevationGains] を直列で非同期キュー処理する。
+  /// POI 保存処理がこれらの完了を await しないようにし（ダイアログ応答など）、体感フリーズを防ぐ。
+  Future<void> _markerRebuildChain = Future<void>.value();
 
   // POIタップ時のコールバック。onMapCreated 後に Widget から設定される
   void Function(GpxPoi)? _onPoiTap;
@@ -219,9 +231,7 @@ class MapStateNotifier extends Notifier<MapState> {
     }
     await saveUserPois(updated);
     state = state.copyWith(userPois: updated);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   /// SharedPreferences から保存済みマップスタイルを読み込み、state に反映する
@@ -278,7 +288,7 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// GPXインポート結果を状態に反映する。
   /// SnackBar 表示は呼び出し側（Widget）が [GpxApplyStatus] を見て行う。
-  /// [importFilename] ファイルピッカーから取得したファイル名（.gpx 除く）。metadata が空のときプリファレンスに保存
+  /// [importFilename] ファイルピッカーから取得したファイル名（.gpx 除く）。永続化されエクスポート既定名などに使用
   Future<GpxApplyStatus> applyImportedGpx(
     String gpxContent, {
     required Future<void> Function(LatLngBounds) animateCamera,
@@ -320,11 +330,19 @@ class MapStateNotifier extends Notifier<MapState> {
         result.userPois.map((p) => p.position).toList(),
       );
       if (bounds != null) await animateCamera(bounds);
-    } else if (result.userPois.isNotEmpty) {
-      await _refreshRouteMarkers(_emptyRoute);
-      final bounds =
-          boundsFromPoints(result.userPois.map((p) => p.position).toList());
-      if (bounds != null) await animateCamera(bounds);
+    } else {
+      // トラックなし: 古いポリラインとフルルートを消去してからマーカーを再構築する
+      _routeAnimationRunner.cancel();
+      state = state.copyWith(
+        routePolylines: const [],
+        clearFullRoutePoints: true,
+      );
+      if (result.userPois.isNotEmpty) {
+        await _refreshRouteMarkers(_emptyRoute);
+        final bounds =
+            boundsFromPoints(result.userPois.map((p) => p.position).toList());
+        if (bounds != null) await animateCamera(bounds);
+      }
     }
 
     await _cachePoiElevationGains();
@@ -446,16 +464,12 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// ユーザー POI を削除して保存し、マーカーを再構築する
   Future<void> deleteUserPoi(UserPoi poi) async {
-    final index = state.userPois.indexWhere(
-      (p) => p.lat == poi.lat && p.lng == poi.lng && p.km == poi.km,
-    );
+    final index = UserPoi.indexInList(state.userPois, poi);
     if (index < 0) return;
     final updated = List<UserPoi>.from(state.userPois)..removeAt(index);
     await saveUserPois(updated);
     state = state.copyWith(userPois: updated);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   /// 距離単位変更時にマーカーを再構築する
@@ -466,28 +480,33 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// 既存のユーザー POI を新しい内容で上書きして保存する
   Future<void> updateUserPoi(UserPoi oldPoi, UserPoi newPoi) async {
-    final index = state.userPois.indexWhere(
-      (p) => p.lat == oldPoi.lat && p.lng == oldPoi.lng && p.km == oldPoi.km,
-    );
+    final index = UserPoi.indexInList(state.userPois, oldPoi);
     if (index < 0) return;
     final updated = List<UserPoi>.from(state.userPois)..[index] = newPoi;
     await saveUserPois(updated);
     state = state.copyWith(userPois: updated);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   /// 全ユーザー POI をまとめて置き換えて保存する（出走日変更などの一括更新用）
   Future<void> replaceAllUserPois(List<UserPoi> pois) async {
     await saveUserPois(pois);
     state = state.copyWith(userPois: pois);
-    final routePoints = state.savedRoutePoints ?? _emptyRoute;
-    await _refreshRouteMarkers(routePoints);
-    await _cachePoiElevationGains();
+    _enqueueMarkerRebuildAndElevationCache();
   }
 
   // --- 内部メソッド ---
+
+  /// マーカーを再構築し獲得標高キャッシュを更新する処理をキューへ積む（完了を POI API の await に含めない）。
+  void _enqueueMarkerRebuildAndElevationCache() {
+    _markerRebuildChain = _markerRebuildChain
+        .then((_) async {
+          final routePoints = state.savedRoutePoints ?? _emptyRoute;
+          await _refreshRouteMarkers(routePoints);
+          await _cachePoiElevationGains();
+        })
+        .catchError((_) {});
+  }
 
   /// [state.userPois] の順で全 POI の獲得標高を isolate で計算してキャッシュする。
   /// トラックまたは標高データがない場合はキャッシュをクリアする。
@@ -503,15 +522,19 @@ class MapStateNotifier extends Notifier<MapState> {
       state = state.copyWith(clearPoiElevationGains: true);
       return;
     }
-    final gains = await compute(
-      computePoiElevationGains,
+    final metrics = await compute(
+      computePoiElevationGainAndLoss,
       (
         trackPoints: trackPoints,
         elevations: elevations,
         poiPositions: pois.map((p) => p.position).toList(),
+        poiHasDistanceKm: pois.map((p) => p.km != null && !p.isNote).toList(),
       ),
     );
-    state = state.copyWith(cachedPoiElevationGains: gains);
+    state = state.copyWith(
+      cachedPoiElevationGains: metrics.gains,
+      cachedPoiElevationLosses: metrics.losses,
+    );
   }
 
   /// スタート・ゴール・POI マーカーを再構築して state を更新する

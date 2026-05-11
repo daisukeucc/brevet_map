@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/coordinates_from_url.dart';
+import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
 import '../utils/snackbar_utils.dart';
 import 'poi_management_handler.dart';
@@ -48,21 +48,30 @@ Future<void> handleConfirmSharePreview(
 
   onClear();
 
+  final distanceUnit = ref.read(distanceUnitProvider);
+  final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+  final totalRouteKm = routePoints != null && routePoints.isNotEmpty
+      ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
+      : null;
+  String? initialKmText;
+  if (routePoints != null && routePoints.isNotEmpty) {
+    final alongM = distanceFromStartToPointAlongTrack(routePoints, position);
+    final kmAlong = alongM / 1000.0;
+    initialKmText = formatDistanceNumeric(kmAlong, distanceUnit);
+  }
+
   await showDialog<void>(
     context: context,
     barrierColor: Colors.black54,
     barrierDismissible: false,
     builder: (dialogContext) => MapTapPoiAddDialog(
       initialTitle: placeName,
+      distanceUnit: distanceUnit,
+      totalRouteKm: totalRouteKm,
+      initialKmText: initialKmText,
       onSave: (data) async {
-        final poi = UserPoi(
-          type: data.type,
-          km: null,
-          title: data.title,
-          body: data.body,
-          lat: position.latitude,
-          lng: position.longitude,
-        );
+        final poi =
+            await userPoiFromMapTapAddForm(data: data, position: position);
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
         if (context.mounted) {
           showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);

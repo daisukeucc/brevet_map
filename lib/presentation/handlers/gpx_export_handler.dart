@@ -1,3 +1,5 @@
+import 'dart:async' show unawaited;
+import 'dart:convert' show utf8;
 import 'dart:io';
 
 import 'package:downloadsfolder/downloadsfolder.dart' as downloads;
@@ -6,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../data/repositories/first_launch_repository.dart';
 import '../../domain/services/gpx_export_service.dart';
@@ -111,13 +114,13 @@ Future<void> showGpxExportFlow(
 
   if (!context.mounted) return;
 
-  // インポートしたGPXのmetadata/nameとブルベメタデータを読込
-  final savedMetadataName = await loadGpxMetadataName();
+  // インポートした GPX のファイル名ベースとブルベメタデータを読込
+  final savedImportBasename = await loadGpxImportBasename();
   final brevetMeta = await loadBrevetMeta();
   if (!context.mounted) return;
   final defaultFilename =
-      (savedMetadataName != null && savedMetadataName.trim().isNotEmpty)
-          ? _sanitizeFilename(savedMetadataName)
+      (savedImportBasename != null && savedImportBasename.trim().isNotEmpty)
+          ? _sanitizeFilename(savedImportBasename)
           : _defaultGpxFilename();
 
   // ファイル名入力フォーム
@@ -148,34 +151,55 @@ Future<void> showGpxExportFlow(
 
   try {
     if (Platform.isAndroid) {
-      // Android: MediaStore で端末のダウンロードフォルダに保存（拡張子付き）
+      // MediaStore でダウンロードへ保存したあと、共有シートも出す（Drive・他アプリへの受け渡し用）
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/$displayFilename');
-      await tempFile.writeAsString(gpxXml);
+      final shareParent = Directory(
+        '${tempDir.path}/gpx_share_${DateTime.now().microsecondsSinceEpoch}',
+      );
+      await shareParent.create(recursive: false);
+      final exportFile = File('${shareParent.path}/$displayFilename');
+      await exportFile.writeAsBytes(utf8.encode(gpxXml));
 
-      var success = false;
+      var downloadSaved = false;
       try {
         const channel = MethodChannel('com.brevetmap/gpx');
-        success = await channel.invokeMethod<bool?>(
+        downloadSaved = await channel.invokeMethod<bool?>(
               'saveFileToDownloads',
-              {'filePath': tempFile.path, 'fileName': displayFilename},
+              {'filePath': exportFile.path, 'fileName': displayFilename},
             ) ==
             true;
       } on PlatformException catch (_) {
         // API 29 未満などでフォールバック
       }
-      if (!success) {
-        success = await downloads.copyFileIntoDownloadFolder(
-                tempFile.path, displayFilename) ==
+      if (!downloadSaved) {
+        downloadSaved = await downloads.copyFileIntoDownloadFolder(
+                exportFile.path, displayFilename) ==
             true;
       }
 
+      if (!context.mounted) return;
       try {
-        await tempFile.delete();
+        await Share.shareXFiles(
+          [
+            XFile(
+              exportFile.path,
+              mimeType: 'application/gpx+xml',
+              name: displayFilename,
+            ),
+          ],
+        );
       } catch (_) {}
 
+      unawaited(Future<void>.delayed(const Duration(minutes: 10), () async {
+        try {
+          if (await shareParent.exists()) {
+            await shareParent.delete(recursive: true);
+          }
+        } catch (_) {}
+      }));
+
       if (!context.mounted) return;
-      if (success == true) {
+      if (downloadSaved) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.gpxExportComplete(displayFilename))),
         );
@@ -185,10 +209,48 @@ Future<void> showGpxExportFlow(
         );
       }
     } else {
-      // iOS: アプリのドキュメントフォルダ（UIFileSharingEnabled で「ファイル」アプリからアクセス可能）
+      // iOS: ドキュメントフォルダへ保存（「ファイル」> この iPhone 内 > アプリ名）
+      //
+      // コンテナ内ファイルを Files で別フォルダへ移動／コピーすると、File Provider 連携の
+      // 「ヘルパーアプリケーションと通信できませんでした」が出ることがある。
+      // 共有シートから「ファイルに保存」で iCloud / オンマイフォン直下などへ出すと通常のファイルとして扱える。
+      //
+      // AirDrop 等は Documents 直下の fileURL を渡すと「共有モードの取得に失敗」することがあるため、
+      // 共有専用に一時領域へコピーする。受け側の表示名は実ファイルのベース名が使われるため、
+      // ユニークなサブフォルダの下に [displayFilename] そのもので保存する（プレフィックス付きファイル名を避ける）。
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$displayFilename');
-      await file.writeAsString(gpxXml);
+      await file.writeAsBytes(utf8.encode(gpxXml));
+
+      if (!context.mounted) return;
+      try {
+        final tempDir = await getTemporaryDirectory();
+        final shareParent = Directory(
+          '${tempDir.path}/gpx_share_${DateTime.now().microsecondsSinceEpoch}',
+        );
+        await shareParent.create(recursive: false);
+        final shareCopy = await file.copy('${shareParent.path}/$displayFilename');
+        await Share.shareXFiles(
+          [
+            XFile(
+              shareCopy.path,
+              mimeType: 'application/gpx+xml',
+              name: displayFilename,
+            ),
+          ],
+          sharePositionOrigin: Rect.fromPoints(
+            const Offset(0, 0),
+            const Offset(1, 1),
+          ),
+        );
+        unawaited(Future<void>.delayed(const Duration(minutes: 10), () async {
+          try {
+            if (await shareParent.exists()) {
+              await shareParent.delete(recursive: true);
+            }
+          } catch (_) {}
+        }));
+      } catch (_) {}
 
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

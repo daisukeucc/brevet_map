@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.view.KeyEvent
 import dev.darttools.flutter_android_volume_keydown.FlutterAndroidVolumeKeydownPlugin
 import io.flutter.embedding.android.FlutterFragmentActivity
@@ -16,6 +17,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 
 class MainActivity : FlutterFragmentActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -37,6 +39,42 @@ class MainActivity : FlutterFragmentActivity() {
     private var gpxMethodChannel: MethodChannel? = null
     private var shareMethodChannel: MethodChannel? = null
 
+    private fun gpxBasenameFromUri(uri: Uri): String? {
+        val name = when (uri.scheme) {
+            "file" -> uri.lastPathSegment
+            else -> {
+                var n: String? = null
+                contentResolver.query(
+                    uri,
+                    arrayOf(OpenableColumns.DISPLAY_NAME),
+                    null,
+                    null,
+                    null,
+                )?.use { c ->
+                    if (c.moveToFirst()) {
+                        val i = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                        if (i >= 0) n = c.getString(i)
+                    }
+                }
+                n
+            }
+        } ?: return null
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) return null
+        return if (trimmed.endsWith(".gpx", true)) {
+            trimmed.substring(0, trimmed.length - 4).trim()
+        } else {
+            trimmed
+        }.takeIf { it.isNotEmpty() }
+    }
+
+    private fun gpxPayloadArguments(content: String, uri: Uri): Map<String, String> {
+        val map = HashMap<String, String>()
+        map["content"] = content
+        gpxBasenameFromUri(uri)?.let { map["basename"] = it }
+        return map
+    }
+
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         gpxMethodChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName).apply {
@@ -49,7 +87,7 @@ class MainActivity : FlutterFragmentActivity() {
                                 val content = readUriContent(uri)
                                 pendingGpxUri = null
                                 intent?.data = null
-                                result.success(content)
+                                result.success(gpxPayloadArguments(content, uri))
                             } catch (e: Exception) {
                                 result.error("READ_ERROR", e.message, null)
                             }
@@ -163,7 +201,7 @@ class MainActivity : FlutterFragmentActivity() {
                                 if (content.isNotEmpty()) {
                                     gpxMethodChannel?.invokeMethod(
                                         "onGpxFileReceived",
-                                        content,
+                                        gpxPayloadArguments(content, uri),
                                         object : MethodChannel.Result {
                                             override fun success(result: Any?) {}
                                             override fun error(code: String, msg: String?, details: Any?) {}
@@ -185,7 +223,7 @@ class MainActivity : FlutterFragmentActivity() {
                         if (content.isNotEmpty()) {
                             gpxMethodChannel?.invokeMethod(
                                 "onGpxFileReceived",
-                                content,
+                                gpxPayloadArguments(content, uri),
                                 object : MethodChannel.Result {
                                     override fun success(result: Any?) {}
                                     override fun error(code: String, msg: String?, details: Any?) {}
@@ -231,7 +269,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     private fun readUriContent(uri: Uri): String {
         contentResolver.openInputStream(uri)?.use { input ->
-            return BufferedReader(InputStreamReader(input)).use { it.readText() }
+            // GPX は UTF-8 が標準。プラットフォーム既定（端末・環境により異なる）で読むと日本語が壊れる。
+            return BufferedReader(InputStreamReader(input, StandardCharsets.UTF_8)).use { it.readText() }
         }
             ?: throw Exception("Could not open URI")
     }

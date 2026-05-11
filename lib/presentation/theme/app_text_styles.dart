@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 /// アプリ全体で使用するカラー定数
 abstract class AppColors {
   static const Color muted = Colors.black54;
+
+  /// [muted] より一段薄い補助テキスト（読み取り専用行など）
+  static const Color mutedLight = Colors.black38;
 }
 
 /// アプリ全体で使用するテキストスタイル
@@ -18,8 +21,21 @@ abstract class AppTextStyles {
   /// タイトル
   static const TextStyle title = TextStyle(fontSize: 17, color: Colors.black87);
 
+  /// POI フォームのタイトル・本文入力文字
+  static const TextStyle poiFormTitleBody = TextStyle(
+    fontSize: 16,
+    height: 1.6,
+    color: Colors.black87,
+  );
+
   static const TextStyle poiLarge = TextStyle(
     fontSize: 23,
+    fontWeight: FontWeight.w700,
+    color: AppColors.muted,
+  );
+
+  static const TextStyle poiMedium = TextStyle(
+    fontSize: 18,
     fontWeight: FontWeight.w700,
     color: AppColors.muted,
   );
@@ -65,4 +81,8 @@ abstract class AppTextStyles {
   /// ボタン（小）
   static const TextStyle buttonSmall =
       TextStyle(fontSize: 14, color: AppColors.muted);
+
+  /// チェックボックスラベル
+  static const TextStyle checkBoxLabel =
+      TextStyle(fontSize: 15, color: Colors.black87);
 }

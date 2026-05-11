@@ -38,3 +38,74 @@ void showAppSnackBarWithMessenger(
     ),
   );
 }
+
+/// [ScaffoldMessenger] の SnackBar より手前に表示する（画面中央）。
+/// 画面タップで閉じる。一定時間後に自動で閉じる。
+///
+/// `showModalBottomSheet` 内など、[ScaffoldMessenger] のスナックバーが
+/// シートの背面に回って見えないときに使う。
+void showAppSnackBarOverlaid(
+  BuildContext context,
+  String message, {
+  Duration duration = const Duration(seconds: 3),
+}) {
+  if (!context.mounted) return;
+  final padding = MediaQuery.paddingOf(context);
+  final overlay = Overlay.maybeOf(context);
+  if (overlay == null) return;
+
+  late final OverlayEntry entry;
+  entry = OverlayEntry(
+    builder: (ctx) {
+      void dismiss() {
+        if (entry.mounted) entry.remove();
+      }
+
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: dismiss,
+              child: const ColoredBox(color: Colors.transparent),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: padding.top + 8,
+              bottom: padding.bottom + 8,
+            ),
+            child: Center(
+              child: GestureDetector(
+                onTap: dismiss,
+                child: Material(
+                  color: _kDarkBackground,
+                  elevation: 4,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    child: Text(
+                      message,
+                      style: _kDarkTextStyle,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    },
+  );
+  overlay.insert(entry);
+  Future<void>.delayed(duration).then((_) {
+    if (entry.mounted) entry.remove();
+  });
+}

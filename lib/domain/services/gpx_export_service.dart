@@ -12,7 +12,7 @@ import '../../domain/models/user_poi.dart';
 /// [gpxDotWaypoints] `<type>Dot</type>` のみ別保持（インポート内容をそのまま出力）
 /// [gpxPois] レガシー保存の GPX ウェイポイント
 /// [userPois] 表示・編集対象の POI
-/// [filename] metadata と trk の name に使用するファイル名（任意）
+/// [filename] metadata と trk の name に使用するベース名（通常はインポート／エクスポート時のファイル名）
 /// [brevetMeta] ブルベメタデータ。あれば `<metadata><extensions>` に出力する
 String buildGpxXml({
   required List<LatLng> trackPoints,
@@ -43,7 +43,8 @@ String buildGpxXml({
       });
       if (brevetMeta != null) {
         builder.element('extensions', nest: () {
-          builder.element('bm:brevet', attributes: {'version': '1.0'}, nest: () {
+          builder.element('bm:brevet', attributes: {'version': '1.0'},
+              nest: () {
             builder.element('bm:distanceKm', nest: () {
               builder.text(_formatNumber(brevetMeta.distanceKm));
             });
@@ -65,6 +66,7 @@ String buildGpxXml({
       _addWpt(builder, poi.lat, poi.lng,
           name: poi.name?.isNotEmpty == true ? poi.name : filename,
           desc: poi.description,
+          linkHref: poi.linkHref,
           sym: poi.symbol,
           cmt: poi.cmt,
           type: poi.type);
@@ -73,12 +75,13 @@ String buildGpxXml({
       _addWpt(builder, poi.lat, poi.lng,
           name: poi.name?.isNotEmpty == true ? poi.name : filename,
           desc: poi.description,
+          linkHref: poi.linkHref,
           sym: poi.symbol,
           cmt: poi.cmt,
           type: poi.type);
     }
-    for (final poi in userPois) {
-      _addUserPoiWpt(builder, poi);
+    for (var i = 0; i < userPois.length; i++) {
+      _addUserPoiWpt(builder, userPois[i], displayOrder: i);
     }
 
     // trk
@@ -119,38 +122,67 @@ String buildGpxXml({
   return builder.buildDocument().toXmlString(pretty: true);
 }
 
+/// [UserPoi] に対応する GPX / `bm:type` 用の種別文字列（手動追加で [UserPoi.bmExt] が null でも正しい値）
+String _bmPoiTypeForExport(UserPoi poi) {
+  final fromExt = poi.bmExt?.type;
+  if (fromExt != null && fromExt.isNotEmpty) return fromExt;
+  final gt = poi.gpxType?.trim().toLowerCase();
+  if (gt == GpxPoiTag.typeStart) return GpxPoiTag.typeStart;
+  if (gt == GpxPoiTag.typeFinish) return GpxPoiTag.typeFinish;
+  return poi.poiType.defaultBmPoiType;
+}
+
 /// UserPoi を `<wpt>` として出力する。
-/// bmExt がある場合は `<extensions><bm:poi>` を付加し、種別に応じた sym/type/cmt を設定する。
-void _addUserPoiWpt(XmlBuilder builder, UserPoi poi) {
+/// [UserPoi.bmExt] が無くても `<extensions><bm:poi><bm:type>` は出す（距離・時刻なし POI 用）。
+/// [displayOrder] は [userPois] リスト上の位置（往復インポートで順序を復元する）。
+void _addUserPoiWpt(XmlBuilder builder, UserPoi poi,
+    {required int displayOrder}) {
   final bmExt = poi.bmExt;
-  final poiType = bmExt?.type ?? (poi.isCheckpoint ? 'checkpoint' : 'generic');
-  final isStartOrFinish = poiType == 'start' || poiType == 'finish';
+  final poiType = _bmPoiTypeForExport(poi);
+  final isStartOrFinish = GpxPoiTag.isStartOrFinishType(poiType);
 
   final String? name;
-  if (poiType == 'start') {
-    name = poi.title.isEmpty ? 'Start' : poi.title;
-  } else if (poiType == 'finish') {
-    name = poi.title.isEmpty ? 'Goal' : poi.title;
+  if (GpxPoiTag.isStartType(poiType)) {
+    name = poi.title.isEmpty ? GpxPoiTag.nameStart : poi.title;
+  } else if (GpxPoiTag.isFinishType(poiType)) {
+    name = poi.title.isEmpty ? GpxPoiTag.nameGoal : poi.title;
   } else {
     name = poi.title.isEmpty ? null : poi.title;
   }
   final desc = poi.body.isEmpty ? null : poi.body;
-  final sym = isStartOrFinish ? 'Flag' : 'Dot';
-  final typeOut = poiType;
-  final cmtOut = isStartOrFinish
-      ? null
-      : (poiType == 'checkpoint' ? 'control' : 'generic');
+  final sym = isStartOrFinish ? GpxPoiTag.symFlag : GpxPoiTag.symDot;
+  final gpxTag = poi.poiType.gpxTag;
+  // スタート／ゴール以外は [UserPoiType.gpxTag] を GPX `<type>`/`<cmt>` と `bm:type` の正とする
+  //（例: フォト CP は `<type>checkpoint</type>` `<cmt>photo</cmt>`）。
+  final typeOut = isStartOrFinish ? poiType : gpxTag.type;
+  final cmtOut = isStartOrFinish ? null : gpxTag.cmt;
+
+  final src = bmExt ??
+      BmPoiExtension(
+        type: typeOut,
+        schedule: const BmSchedule(),
+        distanceKm: 0,
+      );
+  final bmPoiExtForExport = BmPoiExtension(
+    type: typeOut,
+    schedule: src.schedule,
+    distanceKm: src.distanceKm,
+    displayOrder: displayOrder,
+    isNote: poi.isNote,
+  );
 
   _addWpt(
     builder,
     poi.lat,
     poi.lng,
     name: name,
-    desc: isStartOrFinish ? null : desc,
+    desc: desc,
+    linkHref: poi.url?.trim().isNotEmpty == true ? poi.url!.trim() : null,
     sym: sym,
     cmt: cmtOut,
     type: typeOut,
-    bmPoiExt: bmExt,
+    bmPoiExt: bmPoiExtForExport,
+    userPoiKm: poi.km,
   );
 }
 
@@ -160,10 +192,13 @@ void _addWpt(
   double lng, {
   String? name,
   String? desc,
+  String? linkHref,
   String? sym,
   String? cmt,
   String? type,
   BmPoiExtension? bmPoiExt,
+  /// [UserPoi] のときルート距離（km）。null のとき `<bm:routeInfo>` は出さない。
+  double? userPoiKm,
 }) {
   builder.element('wpt', attributes: {
     'lat': lat.toString(),
@@ -176,8 +211,11 @@ void _addWpt(
     }
     if (desc != null && desc.isNotEmpty) {
       builder.element('desc', nest: () {
-        builder.text(desc);
+        _writeWptDesc(builder, desc);
       });
+    }
+    if (linkHref != null && linkHref.isNotEmpty) {
+      builder.element('link', attributes: {'href': linkHref});
     }
     if (sym != null && sym.isNotEmpty) {
       builder.element('sym', nest: () {
@@ -200,6 +238,16 @@ void _addWpt(
           builder.element('bm:type', nest: () {
             builder.text(bmPoiExt.type);
           });
+          if (bmPoiExt.displayOrder != null) {
+            builder.element('bm:displayOrder', nest: () {
+              builder.text(bmPoiExt.displayOrder.toString());
+            });
+          }
+          if (bmPoiExt.isNote) {
+            builder.element('bm:isNote', nest: () {
+              builder.text('true');
+            });
+          }
           if (!bmPoiExt.schedule.isEmpty) {
             builder.element('bm:schedule', nest: () {
               if (bmPoiExt.schedule.arrival != null) {
@@ -224,15 +272,36 @@ void _addWpt(
               }
             });
           }
-          builder.element('bm:routeInfo', nest: () {
-            builder.element('bm:distanceKm', nest: () {
-              builder.text(_formatNumber(bmPoiExt.distanceKm));
+          if (userPoiKm != null) {
+            builder.element('bm:routeInfo', nest: () {
+              builder.element('bm:distanceKm', nest: () {
+                builder.text(_formatNumber(userPoiKm));
+              });
             });
-          });
+          }
         });
       });
     }
   });
+}
+
+/// `<desc>` を書く。`toXmlString(pretty: true)` は通常のテキストノード内の改行を空白に潰すため、
+/// 改行を含むときは CDATA を使う。CDATA 内に `]]>` を含む場合は複数ノードに分割する。
+void _writeWptDesc(XmlBuilder builder, String desc) {
+  final useCdata = desc.contains('\n') || desc.contains('\r');
+  if (!useCdata) {
+    builder.text(desc);
+    return;
+  }
+  var remaining = desc;
+  while (remaining.contains(']]>')) {
+    final i = remaining.indexOf(']]>');
+    builder.cdata(remaining.substring(0, i + 2));
+    remaining = remaining.substring(i + 2);
+  }
+  if (remaining.isNotEmpty) {
+    builder.cdata(remaining);
+  }
 }
 
 /// 整数なら小数点なし、小数点以下がある場合は最小桁数で出力する。

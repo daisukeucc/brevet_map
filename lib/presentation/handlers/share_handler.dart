@@ -185,7 +185,7 @@ Future<void> showShareFlow(
       return;
     }
 
-    final gpxName = await loadGpxMetadataName();
+    final gpxBasename = await loadGpxImportBasename();
     final fileName = 'brevet_map_${DateTime.now().millisecondsSinceEpoch}.png';
 
     // iOS: getTemporaryDirectory() だと共有シートがファイルを読めず失敗することがあるため、
@@ -217,8 +217,8 @@ Future<void> showShareFlow(
         ),
       ],
       text: [
-        if (gpxName != null && gpxName.trim().isNotEmpty)
-          '#${gpxName.replaceAll(RegExp(r'[ 　]'), '').replaceAll('.', '_')}',
+        if (gpxBasename != null && gpxBasename.trim().isNotEmpty)
+          '#${gpxBasename.replaceAll(RegExp(r'[ 　]'), '').replaceAll('.', '_')}',
         '@BrevetMap',
       ].join('\n'),
       sharePositionOrigin: sharePositionOrigin,
