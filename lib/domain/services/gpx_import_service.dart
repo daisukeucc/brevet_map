@@ -277,6 +277,21 @@ UserPoi _createFinishPoi(
   );
 }
 
+/// 永続化するルート表示名（ベース名）。`importFilename` を優先し、空なら GPX `<metadata><name>`。
+String? _gpxImportBasenameToSave(String? importFilename, String? metadataName) {
+  for (final raw in [importFilename, metadataName]) {
+    if (raw == null) continue;
+    var s = raw.trim();
+    if (s.isEmpty) continue;
+    if (s.contains('/') || s.contains('\\')) {
+      s = s.split(RegExp(r'[/\\]')).last.trim();
+    }
+    s = s.replaceAll(RegExp(r'\.gpx$', caseSensitive: false), '').trim();
+    if (s.isNotEmpty) return s;
+  }
+  return null;
+}
+
 /// GPX 文字列をパースし、ルート・POI を保存する。
 Future<GpxImportResult?> parseAndSaveGpx(
   String gpxContent, {
@@ -328,14 +343,10 @@ Future<GpxImportResult?> parseAndSaveGpx(
     await markInitialRouteShown();
   }
 
-  final nameToSave =
-      (result.metadataName != null && result.metadataName!.isNotEmpty)
-          ? result.metadataName!
-          : (importFilename?.trim().isNotEmpty == true
-              ? importFilename!.trim()
-              : null);
-  if (nameToSave != null) {
-    await saveGpxMetadataName(toHalfwidthAscii(nameToSave));
+  final basename =
+      _gpxImportBasenameToSave(importFilename, result.metadataName);
+  if (basename != null && basename.isNotEmpty) {
+    await saveGpxImportBasename(toHalfwidthAscii(basename));
   }
 
   final dotWpts =

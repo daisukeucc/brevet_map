@@ -170,23 +170,27 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     _initShareFlow();
     _bootHomeLog('MyHomePage.initState end');
 
-    GpxChannelService.setMethodCallHandler((content) {
+    GpxChannelService.setMethodCallHandler((payload) {
       if (mounted) {
         showConfirmAndApplyGpx(
           context,
           ref,
-          content,
+          payload.content,
+          importBasename: payload.importBasename,
           onSuccess: () => setState(() => _isRouteBoundsMode = true),
         );
       }
     });
-    GpxChannelService.getInitialGpxContent().then((content) {
-      if (content != null && content.isNotEmpty && mounted) {
+    GpxChannelService.getInitialGpxPayload().then((payload) {
+      if (payload != null &&
+          payload.content.isNotEmpty &&
+          mounted) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           showConfirmAndApplyGpx(
             context,
             ref,
-            content,
+            payload.content,
+            importBasename: payload.importBasename,
             onSuccess: () => setState(() => _isRouteBoundsMode = true),
           );
         });

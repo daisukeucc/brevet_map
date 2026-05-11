@@ -35,7 +35,7 @@ class PoiElevationOnDemand {
   /// [poiPositions] と同長のとき、距離未登録（false）POI は標高区間から除外する（User POI 用）。
   final List<bool>? poiHasDistanceKm;
 
-  /// スタート POI の標高ダイアログ内、グラフ直上：GPX `<metadata><name>` に相当する表示名。
+  /// スタート POI の標高ダイアログ内、グラフ直上：インポート GPX のファイル名ベース（`<metadata><name>` ではない）
   final String? chartMetadataName;
 
   /// スタート POI の標高ダイアログ内、グラフ直上：ブルベ制限時間（時間）。`null` や `<=0` は時間行を出さない。

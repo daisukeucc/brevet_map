@@ -14,7 +14,8 @@ const _keySavedRouteElevations = 'saved_route_elevations';
 const _keyGpxPois = 'gpx_pois';
 /// `<type>Dot</type>` の wpt のみ（表示・編集対象外、GPX エクスポートで復元）
 const _keyGpxDotWaypoints = 'gpx_dot_waypoints';
-const _keyGpxMetadataName = 'gpx_metadata_name';
+/// 最後にインポートした GPX のファイル名ベース（拡張子 `.gpx` 除く、表示・エクスポート既定名用）
+const _keyGpxImportBasename = 'gpx_import_basename';
 const _keyMapStyleMode = 'map_style_mode';
 const _keyLocationStreamActive = 'location_stream_active';
 const _keyScreenSleep = 'screen_sleep';
@@ -103,7 +104,7 @@ Future<void> clearSavedRoute() async {
   await prefs.remove(_keySavedRouteElevations);
   await prefs.remove(_keyGpxPois);
   await prefs.remove(_keyGpxDotWaypoints);
-  await prefs.remove(_keyGpxMetadataName);
+  await prefs.remove(_keyGpxImportBasename);
   await prefs.remove(_keyBrevetMeta);
 }
 
@@ -141,16 +142,16 @@ Future<String?> loadGpxDotWaypointsJson() async {
   return prefs.getString(_keyGpxDotWaypoints);
 }
 
-/// GPXの<metadata><name>を保存する（エクスポート時のデフォルト名に使用）
-Future<void> saveGpxMetadataName(String name) async {
+/// インポート時の GPX ファイル名ベースを保存する（エクスポート既定名・標高ダイアログ表示など）
+Future<void> saveGpxImportBasename(String basenameWithoutExt) async {
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString(_keyGpxMetadataName, name);
+  await prefs.setString(_keyGpxImportBasename, basenameWithoutExt);
 }
 
-/// 保存済みのGPX metadata nameを返す。未保存なら null
-Future<String?> loadGpxMetadataName() async {
+/// 保存済みのインポート GPX ファイル名ベース（拡張子除く）。未保存なら null
+Future<String?> loadGpxImportBasename() async {
   final prefs = await SharedPreferences.getInstance();
-  return prefs.getString(_keyGpxMetadataName);
+  return prefs.getString(_keyGpxImportBasename);
 }
 
 /// GPXのPOI（ウェイポイント）一覧をJSONで保存する

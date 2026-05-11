@@ -58,16 +58,16 @@ class PoiMapDetailSheetController {
     );
   }
 
-  Future<({String? metadataName, double? timeLimitHours})>
+  Future<({String? gpxBasename, double? timeLimitHours})>
       _loadStartPoiElevationChartFields() async {
-    final metaName = await loadGpxMetadataName();
+    final routeBasename = await loadGpxImportBasename();
     final meta = await loadBrevetMeta();
-    final trimmed = metaName?.trim();
+    final trimmed = routeBasename?.trim();
     final name = (trimmed == null || trimmed.isEmpty) ? null : trimmed;
     final rawH = meta?.timeLimitHours ?? 0;
     final hours =
         (rawH > 0 && rawH.isFinite) ? rawH : null;
-    return (metadataName: name, timeLimitHours: hours);
+    return (gpxBasename: name, timeLimitHours: hours);
   }
 
   Future<void> animateToPoiPreservingZoom(LatLng position) async {
@@ -101,7 +101,7 @@ class PoiMapDetailSheetController {
           ordered.any((p) => GpxPoiTag.isStartType(p.bmPoiExt?.type));
       if (needStartHeader) {
         final fields = await _loadStartPoiElevationChartFields();
-        startMetaName = fields.metadataName;
+        startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;
@@ -144,7 +144,7 @@ class PoiMapDetailSheetController {
       if (trackPoints.length >= 2 &&
           GpxPoiTag.isStartType(poi.bmPoiExt?.type)) {
         final fields = await _loadStartPoiElevationChartFields();
-        startMetaName = fields.metadataName;
+        startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;
@@ -215,7 +215,7 @@ class PoiMapDetailSheetController {
           );
       if (needStartHeader) {
         final fields = await _loadStartPoiElevationChartFields();
-        startMetaName = fields.metadataName;
+        startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;
@@ -277,7 +277,7 @@ class PoiMapDetailSheetController {
           poi.km != null &&
           !poi.isNote) {
         final fields = await _loadStartPoiElevationChartFields();
-        startMetaName = fields.metadataName;
+        startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;

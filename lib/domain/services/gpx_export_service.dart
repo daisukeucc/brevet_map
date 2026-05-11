@@ -12,7 +12,7 @@ import '../../domain/models/user_poi.dart';
 /// [gpxDotWaypoints] `<type>Dot</type>` のみ別保持（インポート内容をそのまま出力）
 /// [gpxPois] レガシー保存の GPX ウェイポイント
 /// [userPois] 表示・編集対象の POI
-/// [filename] metadata と trk の name に使用するファイル名（任意）
+/// [filename] metadata と trk の name に使用するベース名（通常はインポート／エクスポート時のファイル名）
 /// [brevetMeta] ブルベメタデータ。あれば `<metadata><extensions>` に出力する
 String buildGpxXml({
   required List<LatLng> trackPoints,

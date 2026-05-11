@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
@@ -10,6 +11,9 @@ import '../../utils/string_utils.dart';
 import '../providers/providers.dart';
 import '../utils/snackbar_utils.dart';
 import '../widgets/confirm_dialog.dart';
+
+bool _looksLikeGpxFilename(String name) =>
+    name.toLowerCase().endsWith('.gpx');
 
 /// GPX インポートのフローを実行する。
 /// インポート成功時に [onSuccess] を呼ぶ。
@@ -28,33 +32,48 @@ Future<void> showGpxImportFlow(
   );
   if (confirmed != true || !context.mounted) return;
 
-  final result = await FilePicker.platform.pickFiles(type: FileType.any);
-  if (result == null || result.files.single.path == null || !context.mounted) {
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.any,
+    withData: true,
+  );
+  if (result == null || !context.mounted) return;
+
+  final file = result.files.single;
+  final path = file.path;
+  if (path == null && (file.bytes == null || file.bytes!.isEmpty)) {
     return;
   }
-  final path = result.files.single.path!;
-  if (!path.toLowerCase().endsWith('.gpx')) {
+
+  var rawFilename = file.name.trim();
+  if (rawFilename.isEmpty && path != null) {
+    rawFilename = path.split(RegExp(r'[/\\]')).last;
+  }
+  if (!_looksLikeGpxFilename(rawFilename) &&
+      (path == null || !_looksLikeGpxFilename(path))) {
     if (!context.mounted) return;
     showAppSnackBar(context, l10n.selectGpxFile);
     return;
   }
 
   // ファイル名の全角（ローマ字・数字・スペース）を半角に変換してから読み込む
-  final sourceFile = File(path);
-  final rawFilename = path.split(RegExp(r'[/\\]')).last;
   final normalizedFilename = toHalfwidthAscii(rawFilename);
   String content;
-  if (normalizedFilename == rawFilename) {
-    content = await sourceFile.readAsString();
-  } else {
-    final tempDir = await getTemporaryDirectory();
-    final tempFile = File('${tempDir.path}/$normalizedFilename');
-    await sourceFile.copy(tempFile.path);
-    try {
-      content = await tempFile.readAsString();
-    } finally {
-      tempFile.deleteSync();
+  if (path != null) {
+    final sourceFile = File(path);
+    if (normalizedFilename == rawFilename) {
+      content = await sourceFile.readAsString();
+    } else {
+      final tempDir = await getTemporaryDirectory();
+      final tempFile = File('${tempDir.path}/$normalizedFilename');
+      await sourceFile.copy(tempFile.path);
+      try {
+        content = await tempFile.readAsString();
+      } finally {
+        tempFile.deleteSync();
+      }
     }
+  } else {
+    content = utf8.decode(file.bytes!);
   }
   if (!context.mounted) return;
 
@@ -64,7 +83,7 @@ Future<void> showGpxImportFlow(
         content,
         animateCamera: (bounds) =>
             ref.read(cameraControllerProvider.notifier).animateToBounds(bounds),
-        importFilename: filenameWithoutExt,
+        importFilename: filenameWithoutExt.isEmpty ? null : filenameWithoutExt,
       );
 
   if (!context.mounted) return;
@@ -72,12 +91,13 @@ Future<void> showGpxImportFlow(
   if (status == GpxApplyStatus.success) onSuccess?.call();
 }
 
-/// GPX コンテンツを確認ダイアログ表示後に適用する。
-/// 共有・チャネルから受け取った GPX 用。
+/// 共有・チャネル・URL スキーム等から受け取った GPX を確認後に適用する。
+/// [importBasename] は拡張子 `.gpx` を除いたベース名（ネイティブが分かる場合）。
 Future<void> showConfirmAndApplyGpx(
   BuildContext context,
   WidgetRef ref,
   String content, {
+  String? importBasename,
   VoidCallback? onSuccess,
 }) async {
   final l10n = AppLocalizations.of(context)!;
@@ -89,10 +109,14 @@ Future<void> showConfirmAndApplyGpx(
   );
   if (confirmed != true || !context.mounted) return;
 
+  final withoutExt = importBasename == null || importBasename.trim().isEmpty
+      ? null
+      : importBasename.replaceAll(RegExp(r'\.gpx$', caseSensitive: false), '');
   final status = await ref.read(mapStateProvider.notifier).applyImportedGpx(
         content,
         animateCamera: (bounds) =>
             ref.read(cameraControllerProvider.notifier).animateToBounds(bounds),
+        importFilename: withoutExt != null && withoutExt.isNotEmpty ? withoutExt : null,
       );
 
   if (!context.mounted) return;

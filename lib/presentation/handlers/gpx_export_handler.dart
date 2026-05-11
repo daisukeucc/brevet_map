@@ -113,13 +113,13 @@ Future<void> showGpxExportFlow(
 
   if (!context.mounted) return;
 
-  // インポートしたGPXのmetadata/nameとブルベメタデータを読込
-  final savedMetadataName = await loadGpxMetadataName();
+  // インポートした GPX のファイル名ベースとブルベメタデータを読込
+  final savedImportBasename = await loadGpxImportBasename();
   final brevetMeta = await loadBrevetMeta();
   if (!context.mounted) return;
   final defaultFilename =
-      (savedMetadataName != null && savedMetadataName.trim().isNotEmpty)
-          ? _sanitizeFilename(savedMetadataName)
+      (savedImportBasename != null && savedImportBasename.trim().isNotEmpty)
+          ? _sanitizeFilename(savedImportBasename)
           : _defaultGpxFilename();
 
   // ファイル名入力フォーム

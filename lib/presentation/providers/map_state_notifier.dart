@@ -288,7 +288,7 @@ class MapStateNotifier extends Notifier<MapState> {
 
   /// GPXインポート結果を状態に反映する。
   /// SnackBar 表示は呼び出し側（Widget）が [GpxApplyStatus] を見て行う。
-  /// [importFilename] ファイルピッカーから取得したファイル名（.gpx 除く）。metadata が空のときプリファレンスに保存
+  /// [importFilename] ファイルピッカーから取得したファイル名（.gpx 除く）。永続化されエクスポート既定名などに使用
   Future<GpxApplyStatus> applyImportedGpx(
     String gpxContent, {
     required Future<void> Function(LatLngBounds) animateCamera,
