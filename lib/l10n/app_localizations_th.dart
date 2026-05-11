@@ -119,25 +119,40 @@ class AppLocalizationsTh extends AppLocalizations {
   String get information => 'ข้อมูล';
 
   @override
+  String get poiTypePhotoCheck => 'รูป';
+
+  @override
+  String get poiTypeStore => 'ร้านค้า';
+
+  @override
+  String get poiTypeHotel => 'โรงแรม';
+
+  @override
+  String get poiTypeDining => 'ร้านอาหาร';
+
+  @override
+  String get poiTypeStation => 'สถานี';
+
+  @override
   String get title => 'ชื่อเรื่อง';
 
   @override
   String get body => 'เนื้อหา';
 
   @override
-  String get plannedArrival => 'เวลาถึงที่กำหนด';
+  String get plannedArrival => 'มาถึง';
 
   @override
-  String get plannedDeparture => 'เวลาออกเดินทาง';
+  String get plannedDeparture => 'ออกเดินทาง';
 
   @override
-  String get plannedClose => 'เวลาปิด';
+  String get plannedClose => 'เวลาปิดรับ';
 
   @override
-  String get arrivalShort => 'ถึง';
+  String get arrivalShort => 'มาถึง';
 
   @override
-  String get departureShort => 'ออก';
+  String get departureShort => 'ออกเดินทาง';
 
   @override
   String get distance => 'ระยะทาง';
@@ -629,4 +644,14 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       'ในเวอร์ชัน 1.1 เราได้เพิ่มรายละเอียด POI เพื่อช่วยให้คุณวางแผนการปั่นระยะไกลได้อย่างมีประสิทธิภาพมากขึ้น!\nเวอร์ชันนี้ปลดล็อกทุกฟีเจอร์แล้ว ลองใช้งานดูได้เลย!';
+
+  @override
+  String get releaseNotesV12019Message =>
+      'ในเวอร์ชัน 1.2 เราได้ขยายข้อมูล POI อย่างมาก!\nเวอร์ชันนี้ปลดล็อกทุกฟีเจอร์แล้ว ลองใช้งานดูได้เลย!\n\n- เพิ่มประเภท POI เช่น จุดถ่ายรูปและร้านสะดวกซื้อ\n- เพิ่มช่องลิงก์ URL ในข้อมูล POI\n- แสดงกราฟระดับความสูงระหว่างจุดควบคุม\n- ตั้งเวลาถึงโดยประมาณของจุดควบคุมอัตโนมัติ';
+
+  @override
+  String get poiSaveAsNote => 'บันทึกเป็นโน้ต';
+
+  @override
+  String get brevetTimeLimitLabel => 'เวลาจำกัด';
 }

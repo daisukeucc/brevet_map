@@ -115,7 +115,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get checkpoint => 'Checkpoint';
 
   @override
-  String get information => 'Information';
+  String get information => 'Info';
+
+  @override
+  String get poiTypePhotoCheck => 'Photo';
+
+  @override
+  String get poiTypeStore => 'Store';
+
+  @override
+  String get poiTypeHotel => 'Hotel';
+
+  @override
+  String get poiTypeDining => 'Restaurant';
+
+  @override
+  String get poiTypeStation => 'Station';
 
   @override
   String get title => 'Title';
@@ -124,13 +139,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get body => 'Body';
 
   @override
-  String get plannedArrival => 'Planned arrival';
+  String get plannedArrival => 'Arrival';
 
   @override
-  String get plannedDeparture => 'Planned departure';
+  String get plannedDeparture => 'Departure';
 
   @override
-  String get plannedClose => 'Close time';
+  String get plannedClose => 'Cutoff';
 
   @override
   String get arrivalShort => 'Arrival';
@@ -629,4 +644,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!';
+
+  @override
+  String get releaseNotesV12019Message =>
+      'In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs';
+
+  @override
+  String get poiSaveAsNote => 'Save as note';
+
+  @override
+  String get brevetTimeLimitLabel => 'Time limit';
 }

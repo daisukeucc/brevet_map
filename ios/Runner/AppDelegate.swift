@@ -5,6 +5,7 @@ private let kShareSchemePrefix = "ShareMedia-com.brevetmap"
 private let kAppGroupId = "group.com.brevetmap"
 private let kSharedUrlKey = "shared_url"
 private let kPendingGpxContentKey = "pending_gpx_content"
+private let kPendingGpxBasenameKey = "pending_gpx_basename"
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -13,6 +14,8 @@ private let kPendingGpxContentKey = "pending_gpx_content"
   private var gpxChannel: FlutterMethodChannel?
   private var shareChannel: FlutterMethodChannel?
   private var pendingGpxContent: String?
+  /// 拡張子 `.gpx` を除いたファイル名（インポート表示・エクスポート既定名用）
+  private var pendingGpxBasename: String?
   private var pendingSharedUrl: String?
 
   override func application(
@@ -29,6 +32,7 @@ private let kPendingGpxContentKey = "pending_gpx_content"
         }
       } else if isGpxUrl(url) {
         pendingGpxContent = readGpxContent(from: url)
+        pendingGpxBasename = url.deletingPathExtension().lastPathComponent
       }
     }
 
@@ -53,8 +57,14 @@ private let kPendingGpxContentKey = "pending_gpx_content"
     gpxChannel?.setMethodCallHandler { [weak self] call, result in
       if call.method == "getInitialGpxContent" {
         if let content = self?.pendingGpxContent {
+          let base = self?.pendingGpxBasename
           self?.pendingGpxContent = nil
-          result(content)
+          self?.pendingGpxBasename = nil
+          if let b = base, !b.isEmpty {
+            result(["content": content, "basename": b])
+          } else {
+            result(["content": content])
+          }
         } else {
           result(nil)
         }
@@ -93,9 +103,16 @@ private let kPendingGpxContentKey = "pending_gpx_content"
       if url.absoluteString.hasSuffix(":gpx") {
         loadPendingGpxFromAppGroup()
         if let content = pendingGpxContent {
+          let base = pendingGpxBasename
           pendingGpxContent = nil
+          pendingGpxBasename = nil
           if gpxChannel != nil {
-            gpxChannel?.invokeMethod("onGpxFileReceived", arguments: content)
+            var args: [String: Any] = ["content": content]
+            if let b = base, !b.isEmpty { args["basename"] = b }
+            gpxChannel?.invokeMethod("onGpxFileReceived", arguments: args)
+          } else {
+            pendingGpxContent = content
+            pendingGpxBasename = base
           }
         }
       } else {
@@ -108,9 +125,15 @@ private let kPendingGpxContentKey = "pending_gpx_content"
       return true
     }
     if isGpxUrl(url), let content = readGpxContent(from: url) {
-      pendingGpxContent = content
+      let base = url.deletingPathExtension().lastPathComponent
       if gpxChannel != nil {
-        gpxChannel?.invokeMethod("onGpxFileReceived", arguments: content)
+        gpxChannel?.invokeMethod("onGpxFileReceived", arguments: [
+          "content": content,
+          "basename": base,
+        ])
+      } else {
+        pendingGpxContent = content
+        pendingGpxBasename = base
       }
       return true
     }
@@ -142,11 +165,17 @@ private let kPendingGpxContentKey = "pending_gpx_content"
   }
 
   private func loadPendingGpxFromAppGroup() {
-    if let userDefaults = UserDefaults(suiteName: kAppGroupId),
-       let content = userDefaults.string(forKey: kPendingGpxContentKey) {
-      userDefaults.removeObject(forKey: kPendingGpxContentKey)
-      userDefaults.synchronize()
-      pendingGpxContent = content
+    guard let userDefaults = UserDefaults(suiteName: kAppGroupId),
+          let content = userDefaults.string(forKey: kPendingGpxContentKey) else { return }
+    let base = userDefaults.string(forKey: kPendingGpxBasenameKey)
+    userDefaults.removeObject(forKey: kPendingGpxContentKey)
+    userDefaults.removeObject(forKey: kPendingGpxBasenameKey)
+    userDefaults.synchronize()
+    pendingGpxContent = content
+    if let b = base, !b.isEmpty {
+      pendingGpxBasename = b
+    } else {
+      pendingGpxBasename = nil
     }
   }
 }

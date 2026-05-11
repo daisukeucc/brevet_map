@@ -119,19 +119,34 @@ class AppLocalizationsEs extends AppLocalizations {
   String get information => 'Información';
 
   @override
+  String get poiTypePhotoCheck => 'Foto';
+
+  @override
+  String get poiTypeStore => 'Tienda';
+
+  @override
+  String get poiTypeHotel => 'Hotel';
+
+  @override
+  String get poiTypeDining => 'Restaurante';
+
+  @override
+  String get poiTypeStation => 'Estación';
+
+  @override
   String get title => 'Título';
 
   @override
   String get body => 'Texto';
 
   @override
-  String get plannedArrival => 'Llegada prevista';
+  String get plannedArrival => 'Llegada';
 
   @override
-  String get plannedDeparture => 'Salida prevista';
+  String get plannedDeparture => 'Salida';
 
   @override
-  String get plannedClose => 'Cierre';
+  String get plannedClose => 'Hora límite';
 
   @override
   String get arrivalShort => 'Llegada';
@@ -632,4 +647,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       'En la versión 1.1 hemos añadido más detalles de POI para que puedas planificar mejor tus rutas de larga distancia.\nTodas las funciones están desbloqueadas en esta versión, ¡así que pruébala!';
+
+  @override
+  String get releaseNotesV12019Message =>
+      'En la versión 1.2, la información de los POI se ha ampliado considerablemente.\nTodas las funciones están desbloqueadas en esta versión, ¡pruébalas!\n\n- Nuevos tipos de POI: controles con foto, tiendas, etc.\n- Campo de enlace URL en la información del POI\n- Gráfico de elevación entre puntos de control\n- Horas de llegada estimadas automáticas en los puntos de control';
+
+  @override
+  String get poiSaveAsNote => 'Guardar como nota';
+
+  @override
+  String get brevetTimeLimitLabel => 'Límite de tiempo';
 }

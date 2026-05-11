@@ -118,25 +118,40 @@ class AppLocalizationsKo extends AppLocalizations {
   String get information => '정보';
 
   @override
+  String get poiTypePhotoCheck => '포토';
+
+  @override
+  String get poiTypeStore => '상점';
+
+  @override
+  String get poiTypeHotel => '호텔';
+
+  @override
+  String get poiTypeDining => '식사';
+
+  @override
+  String get poiTypeStation => '역';
+
+  @override
   String get title => '제목';
 
   @override
   String get body => '본문';
 
   @override
-  String get plannedArrival => '도착 예정';
+  String get plannedArrival => '도착';
 
   @override
-  String get plannedDeparture => '출발 예정';
+  String get plannedDeparture => '출발';
 
   @override
-  String get plannedClose => '마감';
+  String get plannedClose => '마감 시간';
 
   @override
-  String get arrivalShort => '도착 예정';
+  String get arrivalShort => '도착';
 
   @override
-  String get departureShort => '출발 예정';
+  String get departureShort => '출발';
 
   @override
   String get distance => '거리';
@@ -614,4 +629,14 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       '버전 1.1에서는 브레베 주행 계획을 더 효율적으로 세울 수 있도록 POI 정보를 강화했습니다!\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!';
+
+  @override
+  String get releaseNotesV12019Message =>
+      '버전 1.2에서 POI 정보를 대폭 확장했습니다!\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!\n\n- POI 유형에 포토 체크·편의점 등 추가\n- POI 정보에 URL 링크 항목 추가\n- 체크포인트 구간의 고도 그래프 표시\n- 체크포인트 도착 예정 시각 자동 설정';
+
+  @override
+  String get poiSaveAsNote => '메모로 저장';
+
+  @override
+  String get brevetTimeLimitLabel => '제한 시간';
 }

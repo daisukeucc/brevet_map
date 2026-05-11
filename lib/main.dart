@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async' show unawaited;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 
 import 'config/tile_config.dart';
+import 'data/repositories/first_launch_repository.dart';
 import 'l10n/app_localizations.dart';
 import 'presentation/providers/providers.dart';
 import 'presentation/screens/home_screen.dart';
@@ -23,6 +25,7 @@ Future<void> _initRevenueCat() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   // スプラッシュ画面を表示する
   WidgetsBinding.instance.deferFirstFrame();
   await SystemChrome.setPreferredOrientations([
@@ -43,15 +46,28 @@ Future<void> main() async {
   // await すると Android でスプラッシュ画面が固まることがある。
   // また、await なしで常に configure を呼ぶことで、オフライン時も SDK が初期化済みになり
   // Purchases.getCustomerInfo() 呼び出し時のネイティブクラッシュを防ぐ。
-  _initRevenueCat();
+  unawaited(_initRevenueCat());
 
-  await TileConfig.initUserAgentPackageName();
+  // 起動体感を優先し、User-Agent 解決はバックグラウンドで実行する。
+  unawaited(TileConfig.initUserAgentPackageName());
+
+  // 初回起動判定を main() で事前ロードする。
+  // initState() での SharedPreferences 初期化は RevenueCat の
+  // ネイティブ処理と競合して 1〜3 秒遅延することがあり、
+  // その間 ConnectivityCheckingView が表示されてスプラッシュが固着して見えるため。
+  bool firstLaunch = false;
+  try {
+    firstLaunch = await isFirstLaunch()
+        .timeout(const Duration(seconds: 3), onTimeout: () => false);
+  } catch (_) {}
+
   // FMTC（タイルキャッシュ）は allowFirstFrame 後に [_FmtcBackgroundInit] で起動。
   // main で await するとスプラッシュが長く止まるため。
 
   runApp(
-    const ProviderScope(
-      child: _FmtcBackgroundInit(
+    ProviderScope(
+      overrides: [cachedFirstLaunchProvider.overrideWithValue(firstLaunch)],
+      child: const _FmtcBackgroundInit(
         child: MyApp(),
       ),
     ),

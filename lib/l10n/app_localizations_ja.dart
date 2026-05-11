@@ -118,6 +118,21 @@ class AppLocalizationsJa extends AppLocalizations {
   String get information => 'インフォメーション';
 
   @override
+  String get poiTypePhotoCheck => 'フォトチェック';
+
+  @override
+  String get poiTypeStore => 'コンビニ';
+
+  @override
+  String get poiTypeHotel => 'ホテル';
+
+  @override
+  String get poiTypeDining => '食事';
+
+  @override
+  String get poiTypeStation => '駅';
+
+  @override
   String get title => 'タイトル';
 
   @override
@@ -611,4 +626,14 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       'ver1.1では、ブルベの走行計画が立てられるよう、POIの情報を増やしました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！';
+
+  @override
+  String get releaseNotesV12019Message =>
+      'ver1.2ではPOI情報を大幅に拡充しました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！\n\n- POI種別にフォトチェックやコンビニ等を追加\n- POI情報にURLリンク項目を追加\n- PC間の標高グラフ表示\n- PC到着予想時刻の自動設定';
+
+  @override
+  String get poiSaveAsNote => 'メモとして保存';
+
+  @override
+  String get brevetTimeLimitLabel => '制限時間';
 }

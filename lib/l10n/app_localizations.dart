@@ -320,8 +320,38 @@ abstract class AppLocalizations {
   /// No description provided for @information.
   ///
   /// In en, this message translates to:
-  /// **'Information'**
+  /// **'Info'**
   String get information;
+
+  /// No description provided for @poiTypePhotoCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get poiTypePhotoCheck;
+
+  /// No description provided for @poiTypeStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get poiTypeStore;
+
+  /// No description provided for @poiTypeHotel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hotel'**
+  String get poiTypeHotel;
+
+  /// No description provided for @poiTypeDining.
+  ///
+  /// In en, this message translates to:
+  /// **'Restaurant'**
+  String get poiTypeDining;
+
+  /// No description provided for @poiTypeStation.
+  ///
+  /// In en, this message translates to:
+  /// **'Station'**
+  String get poiTypeStation;
 
   /// No description provided for @title.
   ///
@@ -338,19 +368,19 @@ abstract class AppLocalizations {
   /// No description provided for @plannedArrival.
   ///
   /// In en, this message translates to:
-  /// **'Planned arrival'**
+  /// **'Arrival'**
   String get plannedArrival;
 
   /// No description provided for @plannedDeparture.
   ///
   /// In en, this message translates to:
-  /// **'Planned departure'**
+  /// **'Departure'**
   String get plannedDeparture;
 
   /// No description provided for @plannedClose.
   ///
   /// In en, this message translates to:
-  /// **'Close time'**
+  /// **'Cutoff'**
   String get plannedClose;
 
   /// No description provided for @arrivalShort.
@@ -1216,6 +1246,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!'**
   String get releaseNotesV11018Message;
+
+  /// No description provided for @releaseNotesV12019Message.
+  ///
+  /// In en, this message translates to:
+  /// **'In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs'**
+  String get releaseNotesV12019Message;
+
+  /// No description provided for @poiSaveAsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as note'**
+  String get poiSaveAsNote;
+
+  /// Label for brevet time limit hours on the start POI elevation dialog (shown before a colon and the hours value).
+  ///
+  /// In en, this message translates to:
+  /// **'Time limit'**
+  String get brevetTimeLimitLabel;
 }
 
 class _AppLocalizationsDelegate

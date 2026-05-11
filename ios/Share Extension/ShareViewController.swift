@@ -12,6 +12,7 @@ import MobileCoreServices
 private let kAppGroupId = "group.com.brevetmap"
 private let kSharedUrlKey = "shared_url"
 private let kPendingGpxContentKey = "pending_gpx_content"
+private let kPendingGpxBasenameKey = "pending_gpx_basename"
 private let kShareSchemePrefix = "ShareMedia-com.brevetmap"
 
 private let kUTTypeURL = "public.url"
@@ -121,13 +122,19 @@ class ShareViewController: SLComposeServiceViewController {
         let accessed = url.startAccessingSecurityScopedResource()
         defer { if accessed { url.stopAccessingSecurityScopedResource() } }
         if let content = try? String(contentsOf: url, encoding: .utf8) {
-            saveGpxContentAndOpenApp(content: content)
+            let base = url.deletingPathExtension().lastPathComponent
+            saveGpxContentAndOpenApp(content: content, basename: base)
         }
     }
 
-    private func saveGpxContentAndOpenApp(content: String) {
+    private func saveGpxContentAndOpenApp(content: String, basename: String? = nil) {
         guard let userDefaults = UserDefaults(suiteName: kAppGroupId) else { return }
         userDefaults.set(content, forKey: kPendingGpxContentKey)
+        if let b = basename, !b.isEmpty {
+            userDefaults.set(b, forKey: kPendingGpxBasenameKey)
+        } else {
+            userDefaults.removeObject(forKey: kPendingGpxBasenameKey)
+        }
         userDefaults.synchronize()
         if let url = URL(string: "\(kShareSchemePrefix):gpx") {
             var responder: UIResponder? = self

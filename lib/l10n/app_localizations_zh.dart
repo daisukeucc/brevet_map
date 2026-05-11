@@ -117,25 +117,40 @@ class AppLocalizationsZh extends AppLocalizations {
   String get information => '信息';
 
   @override
+  String get poiTypePhotoCheck => '照片';
+
+  @override
+  String get poiTypeStore => '商店';
+
+  @override
+  String get poiTypeHotel => '酒店';
+
+  @override
+  String get poiTypeDining => '餐厅';
+
+  @override
+  String get poiTypeStation => '车站';
+
+  @override
   String get title => '标题';
 
   @override
   String get body => '正文';
 
   @override
-  String get plannedArrival => '预计到达';
+  String get plannedArrival => '到达';
 
   @override
-  String get plannedDeparture => '预计出发';
+  String get plannedDeparture => '出发';
 
   @override
-  String get plannedClose => '关闭时间';
+  String get plannedClose => '截止时间';
 
   @override
-  String get arrivalShort => '预计到达';
+  String get arrivalShort => '到达';
 
   @override
-  String get departureShort => '预计出发';
+  String get departureShort => '出发';
 
   @override
   String get distance => '距离';
@@ -604,6 +619,16 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       '在 1.1 版本中，我们增强了 POI 信息，让您可以更高效地规划您的长距离骑行！\n此版本已解锁全部功能，欢迎体验！';
+
+  @override
+  String get releaseNotesV12019Message =>
+      '1.2 版本大幅扩充了 POI 信息！\n此版本已解锁全部功能，欢迎体验！\n\n- 新增 POI 类型：拍照检查点、便利店等\n- POI 信息新增 URL 链接字段\n- 检查点之间的海拔剖面图显示\n- 检查点预计到达时间自动设置';
+
+  @override
+  String get poiSaveAsNote => '保存为备注';
+
+  @override
+  String get brevetTimeLimitLabel => '限制时间';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -719,25 +744,40 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get information => '資訊';
 
   @override
+  String get poiTypePhotoCheck => '照片';
+
+  @override
+  String get poiTypeStore => '商店';
+
+  @override
+  String get poiTypeHotel => '飯店';
+
+  @override
+  String get poiTypeDining => '餐廳';
+
+  @override
+  String get poiTypeStation => '車站';
+
+  @override
   String get title => '標題';
 
   @override
   String get body => '內容';
 
   @override
-  String get plannedArrival => '預計到達';
+  String get plannedArrival => '到達';
 
   @override
-  String get plannedDeparture => '預計出發';
+  String get plannedDeparture => '出發';
 
   @override
-  String get plannedClose => '關閉時間';
+  String get plannedClose => '截止時間';
 
   @override
-  String get arrivalShort => '預計到達';
+  String get arrivalShort => '到達';
 
   @override
-  String get departureShort => '預計出發';
+  String get departureShort => '出發';
 
   @override
   String get distance => '距離';
@@ -1206,4 +1246,14 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get releaseNotesV11018Message =>
       '在 1.1 版本中，我們強化了 POI 資訊，讓您能更有效地規劃長距離騎行！\n此版本已開放所有功能，歡迎體驗！';
+
+  @override
+  String get releaseNotesV12019Message =>
+      '1.2 版本大幅擴充了 POI 資訊！\n此版本已開放所有功能，歡迎體驗！\n\n- 新增 POI 類型：拍照檢查點、便利商店等\n- POI 資訊新增 URL 連結欄位\n- 檢查點之間的標高圖表顯示\n- 檢查點預計抵達時間自動設定';
+
+  @override
+  String get poiSaveAsNote => '儲存為備註';
+
+  @override
+  String get brevetTimeLimitLabel => '限制時間';
 }
