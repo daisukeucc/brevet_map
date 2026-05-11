@@ -649,4 +649,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get poiSaveAsNote => 'Als Notiz speichern';
+
+  @override
+  String get brevetTimeLimitLabel => 'Zeitlimit';
 }

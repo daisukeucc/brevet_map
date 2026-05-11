@@ -632,4 +632,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get poiSaveAsNote => '메모로 저장';
+
+  @override
+  String get brevetTimeLimitLabel => '제한 시간';
 }

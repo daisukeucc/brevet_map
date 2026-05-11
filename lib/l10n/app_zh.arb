@@ -316,5 +316,6 @@
   "changeRideDate": "更改出发日期",
   "releaseNotesDialogTitle": "发行说明",
   "releaseNotesV11018Message": "在 1.1 版本中，我们增强了 POI 信息，让您可以更高效地规划您的长距离骑行！\n此版本已解锁全部功能，欢迎体验！",
-  "poiSaveAsNote": "保存为备注"
+  "poiSaveAsNote": "保存为备注",
+  "brevetTimeLimitLabel": "限制时间"
 }

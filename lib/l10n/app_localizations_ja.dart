@@ -629,4 +629,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get poiSaveAsNote => 'メモとして保存';
+
+  @override
+  String get brevetTimeLimitLabel => '制限時間';
 }

@@ -316,5 +316,6 @@
   "changeRideDate": "Modifier la date de départ",
   "releaseNotesDialogTitle": "Notes de version",
   "releaseNotesV11018Message": "Dans la version 1.1, nous avons ajouté plus de détails sur les POI pour vous aider à mieux planifier vos brevets !\nToutes les fonctionnalités sont débloquées dans cette version, alors n'hésitez pas à l'essayer !",
-  "poiSaveAsNote": "Enregistrer comme note"
+  "poiSaveAsNote": "Enregistrer comme note",
+  "brevetTimeLimitLabel": "Limite de temps"
 }

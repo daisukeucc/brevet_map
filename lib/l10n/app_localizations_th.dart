@@ -647,4 +647,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get poiSaveAsNote => 'บันทึกเป็นโน้ต';
+
+  @override
+  String get brevetTimeLimitLabel => 'เวลาจำกัด';
 }

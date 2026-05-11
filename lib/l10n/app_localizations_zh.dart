@@ -622,6 +622,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get poiSaveAsNote => '保存为备注';
+
+  @override
+  String get brevetTimeLimitLabel => '限制时间';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1242,4 +1245,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get poiSaveAsNote => '儲存為備註';
+
+  @override
+  String get brevetTimeLimitLabel => '限制時間';
 }

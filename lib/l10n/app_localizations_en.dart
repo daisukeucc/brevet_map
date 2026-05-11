@@ -647,4 +647,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get poiSaveAsNote => 'Save as note';
+
+  @override
+  String get brevetTimeLimitLabel => 'Time limit';
 }

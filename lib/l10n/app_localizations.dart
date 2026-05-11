@@ -1252,6 +1252,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save as note'**
   String get poiSaveAsNote;
+
+  /// Label for brevet time limit hours on the start POI elevation dialog (shown before a colon and the hours value).
+  ///
+  /// In en, this message translates to:
+  /// **'Time limit'**
+  String get brevetTimeLimitLabel;
 }
 
 class _AppLocalizationsDelegate

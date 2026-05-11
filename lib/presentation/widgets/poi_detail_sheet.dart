@@ -7,10 +7,11 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:latlong2/latlong.dart' show LatLng;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart';
 
-/// アイコンタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
+/// POIシートタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
 class PoiElevationOnDemand {
   const PoiElevationOnDemand({
     required this.trackPoints,
@@ -19,6 +20,8 @@ class PoiElevationOnDemand {
     required this.poiIndex,
     required this.distanceUnit,
     this.poiHasDistanceKm,
+    this.chartMetadataName,
+    this.chartTimeLimitHours,
   });
 
   final List<LatLng> trackPoints;
@@ -31,6 +34,19 @@ class PoiElevationOnDemand {
 
   /// [poiPositions] と同長のとき、距離未登録（false）POI は標高区間から除外する（User POI 用）。
   final List<bool>? poiHasDistanceKm;
+
+  /// スタート POI の標高ダイアログ内、グラフ直上：GPX `<metadata><name>` に相当する表示名。
+  final String? chartMetadataName;
+
+  /// スタート POI の標高ダイアログ内、グラフ直上：ブルベ制限時間（時間）。`null` や `<=0` は時間行を出さない。
+  final double? chartTimeLimitHours;
+}
+
+String? _formatElevationChartTimeLimitHours(double? hours) {
+  if (hours == null || hours <= 0 || !hours.isFinite) return null;
+  return hours == hours.roundToDouble()
+      ? hours.toInt().toString()
+      : hours.toStringAsFixed(1);
 }
 
 /// POI 詳細1件（ボトムシート用）
@@ -146,7 +162,7 @@ void _openElevationFromOnDemand(
   );
 }
 
-/// グラフアイコンタップ時に表示するダイアログ。
+/// POIシートタップ時に表示するダイアログ。
 /// ダイアログ表示後 isolate でデータを構築し、ローディング → グラフへ切り替える。
 class _ElevationOnDemandDialog extends StatefulWidget {
   const _ElevationOnDemandDialog({required this.req});
@@ -246,6 +262,14 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
         ? formatElevationChange(chart.segmentElevationLossM, req.distanceUnit)
         : (_previewLossLabel ?? '—');
 
+    final elevHeaderName = req.chartMetadataName?.trim();
+    final elevHeaderHoursStr =
+        _formatElevationChartTimeLimitHours(req.chartTimeLimitHours);
+    final showElevDialogHeader =
+        (elevHeaderName != null && elevHeaderName.isNotEmpty) ||
+            elevHeaderHoursStr != null;
+    final elevTimeLabel = AppLocalizations.of(context)?.brevetTimeLimitLabel;
+
     return AlertDialog(
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
@@ -260,6 +284,37 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            if (showElevDialogHeader) ...[
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      if (elevHeaderName != null && elevHeaderName.isNotEmpty)
+                        Text(
+                          elevHeaderName,
+                          style: AppTextStyles.poiMedium,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      if (elevHeaderHoursStr != null) const SizedBox(height: 4),
+                      Text(
+                        '${elevTimeLabel ?? 'Time limit'} ${elevHeaderHoursStr}h',
+                        style: AppTextStyles.poiFormTitleBody
+                            .copyWith(color: AppColors.muted),
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             SizedBox(
               height: 180,
               width: double.maxFinite,
