@@ -8,8 +8,10 @@ import 'package:latlong2/latlong.dart' show LatLng;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../../utils/connectivity_check.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart';
+import '../utils/snackbar_utils.dart';
 
 /// POIシートタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
 class PoiElevationOnDemand {
@@ -870,6 +872,15 @@ class _PoiContentBlock extends StatelessWidget {
                           splashColor: Colors.grey.withValues(alpha: 0.30),
                           highlightColor: Colors.grey.withValues(alpha: 0.20),
                           onTap: () async {
+                            if (!await checkConnectivity()) {
+                              if (!context.mounted) return;
+                              showAppSnackBarOverlaid(
+                                context,
+                                AppLocalizations.of(context)!.offline,
+                              );
+                              return;
+                            }
+                            if (!context.mounted) return;
                             await launchUrl(
                               parsedUrl,
                               mode: LaunchMode.externalApplication,
