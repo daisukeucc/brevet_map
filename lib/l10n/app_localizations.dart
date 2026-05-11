@@ -1247,6 +1247,12 @@ abstract class AppLocalizations {
   /// **'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!'**
   String get releaseNotesV11018Message;
 
+  /// No description provided for @releaseNotesV12019Message.
+  ///
+  /// In en, this message translates to:
+  /// **'In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs'**
+  String get releaseNotesV12019Message;
+
   /// No description provided for @poiSaveAsNote.
   ///
   /// In en, this message translates to:

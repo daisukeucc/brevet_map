@@ -621,6 +621,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '在 1.1 版本中，我们增强了 POI 信息，让您可以更高效地规划您的长距离骑行！\n此版本已解锁全部功能，欢迎体验！';
 
   @override
+  String get releaseNotesV12019Message =>
+      '1.2 版本大幅扩充了 POI 信息！\n此版本已解锁全部功能，欢迎体验！\n\n- 新增 POI 类型：拍照检查点、便利店等\n- POI 信息新增 URL 链接字段\n- 检查点之间的海拔剖面图显示\n- 检查点预计到达时间自动设置';
+
+  @override
   String get poiSaveAsNote => '保存为备注';
 
   @override
@@ -1242,6 +1246,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get releaseNotesV11018Message =>
       '在 1.1 版本中，我們強化了 POI 資訊，讓您能更有效地規劃長距離騎行！\n此版本已開放所有功能，歡迎體驗！';
+
+  @override
+  String get releaseNotesV12019Message =>
+      '1.2 版本大幅擴充了 POI 資訊！\n此版本已開放所有功能，歡迎體驗！\n\n- 新增 POI 類型：拍照檢查點、便利商店等\n- POI 資訊新增 URL 連結欄位\n- 檢查點之間的標高圖表顯示\n- 檢查點預計抵達時間自動設定';
 
   @override
   String get poiSaveAsNote => '儲存為備註';

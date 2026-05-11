@@ -315,6 +315,7 @@
   "changeRideDate": "更改出發日期",
   "releaseNotesDialogTitle": "發行說明",
   "releaseNotesV11018Message": "在 1.1 版本中，我們強化了 POI 資訊，讓您能更有效地規劃長距離騎行！\n此版本已開放所有功能，歡迎體驗！",
+  "releaseNotesV12019Message": "1.2 版本大幅擴充了 POI 資訊！\n此版本已開放所有功能，歡迎體驗！\n\n- 新增 POI 類型：拍照檢查點、便利商店等\n- POI 資訊新增 URL 連結欄位\n- 檢查點之間的標高圖表顯示\n- 檢查點預計抵達時間自動設定",
   "poiSaveAsNote": "儲存為備註",
   "brevetTimeLimitLabel": "限制時間"
 }

@@ -648,6 +648,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'In Version 1.1 haben wir zusätzliche POI-Details hinzugefügt, damit du deine Brevets besser planen kannst!\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!';
 
   @override
+  String get releaseNotesV12019Message =>
+      'In Version 1.2 haben wir die POI-Informationen deutlich erweitert!\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!\n\n- Neue POI-Typen wie Foto-Kontrollen und Geschäfte\n- URL-Linkfeld in den POI-Informationen\n- Höhenprofil zwischen den Kontrollpunkten\n- Automatische Schätzung der Ankunftszeiten an den Kontrollpunkten';
+
+  @override
   String get poiSaveAsNote => 'Als Notiz speichern';
 
   @override

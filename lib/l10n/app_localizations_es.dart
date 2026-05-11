@@ -649,6 +649,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'En la versión 1.1 hemos añadido más detalles de POI para que puedas planificar mejor tus rutas de larga distancia.\nTodas las funciones están desbloqueadas en esta versión, ¡así que pruébala!';
 
   @override
+  String get releaseNotesV12019Message =>
+      'En la versión 1.2, la información de los POI se ha ampliado considerablemente.\nTodas las funciones están desbloqueadas en esta versión, ¡pruébalas!\n\n- Nuevos tipos de POI: controles con foto, tiendas, etc.\n- Campo de enlace URL en la información del POI\n- Gráfico de elevación entre puntos de control\n- Horas de llegada estimadas automáticas en los puntos de control';
+
+  @override
   String get poiSaveAsNote => 'Guardar como nota';
 
   @override

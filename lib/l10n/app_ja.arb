@@ -302,6 +302,7 @@
   "changeRideDate": "出走日を変更",
   "releaseNotesDialogTitle": "リリースノート",
   "releaseNotesV11018Message": "ver1.1では、ブルベの走行計画が立てられるよう、POIの情報を増やしました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！",
+  "releaseNotesV12019Message": "ver1.2ではPOI情報を大幅に拡充しました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！\n\n- POI種別にフォトチェックやコンビニ等を追加\n- POI情報にURLリンク項目を追加\n- PC間の標高グラフ表示\n- PC到着予想時刻の自動設定",
   "poiSaveAsNote": "メモとして保存",
   "brevetTimeLimitLabel": "制限時間"
 }

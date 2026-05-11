@@ -646,6 +646,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!';
 
   @override
+  String get releaseNotesV12019Message =>
+      'In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs';
+
+  @override
   String get poiSaveAsNote => 'Save as note';
 
   @override
