@@ -61,13 +61,13 @@ Future<void> showGpxImportFlow(
   if (path != null) {
     final sourceFile = File(path);
     if (normalizedFilename == rawFilename) {
-      content = await sourceFile.readAsString();
+      content = await sourceFile.readAsString(encoding: utf8);
     } else {
       final tempDir = await getTemporaryDirectory();
       final tempFile = File('${tempDir.path}/$normalizedFilename');
       await sourceFile.copy(tempFile.path);
       try {
-        content = await tempFile.readAsString();
+        content = await tempFile.readAsString(encoding: utf8);
       } finally {
         tempFile.deleteSync();
       }

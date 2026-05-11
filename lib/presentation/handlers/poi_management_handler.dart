@@ -475,10 +475,14 @@ Future<void> handleEditPoiText(
         meta: meta,
         totalRouteKm: tr,
       );
-      final Duration? startCascadeDelta =
-          newStartDep != null && oldStartDep != null
-              ? newStartDep.difference(oldStartDep)
-              : null;
+      Duration? startCascadeDelta;
+      if (newStartDep != null) {
+        if (oldStartDep != null) {
+          startCascadeDelta = newStartDep.difference(oldStartDep);
+        } else if (meta?.startTime != null) {
+          startCascadeDelta = newStartDep.difference(meta!.startTime!);
+        }
+      }
       final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
       final startIdx = UserPoi.indexInList(list, currentPoi);
       if (startIdx < 0) {
@@ -487,13 +491,18 @@ Future<void> handleEditPoiText(
             .updateUserPoi(currentPoi, updatedPoi);
       } else {
         list[startIdx] = updatedPoi;
+        final ordered = UserPoi.orderedForDetailSheet(list);
+        final startRouteIdx = UserPoi.indexInList(ordered, updatedPoi);
         for (var i = 0; i < list.length; i++) {
           if (i == startIdx) continue;
           final p = list[i];
           final e = p.bmExt;
           if (e == null) continue;
           final s = e.schedule;
-          final afterStart = i > startIdx;
+          final routeIdx = UserPoi.indexInList(ordered, p);
+          final afterStart = startRouteIdx >= 0 && routeIdx >= 0
+              ? routeIdx > startRouteIdx
+              : i > startIdx;
 
           DateTime? arr = s.arrival;
           DateTime? dep = s.departure;

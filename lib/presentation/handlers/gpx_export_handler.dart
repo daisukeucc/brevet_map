@@ -1,4 +1,5 @@
 import 'dart:async' show unawaited;
+import 'dart:convert' show utf8;
 import 'dart:io';
 
 import 'package:downloadsfolder/downloadsfolder.dart' as downloads;
@@ -157,7 +158,7 @@ Future<void> showGpxExportFlow(
       );
       await shareParent.create(recursive: false);
       final exportFile = File('${shareParent.path}/$displayFilename');
-      await exportFile.writeAsString(gpxXml);
+      await exportFile.writeAsBytes(utf8.encode(gpxXml));
 
       var downloadSaved = false;
       try {
@@ -219,7 +220,7 @@ Future<void> showGpxExportFlow(
       // ユニークなサブフォルダの下に [displayFilename] そのもので保存する（プレフィックス付きファイル名を避ける）。
       final dir = await getApplicationDocumentsDirectory();
       final file = File('${dir.path}/$displayFilename');
-      await file.writeAsString(gpxXml);
+      await file.writeAsBytes(utf8.encode(gpxXml));
 
       if (!context.mounted) return;
       try {

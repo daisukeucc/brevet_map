@@ -17,6 +17,7 @@ import io.flutter.plugin.common.MethodChannel
 import java.io.BufferedReader
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import java.nio.charset.StandardCharsets
 
 class MainActivity : FlutterFragmentActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
@@ -268,7 +269,8 @@ class MainActivity : FlutterFragmentActivity() {
 
     private fun readUriContent(uri: Uri): String {
         contentResolver.openInputStream(uri)?.use { input ->
-            return BufferedReader(InputStreamReader(input)).use { it.readText() }
+            // GPX は UTF-8 が標準。プラットフォーム既定（端末・環境により異なる）で読むと日本語が壊れる。
+            return BufferedReader(InputStreamReader(input, StandardCharsets.UTF_8)).use { it.readText() }
         }
             ?: throw Exception("Could not open URI")
     }
