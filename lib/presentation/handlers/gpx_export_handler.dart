@@ -150,34 +150,55 @@ Future<void> showGpxExportFlow(
 
   try {
     if (Platform.isAndroid) {
-      // Android: MediaStore で端末のダウンロードフォルダに保存（拡張子付き）
+      // MediaStore でダウンロードへ保存したあと、共有シートも出す（Drive・他アプリへの受け渡し用）
       final tempDir = await getTemporaryDirectory();
-      final tempFile = File('${tempDir.path}/$displayFilename');
-      await tempFile.writeAsString(gpxXml);
+      final shareParent = Directory(
+        '${tempDir.path}/gpx_share_${DateTime.now().microsecondsSinceEpoch}',
+      );
+      await shareParent.create(recursive: false);
+      final exportFile = File('${shareParent.path}/$displayFilename');
+      await exportFile.writeAsString(gpxXml);
 
-      var success = false;
+      var downloadSaved = false;
       try {
         const channel = MethodChannel('com.brevetmap/gpx');
-        success = await channel.invokeMethod<bool?>(
+        downloadSaved = await channel.invokeMethod<bool?>(
               'saveFileToDownloads',
-              {'filePath': tempFile.path, 'fileName': displayFilename},
+              {'filePath': exportFile.path, 'fileName': displayFilename},
             ) ==
             true;
       } on PlatformException catch (_) {
         // API 29 未満などでフォールバック
       }
-      if (!success) {
-        success = await downloads.copyFileIntoDownloadFolder(
-                tempFile.path, displayFilename) ==
+      if (!downloadSaved) {
+        downloadSaved = await downloads.copyFileIntoDownloadFolder(
+                exportFile.path, displayFilename) ==
             true;
       }
 
+      if (!context.mounted) return;
       try {
-        await tempFile.delete();
+        await Share.shareXFiles(
+          [
+            XFile(
+              exportFile.path,
+              mimeType: 'application/gpx+xml',
+              name: displayFilename,
+            ),
+          ],
+        );
       } catch (_) {}
 
+      unawaited(Future<void>.delayed(const Duration(minutes: 10), () async {
+        try {
+          if (await shareParent.exists()) {
+            await shareParent.delete(recursive: true);
+          }
+        } catch (_) {}
+      }));
+
       if (!context.mounted) return;
-      if (success == true) {
+      if (downloadSaved) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.gpxExportComplete(displayFilename))),
         );
