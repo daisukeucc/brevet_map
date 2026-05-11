@@ -168,6 +168,7 @@ void _addUserPoiWpt(XmlBuilder builder, UserPoi poi,
     schedule: src.schedule,
     distanceKm: src.distanceKm,
     displayOrder: displayOrder,
+    isNote: poi.isNote,
   );
 
   _addWpt(
@@ -240,6 +241,11 @@ void _addWpt(
           if (bmPoiExt.displayOrder != null) {
             builder.element('bm:displayOrder', nest: () {
               builder.text(bmPoiExt.displayOrder.toString());
+            });
+          }
+          if (bmPoiExt.isNote) {
+            builder.element('bm:isNote', nest: () {
+              builder.text('true');
             });
           }
           if (!bmPoiExt.schedule.isEmpty) {

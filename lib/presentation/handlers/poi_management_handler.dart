@@ -41,6 +41,7 @@ class AddPoiFormData {
     this.arrival,
     this.departure,
     this.close,
+    this.isNote = false,
   });
   final double? km;
   final int type;
@@ -50,6 +51,7 @@ class AddPoiFormData {
   final TimeOfDay? arrival;
   final TimeOfDay? departure;
   final TimeOfDay? close;
+  final bool isNote;
 }
 
 /// 地図タップでPOI追加を選択した場合のリクエスト
@@ -104,9 +106,11 @@ UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
     lng: poi.lng,
     gpxCmt: poi.gpxCmt,
     gpxType: poi.gpxType,
+    isNote: poi.isNote,
     bmExt: BmPoiExtension(
       type: ext.type,
       distanceKm: ext.distanceKm,
+      displayOrder: ext.displayOrder,
       schedule: BmSchedule(
         arrival: ext.schedule.arrival?.add(delta),
         departure: ext.schedule.departure?.add(delta),
@@ -217,9 +221,11 @@ UserPoi _userPoiWithFinishClose(UserPoi p, DateTime? close) {
     lng: p.lng,
     gpxCmt: p.gpxCmt,
     gpxType: p.gpxType,
+    isNote: p.isNote,
     bmExt: BmPoiExtension(
       type: ext.type,
       distanceKm: ext.distanceKm,
+      displayOrder: ext.displayOrder,
       schedule: BmSchedule(
         arrival: ext.schedule.arrival,
         departure: ext.schedule.departure,
@@ -286,6 +292,7 @@ Future<void> handleDistanceInputPoiAdd(
           lat: coord.latitude,
           lng: coord.longitude,
           bmExt: bmExt,
+          isNote: data.isNote,
         );
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
         if (context.mounted) {
@@ -293,6 +300,26 @@ Future<void> handleDistanceInputPoiAdd(
         }
       },
     ),
+  );
+}
+
+/// [MapTapPoiAddDialog] の入力から [UserPoi] を生成する（共有 URL プレビューからも利用）。
+Future<UserPoi> userPoiFromMapTapAddForm({
+  required AddPoiFormData data,
+  required LatLng position,
+}) async {
+  final bmExt = await _buildBmPoiExtForAdd(data: data, km: data.km);
+  final url = data.url.trim();
+  return UserPoi(
+    type: data.type,
+    km: data.km,
+    title: data.title,
+    body: data.body,
+    url: url.isEmpty ? null : url,
+    lat: position.latitude,
+    lng: position.longitude,
+    bmExt: bmExt,
+    isNote: data.isNote,
   );
 }
 
@@ -306,24 +333,30 @@ Future<void> handleMapLongPressPoiAdd(
 }) async {
   if (!context.mounted) return;
 
+  final distanceUnit = ref.read(distanceUnitProvider);
+  final routePoints = ref.read(mapStateProvider).savedRoutePoints;
+  final totalRouteKm = routePoints != null && routePoints.isNotEmpty
+      ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
+      : null;
+  String? initialKmText;
+  if (routePoints != null && routePoints.isNotEmpty) {
+    final alongM = distanceFromStartToPointAlongTrack(routePoints, position);
+    final kmAlong = alongM / 1000.0;
+    initialKmText = formatDistanceNumeric(kmAlong, distanceUnit);
+  }
+
   await showDialog<void>(
     context: context,
     barrierColor: Colors.black54,
     barrierDismissible: false,
     builder: (dialogContext) => MapTapPoiAddDialog(
       initialTitle: initialTitle,
+      distanceUnit: distanceUnit,
+      totalRouteKm: totalRouteKm,
+      initialKmText: initialKmText,
       onSave: (data) async {
-        final bmExt = await _buildBmPoiExtForAdd(data: data, km: null);
-        final poi = UserPoi(
-          type: data.type,
-          km: null,
-          title: data.title,
-          body: data.body,
-          url: data.url,
-          lat: position.latitude,
-          lng: position.longitude,
-          bmExt: bmExt,
-        );
+        final poi =
+            await userPoiFromMapTapAddForm(data: data, position: position);
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
         if (context.mounted) {
           showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
@@ -352,6 +385,7 @@ Future<void> handleEditPoiText(
       : null;
 
   double? elevationGainFor(UserPoi p) {
+    if (p.isNote) return null;
     final ms = ref.read(mapStateProvider);
     final gains = ms.cachedPoiElevationGains;
     final orderedForGain = ms.userPois;
@@ -362,6 +396,7 @@ Future<void> handleEditPoiText(
   }
 
   double? elevationLossFor(UserPoi p) {
+    if (p.isNote) return null;
     final ms = ref.read(mapStateProvider);
     final losses = ms.cachedPoiElevationLosses;
     final ordered = ms.userPois;
@@ -412,6 +447,7 @@ Future<void> handleEditPoiText(
       gpxCmt: currentPoi.gpxCmt,
       gpxType: currentPoi.gpxType,
       bmExt: newBmExt,
+      isNote: data.isNote,
     );
     final isStartPoi = currentPoi.bmExt?.type == 'start';
     final newStartDep = updatedPoi.bmExt?.schedule.departure;
@@ -479,9 +515,11 @@ Future<void> handleEditPoiText(
             lng: p.lng,
             gpxCmt: p.gpxCmt,
             gpxType: p.gpxType,
+            isNote: p.isNote,
             bmExt: BmPoiExtension(
               type: e.type,
               distanceKm: e.distanceKm,
+              displayOrder: e.displayOrder,
               schedule: BmSchedule(
                 arrival: arr,
                 departure: dep,
@@ -526,9 +564,11 @@ Future<void> handleEditPoiText(
             lng: p.lng,
             gpxCmt: p.gpxCmt,
             gpxType: p.gpxType,
+            isNote: p.isNote,
             bmExt: BmPoiExtension(
               type: e.type,
               distanceKm: e.distanceKm,
+              displayOrder: e.displayOrder,
               schedule: BmSchedule(
                 arrival: s.arrival?.add(scheduleDelta),
                 departure: s.departure?.add(scheduleDelta),
@@ -640,6 +680,7 @@ Future<void> handlePoiDragEnd(
     gpxCmt: poi.gpxCmt,
     gpxType: poi.gpxType,
     bmExt: poi.bmExt,
+    isNote: poi.isNote,
   );
   await ref.read(mapStateProvider.notifier).updateUserPoi(poi, updatedPoi);
   if (!context.mounted) return;
@@ -717,6 +758,7 @@ class _DistanceInputPoiDialogState extends State<DistanceInputPoiDialog> {
       title: _titleController.text.trim(),
       body: _bodyController.text.trim(),
       url: _urlController.text.trim(),
+      isNote: false,
     );
   }
 
@@ -1134,7 +1176,7 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
                     Expanded(
                       child: Text(
                         distStr != null
-                            ? '$distStr：${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
+                            ? '$distStr : ${poi.title.isEmpty ? AppLocalizations.of(context)!.titleNone : poi.title}'
                             : (poi.title.isEmpty
                                 ? AppLocalizations.of(context)!.titleNone
                                 : poi.title),
@@ -1197,17 +1239,28 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
 }
 
 // ---------------------------------------------------------------------------
-// 地図タップでPOI登録ダイアログ（km入力なし）
+// 地図タップでPOI登録ダイアログ（距離・メモフラグ）
 // ---------------------------------------------------------------------------
 
 class MapTapPoiAddDialog extends StatefulWidget {
   const MapTapPoiAddDialog({
     super.key,
     this.initialTitle,
+    required this.distanceUnit,
+    this.totalRouteKm,
+    this.initialKmText,
     required this.onSave,
   });
 
   final String? initialTitle;
+  final int distanceUnit;
+
+  /// ルート沿い長さ（km）。null のときは距離上限チェックを省略。
+  final double? totalRouteKm;
+
+  /// 距離フィールドの初期表示（ユーザー設定単位の数値文字列）。
+  final String? initialKmText;
+
   final Future<void> Function(AddPoiFormData data) onSave;
 
   @override
@@ -1216,37 +1269,73 @@ class MapTapPoiAddDialog extends StatefulWidget {
 
 class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
   int _poiType = 0;
+  final _kmController = TextEditingController();
   late final TextEditingController _titleController;
   final _bodyController = TextEditingController();
   final _urlController = TextEditingController();
+  String? _kmError;
+  late final FocusNode _kmFocusNode;
+  bool _saveAsNote = true;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.initialTitle ?? '');
+    _kmFocusNode = FocusNode();
+    _kmFocusNode.addListener(_onKmFocusChange);
+    if (widget.initialKmText != null && widget.initialKmText!.isNotEmpty) {
+      _kmController.text = widget.initialKmText!;
+    }
+    _titleController =
+        TextEditingController(text: widget.initialTitle?.trim() ?? '');
+  }
+
+  void _onKmFocusChange() {
+    if (_kmFocusNode.hasFocus && _kmError != null && mounted) {
+      setState(() => _kmError = null);
+    }
   }
 
   @override
   void dispose() {
+    _kmFocusNode.removeListener(_onKmFocusChange);
+    _kmFocusNode.dispose();
+    _kmController.dispose();
     _titleController.dispose();
     _bodyController.dispose();
     _urlController.dispose();
     super.dispose();
   }
 
-  AddPoiFormData _buildFormData() => AddPoiFormData(
-        km: null,
-        type: _poiType,
-        title: _titleController.text.trim(),
-        body: _bodyController.text.trim(),
-        url: _urlController.text.trim(),
-      );
+  AddPoiFormData? _validate() {
+    final value = double.tryParse(_kmController.text.trim());
+    if (value == null || value <= 0) {
+      setState(() => _kmError = AppLocalizations.of(context)!.kmRequired);
+      return null;
+    }
+    final km = widget.distanceUnit == 1 ? value * kmPerMile : value;
+    final cap = widget.totalRouteKm;
+    if (cap != null && km > cap + 5) {
+      setState(() => _kmError = AppLocalizations.of(context)!.kmExceedsRoute);
+      return null;
+    }
+    setState(() => _kmError = null);
+    return AddPoiFormData(
+      km: km,
+      type: _poiType,
+      title: _titleController.text.trim(),
+      body: _bodyController.text.trim(),
+      url: _urlController.text.trim(),
+      isNote: _saveAsNote,
+    );
+  }
 
   Future<void> _handleAdd() async {
     FocusScope.of(context).unfocus();
+    final data = _validate();
+    if (data == null) return;
     setState(() => _saving = true);
-    await widget.onSave(_buildFormData());
+    await widget.onSave(data);
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -1265,6 +1354,50 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 72,
+                    child: TextField(
+                      controller: _kmController,
+                      focusNode: _kmFocusNode,
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      onChanged: (_) {
+                        if (_kmError != null) setState(() => _kmError = null);
+                      },
+                      decoration: InputDecoration(
+                        labelText: l10n.distance,
+                        isDense: true,
+                        errorText: _kmError != null ? ' ' : null,
+                        errorStyle: const TextStyle(height: 0, fontSize: 0),
+                      ),
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(fontSize: 17),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: _kmError != null
+                          ? Text(
+                              _kmError!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 12,
+                              ),
+                            )
+                          : Text(
+                              widget.distanceUnit == 1 ? 'mi' : 'km',
+                              style: AppTextStyles.title,
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Text(l10n.poiType, style: AppTextStyles.body),
               const SizedBox(height: 4),
               Align(
@@ -1324,7 +1457,42 @@ class _MapTapPoiAddDialogState extends State<MapTapPoiAddDialog> {
                 ),
                 style: AppTextStyles.poiFormTitleBody,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 15),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: _saving
+                      ? null
+                      : () {
+                          FocusScope.of(context).unfocus();
+                          setState(() => _saveAsNote = !_saveAsNote);
+                        },
+                  borderRadius: BorderRadius.circular(4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Checkbox(
+                        value: _saveAsNote,
+                        onChanged: _saving
+                            ? null
+                            : (v) {
+                                FocusScope.of(context).unfocus();
+                                setState(() => _saveAsNote = v ?? true);
+                              },
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                      ),
+                      Expanded(
+                        child: Text(
+                          l10n.poiSaveAsNote,
+                          style: AppTextStyles.checkBoxLabel,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -1421,6 +1589,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   TimeOfDay? _departure;
   TimeOfDay? _close;
   bool _saving = false;
+  bool _isNote = false;
 
   @override
   void initState() {
@@ -1441,6 +1610,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   /// 出発は到着の 15 分後（GPX インポートのチェックポイント既定と同じ）。
   /// 既に到着だけ保存されている POI では、出発が空なら到着+15分で補う。
   void _maybeAutofillScheduleFromDistance(UserPoi poi) {
+    if (poi.isNote) return;
     if (poi.km == null) return;
     if (GpxPoiTag.isStartType(poi.bmExt?.type)) return;
     final start = widget.brevetStartTimeUtc;
@@ -1456,8 +1626,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       if (est == null) return;
       _arrival = _timeOfDayFromDt(est);
       if (_departure == null) {
-        _departure =
-            _timeOfDayFromDt(est.add(const Duration(minutes: 15)));
+        _departure = _timeOfDayFromDt(est.add(const Duration(minutes: 15)));
       }
       return;
     }
@@ -1465,8 +1634,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (_departure == null) {
       final arrDt = poi.bmExt?.schedule.arrival;
       if (arrDt != null) {
-        _departure =
-            _timeOfDayFromDt(arrDt.add(const Duration(minutes: 15)));
+        _departure = _timeOfDayFromDt(arrDt.add(const Duration(minutes: 15)));
       }
     }
   }
@@ -1480,6 +1648,17 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (_kmFocusNode.hasFocus && _kmError != null && mounted) {
       setState(() => _kmError = null);
     }
+  }
+
+  /// メモとして保存をオンにしたとき、到着・出発予定時刻をクリアする。
+  void _setIsNoteAndClearScheduleIfMemo(bool value) {
+    setState(() {
+      _isNote = value;
+      if (value) {
+        _arrival = null;
+        _departure = null;
+      }
+    });
   }
 
   @override
@@ -1515,6 +1694,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _maybeAutofillScheduleFromDistance(poi);
     _close = _timeOfDayFromDt(poi.bmExt?.schedule.close);
     _kmError = null;
+    _isNote = poi.isNote;
   }
 
   double? _parsedKmFromField() {
@@ -1534,9 +1714,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       if (idx < 0) return '--';
 
       final positions = ordered.map((p) => LatLng(p.lat, p.lng)).toList();
-      final poiHasKm = ordered.map((p) => p.km != null).toList();
+      final poiHasKm = ordered.map((p) => p.km != null && !p.isNote).toList();
       if (idx < poiHasKm.length) {
-        poiHasKm[idx] = _parsedKmFromField() != null;
+        poiHasKm[idx] = _parsedKmFromField() != null && !_isNote;
       }
 
       final bounds = segmentIndicesForElevationChart(
@@ -1640,6 +1820,10 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       return true;
     }
 
+    if (_isNote != _currentPoi.isNote) {
+      return true;
+    }
+
     final origArrival = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.arrival);
     final origDeparture =
         _timeOfDayFromDt(_currentPoi.bmExt?.schedule.departure);
@@ -1687,6 +1871,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       arrival: _arrival,
       departure: _departure,
       close: _close,
+      isNote: _isNote,
     );
   }
 
@@ -1935,9 +2120,45 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                   ),
                   style: AppTextStyles.poiFormTitleBody,
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 15),
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _saving
+                        ? null
+                        : () {
+                            FocusScope.of(context).unfocus();
+                            _setIsNoteAndClearScheduleIfMemo(!_isNote);
+                          },
+                    borderRadius: BorderRadius.circular(4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _isNote,
+                          onChanged: _saving
+                              ? null
+                              : (v) {
+                                  FocusScope.of(context).unfocus();
+                                  _setIsNoteAndClearScheduleIfMemo(v ?? false);
+                                },
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
+                        ),
+                        Expanded(
+                          child: Text(
+                            l10n.poiSaveAsNote,
+                            style: AppTextStyles.checkBoxLabel,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 15),
                 _segmentElevationSummaryBar(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 15),
                 _TimePickerRow(
                   label: l10n.plannedArrival,
                   time: _arrival,

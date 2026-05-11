@@ -619,6 +619,9 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       '在 1.1 版本中，我们增强了 POI 信息，让您可以更高效地规划您的长距离骑行！\n此版本已解锁全部功能，欢迎体验！';
+
+  @override
+  String get poiSaveAsNote => '保存为备注';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1236,4 +1239,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get releaseNotesV11018Message =>
       '在 1.1 版本中，我們強化了 POI 資訊，讓您能更有效地規劃長距離騎行！\n此版本已開放所有功能，歡迎體驗！';
+
+  @override
+  String get poiSaveAsNote => '儲存為備註';
 }

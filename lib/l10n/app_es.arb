@@ -315,5 +315,6 @@
   "setStartDate": "Establecer fecha de salida",
   "changeRideDate": "Cambiar fecha de salida",
   "releaseNotesDialogTitle": "Notas de la versión",
-  "releaseNotesV11018Message": "En la versión 1.1 hemos añadido más detalles de POI para que puedas planificar mejor tus rutas de larga distancia.\nTodas las funciones están desbloqueadas en esta versión, ¡así que pruébala!"
+  "releaseNotesV11018Message": "En la versión 1.1 hemos añadido más detalles de POI para que puedas planificar mejor tus rutas de larga distancia.\nTodas las funciones están desbloqueadas en esta versión, ¡así que pruébala!",
+  "poiSaveAsNote": "Guardar como nota"
 }

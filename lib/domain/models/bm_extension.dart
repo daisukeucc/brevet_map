@@ -86,6 +86,7 @@ class BmPoiExtension {
     required this.schedule,
     required this.distanceKm,
     this.displayOrder,
+    this.isNote = false,
   });
 
   /// POI の種別。'start' / 'finish' / 'checkpoint' / 'generic'
@@ -99,11 +100,15 @@ class BmPoiExtension {
   /// アプリの POI 一覧順（0 始まり）。GPX エクスポート時に `<bm:displayOrder>` へ書き、インポートで復元する。
   final int? displayOrder;
 
+  /// `<bm:isNote>` — 区間距離・獲得標高の集計から除外するメモ POI。
+  final bool isNote;
+
   Map<String, dynamic> toJson() => {
         'type': type,
         'schedule': schedule.toJson(),
         'distanceKm': distanceKm,
         if (displayOrder != null) 'displayOrder': displayOrder,
+        if (isNote) 'isNote': true,
       };
 
   static BmPoiExtension fromJson(Map<String, dynamic> json) => BmPoiExtension(
@@ -113,5 +118,6 @@ class BmPoiExtension {
             : const BmSchedule(),
         distanceKm: (json['distanceKm'] as num?)?.toDouble() ?? 0,
         displayOrder: (json['displayOrder'] as num?)?.toInt(),
+        isNote: json['isNote'] == true,
       );
 }

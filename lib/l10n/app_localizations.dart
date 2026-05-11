@@ -1246,6 +1246,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'In version 1.1, we\'ve added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!'**
   String get releaseNotesV11018Message;
+
+  /// No description provided for @poiSaveAsNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Save as note'**
+  String get poiSaveAsNote;
 }
 
 class _AppLocalizationsDelegate

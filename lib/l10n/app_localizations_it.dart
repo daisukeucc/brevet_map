@@ -646,4 +646,7 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       'Nella versione 1.1 abbiamo aggiunto più dettagli sui POI per aiutarti a pianificare meglio i tuoi percorsi a lunga distanza.\nTutte le funzionalità sono sbloccate in questa versione, quindi provala!';
+
+  @override
+  String get poiSaveAsNote => 'Salva come nota';
 }

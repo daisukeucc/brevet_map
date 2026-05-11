@@ -301,5 +301,6 @@
   "setStartDate": "出走日を設定",
   "changeRideDate": "出走日を変更",
   "releaseNotesDialogTitle": "リリースノート",
-  "releaseNotesV11018Message": "ver1.1では、ブルベの走行計画が立てられるよう、POIの情報を増やしました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！"
+  "releaseNotesV11018Message": "ver1.1では、ブルベの走行計画が立てられるよう、POIの情報を増やしました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！",
+  "poiSaveAsNote": "メモとして保存"
 }

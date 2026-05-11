@@ -202,6 +202,9 @@ class UserPoi {
 
     /// BrevetMap 独自拡張データ（`<bm:poi>`）
     this.bmExt,
+
+    /// メモ POI。区間距離・獲得標高の集計から除外し、GPX に `<bm:isNote>` で出力する。
+    this.isNote = false,
   });
 
   /// 0=チェックポイント, 1=インフォメーション, 2=フォト, 3=ストア, 4=ホテル, 5=食事, 6=駅
@@ -223,6 +226,9 @@ class UserPoi {
 
   /// BrevetMap 独自拡張データ。インポート / 新規追加時に設定される。
   final BmPoiExtension? bmExt;
+
+  /// メモとして保存（集計・標高区間から除外）。
+  final bool isNote;
 
   LatLng get position => LatLng(lat, lng);
   UserPoiType get poiType => UserPoiType.fromValue(type);
@@ -313,6 +319,7 @@ class UserPoi {
         if (gpxCmt != null) 'gpxCmt': gpxCmt,
         if (gpxType != null) 'gpxType': gpxType,
         if (bmExt != null) 'bmExt': bmExt!.toJson(),
+        if (isNote) 'isNote': true,
       };
 
   static UserPoi fromJson(Map<String, dynamic> json) => UserPoi(
@@ -328,5 +335,6 @@ class UserPoi {
         bmExt: json['bmExt'] != null
             ? BmPoiExtension.fromJson(json['bmExt'] as Map<String, dynamic>)
             : null,
+        isNote: json['isNote'] == true,
       );
 }

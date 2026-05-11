@@ -644,4 +644,7 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       'ในเวอร์ชัน 1.1 เราได้เพิ่มรายละเอียด POI เพื่อช่วยให้คุณวางแผนการปั่นระยะไกลได้อย่างมีประสิทธิภาพมากขึ้น!\nเวอร์ชันนี้ปลดล็อกทุกฟีเจอร์แล้ว ลองใช้งานดูได้เลย!';
+
+  @override
+  String get poiSaveAsNote => 'บันทึกเป็นโน้ต';
 }

@@ -486,10 +486,10 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
     final e = widget.entries[_index];
     final hasDistance = e.distance != null && e.distance!.trim().isNotEmpty;
     final prevPadding = hasDistance
-        ? const EdgeInsets.only(top: 20, bottom: 10)
+        ? const EdgeInsets.only(top: 20, bottom: 5)
         : const EdgeInsets.only(top: 20, bottom: 5);
     final nextPadding = hasDistance
-        ? const EdgeInsets.only(top: 10, bottom: 20)
+        ? const EdgeInsets.only(top: 5, bottom: 20)
         : const EdgeInsets.only(top: 5, bottom: 20);
     return SizedBox(
       width: double.infinity,

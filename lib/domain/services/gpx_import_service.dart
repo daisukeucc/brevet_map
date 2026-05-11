@@ -143,6 +143,7 @@ UserPoi _gpxPoiToUserPoi(
     gpxCmt: poi.cmt,
     gpxType: poi.type,
     bmExt: bmExt,
+    isNote: hasBmExtensions && (poi.bmPoiExt?.isNote ?? false),
   );
 }
 

@@ -161,16 +161,16 @@ class PoiMapDetailSheetController {
       final positions =
           ordered.map((p) => LatLng(p.lat, p.lng)).toList(growable: false);
       final poiHasKm =
-          ordered.map((p) => p.km != null).toList(growable: false);
+          ordered.map((p) => p.km != null && !p.isNote).toList(growable: false);
 
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
-        final hasKm = poiHasKm[i];
+        final hasKmForSegment = poiHasKm[i];
         entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
-            elevationGain: hasKm && rawGains[i] != null
+            elevationGain: hasKmForSegment && rawGains[i] != null
                 ? formatElevationChange(rawGains[i]!, unit)
                 : null,
             description: ordered[i].body,
@@ -179,7 +179,7 @@ class PoiMapDetailSheetController {
             arrival: ordered[i].bmExt?.schedule.arrival,
             departure: ordered[i].bmExt?.schedule.departure,
             close: ordered[i].bmExt?.schedule.close,
-            elevationOnDemand: hasKm
+            elevationOnDemand: hasKmForSegment
                 ? _elevationOnDemandFor(
                     trackPoints,
                     elevations,
@@ -218,7 +218,7 @@ class PoiMapDetailSheetController {
             arrival: poi.bmExt?.schedule.arrival,
             departure: poi.bmExt?.schedule.departure,
             close: poi.bmExt?.schedule.close,
-            elevationOnDemand: poi.km != null
+            elevationOnDemand: poi.km != null && !poi.isNote
                 ? _elevationOnDemandFor(
                     trackPoints,
                     elevations,

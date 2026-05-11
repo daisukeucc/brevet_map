@@ -649,4 +649,7 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get releaseNotesV11018Message =>
       'Dans la version 1.1, nous avons ajouté plus de détails sur les POI pour vous aider à mieux planifier vos brevets !\nToutes les fonctionnalités sont débloquées dans cette version, alors n\'hésitez pas à l\'essayer !';
+
+  @override
+  String get poiSaveAsNote => 'Enregistrer comme note';
 }

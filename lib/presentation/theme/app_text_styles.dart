@@ -81,4 +81,8 @@ abstract class AppTextStyles {
   /// ボタン（小）
   static const TextStyle buttonSmall =
       TextStyle(fontSize: 14, color: AppColors.muted);
+
+  /// チェックボックスラベル
+  static const TextStyle checkBoxLabel =
+      TextStyle(fontSize: 15, color: Colors.black87);
 }
