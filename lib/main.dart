@@ -1,8 +1,6 @@
 import 'dart:io';
 import 'dart:async' show unawaited;
-import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -16,11 +14,6 @@ import 'l10n/app_localizations.dart';
 import 'presentation/providers/providers.dart';
 import 'presentation/screens/home_screen.dart';
 
-void _bootLog(Stopwatch sw, String message) {
-  if (!kDebugMode) return;
-  debugPrint('[BOOT ${sw.elapsedMilliseconds}ms] $message');
-}
-
 Future<void> _initRevenueCat() async {
   final apiKey = Platform.isIOS
       ? dotenv.env['REVENUECAT_IOS_API_KEY'] ?? ''
@@ -31,45 +24,13 @@ Future<void> _initRevenueCat() async {
 }
 
 Future<void> main() async {
-  final bootSw = Stopwatch()..start();
   WidgetsFlutterBinding.ensureInitialized();
-  _bootLog(bootSw, 'WidgetsFlutterBinding initialized');
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    _bootLog(bootSw, 'FlutterError: ${details.exceptionAsString()}');
-    FlutterError.presentError(details);
-  };
-  ui.PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
-    _bootLog(bootSw, 'PlatformDispatcher error: $error');
-    return false;
-  };
-  _bootLog(bootSw, 'global error handlers registered');
-
-  var firstFrameTimingLogged = false;
-  late final ui.TimingsCallback timingsCallback;
-  timingsCallback = (List<ui.FrameTiming> timings) {
-    if (firstFrameTimingLogged || timings.isEmpty) return;
-    firstFrameTimingLogged = true;
-    final t = timings.first;
-    _bootLog(
-      bootSw,
-      'first FrameTiming build=${t.buildDuration.inMilliseconds}ms raster=${t.rasterDuration.inMilliseconds}ms total=${t.totalSpan.inMilliseconds}ms',
-    );
-    WidgetsBinding.instance.removeTimingsCallback(timingsCallback);
-  };
-  WidgetsBinding.instance.addTimingsCallback(timingsCallback);
 
   // スプラッシュ画面を表示する
   WidgetsBinding.instance.deferFirstFrame();
-  _bootLog(bootSw, 'deferFirstFrame called');
-  try {
-    await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]).timeout(const Duration(seconds: 2));
-    _bootLog(bootSw, 'setPreferredOrientations done');
-  } catch (e) {
-    _bootLog(bootSw, 'setPreferredOrientations failed: $e');
-  }
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   // デコード済みタイル画像のメモリキャッシュを拡張（デフォルト: 100MB / 1000枚）
   // ルート表示・地図回転時のグレー化を軽減する
@@ -78,34 +39,17 @@ Future<void> main() async {
   PaintingBinding.instance.imageCache.maximumSize = 3000;
 
   try {
-    await dotenv
-        .load(fileName: '.env')
-        .timeout(const Duration(seconds: 2), onTimeout: () {});
-    _bootLog(bootSw, '.env load done');
-  } catch (e) {
-    _bootLog(bootSw, '.env load failed: $e');
-  }
+    await dotenv.load(fileName: '.env');
+  } catch (_) {}
 
   // RevenueCat は await せず起動をブロックしない（fire-and-forget）。
   // await すると Android でスプラッシュ画面が固まることがある。
   // また、await なしで常に configure を呼ぶことで、オフライン時も SDK が初期化済みになり
   // Purchases.getCustomerInfo() 呼び出し時のネイティブクラッシュを防ぐ。
-  unawaited(
-    _initRevenueCat().then((_) {
-      _bootLog(bootSw, 'RevenueCat init done');
-    }).catchError((Object e, StackTrace _) {
-      _bootLog(bootSw, 'RevenueCat init failed: $e');
-    }),
-  );
+  unawaited(_initRevenueCat());
 
   // 起動体感を優先し、User-Agent 解決はバックグラウンドで実行する。
-  unawaited(
-    TileConfig.initUserAgentPackageName().then((_) {
-      _bootLog(bootSw, 'TileConfig userAgent init done');
-    }).catchError((Object e, StackTrace _) {
-      _bootLog(bootSw, 'TileConfig userAgent init failed: $e');
-    }),
-  );
+  unawaited(TileConfig.initUserAgentPackageName());
 
   // 初回起動判定を main() で事前ロードする。
   // initState() での SharedPreferences 初期化は RevenueCat の
@@ -115,10 +59,7 @@ Future<void> main() async {
   try {
     firstLaunch = await isFirstLaunch()
         .timeout(const Duration(seconds: 3), onTimeout: () => false);
-    _bootLog(bootSw, 'isFirstLaunch done: $firstLaunch');
-  } catch (e) {
-    _bootLog(bootSw, 'isFirstLaunch failed: $e');
-  }
+  } catch (_) {}
 
   // FMTC（タイルキャッシュ）は allowFirstFrame 後に [_FmtcBackgroundInit] で起動。
   // main で await するとスプラッシュが長く止まるため。
@@ -131,13 +72,8 @@ Future<void> main() async {
       ),
     ),
   );
-  _bootLog(bootSw, 'runApp called');
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _bootLog(bootSw, 'first post-frame callback');
-  });
   // await Future.delayed(const Duration(milliseconds: 200));
   WidgetsBinding.instance.allowFirstFrame();
-  _bootLog(bootSw, 'allowFirstFrame called');
 }
 
 /// allowFirstFrame 後の最初のフレームで FMTC を初期化し、成功時にタイルレイヤーを再構築する。
