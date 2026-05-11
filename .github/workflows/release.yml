@@ -184,10 +184,16 @@ jobs:
           cd android && bundle exec fastlane android deploy_internal
 
   release-ios:
+    # App Store Connect は iOS 26 SDK（Xcode 26 以上）でビルドされたバイナリを要求する。
+    # macOS 26 ランナーで Xcode 26 系を明示選択する（macos-latest では過去に Xcode 16.x が選ばれることがある）。
     if: ${{ inputs.platform == 'ios' || inputs.platform == 'both' }}
-    runs-on: macos-latest
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v5
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
 
       - name: Set project directory
         id: project-dir
