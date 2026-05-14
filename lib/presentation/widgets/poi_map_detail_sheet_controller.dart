@@ -29,6 +29,43 @@ abstract final class PoiMapMarkerOrder {
 bool _sameGpxPoi(GpxPoi a, GpxPoi b) =>
     (a.lat - b.lat).abs() < 1e-9 && (a.lng - b.lng).abs() < 1e-9;
 
+double? _elapsedHoursFromBrevetStart(DateTime? brevetStartUtc, DateTime? arrival) {
+  if (brevetStartUtc == null || arrival == null) return null;
+  final h =
+      arrival.difference(brevetStartUtc).inMicroseconds / 3600000000.0;
+  if (!h.isFinite) return null;
+  return h < 0 ? 0.0 : h;
+}
+
+/// 時刻チャートの原点。到着推定は [BmSchedule.departure]/[BmSchedule.arrival] と
+/// [estimateArrivalFromRouteStart] でスタート地点の出発を基準にしているため、
+/// メタの `startTime` だけだとデータ不整合で経過が極端に大きくなることがある。
+DateTime? _chartBrevetStartUtcFromGpxPois(
+  List<GpxPoi> ordered,
+  DateTime? metaStart,
+) {
+  for (final p in ordered) {
+    if (GpxPoiTag.isStartType(p.bmPoiExt?.type)) {
+      final s = p.bmPoiExt?.schedule;
+      return s?.departure ?? s?.arrival ?? metaStart;
+    }
+  }
+  return metaStart;
+}
+
+DateTime? _chartBrevetStartUtcFromUserPois(
+  List<UserPoi> ordered,
+  DateTime? metaStart,
+) {
+  for (final p in ordered) {
+    if (GpxPoiTag.isStartType(p.bmExt?.type)) {
+      final s = p.bmExt?.schedule;
+      return s?.departure ?? s?.arrival ?? metaStart;
+    }
+  }
+  return metaStart;
+}
+
 /// 地図上の POI タップから詳細ボトムシート表示・シート内移動時の地図追従までを担当する。
 class PoiMapDetailSheetController {
   PoiMapDetailSheetController(this._ref);
@@ -60,8 +97,12 @@ class PoiMapDetailSheetController {
     );
   }
 
-  Future<({String? gpxBasename, double? timeLimitHours})>
-      _loadStartPoiElevationChartFields() async {
+  Future<
+      ({
+        String? gpxBasename,
+        double? timeLimitHours,
+        DateTime? brevetStartUtc,
+      })> _loadStartPoiElevationChartFields() async {
     final routeBasename = await loadGpxImportBasename();
     final meta = await loadBrevetMeta();
     final trimmed = routeBasename?.trim();
@@ -69,7 +110,38 @@ class PoiMapDetailSheetController {
     final rawH = meta?.timeLimitHours ?? 0;
     final hours =
         (rawH > 0 && rawH.isFinite) ? rawH : null;
-    return (gpxBasename: name, timeLimitHours: hours);
+    return (
+      gpxBasename: name,
+      timeLimitHours: hours,
+      brevetStartUtc: meta?.startTime,
+    );
+  }
+
+  /// 出走日・制限時間・スタートが揃うとき、POI シート上段の経過時間チャート。
+  PoiSheetTimeChart? _poiElapsedTimeChart({
+    required DateTime? brevetStartUtc,
+    required double? timeLimitHours,
+    required DateTime? arrival,
+    required DateTime? departure,
+    required bool isRouteStartPoi,
+  }) {
+    if (brevetStartUtc == null ||
+        timeLimitHours == null ||
+        timeLimitHours <= 0 ||
+        !timeLimitHours.isFinite) {
+      return null;
+    }
+    // スタート POI も出発のみ設定されているのが通常。軸原点と同じ基準にする。
+    final instant = isRouteStartPoi
+        ? (departure ?? arrival)
+        : (arrival ?? departure);
+    final elapsed = _elapsedHoursFromBrevetStart(brevetStartUtc, instant);
+    return PoiSheetTimeChart(
+      brevetStartUtc: brevetStartUtc,
+      timeLimitHours: timeLimitHours,
+      elapsedHoursFromStart: elapsed,
+      drawElapsedBar: !isRouteStartPoi,
+    );
   }
 
   Future<void> animateToPoiPreservingZoom(LatLng position) async {
@@ -101,21 +173,33 @@ class PoiMapDetailSheetController {
       double? startTimeLimitHours;
       final needStartHeader = trackPoints.length >= 2 &&
           ordered.any((p) => GpxPoiTag.isStartType(p.bmPoiExt?.type));
+      final fields = await _loadStartPoiElevationChartFields();
+      if (!isMounted() || !context.mounted) return;
       if (needStartHeader) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
-      if (!isMounted() || !context.mounted) return;
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromGpxPois(ordered, fields.brevetStartUtc);
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
         final isStart = GpxPoiTag.isStartType(ordered[i].bmPoiExt?.type);
+        final sched = ordered[i].bmPoiExt?.schedule;
         entries.add(
           PoiSheetEntry(
             name: ordered[i].name,
             description: ordered[i].description,
             position: ordered[i].position,
-            close: ordered[i].bmPoiExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStart,
+            ),
             elevationOnDemand: _elevationOnDemandFor(
               trackPoints,
               elevations,
@@ -141,15 +225,20 @@ class PoiMapDetailSheetController {
         },
       );
     } else {
+      final fields = await _loadStartPoiElevationChartFields();
       String? startMetaName;
       double? startTimeLimitHours;
       if (trackPoints.length >= 2 &&
           GpxPoiTag.isStartType(poi.bmPoiExt?.type)) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;
+      final gpxOrderedForChart = PoiMapMarkerOrder.gpxPois(ms.gpxPois);
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromGpxPois(gpxOrderedForChart, fields.brevetStartUtc);
+      final sched = poi.bmPoiExt?.schedule;
+      final isStart = GpxPoiTag.isStartType(poi.bmPoiExt?.type);
       showPoiDetailSheet(
         context,
         entries: [
@@ -157,7 +246,16 @@ class PoiMapDetailSheetController {
             name: poi.name,
             description: poi.description,
             position: poi.position,
-            close: poi.bmPoiExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStart,
+            ),
             elevationOnDemand: _elevationOnDemandFor(
               trackPoints,
               elevations,
@@ -168,6 +266,7 @@ class PoiMapDetailSheetController {
               chartTimeLimitHours: startTimeLimitHours,
             ),
             distanceUnit: unit,
+            isRouteStartPoi: isStart,
           ),
         ],
       );
@@ -217,16 +316,20 @@ class PoiMapDetailSheetController {
                 p.km != null &&
                 !p.isNote,
           );
+      final fields = await _loadStartPoiElevationChartFields();
+      if (!isMounted() || !context.mounted) return;
       if (needStartHeader) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
-      if (!isMounted() || !context.mounted) return;
 
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromUserPois(ordered, fields.brevetStartUtc);
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
         final hasKmForSegment = poiHasKm[i];
+        final sched = ordered[i].bmExt?.schedule;
+        final isStartType = GpxPoiTag.isStartType(ordered[i].bmExt?.type);
         entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
@@ -237,9 +340,16 @@ class PoiMapDetailSheetController {
             description: ordered[i].body,
             url: ordered[i].url,
             position: ordered[i].position,
-            arrival: ordered[i].bmExt?.schedule.arrival,
-            departure: ordered[i].bmExt?.schedule.departure,
-            close: ordered[i].bmExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStartType,
+            ),
             elevationOnDemand: hasKmForSegment
                 ? _elevationOnDemandFor(
                     trackPoints,
@@ -249,14 +359,8 @@ class PoiMapDetailSheetController {
                     unit,
                     poiHasDistanceKm: poiHasKm,
                     poiKmAlongRoute: poiKmAlong,
-                    chartMetadataName:
-                        GpxPoiTag.isStartType(ordered[i].bmExt?.type)
-                            ? startMetaName
-                            : null,
-                    chartTimeLimitHours:
-                        GpxPoiTag.isStartType(ordered[i].bmExt?.type)
-                            ? startTimeLimitHours
-                            : null,
+                    chartMetadataName: isStartType ? startMetaName : null,
+                    chartTimeLimitHours: isStartType ? startTimeLimitHours : null,
                   )
                 : null,
             distanceUnit: unit,
@@ -275,17 +379,23 @@ class PoiMapDetailSheetController {
         },
       );
     } else {
+      final fields = await _loadStartPoiElevationChartFields();
       String? startMetaName;
       double? startTimeLimitHours;
       if (trackPoints.length >= 2 &&
           GpxPoiTag.isStartType(poi.bmExt?.type) &&
           poi.km != null &&
           !poi.isNote) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;
+      final allUserForChart =
+          PoiMapMarkerOrder.userPois(ms.userPois);
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromUserPois(allUserForChart, fields.brevetStartUtc);
+      final sched = poi.bmExt?.schedule;
+      final isStartType = GpxPoiTag.isStartType(poi.bmExt?.type);
       showPoiDetailSheet(
         context,
         entries: [
@@ -296,9 +406,16 @@ class PoiMapDetailSheetController {
             description: poi.body,
             url: poi.url,
             position: poi.position,
-            arrival: poi.bmExt?.schedule.arrival,
-            departure: poi.bmExt?.schedule.departure,
-            close: poi.bmExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStartType,
+            ),
             elevationOnDemand: poi.km != null && !poi.isNote
                 ? _elevationOnDemandFor(
                     trackPoints,
@@ -313,6 +430,7 @@ class PoiMapDetailSheetController {
                   )
                 : null,
             distanceUnit: unit,
+            isRouteStartPoi: isStartType,
           ),
         ],
       );

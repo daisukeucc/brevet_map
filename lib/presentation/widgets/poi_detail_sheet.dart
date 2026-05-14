@@ -55,6 +55,222 @@ String? _formatElevationChartTimeLimitHours(double? hours) {
       : hours.toStringAsFixed(1);
 }
 
+/// [_PoiDetailSheetNavigate] 右列（前後 POI）と同一幅。
+const double _poiDetailSheetNavigateColumnWidth = 50;
+
+/// ブルベスタートからの経過時間チャート（POI 本文シートより上の領域に表示。横軸は制限時間・1時間目盛り）。
+class PoiSheetTimeChart {
+  const PoiSheetTimeChart({
+    required this.brevetStartUtc,
+    required this.timeLimitHours,
+    this.elapsedHoursFromStart,
+    required this.drawElapsedBar,
+  });
+
+  final DateTime brevetStartUtc;
+  final double timeLimitHours;
+
+  /// [brevetStartUtc] から [arrival] までの経過（時間）。未設定時は横線なし。
+  final double? elapsedHoursFromStart;
+
+  /// スタート POI など、経過横線を描かないとき false。
+  final bool drawElapsedBar;
+}
+
+class _PoiElapsedTimeChartPainter extends CustomPainter {
+  _PoiElapsedTimeChartPainter({
+    required this.timeLimitHours,
+    required this.drawBar,
+    this.elapsedHours,
+  });
+
+  final double timeLimitHours;
+  final bool drawBar;
+  final double? elapsedHours;
+
+  /// 反転表示：背景（black54 よりやや濃いグレー）。
+  static const Color _chartBackgroundColor = Color(0xA3000000);
+  static const Color _chartLabelColor = Colors.white;
+  static const Color _chartAxisColor = Colors.white70;
+
+  static const _tickStyle = TextStyle(
+    fontSize: 10,
+    color: _chartLabelColor,
+    height: 1.0,
+  );
+
+  static String _hoursMiddleLabel(double hours) {
+    final r = hours.roundToDouble();
+    if ((hours - r).abs() < 1e-6) return '${r.toInt()}';
+    return hours.toStringAsFixed(1);
+  }
+
+  /// 右端の制限時間（`h` 付き）。
+  static String _hoursEndLabel(double hours) {
+    if (hours <= 0) return '0h';
+    final r = hours.roundToDouble();
+    if ((hours - r).abs() < 1e-6) return '${r.toInt()}h';
+    return '${hours.toStringAsFixed(1)}h';
+  }
+
+  static const _barStrokeWidth = 4.0;
+  static const _tickH = 6.0;
+
+  /// 始点・終点ラベル用の左右インセット。
+  static const _labelEndInset = 3.0;
+  static const _barCenterY = _barStrokeWidth / 2;
+  static const _axisY = _barStrokeWidth;
+  static const _labelY = _barStrokeWidth + _tickH + 2;
+
+  /// ラベル下側までの描画高（[paint] と [CustomPaint] の高さを一致させる）。
+  static const double paintHeight = _barStrokeWidth + _tickH + 2 + 15;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (timeLimitHours <= 0 || !timeLimitHours.isFinite) return;
+    final w = size.width;
+    final h = size.height;
+    final limit = timeLimitHours;
+
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, w, h),
+      Paint()..color = _chartBackgroundColor,
+    );
+
+    final axisPaint = Paint()
+      ..color = _chartAxisColor
+      ..strokeWidth = 1;
+    canvas.drawLine(Offset(0, _axisY), Offset(w, _axisY), axisPaint);
+
+    final tickPaint = Paint()
+      ..color = _chartAxisColor
+      ..strokeWidth = 0.9;
+
+    /// 左端 0h、5h 刻み（制限時間未満）、右端は制限時間。
+    for (var h = 0.0; h < limit - 1e-9; h += 5.0) {
+      final x = math.min(h / limit * w, w);
+      canvas.drawLine(
+        Offset(x, _axisY),
+        Offset(x, _axisY + _tickH),
+        tickPaint,
+      );
+
+      final labelText = h < 1e-9 ? '0h' : _hoursMiddleLabel(h);
+      final tp = TextPainter(
+        text: TextSpan(text: labelText, style: _tickStyle),
+        textDirection: TextDirection.ltr,
+      );
+      tp.layout();
+      if (h < 1e-9) {
+        tp.paint(canvas, Offset(_labelEndInset, _labelY));
+      } else {
+        final ox = (x - tp.width / 2)
+            .clamp(0.0, math.max(0.0, w - tp.width))
+            .toDouble();
+        tp.paint(canvas, Offset(ox, _labelY));
+      }
+    }
+
+    canvas.drawLine(Offset(w, _axisY), Offset(w, _axisY + _tickH), tickPaint);
+    final endTp = TextPainter(
+      text: TextSpan(text: _hoursEndLabel(limit), style: _tickStyle),
+      textDirection: TextDirection.ltr,
+    );
+    endTp.layout();
+    final endOx = math.max(0.0, w - endTp.width - _labelEndInset);
+    endTp.paint(
+      canvas,
+      Offset(endOx, _labelY),
+    );
+
+    if (drawBar) {
+      final eh = elapsedHours;
+      if (eh != null && eh.isFinite && eh > 0) {
+        final t = (eh / timeLimitHours).clamp(0.0, 1.0);
+        final xEnd = (t * w).clamp(0.0, w);
+        final barPaint = Paint()
+          ..color = Colors.deepOrangeAccent
+          ..strokeWidth = _barStrokeWidth
+          ..strokeCap = StrokeCap.round;
+        if (xEnd < 2) {
+          canvas.drawCircle(
+              Offset(1.5, _barCenterY), _barStrokeWidth, barPaint);
+        } else {
+          canvas.drawLine(
+              Offset(0, _barCenterY), Offset(xEnd, _barCenterY), barPaint);
+        }
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PoiElapsedTimeChartPainter oldDelegate) =>
+      oldDelegate.timeLimitHours != timeLimitHours ||
+      oldDelegate.drawBar != drawBar ||
+      oldDelegate.elapsedHours != elapsedHours;
+}
+
+class _PoiElapsedTimeChartStrip extends StatelessWidget {
+  const _PoiElapsedTimeChartStrip({
+    required this.data,
+    required this.viewportWidth,
+  });
+
+  final PoiSheetTimeChart data;
+  final double viewportWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    const h = _PoiElapsedTimeChartPainter.paintHeight;
+    if (viewportWidth <= 0 || !viewportWidth.isFinite) {
+      return SizedBox(height: h);
+    }
+    final w = viewportWidth;
+    return SizedBox(
+      width: w,
+      height: h,
+      child: CustomPaint(
+        size: Size(w, h),
+        painter: _PoiElapsedTimeChartPainter(
+          timeLimitHours: data.timeLimitHours,
+          drawBar: data.drawElapsedBar,
+          elapsedHours: data.elapsedHoursFromStart,
+        ),
+      ),
+    );
+  }
+}
+
+/// 経過時間チャートのみ（[showPoiDetailSheet] 内で POI 本文 [_PoiContentBlock] より上に配置）。
+class _PoiSheetTimeChartHeader extends StatelessWidget {
+  const _PoiSheetTimeChartHeader({
+    required this.data,
+    required this.viewportWidth,
+  });
+
+  static const double _horizontalInset = 0;
+
+  final PoiSheetTimeChart data;
+
+  /// 親 [LayoutBuilder] の幅（余白控除前）。
+  final double viewportWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final innerW = math.max(
+      1.0,
+      viewportWidth - 2 * _horizontalInset,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _horizontalInset),
+      child: _PoiElapsedTimeChartStrip(
+        data: data,
+        viewportWidth: innerW,
+      ),
+    );
+  }
+}
+
 /// POI 詳細1件（ボトムシート用）
 class PoiSheetEntry {
   const PoiSheetEntry({
@@ -67,6 +283,7 @@ class PoiSheetEntry {
     this.arrival,
     this.departure,
     this.close,
+    this.timeChart,
     this.elevationSegment,
     this.segmentDistanceLabel,
     this.elevationOnDemand,
@@ -89,6 +306,9 @@ class PoiSheetEntry {
 
   /// スケジュール：クローズ時刻（UTC）
   final DateTime? close;
+
+  /// ブルベ設定が揃っているとき、スタートからの経過時間チャート。
+  final PoiSheetTimeChart? timeChart;
 
   /// ルートが読み込まれているとき「直前地点〜このPOI」の標高グラフデータ。
   final ElevationSegmentChartData? elevationSegment;
@@ -438,6 +658,7 @@ void showPoiDetailSheet(
         arrival: entries.first.arrival,
         departure: entries.first.departure,
         close: entries.first.close,
+        timeChart: entries.first.timeChart,
         elevationSegment: entries.first.elevationSegment,
         segmentDistanceLabel: entries.first.segmentDistanceLabel,
         elevationOnDemand: entries.first.elevationOnDemand,
@@ -458,6 +679,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
     this.arrival,
     this.departure,
     this.close,
+    this.timeChart,
     this.elevationSegment,
     this.segmentDistanceLabel,
     this.elevationOnDemand,
@@ -473,6 +695,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
+  final PoiSheetTimeChart? timeChart;
   final ElevationSegmentChartData? elevationSegment;
   final String? segmentDistanceLabel;
   final PoiElevationOnDemand? elevationOnDemand;
@@ -481,27 +704,47 @@ class _PoiDetailSheetBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const sheetPadding = EdgeInsets.fromLTRB(0, 20, 20, 25);
+    const distanceLeft = 20.0;
     return SizedBox(
       width: double.infinity,
       child: SafeArea(
         bottom: false,
-        child: _PoiContentBlock(
-          name: name,
-          distance: distance,
-          elevationGain: elevationGain,
-          description: description,
-          url: url,
-          arrival: arrival,
-          departure: departure,
-          close: close,
-          elevationSegment: elevationSegment,
-          segmentDistanceLabel: segmentDistanceLabel,
-          elevationOnDemand: elevationOnDemand,
-          distanceUnit: distanceUnit,
-          isRouteStartPoi: isRouteStartPoi,
-          sheetPadding: const EdgeInsets.fromLTRB(0, 20, 20, 25),
-          distanceLeft: 20,
-          contentLeft: 24,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            final chartW = w.isFinite && w > 0 ? w : 1.0;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (timeChart case final tc?)
+                  _PoiSheetTimeChartHeader(
+                    data: tc,
+                    viewportWidth: chartW,
+                  ),
+                _PoiContentBlock(
+                  name: name,
+                  distance: distance,
+                  elevationGain: elevationGain,
+                  description: description,
+                  url: url,
+                  arrival: arrival,
+                  departure: departure,
+                  close: close,
+                  elevationSegment: elevationSegment,
+                  segmentDistanceLabel: segmentDistanceLabel,
+                  elevationOnDemand: elevationOnDemand,
+                  distanceUnit: distanceUnit,
+                  isRouteStartPoi: isRouteStartPoi,
+                  contentLayoutMaxWidth: constraints.maxWidth,
+                  sheetPadding: sheetPadding,
+                  distanceLeft: distanceLeft,
+                  contentLeft: 24,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -554,80 +797,106 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
     final nextPadding = hasDistance
         ? const EdgeInsets.only(top: 5, bottom: 20)
         : const EdgeInsets.only(top: 5, bottom: 20);
+    const sheetPadding = EdgeInsets.fromLTRB(0, 20, 15, 25);
     return SizedBox(
       width: double.infinity,
       child: SafeArea(
         bottom: false,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _PoiContentBlock(
-                  name: e.name,
-                  distance: e.distance,
-                  elevationGain: e.elevationGain,
-                  description: e.description,
-                  url: e.url,
-                  arrival: e.arrival,
-                  departure: e.departure,
-                  close: e.close,
-                  elevationSegment: e.elevationSegment,
-                  segmentDistanceLabel: e.segmentDistanceLabel,
-                  elevationOnDemand: e.elevationOnDemand,
-                  distanceUnit: e.distanceUnit,
-                  isRouteStartPoi: e.isRouteStartPoi,
-                  sheetPadding: const EdgeInsets.fromLTRB(0, 20, 15, 25),
-                  distanceLeft: 20,
-                  contentLeft: 24,
-                ),
-              ),
-              SizedBox(
-                width: 50,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: _goPrev,
-                        splashColor: Colors.grey.withValues(alpha: 0.3),
-                        highlightColor: Colors.grey.withValues(alpha: 0.2),
-                        child: Padding(
-                          padding: prevPadding,
-                          child: const Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Icon(
-                              Icons.chevron_left,
-                              size: 36,
-                              color: Colors.black38,
-                            ),
-                          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final expandedW = math.max(
+              0.0,
+              constraints.maxWidth - _poiDetailSheetNavigateColumnWidth,
+            );
+            const distanceLeft = 20.0;
+            final w = constraints.maxWidth;
+            final chartW = w.isFinite && w > 0 ? w : 1.0;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (e.timeChart case final tc?)
+                  _PoiSheetTimeChartHeader(
+                    data: tc,
+                    viewportWidth: chartW,
+                  ),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _PoiContentBlock(
+                          name: e.name,
+                          distance: e.distance,
+                          elevationGain: e.elevationGain,
+                          description: e.description,
+                          url: e.url,
+                          arrival: e.arrival,
+                          departure: e.departure,
+                          close: e.close,
+                          elevationSegment: e.elevationSegment,
+                          segmentDistanceLabel: e.segmentDistanceLabel,
+                          elevationOnDemand: e.elevationOnDemand,
+                          distanceUnit: e.distanceUnit,
+                          isRouteStartPoi: e.isRouteStartPoi,
+                          contentLayoutMaxWidth: expandedW,
+                          sheetPadding: sheetPadding,
+                          distanceLeft: distanceLeft,
+                          contentLeft: 24,
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: _goNext,
-                        splashColor: Colors.grey.withValues(alpha: 0.3),
-                        highlightColor: Colors.grey.withValues(alpha: 0.2),
-                        child: Padding(
-                          padding: nextPadding,
-                          child: const Align(
-                            alignment: Alignment.topCenter,
-                            child: Icon(
-                              Icons.chevron_right,
-                              size: 36,
-                              color: Colors.black38,
+                      SizedBox(
+                        width: _poiDetailSheetNavigateColumnWidth,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: _goPrev,
+                                splashColor: Colors.grey.withValues(alpha: 0.3),
+                                highlightColor:
+                                    Colors.grey.withValues(alpha: 0.2),
+                                child: Padding(
+                                  padding: prevPadding,
+                                  child: const Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Icon(
+                                      Icons.chevron_left,
+                                      size: 36,
+                                      color: Colors.black38,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              child: InkWell(
+                                onTap: _goNext,
+                                splashColor: Colors.grey.withValues(alpha: 0.3),
+                                highlightColor:
+                                    Colors.grey.withValues(alpha: 0.2),
+                                child: Padding(
+                                  padding: nextPadding,
+                                  child: const Align(
+                                    alignment: Alignment.topCenter,
+                                    child: Icon(
+                                      Icons.chevron_right,
+                                      size: 36,
+                                      color: Colors.black38,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -641,6 +910,7 @@ class _PoiContentBlock extends StatelessWidget {
     required this.distance,
     required this.elevationGain,
     required this.description,
+    required this.contentLayoutMaxWidth,
     this.url,
     this.arrival,
     this.departure,
@@ -667,6 +937,10 @@ class _PoiContentBlock extends StatelessWidget {
   final String? segmentDistanceLabel;
   final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
+
+  /// シートのパディング適用前の、このブロックに割り当てられた最大幅（[Expanded] スロット幅）。
+  final double contentLayoutMaxWidth;
+
   final EdgeInsetsGeometry sheetPadding;
   final double distanceLeft;
   final double contentLeft;
