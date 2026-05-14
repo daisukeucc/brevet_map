@@ -55,9 +55,27 @@ Future<void> handleConfirmSharePreview(
       : null;
   String? initialKmText;
   if (routePoints != null && routePoints.isNotEmpty) {
-    final alongM = distanceFromStartToPointAlongTrack(routePoints, position);
-    final kmAlong = alongM / 1000.0;
-    initialKmText = formatDistanceNumeric(kmAlong, distanceUnit);
+    final opts = alongTrackTapOptionsForPoint(routePoints, position);
+    if (opts.length > 1) {
+      if (!context.mounted) return;
+      final picked = await showOverlappingRouteLegPickDialog(
+        context,
+        options: opts,
+        distanceUnit: distanceUnit,
+      );
+      if (picked == null || !context.mounted) {
+        return;
+      }
+      initialKmText = formatDistanceNumeric(
+        opts[picked].alongTrackM / 1000,
+        distanceUnit,
+      );
+    } else {
+      initialKmText = formatDistanceNumeric(
+        opts.single.alongTrackM / 1000,
+        distanceUnit,
+      );
+    }
   }
 
   await showDialog<void>(

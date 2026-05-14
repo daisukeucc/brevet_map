@@ -163,6 +163,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get kmRequired => '거리를 입력해 주세요';
 
   @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
+
+  @override
   String get offRoute => '경로 이탈';
 
   @override

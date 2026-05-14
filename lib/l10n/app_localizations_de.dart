@@ -164,6 +164,15 @@ class AppLocalizationsDe extends AppLocalizations {
   String get kmRequired => 'Distanz ist erforderlich';
 
   @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
+
+  @override
   String get offRoute => 'Außerhalb der Strecke';
 
   @override

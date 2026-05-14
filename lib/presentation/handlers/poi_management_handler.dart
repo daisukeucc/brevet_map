@@ -426,9 +426,28 @@ Future<void> handleMapLongPressPoiAdd(
       : null;
   String? initialKmText;
   if (routePoints != null && routePoints.isNotEmpty) {
-    final alongM = distanceFromStartToPointAlongTrack(routePoints, position);
-    final kmAlong = alongM / 1000.0;
-    initialKmText = formatDistanceNumeric(kmAlong, distanceUnit);
+    final opts = alongTrackTapOptionsForPoint(routePoints, position);
+    if (opts.length > 1) {
+      if (!context.mounted) return;
+      final picked = await showOverlappingRouteLegPickDialog(
+        context,
+        options: opts,
+        distanceUnit: distanceUnit,
+      );
+      if (picked == null || !context.mounted) {
+        onComplete();
+        return;
+      }
+      initialKmText = formatDistanceNumeric(
+        opts[picked].alongTrackM / 1000,
+        distanceUnit,
+      );
+    } else {
+      initialKmText = formatDistanceNumeric(
+        opts.single.alongTrackM / 1000,
+        distanceUnit,
+      );
+    }
   }
 
   await showDialog<void>(
@@ -1277,6 +1296,129 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
           ],
         ),
       ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// 往復重複地点: POI登録の前に往路/復路の距離基準を選ぶ
+// ---------------------------------------------------------------------------
+
+Future<int?> showOverlappingRouteLegPickDialog(
+  BuildContext context, {
+  required List<AlongTrackTapOption> options,
+  required int distanceUnit,
+}) {
+  assert(options.length > 1);
+  return showDialog<int>(
+    context: context,
+    barrierDismissible: false,
+    barrierColor: Colors.black54,
+    builder: (ctx) => _OverlappingRouteLegPickDialog(
+      options: options,
+      distanceUnit: distanceUnit,
+    ),
+  );
+}
+
+class _OverlappingRouteLegPickDialog extends StatefulWidget {
+  const _OverlappingRouteLegPickDialog({
+    required this.options,
+    required this.distanceUnit,
+  });
+
+  final List<AlongTrackTapOption> options;
+  final int distanceUnit;
+
+  @override
+  State<_OverlappingRouteLegPickDialog> createState() =>
+      _OverlappingRouteLegPickDialogState();
+}
+
+class _OverlappingRouteLegPickDialogState
+    extends State<_OverlappingRouteLegPickDialog> {
+  /// デフォルトは index 0（往路側の候補が先に並ぶ想定）
+  int _selectedIndex = 0;
+
+  static String _legLabel(AppLocalizations l10n, RouteLeg leg) {
+    switch (leg) {
+      case RouteLeg.outbound:
+        return l10n.routeLegOutboundShort;
+      case RouteLeg.returnRoute:
+        return l10n.routeLegReturnShort;
+      case RouteLeg.ambiguous:
+        return l10n.routeLegAmbiguousShort;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final compactButtonStyle = ButtonStyle(
+      minimumSize: WidgetStateProperty.all(Size.zero),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RadioGroup<int>(
+            groupValue: _selectedIndex,
+            onChanged: (v) {
+              if (v == null) return;
+              setState(() => _selectedIndex = v);
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < widget.options.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 4),
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _selectedIndex = i),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Radio<int>(
+                          value: i,
+                          visualDensity: VisualDensity.compact,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        Expanded(
+                          child: Text(
+                            '${formatDistanceNumeric(widget.options[i].alongTrackM / 1000, widget.distanceUnit)} ${widget.distanceUnit == 1 ? 'mi' : 'km'} : ${_legLabel(l10n, widget.options[i].leg)}',
+                            style: AppTextStyles.title,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      actions: [
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel, style: AppTextStyles.button),
+        ),
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(context, _selectedIndex),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+      ],
     );
   }
 }

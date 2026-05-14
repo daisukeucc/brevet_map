@@ -164,6 +164,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get kmRequired => 'La distancia es obligatoria';
 
   @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
+
+  @override
   String get offRoute => 'Fuera de ruta';
 
   @override

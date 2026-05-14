@@ -413,6 +413,24 @@ abstract class AppLocalizations {
   /// **'Distance is required'**
   String get kmRequired;
 
+  /// No description provided for @routeLegOutboundShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Outbound'**
+  String get routeLegOutboundShort;
+
+  /// No description provided for @routeLegReturnShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get routeLegReturnShort;
+
+  /// No description provided for @routeLegAmbiguousShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Undetermined'**
+  String get routeLegAmbiguousShort;
+
   /// No description provided for @offRoute.
   ///
   /// In en, this message translates to:

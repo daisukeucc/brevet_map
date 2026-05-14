@@ -164,6 +164,15 @@ class AppLocalizationsTh extends AppLocalizations {
   String get kmRequired => 'ต้องระบุระยะทาง';
 
   @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
+
+  @override
   String get offRoute => 'ออกนอกเส้นทาง';
 
   @override

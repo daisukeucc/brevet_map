@@ -162,6 +162,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kmRequired => '距离为必填项';
 
   @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
+
+  @override
   String get offRoute => '偏离路线';
 
   @override

@@ -163,6 +163,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get kmRequired => '距離の入力は必須です';
 
   @override
+  String get routeLegOutboundShort => '往路';
+
+  @override
+  String get routeLegReturnShort => '復路';
+
+  @override
+  String get routeLegAmbiguousShort => '往復判定不可';
+
+  @override
   String get offRoute => 'ルート外';
 
   @override

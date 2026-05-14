@@ -581,6 +581,137 @@ double distanceFromStartToPointAlongTrack(
 /// 往復ルートにおける往路/復路の区間
 enum RouteLeg { outbound, returnRoute, ambiguous }
 
+/// 地図タップで算出する、ルート先頭からの距離候補（往復の重複区間で複数化）。
+class AlongTrackTapOption {
+  const AlongTrackTapOption({
+    required this.alongTrackM,
+    required this.toRouteM,
+    required this.leg,
+  });
+
+  /// ルート始点から当該頂点までの累積距離（m）。
+  final double alongTrackM;
+
+  /// タップ点と当該頂点との直線距離（m）。
+  final double toRouteM;
+
+  /// 全長に対する位置から推定した往路／復路。
+  final RouteLeg leg;
+}
+
+/// タップ位置に対し、ルート上の近接頂点群から「離れた区間」の代表候補を求める。
+/// 往復で同じ形状が重なると最小2件。1件のときは往復の分岐なし。
+List<AlongTrackTapOption> alongTrackTapOptionsForPoint(
+  List<LatLng> trackPoints,
+  LatLng point, {
+  double candidateEpsilonM = 50.0,
+  double mergeAlongTrackM = 400.0,
+  double minSeparateAlongTrackM = 800.0,
+}) {
+  if (trackPoints.isEmpty) return const [];
+
+  final totalM =
+      distanceAlongTrackFromStart(trackPoints, trackPoints.length - 1);
+  if (totalM <= 0) {
+    return [
+      AlongTrackTapOption(
+        alongTrackM: 0,
+        toRouteM: distanceBetweenLatLng(trackPoints.first, point),
+        leg: RouteLeg.ambiguous,
+      ),
+    ];
+  }
+
+  var minDist = double.infinity;
+  for (var i = 0; i < trackPoints.length; i++) {
+    final d = distanceBetweenLatLng(trackPoints[i], point);
+    if (d < minDist) minDist = d;
+  }
+
+  final raw = <int>[];
+  for (var i = 0; i < trackPoints.length; i++) {
+    if (distanceBetweenLatLng(trackPoints[i], point) <=
+        minDist + candidateEpsilonM) {
+      raw.add(i);
+    }
+  }
+  raw.sort();
+  if (raw.isEmpty) {
+    return [
+      AlongTrackTapOption(
+        alongTrackM: 0,
+        toRouteM: minDist,
+        leg: RouteLeg.ambiguous,
+      ),
+    ];
+  }
+
+  final runs = <List<int>>[];
+  var cur = [raw.first];
+  for (var k = 1; k < raw.length; k++) {
+    if (raw[k] == raw[k - 1] + 1) {
+      cur.add(raw[k]);
+    } else {
+      runs.add(cur);
+      cur = [raw[k]];
+    }
+  }
+  runs.add(cur);
+
+  AlongTrackTapOption buildOption(List<int> run) {
+    var bestI = run.first;
+    var bestD = distanceBetweenLatLng(trackPoints[bestI], point);
+    for (final i in run) {
+      final d = distanceBetweenLatLng(trackPoints[i], point);
+      if (d < bestD) {
+        bestD = d;
+        bestI = i;
+      }
+    }
+    final along = distanceAlongTrackFromStart(trackPoints, bestI);
+    final ratio = along / totalM;
+    final leg =
+        ratio < 0.55 ? RouteLeg.outbound : RouteLeg.returnRoute;
+    return AlongTrackTapOption(
+      alongTrackM: along,
+      toRouteM: bestD,
+      leg: leg,
+    );
+  }
+
+  var options = runs.map(buildOption).toList()
+    ..sort((a, b) => a.alongTrackM.compareTo(b.alongTrackM));
+
+  final merged = <AlongTrackTapOption>[options.first];
+  for (var i = 1; i < options.length; i++) {
+    final prev = merged.last;
+    final o = options[i];
+    if (o.alongTrackM - prev.alongTrackM < mergeAlongTrackM) {
+      if (o.toRouteM < prev.toRouteM) {
+        merged[merged.length - 1] = o;
+      }
+    } else {
+      merged.add(o);
+    }
+  }
+  options = merged;
+
+  if (options.length == 1) {
+    return options;
+  }
+
+  final first = options.first;
+  final last = options.last;
+  if (last.alongTrackM - first.alongTrackM < minSeparateAlongTrackM) {
+    AlongTrackTapOption best = first;
+    for (final o in options) {
+      if (o.toRouteM < best.toRouteM) best = o;
+    }
+    return [best];
+  }
+  return [first, last];
+}
+
 /// ルート区間判定付きの距離結果
 typedef RouteLegResult = ({
   double alongTrackM,
