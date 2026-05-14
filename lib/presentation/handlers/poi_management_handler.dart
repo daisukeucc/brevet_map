@@ -2,6 +2,7 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:async' show unawaited;
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1791,7 +1792,10 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _loadPoiToForm(widget.poi);
   }
 
-  /// 距離あり・スタート時刻ありのとき、到着・出発を推定してフォームへ入れる。
+  /// 距離ありのとき、到着・出発を推定してフォームへ入れる。
+  ///
+  /// - 一覧順の**直前POI**に到着・出発があれば、その時刻から区間（距離・獲得標高差）分を足して推定する。
+  /// - それ以外でブルベスタートがあれば、従来どおりスタートから全行程で推定する。
   /// 出発は到着の 15 分後（GPX インポートのチェックポイント既定と同じ）。
   /// 既に到着だけ保存されている POI では、出発が空なら到着+15分で補う。
   void _maybeAutofillScheduleFromDistance(UserPoi poi) {
@@ -1799,11 +1803,39 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (poi.km == null) return;
     if (GpxPoiTag.isStartType(poi.bmExt?.type)) return;
     final start = widget.brevetStartTimeUtc;
-    if (start == null) return;
 
     final isFinish = GpxPoiTag.isFinishType(poi.bmExt?.type);
 
     if (_arrival == null) {
+      final prev = widget.findPreviousPoi?.call(poi);
+      final prevSched = prev?.bmExt?.schedule;
+      final anchor = prevSched?.departure ?? prevSched?.arrival;
+      final canChainFromPrev = prev != null &&
+          !prev.isNote &&
+          prev.km != null &&
+          prev.km! < poi.km! &&
+          anchor != null;
+
+      if (canChainFromPrev) {
+        final segKm = poi.km! - prev.km!;
+        var segElevM = 0.0;
+        final gNew = widget.elevationGainFromRouteStart?.call(poi);
+        final gPrev = widget.elevationGainFromRouteStart?.call(prev);
+        if (gNew != null && gPrev != null) {
+          segElevM = math.max(0.0, gNew - gPrev);
+        }
+        final minutes = brevetEstimatedTravelMinutes(
+          distanceKm: segKm,
+          elevationGainMeters: segElevM,
+        );
+        final est = anchor.add(Duration(minutes: minutes));
+        _arrival = est;
+        if (!isFinish) _departure ??= est.add(const Duration(minutes: 15));
+        return;
+      }
+
+      if (start == null) return;
+
       final elevM = widget.elevationGainFromRouteStart?.call(poi) ?? 0.0;
       final est = estimateArrivalFromRouteStart(
         brevetStartTimeUtc: start,

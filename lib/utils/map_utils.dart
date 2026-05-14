@@ -29,6 +29,20 @@ String formatDistanceNumeric(double km, int unit) {
   return _formatDistanceDisplayValue(km);
 }
 
+/// ブルベの距離・獲得標高から移動時間を推定する分数（15分刻み）。
+/// [estimateArrivalFromRouteStart]・直前POIからの区間推定で共通利用（平地 20 km/h、登り 800 m/h）。
+int brevetEstimatedTravelMinutes({
+  required double distanceKm,
+  double elevationGainMeters = 0,
+}) {
+  if (distanceKm <= 0) return 0;
+  const baseSpeedKmh = 20.0;
+  const climbRateMph = 800.0;
+  final raw = distanceKm / baseSpeedKmh * 60 +
+      elevationGainMeters / climbRateMph * 60;
+  return (raw / 15).floor() * 15;
+}
+
 /// ブルベスタート（UTC）・当該地点までの累積距離（km）・**ルート始点からの**累積獲得標高（m）から到着予定時刻を推定する。
 /// GPX インポート時の推定と同一モデル（平地 20 km/h、登り 800 m/h、15 分刻み）。
 DateTime? estimateArrivalFromRouteStart({
@@ -37,11 +51,10 @@ DateTime? estimateArrivalFromRouteStart({
   double elevationGainFromStartMeters = 0,
 }) {
   if (brevetStartTimeUtc == null) return null;
-  const baseSpeedKmh = 20.0;
-  const climbRateMph = 800.0;
-  final raw = distanceKm / baseSpeedKmh * 60 +
-      elevationGainFromStartMeters / climbRateMph * 60;
-  final minutes = (raw / 15).floor() * 15;
+  final minutes = brevetEstimatedTravelMinutes(
+    distanceKm: distanceKm,
+    elevationGainMeters: elevationGainFromStartMeters,
+  );
   return brevetStartTimeUtc.add(Duration(minutes: minutes));
 }
 
