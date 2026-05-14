@@ -8,21 +8,31 @@ const brevetDistanceTable = [
   (km: 600.0, limitHours: 40.0, axisTickStepHours: 5.0),
   (km: 1000.0, limitHours: 75.0, axisTickStepHours: 10.0),
   (km: 1200.0, limitHours: 90.0, axisTickStepHours: 10.0),
-  (km: 1500.0, limitHours: 250.0, axisTickStepHours: 20.0),
+  (km: 1500.0, limitHours: 250.0, axisTickStepHours: 50.0),
 ];
 
 /// ルート全長がこれ未満（km）のとき、GPX インポートで finish の `close` を制限時間から付与しない。
 const kMinRouteKmForFinishClose = 200.0;
 
 /// ルート距離 [routeKm] に最も近いブルベ距離クラスを返す。
-/// テーブル最大距離（1200km）を超える場合は
-/// `(km: 0, limitHours: 0, axisTickStepHours: 5.0)` を返す。
+///
+/// [routeKm] がテーブル最大 [km] を超える場合は、**最終行**（最長公認距離）を返す。
+/// 超過分も同一クラス扱いにし、制限時間 0 でメタが保存されチャートが出ないのを防ぐ。
 ({double km, double limitHours, double axisTickStepHours}) matchBrevetDistance(
   double routeKm,
 ) {
-  const maxKm = 1200.0;
-  if (routeKm > maxKm) {
+  if (!routeKm.isFinite || routeKm < 0) {
     return (km: 0, limitHours: 0, axisTickStepHours: 5.0);
+  }
+
+  final last = brevetDistanceTable.last;
+  final capKm = last.km;
+  if (routeKm > capKm) {
+    return (
+      km: last.km,
+      limitHours: last.limitHours,
+      axisTickStepHours: last.axisTickStepHours,
+    );
   }
 
   var best = brevetDistanceTable.first;
