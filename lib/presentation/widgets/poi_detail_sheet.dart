@@ -58,17 +58,21 @@ String? _formatElevationChartTimeLimitHours(double? hours) {
 /// [_PoiDetailSheetNavigate] 右列（前後 POI）と同一幅。
 const double _poiDetailSheetNavigateColumnWidth = 50;
 
-/// ブルベスタートからの経過時間チャート（POI 本文シートより上の領域に表示。横軸は制限時間・1時間目盛り）。
+/// ブルベスタートからの経過時間チャート（POI 本文シートより上の領域に表示。横軸目盛り間隔は [PoiSheetTimeChart.axisTickStepHours]）。
 class PoiSheetTimeChart {
   const PoiSheetTimeChart({
     required this.brevetStartUtc,
     required this.timeLimitHours,
+    required this.axisTickStepHours,
     this.elapsedHoursFromStart,
     required this.drawElapsedBar,
   });
 
   final DateTime brevetStartUtc;
   final double timeLimitHours;
+
+  /// 横軸の目盛り間隔（時間）。公認距離テーブルに基づきコントローラ側で決定する。
+  final double axisTickStepHours;
 
   /// [brevetStartUtc] から [arrival] までの経過（時間）。未設定時は横線なし。
   final double? elapsedHoursFromStart;
@@ -80,11 +84,13 @@ class PoiSheetTimeChart {
 class _PoiElapsedTimeChartPainter extends CustomPainter {
   _PoiElapsedTimeChartPainter({
     required this.timeLimitHours,
+    required this.axisTickStepHours,
     required this.drawBar,
     this.elapsedHours,
   });
 
   final double timeLimitHours;
+  final double axisTickStepHours;
   final bool drawBar;
   final double? elapsedHours;
 
@@ -105,12 +111,12 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
     return hours.toStringAsFixed(1);
   }
 
-  /// 右端の制限時間（`h` 付き）。
+  /// 右端（終点）ラベル。数値のみ（`h` は付けない）。
   static String _hoursEndLabel(double hours) {
-    if (hours <= 0) return '0h';
+    if (hours <= 0) return '0';
     final r = hours.roundToDouble();
-    if ((hours - r).abs() < 1e-6) return '${r.toInt()}h';
-    return '${hours.toStringAsFixed(1)}h';
+    if ((hours - r).abs() < 1e-6) return '${r.toInt()}';
+    return hours.toStringAsFixed(1);
   }
 
   static const _barStrokeWidth = 4.0;
@@ -146,22 +152,26 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
       ..color = _chartAxisColor
       ..strokeWidth = 0.9;
 
-    /// 左端 0h、5h 刻み（制限時間未満）、右端は制限時間。
-    for (var h = 0.0; h < limit - 1e-9; h += 5.0) {
-      final x = math.min(h / limit * w, w);
+    final tickStepHours = axisTickStepHours.isFinite && axisTickStepHours > 0
+        ? axisTickStepHours
+        : 1.0;
+
+    /// 左端 0h、右端は制限時間。中間は [axisTickStepHours] 間隔。
+    for (var hour = 0.0; hour < limit - 1e-9; hour += tickStepHours) {
+      final x = math.min(hour / limit * w, w);
       canvas.drawLine(
         Offset(x, _axisY),
         Offset(x, _axisY + _tickH),
         tickPaint,
       );
 
-      final labelText = h < 1e-9 ? '0h' : _hoursMiddleLabel(h);
+      final labelText = hour < 1e-9 ? '0 (h)' : _hoursMiddleLabel(hour);
       final tp = TextPainter(
         text: TextSpan(text: labelText, style: _tickStyle),
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      if (h < 1e-9) {
+      if (hour < 1e-9) {
         tp.paint(canvas, Offset(_labelEndInset, _labelY));
       } else {
         final ox = (x - tp.width / 2)
@@ -206,6 +216,7 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _PoiElapsedTimeChartPainter oldDelegate) =>
       oldDelegate.timeLimitHours != timeLimitHours ||
+      oldDelegate.axisTickStepHours != axisTickStepHours ||
       oldDelegate.drawBar != drawBar ||
       oldDelegate.elapsedHours != elapsedHours;
 }
@@ -233,6 +244,7 @@ class _PoiElapsedTimeChartStrip extends StatelessWidget {
         size: Size(w, h),
         painter: _PoiElapsedTimeChartPainter(
           timeLimitHours: data.timeLimitHours,
+          axisTickStepHours: data.axisTickStepHours,
           drawBar: data.drawElapsedBar,
           elapsedHours: data.elapsedHoursFromStart,
         ),

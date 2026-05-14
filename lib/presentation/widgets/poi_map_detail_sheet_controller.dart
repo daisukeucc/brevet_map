@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/models/brevet_distances.dart';
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
@@ -66,6 +67,17 @@ DateTime? _chartBrevetStartUtcFromUserPois(
   return metaStart;
 }
 
+double? _totalRouteKm(List<LatLng> trackPoints) {
+  if (trackPoints.length < 2) return null;
+  final m = distanceAlongTrackFromStart(
+    trackPoints,
+    trackPoints.length - 1,
+  );
+  final km = m / 1000.0;
+  if (!km.isFinite || km <= 0) return null;
+  return km;
+}
+
 /// 地図上の POI タップから詳細ボトムシート表示・シート内移動時の地図追従までを担当する。
 class PoiMapDetailSheetController {
   PoiMapDetailSheetController(this._ref);
@@ -121,6 +133,7 @@ class PoiMapDetailSheetController {
   PoiSheetTimeChart? _poiElapsedTimeChart({
     required DateTime? brevetStartUtc,
     required double? timeLimitHours,
+    double? routeKm,
     required DateTime? arrival,
     required DateTime? departure,
     required bool isRouteStartPoi,
@@ -131,6 +144,10 @@ class PoiMapDetailSheetController {
         !timeLimitHours.isFinite) {
       return null;
     }
+    final axisTickStepHours = brevetTimeChartAxisTickStepHours(
+      timeLimitHours,
+      routeKm: routeKm,
+    );
     // スタート POI も出発のみ設定されているのが通常。軸原点と同じ基準にする。
     final instant = isRouteStartPoi
         ? (departure ?? arrival)
@@ -139,6 +156,7 @@ class PoiMapDetailSheetController {
     return PoiSheetTimeChart(
       brevetStartUtc: brevetStartUtc,
       timeLimitHours: timeLimitHours,
+      axisTickStepHours: axisTickStepHours,
       elapsedHoursFromStart: elapsed,
       drawElapsedBar: !isRouteStartPoi,
     );
@@ -196,6 +214,7 @@ class PoiMapDetailSheetController {
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
               arrival: sched?.arrival,
               departure: sched?.departure,
               isRouteStartPoi: isStart,
@@ -252,6 +271,7 @@ class PoiMapDetailSheetController {
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
               arrival: sched?.arrival,
               departure: sched?.departure,
               isRouteStartPoi: isStart,
@@ -346,6 +366,7 @@ class PoiMapDetailSheetController {
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
               arrival: sched?.arrival,
               departure: sched?.departure,
               isRouteStartPoi: isStartType,
@@ -412,6 +433,7 @@ class PoiMapDetailSheetController {
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
               arrival: sched?.arrival,
               departure: sched?.departure,
               isRouteStartPoi: isStartType,
