@@ -231,6 +231,54 @@ BmPoiExtension _defaultBmPoiExtension({
   );
 }
 
+/// POI リストを前から走査し、前POIの出発 >= 次POIの到着 になる場合を補正する。
+/// 15分丸めで近接POI同士の時刻が重複するケースを解消する。
+List<UserPoi> _ensureMonotonicSchedules(List<UserPoi> pois) {
+  final result = List<UserPoi>.from(pois);
+  DateTime? prevDeparture;
+  for (var i = 0; i < result.length; i++) {
+    final poi = result[i];
+    final ext = poi.bmExt;
+    if (ext == null || GpxPoiTag.isStartType(ext.type)) {
+      prevDeparture = ext?.schedule.departure;
+      continue;
+    }
+    final arr = ext.schedule.arrival;
+    if (arr != null && prevDeparture != null && !arr.isAfter(prevDeparture)) {
+      final newArr = prevDeparture.add(const Duration(minutes: 15));
+      result[i] = UserPoi(
+        type: poi.type,
+        km: poi.km,
+        title: poi.title,
+        body: poi.body,
+        url: poi.url,
+        lat: poi.lat,
+        lng: poi.lng,
+        gpxCmt: poi.gpxCmt,
+        gpxType: poi.gpxType,
+        isNote: poi.isNote,
+        bmExt: BmPoiExtension(
+          type: ext.type,
+          distanceKm: ext.distanceKm,
+          displayOrder: ext.displayOrder,
+          schedule: BmSchedule(
+            arrival: newArr,
+            departure: ext.schedule.departure != null
+                ? newArr.add(const Duration(minutes: 15))
+                : null,
+            close: ext.schedule.close,
+            result: ext.schedule.result,
+          ),
+        ),
+      );
+      prevDeparture = result[i].bmExt?.schedule.departure;
+    } else {
+      prevDeparture = ext.schedule.departure;
+    }
+  }
+  return result;
+}
+
 /// スタート POI を新規作成する（GPX にスタート wpt がない場合）。
 UserPoi _createStartPoi(
   LatLng position,
@@ -440,11 +488,12 @@ Future<GpxImportResult?> parseAndSaveGpx(
     userPois = UserPoi.orderedForDetailSheet(mergeCandidates);
   }
 
-  await saveUserPois(userPois);
+  final fixedPois = _ensureMonotonicSchedules(userPois);
+  await saveUserPois(fixedPois);
 
   return GpxImportResult(
     trackPoints: trackPoints,
-    userPois: userPois,
+    userPois: fixedPois,
     gpxDotWaypoints: dotWpts,
     trackElevations: trackPoints.isNotEmpty ? result.trackElevations : null,
     brevetMeta: brevetMeta,

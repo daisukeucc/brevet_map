@@ -48,9 +48,9 @@ class AddPoiFormData {
   final String title;
   final String body;
   final String url;
-  final TimeOfDay? arrival;
-  final TimeOfDay? departure;
-  final TimeOfDay? close;
+  final DateTime? arrival;
+  final DateTime? departure;
+  final DateTime? close;
   final bool isNote;
 }
 
@@ -67,12 +67,6 @@ class PoiEditPositionRequest {
 
 String _elevationEditDisplay(double? metersM, int distanceUnit) =>
     formatElevationChange(metersM ?? 0, distanceUnit);
-
-TimeOfDay? _timeOfDayFromDt(DateTime? dt) {
-  if (dt == null) return null;
-  final local = dt.toLocal();
-  return TimeOfDay(hour: local.hour, minute: local.minute);
-}
 
 int _normalizePoiTypeForForm(int type) {
   return UserPoiType.fromValue(type).value;
@@ -121,13 +115,6 @@ UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
   );
 }
 
-DateTime _applyTimeOfDay(TimeOfDay tod, DateTime refDate) {
-  final localRef = refDate.toLocal();
-  return DateTime(
-          localRef.year, localRef.month, localRef.day, tod.hour, tod.minute)
-      .toUtc();
-}
-
 /// 新規 POI の BmPoiExtension を生成する（arrival/departure/close が未指定なら null）
 Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   required AddPoiFormData data,
@@ -136,18 +123,13 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   if (data.arrival == null && data.departure == null && data.close == null) {
     return null;
   }
-  final meta = await loadBrevetMeta();
-  final refDate = meta?.startTime ?? DateTime.now().toUtc();
   return BmPoiExtension(
     type: data.type == UserPoiType.checkpoint.value ? 'checkpoint' : 'generic',
     distanceKm: km ?? 0,
     schedule: BmSchedule(
-      arrival:
-          data.arrival != null ? _applyTimeOfDay(data.arrival!, refDate) : null,
-      departure: data.departure != null
-          ? _applyTimeOfDay(data.departure!, refDate)
-          : null,
-      close: data.close != null ? _applyTimeOfDay(data.close!, refDate) : null,
+      arrival: data.arrival,
+      departure: data.departure,
+      close: data.close,
     ),
   );
 }
@@ -165,31 +147,14 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
       data.close == null) {
     return null;
   }
-  DateTime? refDate;
-  if (data.arrival != null || data.departure != null || data.close != null) {
-    final existingArrival = existing?.schedule.arrival;
-    final existingDeparture = existing?.schedule.departure;
-    if (existingArrival != null) {
-      refDate = existingArrival;
-    } else if (existingDeparture != null) {
-      refDate = existingDeparture;
-    } else {
-      final meta = await loadBrevetMeta();
-      refDate = meta?.startTime ?? DateTime.now().toUtc();
-    }
-  }
   return BmPoiExtension(
     type: existing?.type ??
         (data.type == UserPoiType.checkpoint.value ? 'checkpoint' : 'generic'),
     distanceKm: data.km ?? 0,
     schedule: BmSchedule(
-      arrival: data.arrival != null
-          ? _applyTimeOfDay(data.arrival!, refDate!)
-          : null,
-      departure: data.departure != null
-          ? _applyTimeOfDay(data.departure!, refDate!)
-          : null,
-      close: data.close != null ? _applyTimeOfDay(data.close!, refDate!) : null,
+      arrival: data.arrival,
+      departure: data.departure,
+      close: data.close,
       result: existing?.schedule.result,
     ),
   );
@@ -234,6 +199,127 @@ UserPoi _userPoiWithFinishClose(UserPoi p, DateTime? close) {
       ),
     ),
   );
+}
+
+/// スタートの基準日時（出発が設定されていれば出発、なければ到着）を起点に全POIの日時を再計算する。
+/// ルール2: 各POI出発 = 到着 + 15分
+/// ルール3: ゴールのクローズ = [finishClose]（スタート基準日時 + 制限時間）
+/// ルール4: 各POI到着 = スタート基準日時 + estimateArrivalFromRouteStart（km・標高から算出）
+/// km 未設定・isNote の POI はそのままにする。スタートPOI は変更しない。
+List<UserPoi> _recalculatePoiSchedules({
+  required List<UserPoi> pois,
+  required DateTime? startDeparture,
+  required DateTime? finishClose,
+  required List<LatLng>? trackPoints,
+  required List<double?>? trackElevations,
+}) {
+  final result = pois.map((poi) {
+    final ext = poi.bmExt;
+    if (ext == null) return poi;
+
+    if (GpxPoiTag.isStartType(ext.type)) return poi;
+
+    if (startDeparture == null || poi.km == null || poi.isNote) {
+      return GpxPoiTag.isFinishType(ext.type)
+          ? _userPoiWithFinishClose(poi, finishClose)
+          : poi;
+    }
+
+    double elevM = 0.0;
+    if (trackPoints != null &&
+        trackPoints.isNotEmpty &&
+        trackElevations != null &&
+        trackElevations.length == trackPoints.length) {
+      final trackIdx = nearestTrackIndex(trackPoints, poi.position);
+      elevM = elevationGainBetweenIndices(trackElevations, 0, trackIdx);
+    }
+
+    final estimated = estimateArrivalFromRouteStart(
+      brevetStartTimeUtc: startDeparture,
+      distanceKm: poi.km!,
+      elevationGainFromStartMeters: elevM,
+    );
+
+    if (estimated == null) {
+      return GpxPoiTag.isFinishType(ext.type)
+          ? _userPoiWithFinishClose(poi, finishClose)
+          : poi;
+    }
+
+    return UserPoi(
+      type: poi.type,
+      km: poi.km,
+      title: poi.title,
+      body: poi.body,
+      url: poi.url,
+      lat: poi.lat,
+      lng: poi.lng,
+      gpxCmt: poi.gpxCmt,
+      gpxType: poi.gpxType,
+      isNote: poi.isNote,
+      bmExt: BmPoiExtension(
+        type: ext.type,
+        distanceKm: ext.distanceKm,
+        displayOrder: ext.displayOrder,
+        schedule: BmSchedule(
+          arrival: estimated,
+          departure: GpxPoiTag.isFinishType(ext.type)
+              ? null
+              : estimated.add(const Duration(minutes: 15)),
+          close: GpxPoiTag.isFinishType(ext.type)
+              ? finishClose
+              : ext.schedule.close,
+          result: ext.schedule.result,
+        ),
+      ),
+    );
+  }).toList();
+
+  // 15分丸めにより前POIの出発 >= 後POIの到着になる場合を補正する。
+  // 前POIの出発以降になるまで15分ずつ繰り上げる。
+  DateTime? prevDeparture;
+  for (var i = 0; i < result.length; i++) {
+    final poi = result[i];
+    final ext = poi.bmExt;
+    if (ext == null || GpxPoiTag.isStartType(ext.type)) {
+      prevDeparture = ext?.schedule.departure;
+      continue;
+    }
+    final arr = ext.schedule.arrival;
+    if (arr != null && prevDeparture != null && !arr.isAfter(prevDeparture)) {
+      // 前POI出発より後になるまで15分単位で繰り上げる
+      var newArr = prevDeparture.add(const Duration(minutes: 15));
+      result[i] = UserPoi(
+        type: poi.type,
+        km: poi.km,
+        title: poi.title,
+        body: poi.body,
+        url: poi.url,
+        lat: poi.lat,
+        lng: poi.lng,
+        gpxCmt: poi.gpxCmt,
+        gpxType: poi.gpxType,
+        isNote: poi.isNote,
+        bmExt: BmPoiExtension(
+          type: ext.type,
+          distanceKm: ext.distanceKm,
+          displayOrder: ext.displayOrder,
+          schedule: BmSchedule(
+            arrival: newArr,
+            departure: ext.schedule.departure != null
+                ? newArr.add(const Duration(minutes: 15))
+                : null,
+            close: ext.schedule.close,
+            result: ext.schedule.result,
+          ),
+        ),
+      );
+      prevDeparture = result[i].bmExt?.schedule.departure;
+    } else {
+      prevDeparture = ext.schedule.departure;
+    }
+  }
+  return result;
 }
 
 /// POI追加メニューがタップされたときのエントリポイント。
@@ -450,12 +536,13 @@ Future<void> handleEditPoiText(
       isNote: data.isNote,
     );
     final isStartPoi = currentPoi.bmExt?.type == 'start';
-    final newStartDep = updatedPoi.bmExt?.schedule.departure;
-    final oldStartDep = currentPoi.bmExt?.schedule.departure;
     final newArrival = updatedPoi.bmExt?.schedule.arrival;
     final oldArrival = currentPoi.bmExt?.schedule.arrival;
     final newDeparture = updatedPoi.bmExt?.schedule.departure;
     final oldDeparture = currentPoi.bmExt?.schedule.departure;
+    // スタートPOI: 出発が設定されていればそれを基準、未設定なら到着を基準にする
+    final newStartBase = newDeparture ?? newArrival;
+    final oldStartBase = oldDeparture ?? oldArrival;
     // arrival 変化を優先し、arrival が変わらず departure だけ変わった場合は departure 差分を使う
     final scheduleDelta = !isStartPoi
         ? (newArrival != null && oldArrival != null && newArrival != oldArrival)
@@ -467,22 +554,14 @@ Future<void> handleEditPoiText(
                 : null
         : null;
 
-    if (isStartPoi && newStartDep != oldStartDep) {
+    if (isStartPoi && newStartBase != oldStartBase) {
       final tr = totalRouteKm ?? 0.0;
       final meta = await loadBrevetMeta();
       final newClose = _closeForFinishFromStartDeparture(
-        startDeparture: newStartDep,
+        startDeparture: newStartBase,
         meta: meta,
         totalRouteKm: tr,
       );
-      Duration? startCascadeDelta;
-      if (newStartDep != null) {
-        if (oldStartDep != null) {
-          startCascadeDelta = newStartDep.difference(oldStartDep);
-        } else if (meta?.startTime != null) {
-          startCascadeDelta = newStartDep.difference(meta!.startTime!);
-        }
-      }
       final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
       final startIdx = UserPoi.indexInList(list, currentPoi);
       if (startIdx < 0) {
@@ -491,62 +570,17 @@ Future<void> handleEditPoiText(
             .updateUserPoi(currentPoi, updatedPoi);
       } else {
         list[startIdx] = updatedPoi;
-        final ordered = UserPoi.orderedForDetailSheet(list);
-        final startRouteIdx = UserPoi.indexInList(ordered, updatedPoi);
-        for (var i = 0; i < list.length; i++) {
-          if (i == startIdx) continue;
-          final p = list[i];
-          final e = p.bmExt;
-          if (e == null) continue;
-          final s = e.schedule;
-          final routeIdx = UserPoi.indexInList(ordered, p);
-          final afterStart = startRouteIdx >= 0 && routeIdx >= 0
-              ? routeIdx > startRouteIdx
-              : i > startIdx;
-
-          DateTime? arr = s.arrival;
-          DateTime? dep = s.departure;
-
-          if (afterStart &&
-              startCascadeDelta != null &&
-              (arr != null || dep != null)) {
-            arr = arr?.add(startCascadeDelta);
-            dep = dep?.add(startCascadeDelta);
-          }
-
-          final shifted = UserPoi(
-            type: p.type,
-            km: p.km,
-            title: p.title,
-            body: p.body,
-            url: p.url,
-            lat: p.lat,
-            lng: p.lng,
-            gpxCmt: p.gpxCmt,
-            gpxType: p.gpxType,
-            isNote: p.isNote,
-            bmExt: BmPoiExtension(
-              type: e.type,
-              distanceKm: e.distanceKm,
-              displayOrder: e.displayOrder,
-              schedule: BmSchedule(
-                arrival: arr,
-                departure: dep,
-                close: s.close,
-                result: s.result,
-              ),
-            ),
-          );
-
-          if (e.type == 'finish') {
-            list[i] = _userPoiWithFinishClose(shifted, newClose);
-          } else if (afterStart &&
-              startCascadeDelta != null &&
-              (s.arrival != null || s.departure != null)) {
-            list[i] = shifted;
-          }
-        }
-        await ref.read(mapStateProvider.notifier).replaceAllUserPois(list);
+        final ms = ref.read(mapStateProvider);
+        final recalculated = _recalculatePoiSchedules(
+          pois: list,
+          startDeparture: newStartBase,
+          finishClose: newClose,
+          trackPoints: ms.savedRoutePoints,
+          trackElevations: ms.savedTrackElevations,
+        );
+        await ref
+            .read(mapStateProvider.notifier)
+            .replaceAllUserPois(recalculated);
       }
     } else if (scheduleDelta != null) {
       final list = List<UserPoi>.from(ref.read(mapStateProvider).userPois);
@@ -1594,9 +1628,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   late final FocusNode _kmFocusNode;
   late final FocusNode _dummyFocusNode;
   String? _kmError;
-  TimeOfDay? _arrival;
-  TimeOfDay? _departure;
-  TimeOfDay? _close;
+  DateTime? _arrival;
+  DateTime? _departure;
+  DateTime? _close;
   bool _saving = false;
   bool _isNote = false;
 
@@ -1625,6 +1659,8 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     final start = widget.brevetStartTimeUtc;
     if (start == null) return;
 
+    final isFinish = GpxPoiTag.isFinishType(poi.bmExt?.type);
+
     if (_arrival == null) {
       final elevM = widget.elevationGainFromRouteStart?.call(poi) ?? 0.0;
       final est = estimateArrivalFromRouteStart(
@@ -1633,16 +1669,15 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
         elevationGainFromStartMeters: elevM,
       );
       if (est == null) return;
-      _arrival = _timeOfDayFromDt(est);
-      _departure ??=
-          _timeOfDayFromDt(est.add(const Duration(minutes: 15)));
+      _arrival = est;
+      if (!isFinish) _departure ??= est.add(const Duration(minutes: 15));
       return;
     }
 
-    if (_departure == null) {
+    if (!isFinish && _departure == null) {
       final arrDt = poi.bmExt?.schedule.arrival;
       if (arrDt != null) {
-        _departure = _timeOfDayFromDt(arrDt.add(const Duration(minutes: 15)));
+        _departure = arrDt.add(const Duration(minutes: 15));
       }
     }
   }
@@ -1697,10 +1732,10 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _bodyController.text = poi.body;
     _urlController.text = poi.url ?? '';
     _kmController.text = _kmToDisplayText(poi.km);
-    _arrival = _timeOfDayFromDt(poi.bmExt?.schedule.arrival);
-    _departure = _timeOfDayFromDt(poi.bmExt?.schedule.departure);
+    _arrival = poi.bmExt?.schedule.arrival;
+    _departure = poi.bmExt?.schedule.departure;
     _maybeAutofillScheduleFromDistance(poi);
-    _close = _timeOfDayFromDt(poi.bmExt?.schedule.close);
+    _close = poi.bmExt?.schedule.close;
     _kmError = null;
     _isNote = poi.isNote;
   }
@@ -1809,6 +1844,19 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     );
   }
 
+  /// 2つの DateTime が年月日時分まで一致するか（秒以下は無視）。両方 null なら true。
+  bool _sameDtMinute(DateTime? a, DateTime? b) {
+    if (a == null && b == null) return true;
+    if (a == null || b == null) return false;
+    final la = a.toLocal();
+    final lb = b.toLocal();
+    return la.year == lb.year &&
+        la.month == lb.month &&
+        la.day == lb.day &&
+        la.hour == lb.hour &&
+        la.minute == lb.minute;
+  }
+
   /// フォームの内容が元の POI から変更されているか判定する
   bool _hasChanged() {
     if (_poiType != _currentPoi.type) {
@@ -1832,20 +1880,13 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       return true;
     }
 
-    final origArrival = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.arrival);
-    final origDeparture =
-        _timeOfDayFromDt(_currentPoi.bmExt?.schedule.departure);
-    final origClose = _timeOfDayFromDt(_currentPoi.bmExt?.schedule.close);
-    if (_arrival?.hour != origArrival?.hour ||
-        _arrival?.minute != origArrival?.minute) {
+    if (!_sameDtMinute(_arrival, _currentPoi.bmExt?.schedule.arrival)) {
       return true;
     }
-    if (_departure?.hour != origDeparture?.hour ||
-        _departure?.minute != origDeparture?.minute) {
+    if (!_sameDtMinute(_departure, _currentPoi.bmExt?.schedule.departure)) {
       return true;
     }
-    if (_close?.hour != origClose?.hour ||
-        _close?.minute != origClose?.minute) {
+    if (!_sameDtMinute(_close, _currentPoi.bmExt?.schedule.close)) {
       return true;
     }
 
@@ -1966,49 +2007,42 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     }
   }
 
-  Future<void> _pickTime({required bool isArrival}) async {
+  /// 日付ピッカー → 時刻ピッカーの順に表示し、両方確定したら [onPicked] を呼ぶ。
+  /// 日付ピッカーでキャンセルした場合はそこで終了する。
+  Future<void> _pickDateTime({
+    required DateTime? current,
+    required void Function(DateTime) onPicked,
+  }) async {
     FocusScope.of(context).unfocus();
     await Future.delayed(Duration.zero);
     if (!mounted) return;
-    final current = isArrival ? _arrival : _departure;
-    final picked = await showTimePicker(
+    final ref = (current ?? widget.brevetStartTimeUtc ?? DateTime.now().toUtc())
+        .toLocal();
+    final pickedDate = await showDatePicker(
       context: context,
-      initialTime: current ?? TimeOfDay.now(),
+      initialDate: ref,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (pickedDate == null || !mounted) return;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay(hour: ref.hour, minute: ref.minute),
       builder: (context, child) => MediaQuery(
         data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
         child: child!,
       ),
     );
     FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() {
-        if (isArrival) {
-          _arrival = picked;
-          final totalMin = picked.hour * 60 + picked.minute + 15;
-          _departure =
-              TimeOfDay(hour: (totalMin ~/ 60) % 24, minute: totalMin % 60);
-        } else {
-          _departure = picked;
-        }
-      });
-    }
-  }
-
-  Future<void> _pickClose() async {
-    FocusScope.of(context).unfocus();
-    await Future.delayed(Duration.zero);
-    if (!mounted) return;
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _close ?? TimeOfDay.now(),
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
-    );
-    FocusManager.instance.primaryFocus?.unfocus();
-    if (picked != null && mounted) {
-      setState(() => _close = picked);
+    if (pickedTime != null && mounted) {
+      final newDt = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      ).toUtc();
+      setState(() => onPicked(newDt));
     }
   }
 
@@ -2169,22 +2203,34 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 const SizedBox(height: 15),
                 _TimePickerRow(
                   label: l10n.plannedArrival,
-                  time: _arrival,
-                  onTap: () => _pickTime(isArrival: true),
+                  dateTime: _arrival,
+                  onTap: () => _pickDateTime(
+                    current: _arrival,
+                    onPicked: (dt) {
+                      _arrival = dt;
+                      _departure = dt.add(const Duration(minutes: 15));
+                    },
+                  ),
                   onClear: () => setState(() => _arrival = null),
                 ),
                 const SizedBox(height: 8),
                 _TimePickerRow(
                   label: l10n.plannedDeparture,
-                  time: _departure,
-                  onTap: () => _pickTime(isArrival: false),
+                  dateTime: _departure,
+                  onTap: () => _pickDateTime(
+                    current: _departure ?? _arrival,
+                    onPicked: (dt) => _departure = dt,
+                  ),
                   onClear: () => setState(() => _departure = null),
                 ),
                 const SizedBox(height: 8),
                 _TimePickerRow(
                   label: l10n.plannedClose,
-                  time: _close,
-                  onTap: _pickClose,
+                  dateTime: _close,
+                  onTap: () => _pickDateTime(
+                    current: _close,
+                    onPicked: (dt) => _close = dt,
+                  ),
                   onClear: () => setState(() => _close = null),
                 ),
                 const SizedBox(height: 16),
@@ -2250,20 +2296,22 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 class _TimePickerRow extends StatelessWidget {
   const _TimePickerRow({
     required this.label,
-    required this.time,
+    required this.dateTime,
     required this.onTap,
     required this.onClear,
   });
 
   final String label;
-  final TimeOfDay? time;
+  final DateTime? dateTime;
   final VoidCallback onTap;
   final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
-    final timeText = time != null
-        ? '${time!.hour.toString().padLeft(2, '0')}:${time!.minute.toString().padLeft(2, '0')}'
+    final local = dateTime?.toLocal();
+    final dateText = local != null ? '${local.month}/${local.day}' : null;
+    final timeText = local != null
+        ? '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}'
         : '--:--';
     return Row(
       children: [
@@ -2272,16 +2320,25 @@ class _TimePickerRow extends StatelessWidget {
         ),
         GestureDetector(
           onTap: onTap,
-          child: Text(timeText, style: AppTextStyles.title),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (dateText != null) ...[
+                Text(dateText, style: AppTextStyles.title),
+                const SizedBox(width: 6),
+              ],
+              Text(timeText, style: AppTextStyles.title),
+            ],
+          ),
         ),
-        if (time != null) ...[
+        if (dateTime != null) ...[
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onClear,
             child: const Icon(Icons.close, size: 18, color: Colors.black38),
           ),
         ] else
-          const SizedBox(width: 20),
+          const SizedBox(width: 22),
       ],
     );
   }
