@@ -318,5 +318,6 @@
   "releaseNotesV11018Message": "Nella versione 1.1 abbiamo aggiunto più dettagli sui POI per aiutarti a pianificare meglio i tuoi percorsi a lunga distanza.\nTutte le funzionalità sono sbloccate in questa versione, quindi provala!",
   "releaseNotesV12019Message": "Nella versione 1.2 le informazioni sui POI sono state ampliate in modo significativo!\nTutte le funzionalità sono sbloccate in questa versione, provala!\n\n- Nuovi tipi di POI: controllo foto, negozi, ecc.\n- Campo link URL nelle informazioni POI\n- Grafico altimetrico tra i punti di controllo\n- Orari di arrivo stimati automatici ai punti di controllo",
   "poiSaveAsNote": "Salva come nota",
-  "brevetTimeLimitLabel": "Limite di tempo"
+  "brevetTimeLimitLabel": "Limite di tempo",
+  "poiCheckInConfirmMessage": "Effettuare il check-in?"
 }

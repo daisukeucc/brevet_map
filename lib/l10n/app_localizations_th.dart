@@ -663,4 +663,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get brevetTimeLimitLabel => 'เวลาจำกัด';
+
+  @override
+  String get poiCheckInConfirmMessage => 'ต้องการเช็คอินหรือไม่?';
 }

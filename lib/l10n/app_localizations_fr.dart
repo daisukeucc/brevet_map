@@ -668,4 +668,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get brevetTimeLimitLabel => 'Limite de temps';
+
+  @override
+  String get poiCheckInConfirmMessage => 'Enregistrer le passage ?';
 }

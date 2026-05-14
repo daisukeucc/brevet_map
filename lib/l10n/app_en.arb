@@ -330,5 +330,6 @@
   "brevetTimeLimitLabel": "Time limit",
   "@brevetTimeLimitLabel": {
     "description": "Label for brevet time limit hours on the start POI elevation dialog (shown before a colon and the hours value)."
-  }
+  },
+  "poiCheckInConfirmMessage": "Check in?"
 }

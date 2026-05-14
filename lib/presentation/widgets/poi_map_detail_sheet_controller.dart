@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/models/bm_extension.dart';
 import '../../domain/models/brevet_distances.dart';
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
@@ -52,6 +53,55 @@ DateTime? _chartBrevetStartUtcFromGpxPois(
     }
   }
   return metaStart;
+}
+
+UserPoi _userPoiWithCheckInResult(UserPoi p, DateTime utc) {
+  final ext = p.bmExt;
+  final sched = ext?.schedule ?? const BmSchedule();
+  final newSched = BmSchedule(
+    arrival: sched.arrival,
+    departure: sched.departure,
+    close: sched.close,
+    result: utc,
+  );
+  if (ext != null) {
+    return UserPoi(
+      type: p.type,
+      km: p.km,
+      title: p.title,
+      body: p.body,
+      url: p.url,
+      lat: p.lat,
+      lng: p.lng,
+      gpxCmt: p.gpxCmt,
+      gpxType: p.gpxType,
+      isNote: p.isNote,
+      bmExt: BmPoiExtension(
+        type: ext.type,
+        schedule: newSched,
+        distanceKm: ext.distanceKm,
+        displayOrder: ext.displayOrder,
+        isNote: ext.isNote,
+      ),
+    );
+  }
+  return UserPoi(
+    type: p.type,
+    km: p.km,
+    title: p.title,
+    body: p.body,
+    url: p.url,
+    lat: p.lat,
+    lng: p.lng,
+    gpxCmt: p.gpxCmt,
+    gpxType: p.gpxType,
+    isNote: p.isNote,
+    bmExt: BmPoiExtension(
+      type: p.poiType.defaultBmPoiType,
+      schedule: newSched,
+      distanceKm: p.km ?? 0,
+    ),
+  );
 }
 
 DateTime? _chartBrevetStartUtcFromUserPois(
@@ -355,6 +405,7 @@ class PoiMapDetailSheetController {
         final hasKmForSegment = poiHasKm[i];
         final sched = ordered[i].bmExt?.schedule;
         final isStartType = GpxPoiTag.isStartType(ordered[i].bmExt?.type);
+        final poiRef = ordered[i];
         entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
@@ -391,6 +442,12 @@ class PoiMapDetailSheetController {
                 : null,
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
+            onCheckIn: (utc) async {
+              final updated = _userPoiWithCheckInResult(poiRef, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(poiRef, updated);
+            },
           ),
         );
       }
@@ -458,6 +515,12 @@ class PoiMapDetailSheetController {
                 : null,
             distanceUnit: unit,
             isRouteStartPoi: isStartType,
+            onCheckIn: (utc) async {
+              final updated = _userPoiWithCheckInResult(poi, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(poi, updated);
+            },
           ),
         ],
       );

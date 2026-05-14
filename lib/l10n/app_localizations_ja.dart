@@ -645,4 +645,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get brevetTimeLimitLabel => '制限時間';
+
+  @override
+  String get poiCheckInConfirmMessage => 'チェックインしますか？';
 }

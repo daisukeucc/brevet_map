@@ -12,6 +12,7 @@ import '../../utils/connectivity_check.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart';
 import '../utils/snackbar_utils.dart';
+import 'confirm_dialog.dart';
 
 /// POIシートタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
 class PoiElevationOnDemand {
@@ -301,6 +302,7 @@ class PoiSheetEntry {
     this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
+    this.onCheckIn,
   });
 
   final String? name;
@@ -336,6 +338,9 @@ class PoiSheetEntry {
 
   /// ルート上の並びで最初の POI（スタート）。スタートでは獲得 0 でも標高行を表示する。
   final bool isRouteStartPoi;
+
+  /// User POI のチェックイン。[BmSchedule.result] に UTC を保存する。null のとき beenhere は表示のみ。
+  final Future<void> Function(DateTime checkInUtc)? onCheckIn;
 }
 
 double? _effectiveElevationGainMeters({
@@ -387,6 +392,23 @@ Widget _elevationDialogPanel({
     ),
     child: Padding(padding: padding, child: child),
   );
+}
+
+Future<void> _showPoiCheckInConfirmDialog(
+  BuildContext context, {
+  required Future<void> Function(DateTime utc) onCheckIn,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final ok = await showConfirmDialog(
+    context,
+    message: l10n.poiCheckInConfirmMessage,
+    cancelText: l10n.cancel,
+    confirmText: l10n.ok,
+    transparentBarrier: true,
+  );
+  if (ok != true) return;
+  if (!context.mounted) return;
+  await onCheckIn(DateTime.now().toUtc());
 }
 
 void _openElevationFromOnDemand(
@@ -676,6 +698,7 @@ void showPoiDetailSheet(
         elevationOnDemand: entries.first.elevationOnDemand,
         distanceUnit: entries.first.distanceUnit,
         isRouteStartPoi: entries.first.isRouteStartPoi,
+        onCheckIn: entries.first.onCheckIn,
       );
     },
   );
@@ -697,6 +720,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
     this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
+    this.onCheckIn,
   });
 
   final String? name;
@@ -713,6 +737,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
   final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
   final bool isRouteStartPoi;
+  final Future<void> Function(DateTime checkInUtc)? onCheckIn;
 
   @override
   Widget build(BuildContext context) {
@@ -749,6 +774,7 @@ class _PoiDetailSheetBody extends StatelessWidget {
                   elevationOnDemand: elevationOnDemand,
                   distanceUnit: distanceUnit,
                   isRouteStartPoi: isRouteStartPoi,
+                  onCheckIn: onCheckIn,
                   contentLayoutMaxWidth: constraints.maxWidth,
                   sheetPadding: sheetPadding,
                   distanceLeft: distanceLeft,
@@ -851,6 +877,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
                           elevationOnDemand: e.elevationOnDemand,
                           distanceUnit: e.distanceUnit,
                           isRouteStartPoi: e.isRouteStartPoi,
+                          onCheckIn: e.onCheckIn,
                           contentLayoutMaxWidth: expandedW,
                           sheetPadding: sheetPadding,
                           distanceLeft: distanceLeft,
@@ -935,6 +962,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.distanceLeft = 0,
     this.contentLeft = 0,
     this.isRouteStartPoi = true,
+    this.onCheckIn,
   });
 
   final String? name;
@@ -957,6 +985,7 @@ class _PoiContentBlock extends StatelessWidget {
   final double distanceLeft;
   final double contentLeft;
   final bool isRouteStartPoi;
+  final Future<void> Function(DateTime checkInUtc)? onCheckIn;
 
   String _formatTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
@@ -1082,6 +1111,27 @@ class _PoiContentBlock extends StatelessWidget {
                       size: 23, color: AppColors.muted),
                   const SizedBox(width: 3),
                   Text(elevationGain!, style: AppTextStyles.poiLarge),
+                  const SizedBox(width: 12),
+                  if (onCheckIn case final cb?)
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _showPoiCheckInConfirmDialog(context,
+                            onCheckIn: cb),
+                        borderRadius: BorderRadius.circular(24),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Icon(
+                            Icons.beenhere,
+                            size: 25,
+                            color: AppColors.muted,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    const Icon(Icons.beenhere,
+                        size: 25, color: AppColors.muted),
                 ],
               ],
             ),

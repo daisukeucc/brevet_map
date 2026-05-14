@@ -648,4 +648,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get brevetTimeLimitLabel => '제한 시간';
+
+  @override
+  String get poiCheckInConfirmMessage => '체크인하시겠습니까?';
 }

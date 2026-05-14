@@ -1282,6 +1282,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Time limit'**
   String get brevetTimeLimitLabel;
+
+  /// No description provided for @poiCheckInConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in?'**
+  String get poiCheckInConfirmMessage;
 }
 
 class _AppLocalizationsDelegate
