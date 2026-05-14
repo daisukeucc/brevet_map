@@ -22,6 +22,7 @@ class PoiElevationOnDemand {
     required this.poiIndex,
     required this.distanceUnit,
     this.poiHasDistanceKm,
+    this.poiKmAlongRoute,
     this.chartMetadataName,
     this.chartTimeLimitHours,
   });
@@ -36,6 +37,9 @@ class PoiElevationOnDemand {
 
   /// [poiPositions] と同長のとき、距離未登録（false）POI は標高区間から除外する（User POI 用）。
   final List<bool>? poiHasDistanceKm;
+
+  /// [poiPositions] と同長のとき、累積距離（km）でトラック上の区間端を決める（往復重複地点の誤判定防止）。
+  final List<double?>? poiKmAlongRoute;
 
   /// スタート POI の標高ダイアログ内、グラフ直上：インポート GPX のファイル名ベース（`<metadata><name>` ではない）
   final String? chartMetadataName;
@@ -195,6 +199,7 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
       poiPositions: req.poiPositions,
       poiIndex: req.poiIndex,
       poiHasDistanceKm: req.poiHasDistanceKm,
+      poiKmAlongRoute: req.poiKmAlongRoute,
     );
     if (m != null) {
       _previewDistLabel = formatDistance(m.segmentKm, req.distanceUnit);
@@ -218,6 +223,7 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
           poiIndex: req.poiIndex,
           maxSamples: 450,
           poiHasDistanceKm: req.poiHasDistanceKm,
+          poiKmAlongRoute: req.poiKmAlongRoute,
         ),
       ).timeout(
         const Duration(seconds: 45),

@@ -1932,8 +1932,16 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
 
       final positions = ordered.map((p) => LatLng(p.lat, p.lng)).toList();
       final poiHasKm = ordered.map((p) => p.km != null && !p.isNote).toList();
+      final poiKmAlong =
+          ordered.map<double?>((p) => p.km).toList(growable: false);
       if (idx < poiHasKm.length) {
         poiHasKm[idx] = _parsedKmFromField() != null && !_isNote;
+      }
+      if (idx < poiKmAlong.length) {
+        final parsed = _parsedKmFromField();
+        if (parsed != null && !_isNote) {
+          poiKmAlong[idx] = parsed;
+        }
       }
 
       final bounds = segmentIndicesForElevationChart(
@@ -1941,6 +1949,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
         positions,
         idx,
         poiHasDistanceKm: poiHasKm,
+        poiKmAlongRoute: poiKmAlong,
       );
       if (bounds == null) return '--';
       final segmentM =

@@ -42,6 +42,7 @@ class PoiMapDetailSheetController {
     int poiIndex,
     int distanceUnit, {
     List<bool>? poiHasDistanceKm,
+    List<double?>? poiKmAlongRoute,
     String? chartMetadataName,
     double? chartTimeLimitHours,
   }) {
@@ -53,6 +54,7 @@ class PoiMapDetailSheetController {
       poiIndex: poiIndex,
       distanceUnit: distanceUnit,
       poiHasDistanceKm: poiHasDistanceKm,
+      poiKmAlongRoute: poiKmAlongRoute,
       chartMetadataName: chartMetadataName,
       chartTimeLimitHours: chartTimeLimitHours,
     );
@@ -203,6 +205,8 @@ class PoiMapDetailSheetController {
           ordered.map((p) => LatLng(p.lat, p.lng)).toList(growable: false);
       final poiHasKm =
           ordered.map((p) => p.km != null && !p.isNote).toList(growable: false);
+      final poiKmAlong =
+          ordered.map<double?>((p) => p.km).toList(growable: false);
 
       String? startMetaName;
       double? startTimeLimitHours;
@@ -244,6 +248,7 @@ class PoiMapDetailSheetController {
                     i,
                     unit,
                     poiHasDistanceKm: poiHasKm,
+                    poiKmAlongRoute: poiKmAlong,
                     chartMetadataName:
                         GpxPoiTag.isStartType(ordered[i].bmExt?.type)
                             ? startMetaName
@@ -302,6 +307,7 @@ class PoiMapDetailSheetController {
                     0,
                     unit,
                     poiHasDistanceKm: const [true],
+                    poiKmAlongRoute: <double?>[poi.km],
                     chartMetadataName: startMetaName,
                     chartTimeLimitHours: startTimeLimitHours,
                   )

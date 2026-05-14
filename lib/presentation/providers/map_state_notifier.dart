@@ -529,6 +529,7 @@ class MapStateNotifier extends Notifier<MapState> {
         elevations: elevations,
         poiPositions: pois.map((p) => p.position).toList(),
         poiHasDistanceKm: pois.map((p) => p.km != null && !p.isNote).toList(),
+        poiKmAlongRoute: pois.map((p) => p.km).toList(),
       ),
     );
     state = state.copyWith(

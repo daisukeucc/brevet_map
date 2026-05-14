@@ -217,27 +217,65 @@ int _previousPoiWithDistanceIndex(int poiIndex, List<bool> hasKm) {
   List<LatLng> poiPositions,
   int poiIndex, {
   List<bool>? poiHasDistanceKm,
+  List<double?>? poiKmAlongRoute,
+  double Function(LatLng a, LatLng b)? segmentMeters,
 }) {
   if (trackPoints.isEmpty || poiPositions.isEmpty) return null;
   if (poiIndex < 0 || poiIndex >= poiPositions.length) return null;
+
+  final distPoint = segmentMeters ?? distanceBetweenLatLng;
 
   final useKm = poiHasDistanceKm != null &&
       poiHasDistanceKm.length == poiPositions.length;
   if (useKm && !poiHasDistanceKm[poiIndex]) return null;
 
-  final toIdx = poiIndex == poiPositions.length - 1
-      ? trackPoints.length - 1
-      : nearestTrackIndex(trackPoints, poiPositions[poiIndex]);
+  double? kmFor(int i) {
+    if (poiKmAlongRoute == null ||
+        poiKmAlongRoute.length != poiPositions.length) {
+      return null;
+    }
+    final k = poiKmAlongRoute[i];
+    if (k == null || !k.isFinite || k < 0) return null;
+    return k;
+  }
+
+  final int toIdx;
+  if (poiIndex == poiPositions.length - 1) {
+    toIdx = trackPoints.length - 1;
+  } else {
+    final km = useKm ? kmFor(poiIndex) : null;
+    toIdx = km != null
+        ? trackIndexNearestAlongRouteKm(trackPoints, km, distPoint)
+        : nearestTrackIndexWith(
+            trackPoints,
+            poiPositions[poiIndex],
+            distPoint,
+          );
+  }
 
   final int fromIdx;
   if (poiIndex == 0) {
     fromIdx = 0;
   } else if (useKm) {
     final prev = _previousPoiWithDistanceIndex(poiIndex, poiHasDistanceKm);
-    fromIdx =
-        prev < 0 ? 0 : nearestTrackIndex(trackPoints, poiPositions[prev]);
+    if (prev < 0) {
+      fromIdx = 0;
+    } else {
+      final prevKm = kmFor(prev);
+      fromIdx = prevKm != null
+          ? trackIndexNearestAlongRouteKm(trackPoints, prevKm, distPoint)
+          : nearestTrackIndexWith(
+              trackPoints,
+              poiPositions[prev],
+              distPoint,
+            );
+    }
   } else {
-    fromIdx = nearestTrackIndex(trackPoints, poiPositions[poiIndex - 1]);
+    fromIdx = nearestTrackIndexWith(
+      trackPoints,
+      poiPositions[poiIndex - 1],
+      distPoint,
+    );
   }
 
   var lo = fromIdx;
@@ -265,12 +303,16 @@ int _previousPoiWithDistanceIndex(int poiIndex, List<bool> hasKm) {
   required List<LatLng> poiPositions,
   required int poiIndex,
   List<bool>? poiHasDistanceKm,
+  List<double?>? poiKmAlongRoute,
+  double Function(LatLng a, LatLng b)? segmentMeters,
 }) {
   final bounds = segmentIndicesForElevationChart(
     trackPoints,
     poiPositions,
     poiIndex,
     poiHasDistanceKm: poiHasDistanceKm,
+    poiKmAlongRoute: poiKmAlongRoute,
+    segmentMeters: segmentMeters,
   );
   if (bounds == null) return null;
 
@@ -296,6 +338,8 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
   required int poiIndex,
   int maxSamples = 450,
   List<bool>? poiHasDistanceKm,
+  List<double?>? poiKmAlongRoute,
+  double Function(LatLng a, LatLng b)? segmentMeters,
 }) {
   if (trackPoints.isEmpty || poiPositions.isEmpty) return null;
   if (poiIndex < 0 || poiIndex >= poiPositions.length) return null;
@@ -309,6 +353,8 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
     poiPositions,
     poiIndex,
     poiHasDistanceKm: poiHasDistanceKm,
+    poiKmAlongRoute: poiKmAlongRoute,
+    segmentMeters: segmentMeters,
   );
   if (bounds == null) return null;
 
@@ -391,17 +437,60 @@ ElevationSegmentChartData? buildElevationSegmentChartData({
 
 /// トラック上で [point] に最も近いポイントのインデックスを返す。
 int nearestTrackIndex(List<LatLng> trackPoints, LatLng point) {
+  return nearestTrackIndexWith(trackPoints, point, distanceBetweenLatLng);
+}
+
+/// [segmentMeters] で隣接頂点間・各頂点と [point] の距離を測る最近傍頂点（isolate では Haversine など）。
+int nearestTrackIndexWith(
+  List<LatLng> trackPoints,
+  LatLng point,
+  double Function(LatLng a, LatLng b) segmentMeters,
+) {
   if (trackPoints.isEmpty) return 0;
   var bestIndex = 0;
-  var bestDist = distanceBetweenLatLng(trackPoints[0], point);
+  var bestDist = segmentMeters(trackPoints[0], point);
   for (var i = 1; i < trackPoints.length; i++) {
-    final d = distanceBetweenLatLng(trackPoints[i], point);
+    final d = segmentMeters(trackPoints[i], point);
     if (d < bestDist) {
       bestDist = d;
       bestIndex = i;
     }
   }
   return bestIndex;
+}
+
+/// ルート沿い累積距離が [km] km に最も近いトラック頂点のインデックス。
+/// 往復で同一地点付近が2回通るとき、[nearestTrackIndex] より正しい側を返す。
+int trackIndexNearestAlongRouteKm(
+  List<LatLng> trackPoints,
+  double km,
+  double Function(LatLng a, LatLng b) segmentMeters,
+) {
+  if (trackPoints.isEmpty) return 0;
+  if (trackPoints.length == 1) return 0;
+  var targetM = km * 1000.0;
+  if (targetM <= 0) return 0;
+  final n = trackPoints.length;
+  final cum = List<double>.filled(n, 0.0);
+  for (var i = 1; i < n; i++) {
+    cum[i] = cum[i - 1] + segmentMeters(trackPoints[i - 1], trackPoints[i]);
+  }
+  if (targetM >= cum.last) return n - 1;
+  var lo = 0;
+  var hi = n - 1;
+  while (lo < hi) {
+    final mid = (lo + hi + 1) ~/ 2;
+    if (cum[mid] <= targetM) {
+      lo = mid;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  final i0 = lo;
+  if (i0 >= n - 1) return n - 1;
+  final d0 = (targetM - cum[i0]).abs();
+  final d1 = (cum[i0 + 1] - targetM).abs();
+  return d0 <= d1 ? i0 : i0 + 1;
 }
 
 /// [fromIndex] から [toIndex] の区間の獲得標高をメートルで返す。
@@ -472,11 +561,12 @@ typedef ElevationSegmentChartInput = ({
   int poiIndex,
   int maxSamples,
   List<bool>? poiHasDistanceKm,
+  List<double?>? poiKmAlongRoute,
 });
 
 /// compute() で実行するグラフデータ構築。[buildElevationSegmentChartData] の薄いラッパー。
 ElevationSegmentChartData? computeElevationSegmentChartData(
-    ElevationSegmentChartInput input) {
+  ElevationSegmentChartInput input) {
   return buildElevationSegmentChartData(
     trackPoints: input.trackPoints,
     elevations: input.elevations,
@@ -484,6 +574,8 @@ ElevationSegmentChartData? computeElevationSegmentChartData(
     poiIndex: input.poiIndex,
     maxSamples: input.maxSamples,
     poiHasDistanceKm: input.poiHasDistanceKm,
+    poiKmAlongRoute: input.poiKmAlongRoute,
+    segmentMeters: _haversineMeters,
   );
 }
 
@@ -493,6 +585,7 @@ typedef PoiElevationGainInput = ({
   List<double?> elevations,
   List<LatLng> poiPositions,
   List<bool>? poiHasDistanceKm,
+  List<double?>? poiKmAlongRoute,
 });
 
 /// Haversine 式による2点間距離（メートル）。
@@ -510,17 +603,7 @@ double _haversineMeters(LatLng a, LatLng b) {
 }
 
 int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
-  if (trackPoints.isEmpty) return 0;
-  var bestIndex = 0;
-  var bestDist = _haversineMeters(trackPoints[0], point);
-  for (var i = 1; i < trackPoints.length; i++) {
-    final d = _haversineMeters(trackPoints[i], point);
-    if (d < bestDist) {
-      bestDist = d;
-      bestIndex = i;
-    }
-  }
-  return bestIndex;
+  return nearestTrackIndexWith(trackPoints, point, _haversineMeters);
 }
 
 /// compute() で実行する獲得標高・獲得下降計算。
@@ -540,13 +623,22 @@ int _nearestTrackIndexIsolate(List<LatLng> trackPoints, LatLng point) {
   }
   final hasKm = input.poiHasDistanceKm;
   final useKm = hasKm != null && hasKm.length == n;
+  final kmRow = input.poiKmAlongRoute;
+  final kmAligned = kmRow != null && kmRow.length == n;
+
+  int trackIndexForPoi(int i) {
+    if (i == poiPositions.length - 1) return trackPoints.length - 1;
+    if (useKm && kmAligned && hasKm[i]) {
+      final k = kmRow[i];
+      if (k != null && k.isFinite && k >= 0) {
+        return trackIndexNearestAlongRouteKm(trackPoints, k, _haversineMeters);
+      }
+    }
+    return _nearestTrackIndexIsolate(trackPoints, poiPositions[i]);
+  }
 
   final indices = [
-    for (var i = 0; i < poiPositions.length; i++)
-      // 最終 POI（ゴール）は地理的近傍でなくトラック末尾を使う（折り返しルートで近傍が先頭付近になる誤りを防ぐ）
-      i == poiPositions.length - 1
-          ? trackPoints.length - 1
-          : _nearestTrackIndexIsolate(trackPoints, poiPositions[i]),
+    for (var i = 0; i < poiPositions.length; i++) trackIndexForPoi(i),
   ];
   final gains = <double?>[];
   final losses = <double?>[];
