@@ -144,6 +144,11 @@ class PoiMapDetailSheetController {
         !timeLimitHours.isFinite) {
       return null;
     }
+    // 経過時間の意味を持たせるため、スタート以外は到着が無いときチャートを出さない。
+    // スタートは出発のみ設定が通常のため例外。
+    if (!isRouteStartPoi && arrival == null) {
+      return null;
+    }
     final axisTickStepHours = brevetTimeChartAxisTickStepHours(
       timeLimitHours,
       routeKm: routeKm,
