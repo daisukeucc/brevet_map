@@ -33,6 +33,7 @@ import '../handlers/location_sharing_handler.dart';
 import '../handlers/settings_menu_handler.dart';
 import '../handlers/share_handler.dart';
 import '../handlers/battery_display_handler.dart';
+import '../handlers/check_in_settings_handler.dart';
 import '../handlers/sleep_settings_handler.dart';
 import '../handlers/share_url_handler.dart';
 import '../handlers/subscription_handler.dart';
@@ -142,6 +143,11 @@ class _MyHomePageState extends ConsumerState<MyHomePage>
     loadBatteryDisplay().then((value) {
       if (!mounted) return;
       ref.read(batteryDisplayProvider.notifier).state = value;
+    });
+
+    loadCheckInVerifyLocation().then((value) {
+      if (!mounted) return;
+      ref.read(checkInVerifyLocationProvider.notifier).state = value;
     });
 
     loadDistanceUnit().then((unit) {

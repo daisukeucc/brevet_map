@@ -122,6 +122,7 @@ mixin _BuildMixin
             onLanguageTap: () => showLanguageSelectionFlow(context, ref),
             onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
             onLocationSharingTap: () => shareCurrentLocation(context),
+            onCheckInTap: () => showCheckInSettingsDialog(context, ref),
             onContactUsTap: () => openContactEmail(context),
             onSubscriptionTap: () => showSubscriptionDialog(context),
             onAboutAppTap: () => showAboutAppScreen(context),

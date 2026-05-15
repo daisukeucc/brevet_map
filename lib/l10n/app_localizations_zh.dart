@@ -467,6 +467,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get locationSharing => '位置共享';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '验证位置';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '不验证位置';
+
+  @override
   String get aboutApp => '关于本应用';
 
   @override
@@ -1134,6 +1143,15 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get locationSharing => '位置分享';
+
+  @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '驗證位置';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '不驗證位置';
 
   @override
   String get aboutApp => '關於本應用程式';

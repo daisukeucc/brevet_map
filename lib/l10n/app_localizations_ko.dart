@@ -474,6 +474,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get locationSharing => '위치 정보 공유';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '위치 확인';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '위치 확인 안 함';
+
+  @override
   String get aboutApp => '이 앱에 대해';
 
   @override

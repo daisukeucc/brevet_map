@@ -977,6 +977,24 @@ abstract class AppLocalizations {
   /// **'Location Sharing'**
   String get locationSharing;
 
+  /// No description provided for @checkInSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get checkInSettingsTitle;
+
+  /// No description provided for @checkInVerifyLocationRadioOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify location'**
+  String get checkInVerifyLocationRadioOn;
+
+  /// No description provided for @checkInVerifyLocationRadioOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t verify location'**
+  String get checkInVerifyLocationRadioOff;
+
   /// No description provided for @aboutApp.
   ///
   /// In en, this message translates to:

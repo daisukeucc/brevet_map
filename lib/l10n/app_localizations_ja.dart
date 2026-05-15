@@ -473,6 +473,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locationSharing => '位置情報の共有';
 
   @override
+  String get checkInSettingsTitle => 'チェックイン';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '位置情報をチェックする';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '位置情報をチェックしない';
+
+  @override
   String get aboutApp => 'このアプリについて';
 
   @override

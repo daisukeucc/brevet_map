@@ -479,6 +479,15 @@ class AppLocalizationsTh extends AppLocalizations {
   String get locationSharing => 'แชร์ตำแหน่ง';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => 'ตรวจสอบตำแหน่ง';
+
+  @override
+  String get checkInVerifyLocationRadioOff => 'ไม่ตรวจสอบตำแหน่ง';
+
+  @override
   String get aboutApp => 'เกี่ยวกับแอปนี้';
 
   @override

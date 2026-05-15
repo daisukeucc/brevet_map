@@ -472,6 +472,7 @@ bool _poiCheckInToggleOnFromResultUtc(DateTime? resultUtc) => resultUtc != null;
 Future<void> _runPoiCheckInToggleTap({
   required BuildContext context,
   required LatLng poiPosition,
+  required bool verifyLocationOnCheckIn,
   required bool turnOn,
   required PoiSheetTimeChart? timeChart,
   required void Function(double targetElapsedHours)?
@@ -481,6 +482,15 @@ Future<void> _runPoiCheckInToggleTap({
 }) async {
   if (turnOn) {
     if (onCommit == null) return;
+    if (!verifyLocationOnCheckIn) {
+      await _showPoiCheckInConfirmDialog(
+        context,
+        onCheckIn: onCommit,
+        timeChart: timeChart,
+        onBeginCheckInChartAnimation: onBeginCheckInChartAnimation,
+      );
+      return;
+    }
     await _beginPoiCheckInFlowWithLocation(
       context: context,
       poiPosition: poiPosition,
@@ -1027,6 +1037,7 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
 void showPoiDetailSheet(
   BuildContext context, {
   required List<PoiSheetEntry> entries,
+  required bool verifyLocationOnCheckIn,
   int initialIndex = 0,
   void Function(LatLng position)? onCenterOnPoi,
 }) {
@@ -1043,6 +1054,7 @@ void showPoiDetailSheet(
         return _PoiDetailSheetNavigate(
           entries: entries,
           initialIndex: safeInitial,
+          verifyLocationOnCheckIn: verifyLocationOnCheckIn,
           onCenterOnPoi: onCenterOnPoi,
         );
       }
@@ -1064,6 +1076,7 @@ void showPoiDetailSheet(
         isRouteStartPoi: entries.first.isRouteStartPoi,
         checkInResultUtc: entries.first.checkInResultUtc,
         onCheckIn: entries.first.onCheckIn,
+        verifyLocationOnCheckIn: verifyLocationOnCheckIn,
       );
     },
   );
@@ -1088,6 +1101,7 @@ class _PoiDetailSheetBody extends StatefulWidget {
     this.isRouteStartPoi = true,
     this.checkInResultUtc,
     this.onCheckIn,
+    required this.verifyLocationOnCheckIn,
   });
 
   final String? name;
@@ -1109,6 +1123,9 @@ class _PoiDetailSheetBody extends StatefulWidget {
   /// [BmSchedule.result] と同一。[PoiSheetEntry.checkInResultUtc] から渡す。
   final DateTime? checkInResultUtc;
   final Future<void> Function(DateTime checkInUtc)? onCheckIn;
+
+  /// false のときチェックインONで位置を取得せず確認ダイアログのみ。
+  final bool verifyLocationOnCheckIn;
 
   @override
   State<_PoiDetailSheetBody> createState() => _PoiDetailSheetBodyState();
@@ -1218,6 +1235,7 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                   onCommitCheckInForEntry: widget.onCheckIn == null
                       ? null
                       : (_, utc) => _wrapCommitCheckIn(utc),
+                  verifyLocationOnCheckIn: widget.verifyLocationOnCheckIn,
                   contentLayoutMaxWidth: constraints.maxWidth,
                   sheetPadding: sheetPadding,
                   distanceLeft: distanceLeft,
@@ -1236,11 +1254,13 @@ class _PoiDetailSheetNavigate extends StatefulWidget {
   const _PoiDetailSheetNavigate({
     required this.entries,
     required this.initialIndex,
+    required this.verifyLocationOnCheckIn,
     this.onCenterOnPoi,
   });
 
   final List<PoiSheetEntry> entries;
   final int initialIndex;
+  final bool verifyLocationOnCheckIn;
   final void Function(LatLng position)? onCenterOnPoi;
 
   @override
@@ -1391,6 +1411,8 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                         utc,
                                   );
                                 },
+                          verifyLocationOnCheckIn:
+                              widget.verifyLocationOnCheckIn,
                           contentLayoutMaxWidth: expandedW,
                           sheetPadding: sheetPadding,
                           distanceLeft: distanceLeft,
@@ -1481,6 +1503,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.checkInTapEntryIndex = 0,
     this.checkInResultUtc,
     this.onCommitCheckInForEntry,
+    required this.verifyLocationOnCheckIn,
   });
 
   final String? name;
@@ -1517,6 +1540,9 @@ class _PoiContentBlock extends StatelessWidget {
   /// チェックイン確定（トグル OFF→ON のみ。ON 済みは無効のまま）。
   final Future<void> Function(int entryIndex, DateTime utc)?
       onCommitCheckInForEntry;
+
+  /// false のとき位置取得・距離判定を省略し確認ダイアログのみ。
+  final bool verifyLocationOnCheckIn;
 
   String _formatTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
@@ -1696,6 +1722,8 @@ class _PoiContentBlock extends StatelessWidget {
                                       _runPoiCheckInToggleTap(
                                         context: context,
                                         poiPosition: poiPosition,
+                                        verifyLocationOnCheckIn:
+                                            verifyLocationOnCheckIn,
                                         turnOn: true,
                                         timeChart: timeChart,
                                         onBeginCheckInChartAnimation:

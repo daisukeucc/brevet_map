@@ -294,6 +294,8 @@ class PoiMapDetailSheetController {
       showPoiDetailSheet(
         context,
         entries: entries,
+        verifyLocationOnCheckIn:
+            _ref.read(checkInVerifyLocationProvider),
         initialIndex: safeIdx,
         onCenterOnPoi: (pos) {
           animateToPoiPreservingZoom(pos);
@@ -346,6 +348,7 @@ class PoiMapDetailSheetController {
             isRouteStartPoi: isStart,
           ),
         ],
+        verifyLocationOnCheckIn: _ref.read(checkInVerifyLocationProvider),
       );
     }
   }
@@ -459,6 +462,8 @@ class PoiMapDetailSheetController {
       showPoiDetailSheet(
         context,
         entries: entries,
+        verifyLocationOnCheckIn:
+            _ref.read(checkInVerifyLocationProvider),
         initialIndex: safeIdx,
         onCenterOnPoi: (pos) {
           animateToPoiPreservingZoom(pos);
@@ -527,6 +532,7 @@ class PoiMapDetailSheetController {
             },
           ),
         ],
+        verifyLocationOnCheckIn: _ref.read(checkInVerifyLocationProvider),
       );
     }
   }

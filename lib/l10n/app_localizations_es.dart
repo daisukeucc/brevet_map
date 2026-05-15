@@ -482,6 +482,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get locationSharing => 'Compartir ubicación';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => 'Verificar ubicación';
+
+  @override
+  String get checkInVerifyLocationRadioOff => 'No verificar ubicación';
+
+  @override
   String get aboutApp => 'Acerca de la aplicación';
 
   @override

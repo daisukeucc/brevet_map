@@ -484,6 +484,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get locationSharing => 'Partage de position';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => 'Vérifier la position';
+
+  @override
+  String get checkInVerifyLocationRadioOff => 'Ne pas vérifier la position';
+
+  @override
   String get aboutApp => 'À propos de l\'application';
 
   @override
