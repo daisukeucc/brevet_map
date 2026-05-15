@@ -6,6 +6,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:latlong2/latlong.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
@@ -2522,9 +2523,11 @@ class _TimePickerRow extends StatelessWidget {
       color: readOnly ? AppColors.mutedLight : Colors.black87,
     );
     final local = dateTime?.toLocal();
-    final dateText = local != null ? '${local.month}/${local.day}' : null;
+    final locale = Localizations.localeOf(context).toString();
+    final dateText =
+        local != null ? DateFormat.Md(locale).format(local) : null;
     final timeText = local != null
-        ? '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}'
+        ? DateFormat('H:mm', locale).format(local)
         : '--:--';
     final dateTimeChip = Row(
       mainAxisSize: MainAxisSize.min,

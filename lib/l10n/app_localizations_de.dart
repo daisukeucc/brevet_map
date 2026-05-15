@@ -149,7 +149,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get plannedClose => 'Schlusszeit';
 
   @override
-  String get poiArrivalActual => 'Tatsächliche Ankunft';
+  String get poiArrivalActual => 'Ist-Ankunft';
 
   @override
   String get arrivalShort => 'Ankunft';

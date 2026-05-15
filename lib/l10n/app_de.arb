@@ -52,7 +52,7 @@
   "plannedArrival": "Ankunft",
   "plannedDeparture": "Abfahrt",
   "plannedClose": "Schlusszeit",
-  "poiArrivalActual": "Tatsächliche Ankunft",
+  "poiArrivalActual": "Ist-Ankunft",
   "arrivalShort": "Ankunft",
   "departureShort": "Abfahrt",
   "distance": "Distanz",
