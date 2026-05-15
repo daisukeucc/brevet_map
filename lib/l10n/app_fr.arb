@@ -319,5 +319,10 @@
   "releaseNotesV12019Message": "Dans la version 1.2, les informations POI ont été largement enrichies !\nToutes les fonctionnalités sont débloquées dans cette version, alors n'hésitez pas à l'essayer !\n\n- Nouveaux types de POI : contrôle photo, commerces, etc.\n- Champ lien URL dans les informations POI\n- Profil altimétrique entre les points de contrôle\n- Heures d'arrivée estimées automatiques aux points de contrôle",
   "poiSaveAsNote": "Enregistrer comme note",
   "brevetTimeLimitLabel": "Limite de temps",
-  "poiCheckInConfirmMessage": "Enregistrer le passage ?"
+  "poiCheckInConfirmMessage": "Enregistrer le passage ?",
+  "poiCheckInTooFarFromPoi": "Pour enregistrer ce passage, votre position doit se situer à moins de {thresholdKm} km de ce POI.",
+  "poiCheckInFetchingLocation": "Récupération de la position…",
+  "poiCheckInNotAvailableTitle": "Passage impossible",
+  "poiCheckInLocationAcquireFailedTitle": "Impossible d’obtenir la position",
+  "poiCheckInLocationUnavailableDetail": "Impossible d’obtenir votre position actuelle. Réessayez si possible en extérieur ou vérifiez le GPS, le menu Position du terminal et les autorisations de l’application."
 }

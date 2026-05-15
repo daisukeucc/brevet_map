@@ -308,5 +308,10 @@
   "releaseNotesV12019Message": "ver1.2ではPOI情報を大幅に拡充しました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！\n\n- POI種別にフォトチェックやコンビニ等を追加\n- POI情報にURLリンク項目を追加\n- PC間の標高グラフ表示\n- PC到着予想時刻の自動設定",
   "poiSaveAsNote": "メモとして保存",
   "brevetTimeLimitLabel": "制限時間",
-  "poiCheckInConfirmMessage": "チェックインしますか？"
+  "poiCheckInConfirmMessage": "チェックインしますか？",
+  "poiCheckInTooFarFromPoi": "チェックインするには、このPOIの{thresholdKm}km以内の位置にいる必要があります。",
+  "poiCheckInFetchingLocation": "位置情報を取得しています…",
+  "poiCheckInNotAvailableTitle": "チェックインできません",
+  "poiCheckInLocationAcquireFailedTitle": "位置情報を取得できませんでした",
+  "poiCheckInLocationUnavailableDetail": "現在地を取得できませんでした。屋外などで再度お試しいただくか、GPSおよび端末設定の「位置情報」やアプリの権限を確認してください。"
 }

@@ -651,4 +651,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get poiCheckInConfirmMessage => '체크인하시겠습니까?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return '체크인하려면 이 POI에서 ${thresholdKm}km 이내에 있어야 합니다.';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => '위치 정보를 가져오는 중…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => '체크인할 수 없습니다';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => '위치 정보를 가져올 수 없습니다';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      '현재 위치를 가져오지 못했습니다. 가능하면 실외에서 다시 시도하거나, GPS와 단말 설정의 위치 정보 및 앱 권한을 확인해 주세요.';
 }

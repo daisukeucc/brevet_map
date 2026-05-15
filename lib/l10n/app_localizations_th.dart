@@ -666,4 +666,22 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get poiCheckInConfirmMessage => 'ต้องการเช็คอินหรือไม่?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'การเช็คอินได้เมื่อคุณอยู่ภายในระยะไม่เกิน $thresholdKm กม. จาก POI จุดนี้';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => 'กำลังรับข้อมูลตำแหน่ง…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'ไม่สามารถเช็คอินได้';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => 'ไม่สามารถรับตำแหน่งได้';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      'รับข้อมูลตำแหน่งปัจจุบันของคุณไม่ได้ ลองอีกครั้งในกลางแจ้งหากเป็นไปได้ หรือตรวจสอบ GPS การตั้งค่า «ตำแหน่ง» ในอุปกรณ์ และสิทธิ์ของแอป';
 }

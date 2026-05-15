@@ -319,5 +319,10 @@
   "releaseNotesV12019Message": "En la versión 1.2, la información de los POI se ha ampliado considerablemente.\nTodas las funciones están desbloqueadas en esta versión, ¡pruébalas!\n\n- Nuevos tipos de POI: controles con foto, tiendas, etc.\n- Campo de enlace URL en la información del POI\n- Gráfico de elevación entre puntos de control\n- Horas de llegada estimadas automáticas en los puntos de control",
   "poiSaveAsNote": "Guardar como nota",
   "brevetTimeLimitLabel": "Límite de tiempo",
-  "poiCheckInConfirmMessage": "¿Registrar check-in?"
+  "poiCheckInConfirmMessage": "¿Registrar check-in?",
+  "poiCheckInTooFarFromPoi": "Para hacer check-in debes estar a menos de {thresholdKm} km de este POI.",
+  "poiCheckInFetchingLocation": "Obteniendo ubicación…",
+  "poiCheckInNotAvailableTitle": "No se puede hacer check-in",
+  "poiCheckInLocationAcquireFailedTitle": "No se pudo obtener la ubicación",
+  "poiCheckInLocationUnavailableDetail": "No se ha podido obtener tu ubicación actual. Intenta de nuevo al aire libre si puedes o revisa el GPS, la ubicación en los ajustes del terminal y los permisos de la aplicación."
 }

@@ -669,4 +669,23 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get poiCheckInConfirmMessage => '¿Registrar check-in?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'Para hacer check-in debes estar a menos de $thresholdKm km de este POI.';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => 'Obteniendo ubicación…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'No se puede hacer check-in';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle =>
+      'No se pudo obtener la ubicación';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      'No se ha podido obtener tu ubicación actual. Intenta de nuevo al aire libre si puedes o revisa el GPS, la ubicación en los ajustes del terminal y los permisos de la aplicación.';
 }

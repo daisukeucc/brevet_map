@@ -319,5 +319,10 @@
   "releaseNotesV12019Message": "버전 1.2에서 POI 정보를 대폭 확장했습니다!\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!\n\n- POI 유형에 포토 체크·편의점 등 추가\n- POI 정보에 URL 링크 항목 추가\n- 체크포인트 구간의 고도 그래프 표시\n- 체크포인트 도착 예정 시각 자동 설정",
   "poiSaveAsNote": "메모로 저장",
   "brevetTimeLimitLabel": "제한 시간",
-  "poiCheckInConfirmMessage": "체크인하시겠습니까?"
+  "poiCheckInConfirmMessage": "체크인하시겠습니까?",
+  "poiCheckInTooFarFromPoi": "체크인하려면 이 POI에서 {thresholdKm}km 이내에 있어야 합니다.",
+  "poiCheckInFetchingLocation": "위치 정보를 가져오는 중…",
+  "poiCheckInNotAvailableTitle": "체크인할 수 없습니다",
+  "poiCheckInLocationAcquireFailedTitle": "위치 정보를 가져올 수 없습니다",
+  "poiCheckInLocationUnavailableDetail": "현재 위치를 가져오지 못했습니다. 가능하면 실외에서 다시 시도하거나, GPS와 단말 설정의 위치 정보 및 앱 권한을 확인해 주세요."
 }

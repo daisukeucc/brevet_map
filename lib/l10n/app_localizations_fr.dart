@@ -671,4 +671,23 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get poiCheckInConfirmMessage => 'Enregistrer le passage ?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'Pour enregistrer ce passage, votre position doit se situer à moins de $thresholdKm km de ce POI.';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => 'Récupération de la position…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'Passage impossible';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle =>
+      'Impossible d’obtenir la position';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      'Impossible d’obtenir votre position actuelle. Réessayez si possible en extérieur ou vérifiez le GPS, le menu Position du terminal et les autorisations de l’application.';
 }

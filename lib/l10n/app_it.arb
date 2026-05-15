@@ -319,5 +319,10 @@
   "releaseNotesV12019Message": "Nella versione 1.2 le informazioni sui POI sono state ampliate in modo significativo!\nTutte le funzionalità sono sbloccate in questa versione, provala!\n\n- Nuovi tipi di POI: controllo foto, negozi, ecc.\n- Campo link URL nelle informazioni POI\n- Grafico altimetrico tra i punti di controllo\n- Orari di arrivo stimati automatici ai punti di controllo",
   "poiSaveAsNote": "Salva come nota",
   "brevetTimeLimitLabel": "Limite di tempo",
-  "poiCheckInConfirmMessage": "Effettuare il check-in?"
+  "poiCheckInConfirmMessage": "Effettuare il check-in?",
+  "poiCheckInTooFarFromPoi": "Per effettuare il check-in è necessario trovarsi entro {thresholdKm} km da questo POI.",
+  "poiCheckInFetchingLocation": "Recupero della posizione…",
+  "poiCheckInNotAvailableTitle": "Check-in non disponibile",
+  "poiCheckInLocationAcquireFailedTitle": "Impossibile ottenere la posizione",
+  "poiCheckInLocationUnavailableDetail": "Non è stato possibile ottenere la tua posizione attuale. Riprova se puoi all’aperto oppure verifica il GPS, la voce «Posizione» nelle impostazioni del dispositivo e le autorizzazioni dell’app."
 }

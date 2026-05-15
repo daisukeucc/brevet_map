@@ -331,5 +331,19 @@
   "@brevetTimeLimitLabel": {
     "description": "Label for brevet time limit hours on the start POI elevation dialog (shown before a colon and the hours value)."
   },
-  "poiCheckInConfirmMessage": "Check in?"
+  "poiCheckInConfirmMessage": "Check in?",
+  "poiCheckInTooFarFromPoi": "To check in, you must be within {thresholdKm} km of this POI.",
+  "@poiCheckInTooFarFromPoi": {
+    "description": "Body text when GPS shows the device is farther than the allowed radius ({thresholdKm} km) from the POI.",
+    "placeholders": {
+      "thresholdKm": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "poiCheckInFetchingLocation": "Getting location…",
+  "poiCheckInNotAvailableTitle": "Cannot check in",
+  "poiCheckInLocationAcquireFailedTitle": "Could not get location",
+  "poiCheckInLocationUnavailableDetail": "Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions."
 }

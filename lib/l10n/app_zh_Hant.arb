@@ -318,5 +318,10 @@
   "releaseNotesV12019Message": "1.2 版本大幅擴充了 POI 資訊！\n此版本已開放所有功能，歡迎體驗！\n\n- 新增 POI 類型：拍照檢查點、便利商店等\n- POI 資訊新增 URL 連結欄位\n- 檢查點之間的標高圖表顯示\n- 檢查點預計抵達時間自動設定",
   "poiSaveAsNote": "儲存為備註",
   "brevetTimeLimitLabel": "限制時間",
-  "poiCheckInConfirmMessage": "要簽到嗎？"
+  "poiCheckInConfirmMessage": "要簽到嗎？",
+  "poiCheckInTooFarFromPoi": "簽到時須位於此 POI {thresholdKm} 公里以內的位置。",
+  "poiCheckInFetchingLocation": "正在取得位置…",
+  "poiCheckInNotAvailableTitle": "無法簽到",
+  "poiCheckInLocationAcquireFailedTitle": "無法取得位置",
+  "poiCheckInLocationUnavailableDetail": "無法取得現在地。請在室外等環境重試；並請確認 GPS，以及終端設定中的「位置資訊」與應用程式的相關權限。"
 }

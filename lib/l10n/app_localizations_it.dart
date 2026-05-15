@@ -668,4 +668,23 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get poiCheckInConfirmMessage => 'Effettuare il check-in?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'Per effettuare il check-in è necessario trovarsi entro $thresholdKm km da questo POI.';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => 'Recupero della posizione…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'Check-in non disponibile';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle =>
+      'Impossibile ottenere la posizione';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      'Non è stato possibile ottenere la tua posizione attuale. Riprova se puoi all’aperto oppure verifica il GPS, la voce «Posizione» nelle impostazioni del dispositivo e le autorizzazioni dell’app.';
 }

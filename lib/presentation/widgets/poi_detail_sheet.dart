@@ -3,16 +3,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:latlong2/latlong.dart' show LatLng;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../domain/services/location_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/connectivity_check.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart' show AppColors, AppTextStyles;
 import '../utils/snackbar_utils.dart';
-import 'confirm_dialog.dart';
 
 /// POIシートタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
 class PoiElevationOnDemand {
@@ -58,6 +59,33 @@ String? _formatElevationChartTimeLimitHours(double? hours) {
 
 /// [_PoiDetailSheetNavigate] 右列（前後 POI）と同一幅。
 const double _poiDetailSheetNavigateColumnWidth = 50;
+
+/// POI チェックイン時、現在地と POI の直線距離がこの値（km）以内であることを要求する。
+/// デバッグで緩めたい場合は 10.0 などに変更する。
+const double kPoiCheckInProximityThresholdKm = 1.0;
+
+String _poiCheckInProximityThresholdKmDisplay(double km) {
+  if (km == km.roundToDouble()) return km.toInt().toString();
+  return km.toStringAsFixed(1);
+}
+
+/// チェックイン系ダイアログ本文の行の高さ（[AppTextStyles.body] の fontSize に対する倍率）。
+const double _poiCheckInDialogBodyLineHeight = 2;
+
+const EdgeInsets _poiCheckInDialogTitlePadding =
+    EdgeInsets.fromLTRB(24, 30, 24, 20);
+const EdgeInsets _poiCheckInDialogContentPadding =
+    EdgeInsets.fromLTRB(24, 0, 24, 0);
+const EdgeInsets _poiCheckInDialogActionsPadding =
+    EdgeInsets.fromLTRB(24, 0, 24, 24);
+
+final TextStyle _poiCheckInDialogBodyStyle =
+    AppTextStyles.body.copyWith(height: _poiCheckInDialogBodyLineHeight);
+
+Widget _poiCheckInDialogTitle(String title) => Text(
+      title,
+      style: AppTextStyles.headlineMedium,
+    );
 
 /// ブルベスタートからの経過時間チャート（POI 本文シートより上の領域に表示。横軸目盛り間隔は [PoiSheetTimeChart.axisTickStepHours]）。
 class PoiSheetTimeChart {
@@ -439,11 +467,11 @@ class PoiSheetEntry {
 }
 
 /// チェックイントグル：[BmSchedule.result] の有無のみで ON/OFF（保存しているかどうか）。
-bool _poiCheckInToggleOnFromResultUtc(DateTime? resultUtc) =>
-    resultUtc != null;
+bool _poiCheckInToggleOnFromResultUtc(DateTime? resultUtc) => resultUtc != null;
 
 Future<void> _runPoiCheckInToggleTap({
   required BuildContext context,
+  required LatLng poiPosition,
   required bool turnOn,
   required PoiSheetTimeChart? timeChart,
   required void Function(double targetElapsedHours)?
@@ -453,15 +481,198 @@ Future<void> _runPoiCheckInToggleTap({
 }) async {
   if (turnOn) {
     if (onCommit == null) return;
-    await _showPoiCheckInConfirmDialog(
-      context,
-      onCheckIn: onCommit,
+    await _beginPoiCheckInFlowWithLocation(
+      context: context,
+      poiPosition: poiPosition,
       timeChart: timeChart,
       onBeginCheckInChartAnimation: onBeginCheckInChartAnimation,
+      onCommit: onCommit,
     );
     return;
   }
   await onClear?.call();
+}
+
+Future<void> _beginPoiCheckInFlowWithLocation({
+  required BuildContext context,
+  required LatLng poiPosition,
+  required PoiSheetTimeChart? timeChart,
+  required void Function(double targetElapsedHours)?
+      onBeginCheckInChartAnimation,
+  required Future<void> Function(DateTime utc) onCommit,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 48, vertical: 40),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+        content: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Text(
+                l10n.poiCheckInFetchingLocation,
+                style: AppTextStyles.body
+                    .copyWith(height: _poiCheckInDialogBodyLineHeight),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  late final PoiCheckInLocationResolveResult resolveResult;
+  try {
+    resolveResult = await resolvePositionForPoiCheckIn();
+  } finally {
+    if (context.mounted) Navigator.of(context).pop();
+  }
+
+  if (!context.mounted) return;
+
+  switch (resolveResult) {
+    case PoiCheckInLocationResolved(:final position):
+      final distanceM = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        poiPosition.latitude,
+        poiPosition.longitude,
+      );
+      const thresholdM = kPoiCheckInProximityThresholdKm * 1000;
+      if (distanceM > thresholdM) {
+        await _showPoiCheckInBlockedTooFarDialog(context);
+        return;
+      }
+      await _showPoiCheckInConfirmDialog(
+        context,
+        onCheckIn: onCommit,
+        timeChart: timeChart,
+        onBeginCheckInChartAnimation: onBeginCheckInChartAnimation,
+      );
+    case PoiCheckInLocationFailed(:final reason):
+      await _showPoiCheckInLocationFailureDialog(context, reason);
+  }
+}
+
+Future<void> _showPoiCheckInOkOnlyAlert(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String okLabel,
+}) async {
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      titlePadding: _poiCheckInDialogTitlePadding,
+      contentPadding: _poiCheckInDialogContentPadding,
+      actionsPadding: _poiCheckInDialogActionsPadding,
+      title: _poiCheckInDialogTitle(title),
+      content: Text(message, style: _poiCheckInDialogBodyStyle),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(okLabel, style: AppTextStyles.button),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _showPoiCheckInBlockedTooFarDialog(BuildContext context) async {
+  final l10n = AppLocalizations.of(context)!;
+  await _showPoiCheckInOkOnlyAlert(
+    context,
+    title: l10n.poiCheckInNotAvailableTitle,
+    message: l10n.poiCheckInTooFarFromPoi(
+      _poiCheckInProximityThresholdKmDisplay(kPoiCheckInProximityThresholdKm),
+    ),
+    okLabel: l10n.ok,
+  );
+}
+
+Future<void> _showPoiCheckInLocationFailureDialog(
+  BuildContext context,
+  PoiCheckInLocationFailReason reason,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final title = l10n.poiCheckInLocationAcquireFailedTitle;
+
+  final (
+    String message,
+    bool offerSettings,
+    Future<void> Function()? launchSettings
+  ) = switch (reason) {
+    PoiCheckInLocationFailReason.serviceOff => (
+        l10n.locationServiceOff,
+        true,
+        () async {
+          await Geolocator.openLocationSettings();
+        },
+      ),
+    PoiCheckInLocationFailReason.permissionDenied => (
+        l10n.locationPermissionDenied,
+        false,
+        null,
+      ),
+    PoiCheckInLocationFailReason.permissionDeniedForever => (
+        l10n.locationPermissionDeniedForever,
+        true,
+        () async {
+          await Geolocator.openAppSettings();
+        },
+      ),
+    PoiCheckInLocationFailReason.positionUnavailable => (
+        l10n.poiCheckInLocationUnavailableDetail,
+        false,
+        null,
+      ),
+  };
+
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      titlePadding: _poiCheckInDialogTitlePadding,
+      contentPadding: _poiCheckInDialogContentPadding,
+      actionsPadding: _poiCheckInDialogActionsPadding,
+      title: _poiCheckInDialogTitle(title),
+      content: Text(message, style: _poiCheckInDialogBodyStyle),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+        if (offerSettings && launchSettings != null)
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await launchSettings();
+            },
+            child: Text(l10n.openSettings, style: AppTextStyles.button),
+          ),
+      ],
+    ),
+  );
 }
 
 double? _effectiveElevationGainMeters({
@@ -522,11 +733,35 @@ Future<void> _showPoiCheckInConfirmDialog(
   void Function(double targetElapsedHours)? onBeginCheckInChartAnimation,
 }) async {
   final l10n = AppLocalizations.of(context)!;
-  final ok = await showConfirmDialog(
-    context,
-    message: l10n.poiCheckInConfirmMessage,
-    cancelText: l10n.cancel,
-    confirmText: l10n.ok,
+  final compactButtonStyle = ButtonStyle(
+    minimumSize: WidgetStateProperty.all(Size.zero),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  );
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+      actionsPadding: _poiCheckInDialogActionsPadding,
+      content: Text(
+        l10n.poiCheckInConfirmMessage,
+        style: _poiCheckInDialogBodyStyle,
+      ),
+      actions: [
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(l10n.cancel, style: AppTextStyles.button),
+        ),
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(ctx, true),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+      ],
+    ),
   );
   if (ok != true) return;
   if (!context.mounted) return;
@@ -817,6 +1052,7 @@ void showPoiDetailSheet(
         elevationGain: entries.first.elevationGain,
         description: entries.first.description,
         url: entries.first.url,
+        position: entries.first.position,
         arrival: entries.first.arrival,
         departure: entries.first.departure,
         close: entries.first.close,
@@ -840,6 +1076,7 @@ class _PoiDetailSheetBody extends StatefulWidget {
     required this.elevationGain,
     required this.description,
     this.url,
+    required this.position,
     this.arrival,
     this.departure,
     this.close,
@@ -858,6 +1095,7 @@ class _PoiDetailSheetBody extends StatefulWidget {
   final String? elevationGain;
   final String? description;
   final String? url;
+  final LatLng position;
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
@@ -867,6 +1105,7 @@ class _PoiDetailSheetBody extends StatefulWidget {
   final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
   final bool isRouteStartPoi;
+
   /// [BmSchedule.result] と同一。[PoiSheetEntry.checkInResultUtc] から渡す。
   final DateTime? checkInResultUtc;
   final Future<void> Function(DateTime checkInUtc)? onCheckIn;
@@ -961,6 +1200,7 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                   elevationGain: widget.elevationGain,
                   description: widget.description,
                   url: widget.url,
+                  poiPosition: widget.position,
                   arrival: widget.arrival,
                   departure: widget.departure,
                   close: widget.close,
@@ -1125,6 +1365,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                           elevationGain: e.elevationGain,
                           description: e.description,
                           url: e.url,
+                          poiPosition: e.position,
                           arrival: e.arrival,
                           departure: e.departure,
                           close: e.close,
@@ -1223,6 +1464,7 @@ class _PoiContentBlock extends StatelessWidget {
     required this.description,
     required this.contentLayoutMaxWidth,
     this.url,
+    required this.poiPosition,
     this.arrival,
     this.departure,
     this.close,
@@ -1246,6 +1488,7 @@ class _PoiContentBlock extends StatelessWidget {
   final String? elevationGain;
   final String? description;
   final String? url;
+  final LatLng poiPosition;
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
@@ -1439,8 +1682,8 @@ class _PoiContentBlock extends StatelessWidget {
                             }),
                           ),
                           child: Switch(
-                            value:
-                                _poiCheckInToggleOnFromResultUtc(checkInResultUtc),
+                            value: _poiCheckInToggleOnFromResultUtc(
+                                checkInResultUtc),
                             materialTapTargetSize:
                                 MaterialTapTargetSize.shrinkWrap,
                             onChanged: !_poiCheckInToggleOnFromResultUtc(
@@ -1452,6 +1695,7 @@ class _PoiContentBlock extends StatelessWidget {
                                     unawaited(
                                       _runPoiCheckInToggleTap(
                                         context: context,
+                                        poiPosition: poiPosition,
                                         turnOn: true,
                                         timeChart: timeChart,
                                         onBeginCheckInChartAnimation:

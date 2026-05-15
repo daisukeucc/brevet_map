@@ -1288,6 +1288,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check in?'**
   String get poiCheckInConfirmMessage;
+
+  /// Body text when GPS shows the device is farther than the allowed radius ({thresholdKm} km) from the POI.
+  ///
+  /// In en, this message translates to:
+  /// **'To check in, you must be within {thresholdKm} km of this POI.'**
+  String poiCheckInTooFarFromPoi(String thresholdKm);
+
+  /// No description provided for @poiCheckInFetchingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting location…'**
+  String get poiCheckInFetchingLocation;
+
+  /// No description provided for @poiCheckInNotAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot check in'**
+  String get poiCheckInNotAvailableTitle;
+
+  /// No description provided for @poiCheckInLocationAcquireFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get location'**
+  String get poiCheckInLocationAcquireFailedTitle;
+
+  /// No description provided for @poiCheckInLocationUnavailableDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.'**
+  String get poiCheckInLocationUnavailableDetail;
 }
 
 class _AppLocalizationsDelegate

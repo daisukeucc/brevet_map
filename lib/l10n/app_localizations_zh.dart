@@ -641,6 +641,24 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get poiCheckInConfirmMessage => '要签到吗？';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return '签到须位于该 POI $thresholdKm 公里以内的位置。';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => '正在获取位置…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => '无法签到';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => '无法获取位置';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      '无法获取当前位置。请在室外等场所重试；并检查 GPS，以及终端设置中的位置信息和应用权限。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1271,4 +1289,22 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get poiCheckInConfirmMessage => '要簽到嗎？';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return '簽到時須位於此 POI $thresholdKm 公里以內的位置。';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => '正在取得位置…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => '無法簽到';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => '無法取得位置';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      '無法取得現在地。請在室外等環境重試；並請確認 GPS，以及終端設定中的「位置資訊」與應用程式的相關權限。';
 }
