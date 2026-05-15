@@ -241,6 +241,8 @@ mixin _BuildMixin
     }
     final controller = ref.read(cameraControllerProvider);
     await ref.read(mapStateProvider.notifier).toggleMapStyle(controller);
+    // ColorFiltered 切替だけだとタイルがぼやけるため、デバッグ用 CARTO と同様に再マウントする
+    ref.read(mapTileProviderKeyProvider.notifier).state++;
   }
 
   Widget _buildBody(BuildContext context) {
