@@ -52,6 +52,7 @@
   "plannedArrival": "도착",
   "plannedDeparture": "출발",
   "plannedClose": "마감 시간",
+  "poiArrivalActual": "실제 도착",
   "arrivalShort": "도착",
   "departureShort": "출발",
   "distance": "거리",

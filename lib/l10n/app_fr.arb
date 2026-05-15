@@ -52,6 +52,7 @@
   "plannedArrival": "Arrivée",
   "plannedDeparture": "Départ",
   "plannedClose": "Heure limite",
+  "poiArrivalActual": "Arrivée réelle",
   "arrivalShort": "Arrivée",
   "departureShort": "Départ",
   "distance": "Distance",

@@ -52,6 +52,7 @@
   "plannedArrival": "到着予定",
   "plannedDeparture": "出発予定",
   "plannedClose": "クローズ",
+  "poiArrivalActual": "到着実績",
   "arrivalShort": "到着予定",
   "departureShort": "出発予定",
   "distance": "距離",

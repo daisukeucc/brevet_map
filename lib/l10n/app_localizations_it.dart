@@ -149,6 +149,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get plannedClose => 'Orario limite';
 
   @override
+  String get poiArrivalActual => 'Arrivo effettivo';
+
+  @override
   String get arrivalShort => 'Arrivo';
 
   @override

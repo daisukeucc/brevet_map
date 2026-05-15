@@ -383,6 +383,12 @@ abstract class AppLocalizations {
   /// **'Cutoff'**
   String get plannedClose;
 
+  /// No description provided for @poiArrivalActual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual arrival'**
+  String get poiArrivalActual;
+
   /// No description provided for @arrivalShort.
   ///
   /// In en, this message translates to:

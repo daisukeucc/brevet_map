@@ -148,6 +148,9 @@ class AppLocalizationsKo extends AppLocalizations {
   String get plannedClose => '마감 시간';
 
   @override
+  String get poiArrivalActual => '실제 도착';
+
+  @override
   String get arrivalShort => '도착';
 
   @override

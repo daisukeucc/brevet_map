@@ -148,6 +148,9 @@ class AppLocalizationsJa extends AppLocalizations {
   String get plannedClose => 'クローズ';
 
   @override
+  String get poiArrivalActual => '到着実績';
+
+  @override
   String get arrivalShort => '到着予定';
 
   @override

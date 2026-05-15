@@ -42,6 +42,7 @@ class AddPoiFormData {
     this.arrival,
     this.departure,
     this.close,
+    this.result,
     this.isNote = false,
   });
   final double? km;
@@ -52,6 +53,7 @@ class AddPoiFormData {
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
+  final DateTime? result;
   final bool isNote;
 }
 
@@ -116,12 +118,15 @@ UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
   );
 }
 
-/// 新規 POI の BmPoiExtension を生成する（arrival/departure/close が未指定なら null）
+/// 新規 POI の BmPoiExtension を生成する（schedule がすべて未指定なら null）
 Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   required AddPoiFormData data,
   double? km,
 }) async {
-  if (data.arrival == null && data.departure == null && data.close == null) {
+  if (data.arrival == null &&
+      data.departure == null &&
+      data.close == null &&
+      data.result == null) {
     return null;
   }
   return BmPoiExtension(
@@ -131,13 +136,14 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
       arrival: data.arrival,
       departure: data.departure,
       close: data.close,
+      result: data.result,
     ),
   );
 }
 
-/// 既存 POI の BmPoiExtension を更新する。arrival/departure/close を上書きし、result・type は保持する。
+/// 既存 POI の BmPoiExtension を更新する。arrival/departure/close/result を上書きする。
 /// 距離は編集フォーム（[AddPoiFormData.km]）を正とする。空欄なら [BmPoiExtension.distanceKm] は 0。
-/// EditPoiTextDialog は既存値で初期化されるため、data.arrival/departure/close が最終状態（null = クリア済み）。
+/// EditPoiTextDialog は既存値で初期化されるため、data の各フィールドが最終状態（null = クリア済み）。
 Future<BmPoiExtension?> _buildBmPoiExtForEdit({
   required AddPoiFormData data,
   BmPoiExtension? existing,
@@ -145,7 +151,8 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
   if (existing == null &&
       data.arrival == null &&
       data.departure == null &&
-      data.close == null) {
+      data.close == null &&
+      data.result == null) {
     return null;
   }
   return BmPoiExtension(
@@ -156,7 +163,7 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
       arrival: data.arrival,
       departure: data.departure,
       close: data.close,
-      result: existing?.schedule.result,
+      result: data.result,
     ),
   );
 }
@@ -1774,6 +1781,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   DateTime? _arrival;
   DateTime? _departure;
   DateTime? _close;
+  DateTime? _result;
   bool _saving = false;
   bool _isNote = false;
 
@@ -1874,6 +1882,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       if (value) {
         _arrival = null;
         _departure = null;
+        _result = null;
       }
     });
   }
@@ -1910,6 +1919,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _departure = poi.bmExt?.schedule.departure;
     _maybeAutofillScheduleFromDistance(poi);
     _close = poi.bmExt?.schedule.close;
+    _result = poi.bmExt?.schedule.result;
     _kmError = null;
     _isNote = poi.isNote;
   }
@@ -2072,6 +2082,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (!_sameDtMinute(_close, _currentPoi.bmExt?.schedule.close)) {
       return true;
     }
+    if (!_sameDtMinute(_result, _currentPoi.bmExt?.schedule.result)) {
+      return true;
+    }
 
     return false;
   }
@@ -2103,6 +2116,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       arrival: _arrival,
       departure: _departure,
       close: _close,
+      result: _result,
       isNote: _isNote,
     );
   }
@@ -2387,7 +2401,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 _TimePickerRow(
                   label: l10n.plannedArrival,
                   dateTime: _arrival,
-                  onTap: () => _pickDateTime(
+                  onPick: () => _pickDateTime(
                     current: _arrival,
                     onPicked: (dt) {
                       _arrival = dt;
@@ -2400,7 +2414,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 _TimePickerRow(
                   label: l10n.plannedDeparture,
                   dateTime: _departure,
-                  onTap: () => _pickDateTime(
+                  onPick: () => _pickDateTime(
                     current: _departure ?? _arrival,
                     onPicked: (dt) => _departure = dt,
                   ),
@@ -2410,11 +2424,18 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                 _TimePickerRow(
                   label: l10n.plannedClose,
                   dateTime: _close,
-                  onTap: () => _pickDateTime(
+                  onPick: () => _pickDateTime(
                     current: _close,
                     onPicked: (dt) => _close = dt,
                   ),
                   onClear: () => setState(() => _close = null),
+                ),
+                const SizedBox(height: 8),
+                _TimePickerRow(
+                  label: l10n.poiArrivalActual,
+                  dateTime: _result,
+                  onPick: null,
+                  onClear: () => setState(() => _result = null),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -2480,45 +2501,60 @@ class _TimePickerRow extends StatelessWidget {
   const _TimePickerRow({
     required this.label,
     required this.dateTime,
-    required this.onTap,
+    this.onPick,
     required this.onClear,
   });
 
   final String label;
   final DateTime? dateTime;
-  final VoidCallback onTap;
+
+  /// null のとき日時エリアはタップ不可（配色のみ読み取り専用）。[onClear] は値があるときのみ有効。
+  final VoidCallback? onPick;
   final VoidCallback onClear;
 
   @override
   Widget build(BuildContext context) {
+    final readOnly = onPick == null;
+    final labelStyle = AppTextStyles.body.copyWith(
+      color: readOnly ? AppColors.mutedLight : Colors.black87,
+    );
+    final valueStyle = AppTextStyles.title.copyWith(
+      color: readOnly ? AppColors.mutedLight : Colors.black87,
+    );
     final local = dateTime?.toLocal();
     final dateText = local != null ? '${local.month}/${local.day}' : null;
     final timeText = local != null
         ? '${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}'
         : '--:--';
+    final dateTimeChip = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (dateText != null) ...[
+          Text(dateText, style: valueStyle),
+          const SizedBox(width: 6),
+        ],
+        Text(timeText, style: valueStyle),
+      ],
+    );
+
     return Row(
       children: [
         Expanded(
-          child: Text(label, style: AppTextStyles.body),
+          child: Text(label, style: labelStyle),
         ),
-        GestureDetector(
-          onTap: onTap,
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (dateText != null) ...[
-                Text(dateText, style: AppTextStyles.title),
-                const SizedBox(width: 6),
-              ],
-              Text(timeText, style: AppTextStyles.title),
-            ],
-          ),
-        ),
+        readOnly
+            ? dateTimeChip
+            : GestureDetector(
+                onTap: onPick,
+                child: dateTimeChip,
+              ),
         if (dateTime != null) ...[
           const SizedBox(width: 4),
           GestureDetector(
             onTap: onClear,
-            child: const Icon(Icons.close, size: 18, color: Colors.black38),
+            child: Icon(Icons.close,
+                size: 18,
+                color: readOnly ? AppColors.mutedLight : Colors.black38),
           ),
         ] else
           const SizedBox(width: 22),

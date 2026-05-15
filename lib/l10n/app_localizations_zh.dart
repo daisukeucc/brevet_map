@@ -147,6 +147,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannedClose => '截止时间';
 
   @override
+  String get poiArrivalActual => '实际到达';
+
+  @override
   String get arrivalShort => '到达';
 
   @override
@@ -832,6 +835,9 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get plannedClose => '截止時間';
+
+  @override
+  String get poiArrivalActual => '實際到達';
 
   @override
   String get arrivalShort => '到達';

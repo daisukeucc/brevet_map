@@ -52,6 +52,7 @@
   "plannedArrival": "到达",
   "plannedDeparture": "出发",
   "plannedClose": "截止时间",
+  "poiArrivalActual": "实际到达",
   "arrivalShort": "到达",
   "departureShort": "出发",
   "distance": "距离",

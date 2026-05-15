@@ -149,6 +149,9 @@ class AppLocalizationsTh extends AppLocalizations {
   String get plannedClose => 'เวลาปิดรับ';
 
   @override
+  String get poiArrivalActual => 'เวลามาถึงจริง';
+
+  @override
   String get arrivalShort => 'มาถึง';
 
   @override
