@@ -266,6 +266,7 @@ class PoiMapDetailSheetController {
             arrival: sched?.arrival,
             departure: sched?.departure,
             close: sched?.close,
+            checkInResultUtc: sched?.result,
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
@@ -323,6 +324,7 @@ class PoiMapDetailSheetController {
             arrival: sched?.arrival,
             departure: sched?.departure,
             close: sched?.close,
+            checkInResultUtc: sched?.result,
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
@@ -419,6 +421,7 @@ class PoiMapDetailSheetController {
             arrival: sched?.arrival,
             departure: sched?.departure,
             close: sched?.close,
+            checkInResultUtc: sched?.result,
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
@@ -492,6 +495,7 @@ class PoiMapDetailSheetController {
             arrival: sched?.arrival,
             departure: sched?.departure,
             close: sched?.close,
+            checkInResultUtc: sched?.result,
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
