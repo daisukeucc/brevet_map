@@ -593,6 +593,48 @@ abstract class AppLocalizations {
   /// **'Show map in dark mode'**
   String get mapStyleDark;
 
+  /// No description provided for @debugMapTilesMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles (debug)'**
+  String get debugMapTilesMenu;
+
+  /// No description provided for @debugMapTilesDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug map tiles'**
+  String get debugMapTilesDialogTitle;
+
+  /// No description provided for @debugMapTilesOptionDefaultOsm.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (OSM)'**
+  String get debugMapTilesOptionDefaultOsm;
+
+  /// No description provided for @debugMapTilesOptionCartoVoyager.
+  ///
+  /// In en, this message translates to:
+  /// **'CARTO Voyager raster'**
+  String get debugMapTilesOptionCartoVoyager;
+
+  /// No description provided for @debugMapTilesDialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get debugMapTilesDialogCancel;
+
+  /// No description provided for @mapStyleDebugCartoVoyager.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Voyager raster tile'**
+  String get mapStyleDebugCartoVoyager;
+
+  /// No description provided for @mapStyleDebugCartoLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to light_all raster tile'**
+  String get mapStyleDebugCartoLight;
+
   /// No description provided for @showFullRoute.
   ///
   /// In en, this message translates to:

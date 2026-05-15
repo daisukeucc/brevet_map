@@ -258,6 +258,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapStyleDark => 'Show map in dark mode';
 
   @override
+  String get debugMapTilesMenu => 'Map tiles (debug)';
+
+  @override
+  String get debugMapTilesDialogTitle => 'Debug map tiles';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => 'Default (OSM)';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager raster';
+
+  @override
+  String get debugMapTilesDialogCancel => 'Cancel';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Switch to Voyager raster tile';
+
+  @override
+  String get mapStyleDebugCartoLight => 'Switch to light_all raster tile';
+
+  @override
   String get showFullRoute => 'Show full route';
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -24,6 +25,7 @@ import '../providers/providers.dart';
 import '../handlers/gpx_import_handler.dart';
 import '../handlers/poi_management_handler.dart';
 import '../handlers/app_settings_handler.dart';
+import '../handlers/debug_map_tiles_handler.dart';
 import 'about_app_screen.dart';
 import '../handlers/contact_handler.dart';
 import '../handlers/language_handler.dart';

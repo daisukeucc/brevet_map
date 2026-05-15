@@ -257,6 +257,27 @@ class AppLocalizationsJa extends AppLocalizations {
   String get mapStyleDark => '地図をダーク表示';
 
   @override
+  String get debugMapTilesMenu => '地図タイル';
+
+  @override
+  String get debugMapTilesDialogTitle => '地図タイル（デバッグ）';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => '既定（OSM）';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager（ラスタ）';
+
+  @override
+  String get debugMapTilesDialogCancel => 'キャンセル';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Voyagerタイルに切り替え';
+
+  @override
+  String get mapStyleDebugCartoLight => 'ライトタイルに切り替え';
+
+  @override
   String get showFullRoute => 'ルート全体を表示';
 
   @override

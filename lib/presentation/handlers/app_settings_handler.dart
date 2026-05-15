@@ -13,6 +13,7 @@ void showAppSettingsScreen(
   required VoidCallback onContactUsTap,
   required VoidCallback onSubscriptionTap,
   required VoidCallback onAboutAppTap,
+  VoidCallback? onDebugMapTilesTap,
 }) {
   Navigator.of(context).push(
     PageRouteBuilder<void>(
@@ -24,6 +25,7 @@ void showAppSettingsScreen(
         onContactUsTap: onContactUsTap,
         onSubscriptionTap: onSubscriptionTap,
         onAboutAppTap: onAboutAppTap,
+        onDebugMapTilesTap: onDebugMapTilesTap,
       ),
       transitionDuration: const Duration(milliseconds: 300),
       reverseTransitionDuration: const Duration(milliseconds: 250),
@@ -51,6 +53,7 @@ class _AppSettingsScreen extends StatefulWidget {
     required this.onContactUsTap,
     required this.onSubscriptionTap,
     required this.onAboutAppTap,
+    this.onDebugMapTilesTap,
   });
 
   final VoidCallback onDistanceUnitTap;
@@ -60,6 +63,7 @@ class _AppSettingsScreen extends StatefulWidget {
   final VoidCallback onContactUsTap;
   final VoidCallback onSubscriptionTap;
   final VoidCallback onAboutAppTap;
+  final VoidCallback? onDebugMapTilesTap;
 
   @override
   State<_AppSettingsScreen> createState() => _AppSettingsScreenState();
@@ -74,6 +78,8 @@ class _AppSettingsScreenState extends State<_AppSettingsScreen> {
       (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
       (label: l10n.distanceUnit, onTap: widget.onDistanceUnitTap),
       (label: l10n.language, onTap: widget.onLanguageTap),
+      if (widget.onDebugMapTilesTap != null)
+        (label: l10n.debugMapTilesMenu, onTap: widget.onDebugMapTilesTap!),
       (label: l10n.subscription, onTap: widget.onSubscriptionTap),
       (label: l10n.aboutApp, onTap: widget.onAboutAppTap),
       (label: l10n.contactUs, onTap: widget.onContactUsTap),

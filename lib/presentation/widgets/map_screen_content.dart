@@ -33,6 +33,8 @@ class MapScreenContent extends StatefulWidget {
     required this.onOfflineMapTap,
     required this.onAddPoiTap,
     required this.onAppSettingsTap,
+    this.debugCartoVoyagerActive = false,
+    this.debugCartoLight = false,
     this.onDebugWelcomeTap,
     this.hasUserPois = false,
     this.isDragMode = false,
@@ -109,6 +111,12 @@ class MapScreenContent extends StatefulWidget {
 
   /// アプリ設定画面表示コールバック
   final VoidCallback onAppSettingsTap;
+
+  /// [kDebugMode] かつ設定で CARTO プレビューが有効のとき true
+  final bool debugCartoVoyagerActive;
+
+  /// Voyager と light_all の切り替え（[debugCartoVoyagerActive] が true のときのみ参照）
+  final bool debugCartoLight;
 
   /// [Debug] Welcomeダイアログ表示コールバック
   final VoidCallback? onDebugWelcomeTap;
@@ -197,6 +205,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
                               bottom: 24,
                               child: MapStyleButton(
                                 mapStyleMode: widget.mapStyleMode,
+                                debugCartoVoyagerActive:
+                                    widget.debugCartoVoyagerActive,
+                                debugCartoLight: widget.debugCartoLight,
                                 onTap: widget.onMapStyleTap,
                               ),
                             ),
@@ -361,6 +372,9 @@ class _MapScreenContentState extends State<MapScreenContent> {
   /// tile.openstreetmap（.org / .jp）は OSM 推奨のためサブドメインなし。
   static List<String> _subdomainsForTemplate(String urlTemplate) {
     if (urlTemplate.contains('tile.openstreetmap')) return const [];
+    if (urlTemplate.contains('basemaps.cartocdn.com')) {
+      return const ['a', 'b', 'c', 'd'];
+    }
     return const ['a', 'b', 'c'];
   }
 
@@ -381,9 +395,14 @@ class _MapScreenContentState extends State<MapScreenContent> {
   }
 
   Widget _buildMap() {
-    final isDark = widget.mapStyleMode == 2;
+    final cartoDebug = widget.debugCartoVoyagerActive;
     final languageCode = Localizations.localeOf(context).languageCode;
-    final urlTemplate = TileConfig.getTileUrlTemplate(languageCode);
+    final urlTemplate = cartoDebug
+        ? TileConfig.getDebugCartoTileUrlTemplate(light: widget.debugCartoLight)
+        : TileConfig.getTileUrlTemplate(languageCode);
+    final isDark = cartoDebug ? false : widget.mapStyleMode == 2;
+    final attributionText =
+        TileConfig.attributionForTemplate(urlTemplate);
     final map = FlutterMap(
       mapController: _mapController,
       options: MapOptions(
@@ -494,7 +513,8 @@ class _MapScreenContentState extends State<MapScreenContent> {
                         Container(
                           padding: const EdgeInsets.fromLTRB(4, 4, 8, 4),
                           color: bgColor,
-                          child: Text(TileConfig.attribution, style: textStyle),
+                          child:
+                              Text(attributionText, style: textStyle),
                         ),
                       ],
                     );
