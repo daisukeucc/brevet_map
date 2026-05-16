@@ -228,6 +228,14 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
         ? axisTickStepHours
         : 1.0;
 
+    /// ループ最後の中間目盛（終点直前）。整数部が終点と同じときはラベルだけ非表示（例: 13 と 13.5 の重なり）。
+    var lastMiddleHour = -1.0;
+    for (var h = 0.0; h < limit - 1e-9; h += tickStepHours) {
+      lastMiddleHour = h;
+    }
+    final hideLastMiddleLabel = lastMiddleHour >= 0 &&
+        lastMiddleHour.floor() == limit.floor();
+
     /// 左端 0h、右端は制限時間。中間は [axisTickStepHours] 間隔。
     for (var hour = 0.0; hour < limit - 1e-9; hour += tickStepHours) {
       final x = math.min(hour / limit * w, w);
@@ -237,19 +245,23 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
         tickPaint,
       );
 
-      final labelText = hour < 1e-9 ? '0 (h)' : _hoursMiddleLabel(hour);
-      final tp = TextPainter(
-        text: TextSpan(text: labelText, style: _tickStyle),
-        textDirection: TextDirection.ltr,
-      );
-      tp.layout();
-      if (hour < 1e-9) {
-        tp.paint(canvas, Offset(_labelEndInset, _labelY));
-      } else {
-        final ox = (x - tp.width / 2)
-            .clamp(0.0, math.max(0.0, w - tp.width))
-            .toDouble();
-        tp.paint(canvas, Offset(ox, _labelY));
+      final skipLabel =
+          hideLastMiddleLabel && (hour - lastMiddleHour).abs() < 1e-9;
+      if (!skipLabel) {
+        final labelText = hour < 1e-9 ? '0 (h)' : _hoursMiddleLabel(hour);
+        final tp = TextPainter(
+          text: TextSpan(text: labelText, style: _tickStyle),
+          textDirection: TextDirection.ltr,
+        );
+        tp.layout();
+        if (hour < 1e-9) {
+          tp.paint(canvas, Offset(_labelEndInset, _labelY));
+        } else {
+          final ox = (x - tp.width / 2)
+              .clamp(0.0, math.max(0.0, w - tp.width))
+              .toDouble();
+          tp.paint(canvas, Offset(ox, _labelY));
+        }
       }
     }
 
