@@ -1384,6 +1384,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.'**
   String get poiCheckInLocationUnavailableDetail;
+
+  /// No description provided for @selectPoiAtSameLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select POI'**
+  String get selectPoiAtSameLocation;
 }
 
 class _AppLocalizationsDelegate

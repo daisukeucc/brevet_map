@@ -334,5 +334,6 @@
   "poiCheckInFetchingLocation": "กำลังรับข้อมูลตำแหน่ง…",
   "poiCheckInNotAvailableTitle": "ไม่สามารถเช็คอินได้",
   "poiCheckInLocationAcquireFailedTitle": "ไม่สามารถรับตำแหน่งได้",
-  "poiCheckInLocationUnavailableDetail": "รับข้อมูลตำแหน่งปัจจุบันของคุณไม่ได้ ลองอีกครั้งในกลางแจ้งหากเป็นไปได้ หรือตรวจสอบ GPS การตั้งค่า «ตำแหน่ง» ในอุปกรณ์ และสิทธิ์ของแอป"
+  "poiCheckInLocationUnavailableDetail": "รับข้อมูลตำแหน่งปัจจุบันของคุณไม่ได้ ลองอีกครั้งในกลางแจ้งหากเป็นไปได้ หรือตรวจสอบ GPS การตั้งค่า «ตำแหน่ง» ในอุปกรณ์ และสิทธิ์ของแอป",
+  "selectPoiAtSameLocation": "เลือก POI"
 }

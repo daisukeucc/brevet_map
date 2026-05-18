@@ -699,4 +699,7 @@ class AppLocalizationsJa extends AppLocalizations {
   @override
   String get poiCheckInLocationUnavailableDetail =>
       '現在地を取得できませんでした。屋外などで再度お試しいただくか、GPSおよび端末設定の「位置情報」やアプリの権限を確認してください。';
+
+  @override
+  String get selectPoiAtSameLocation => 'POIを選択';
 }

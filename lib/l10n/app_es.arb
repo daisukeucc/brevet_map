@@ -335,5 +335,6 @@
   "poiCheckInFetchingLocation": "Obteniendo ubicación…",
   "poiCheckInNotAvailableTitle": "No se puede hacer check-in",
   "poiCheckInLocationAcquireFailedTitle": "No se pudo obtener la ubicación",
-  "poiCheckInLocationUnavailableDetail": "No se ha podido obtener tu ubicación actual. Intenta de nuevo al aire libre si puedes o revisa el GPS, la ubicación en los ajustes del terminal y los permisos de la aplicación."
+  "poiCheckInLocationUnavailableDetail": "No se ha podido obtener tu ubicación actual. Intenta de nuevo al aire libre si puedes o revisa el GPS, la ubicación en los ajustes del terminal y los permisos de la aplicación.",
+  "selectPoiAtSameLocation": "Seleccionar POI"
 }

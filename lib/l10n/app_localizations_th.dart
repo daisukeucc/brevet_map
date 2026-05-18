@@ -717,4 +717,7 @@ class AppLocalizationsTh extends AppLocalizations {
   @override
   String get poiCheckInLocationUnavailableDetail =>
       'รับข้อมูลตำแหน่งปัจจุบันของคุณไม่ได้ ลองอีกครั้งในกลางแจ้งหากเป็นไปได้ หรือตรวจสอบ GPS การตั้งค่า «ตำแหน่ง» ในอุปกรณ์ และสิทธิ์ของแอป';
+
+  @override
+  String get selectPoiAtSameLocation => 'เลือก POI';
 }

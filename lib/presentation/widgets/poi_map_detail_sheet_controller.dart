@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
 import 'poi_detail_sheet.dart';
+import 'text_menu_dialog.dart';
 
 /// ボトムシート内の POI 表示順。
 abstract final class PoiMapMarkerOrder {
@@ -353,6 +354,13 @@ class PoiMapDetailSheetController {
     }
   }
 
+  // 同一座標とみなす閾値（約11m）
+  static const _kSameLocationThreshold = 1e-4;
+
+  static bool _isAtSameLocation(UserPoi a, UserPoi b) =>
+      (a.lat - b.lat).abs() < _kSameLocationThreshold &&
+      (a.lng - b.lng).abs() < _kSameLocationThreshold;
+
   Future<void> handleUserPoiTap(
     BuildContext context,
     UserPoi poi,
@@ -360,6 +368,39 @@ class PoiMapDetailSheetController {
   ) async {
     await animateToPoiPreservingZoom(poi.position);
     if (!isMounted() || !context.mounted) return;
+
+    // 同一座標に複数POIがある場合は選択ダイアログを表示
+    final overlapping = _ref
+        .read(mapStateProvider)
+        .userPois
+        .where((p) => _isAtSameLocation(p, poi))
+        .toList();
+    if (overlapping.length > 1) {
+      final l10n = AppLocalizations.of(context)!;
+      final unit = _ref.read(distanceUnitProvider);
+      final items = overlapping.map((p) {
+        final title = p.title.isEmpty ? l10n.titleNone : p.title;
+        final dist = p.km != null ? ' (${formatDistance(p.km!, unit)})' : '';
+        return '$title$dist';
+      }).toList();
+      final idx = await showTextMenuDialog(
+        context,
+        items: items,
+        title: l10n.selectPoiAtSameLocation,
+      );
+      if (idx == null || !context.mounted) return;
+      await _showUserPoiDetailSheet(context, overlapping[idx], isMounted);
+      return;
+    }
+
+    await _showUserPoiDetailSheet(context, poi, isMounted);
+  }
+
+  Future<void> _showUserPoiDetailSheet(
+    BuildContext context,
+    UserPoi poi,
+    bool Function() isMounted,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     final unit = _ref.read(distanceUnitProvider);
 

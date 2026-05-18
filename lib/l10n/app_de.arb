@@ -335,5 +335,6 @@
   "poiCheckInFetchingLocation": "Standort wird abgerufen …",
   "poiCheckInNotAvailableTitle": "Einchecken nicht möglich",
   "poiCheckInLocationAcquireFailedTitle": "Standort konnte nicht ermittelt werden",
-  "poiCheckInLocationUnavailableDetail": "Ihre aktuelle Position konnte nicht ermittelt werden. Versuchen Sie es gegebenenfalls erneut im Freien oder prüfen Sie GPS sowie in den Geräteeinstellungen den Punkt „Standort“ und die App-Berechtigungen."
+  "poiCheckInLocationUnavailableDetail": "Ihre aktuelle Position konnte nicht ermittelt werden. Versuchen Sie es gegebenenfalls erneut im Freien oder prüfen Sie GPS sowie in den Geräteeinstellungen den Punkt „Standort“ und die App-Berechtigungen.",
+  "selectPoiAtSameLocation": "POI auswählen"
 }

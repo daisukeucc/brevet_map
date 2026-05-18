@@ -335,5 +335,6 @@
   "poiCheckInFetchingLocation": "Récupération de la position…",
   "poiCheckInNotAvailableTitle": "Passage impossible",
   "poiCheckInLocationAcquireFailedTitle": "Impossible d’obtenir la position",
-  "poiCheckInLocationUnavailableDetail": "Impossible d’obtenir votre position actuelle. Réessayez si possible en extérieur ou vérifiez le GPS, le menu Position du terminal et les autorisations de l’application."
+  "poiCheckInLocationUnavailableDetail": "Impossible d’obtenir votre position actuelle. Réessayez si possible en extérieur ou vérifiez le GPS, le menu Position du terminal et les autorisations de l’application.",
+  "selectPoiAtSameLocation": "Sélectionner un POI"
 }

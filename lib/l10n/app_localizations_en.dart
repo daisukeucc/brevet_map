@@ -717,4 +717,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get poiCheckInLocationUnavailableDetail =>
       'Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.';
+
+  @override
+  String get selectPoiAtSameLocation => 'Select POI';
 }

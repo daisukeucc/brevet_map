@@ -720,4 +720,7 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get poiCheckInLocationUnavailableDetail =>
       'Ihre aktuelle Position konnte nicht ermittelt werden. Versuchen Sie es gegebenenfalls erneut im Freien oder prüfen Sie GPS sowie in den Geräteeinstellungen den Punkt „Standort“ und die App-Berechtigungen.';
+
+  @override
+  String get selectPoiAtSameLocation => 'POI auswählen';
 }

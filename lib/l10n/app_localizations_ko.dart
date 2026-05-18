@@ -702,4 +702,7 @@ class AppLocalizationsKo extends AppLocalizations {
   @override
   String get poiCheckInLocationUnavailableDetail =>
       '현재 위치를 가져오지 못했습니다. 가능하면 실외에서 다시 시도하거나, GPS와 단말 설정의 위치 정보 및 앱 권한을 확인해 주세요.';
+
+  @override
+  String get selectPoiAtSameLocation => 'POI 선택';
 }

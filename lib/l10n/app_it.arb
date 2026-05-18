@@ -335,5 +335,6 @@
   "poiCheckInFetchingLocation": "Recupero della posizione…",
   "poiCheckInNotAvailableTitle": "Check-in non disponibile",
   "poiCheckInLocationAcquireFailedTitle": "Impossibile ottenere la posizione",
-  "poiCheckInLocationUnavailableDetail": "Non è stato possibile ottenere la tua posizione attuale. Riprova se puoi all’aperto oppure verifica il GPS, la voce «Posizione» nelle impostazioni del dispositivo e le autorizzazioni dell’app."
+  "poiCheckInLocationUnavailableDetail": "Non è stato possibile ottenere la tua posizione attuale. Riprova se puoi all’aperto oppure verifica il GPS, la voce «Posizione» nelle impostazioni del dispositivo e le autorizzazioni dell’app.",
+  "selectPoiAtSameLocation": "Seleziona POI"
 }

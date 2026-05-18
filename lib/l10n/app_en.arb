@@ -356,5 +356,6 @@
   "poiCheckInFetchingLocation": "Getting location…",
   "poiCheckInNotAvailableTitle": "Cannot check in",
   "poiCheckInLocationAcquireFailedTitle": "Could not get location",
-  "poiCheckInLocationUnavailableDetail": "Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions."
+  "poiCheckInLocationUnavailableDetail": "Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.",
+  "selectPoiAtSameLocation": "Select POI"
 }
