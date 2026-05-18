@@ -90,34 +90,6 @@ List<DropdownMenuItem<int>> _buildPoiTypeDropdownItems(AppLocalizations l10n) {
       .toList(growable: false);
 }
 
-/// POI スケジュール内の全日時フィールドを [delta] だけシフトする。
-UserPoi _shiftPoiSchedule(UserPoi poi, Duration delta) {
-  final ext = poi.bmExt;
-  if (ext == null || ext.schedule.isEmpty) return poi;
-  return UserPoi(
-    type: poi.type,
-    km: poi.km,
-    title: poi.title,
-    body: poi.body,
-    url: poi.url,
-    lat: poi.lat,
-    lng: poi.lng,
-    gpxCmt: poi.gpxCmt,
-    gpxType: poi.gpxType,
-    isNote: poi.isNote,
-    bmExt: BmPoiExtension(
-      type: ext.type,
-      distanceKm: ext.distanceKm,
-      displayOrder: ext.displayOrder,
-      schedule: BmSchedule(
-        arrival: ext.schedule.arrival?.add(delta),
-        departure: ext.schedule.departure?.add(delta),
-        close: ext.schedule.close?.add(delta),
-        result: ext.schedule.result?.add(delta),
-      ),
-    ),
-  );
-}
 
 /// 新規 POI の BmPoiExtension を生成する（schedule がすべて未指定なら null）
 Future<BmPoiExtension?> _buildBmPoiExtForAdd({
@@ -1468,55 +1440,9 @@ class _PoiManagementDialogState extends ConsumerState<PoiManagementDialog>
             visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
             onTap: () => Navigator.pop(context, const MapTapAddRequest()),
           ),
-          ListTile(
-            title: Text(AppLocalizations.of(context)!.changeRideDate,
-                style: AppTextStyles.label),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 25, vertical: 5),
-            visualDensity: const VisualDensity(horizontal: 0, vertical: -4),
-            onTap: _handleChangeRideDate,
-          ),
         ],
       ),
     );
-  }
-
-  Future<void> _handleChangeRideDate() async {
-    final l10n = AppLocalizations.of(context)!;
-    final meta = await loadBrevetMeta();
-    if (!mounted) return;
-    final initialDate = meta?.startTime?.toLocal() ?? DateTime.now();
-    final selectedDate = await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-      helpText: l10n.setStartDate,
-    );
-    if (selectedDate == null || !mounted) return;
-    final newStartTime =
-        DateTime(selectedDate.year, selectedDate.month, selectedDate.day, 6)
-            .toUtc();
-    await saveBrevetMeta(BmBrevetMeta(
-      distanceKm: meta?.distanceKm ?? 0,
-      startTime: newStartTime,
-      timeLimitHours: meta?.timeLimitHours ?? 0,
-    ));
-    if (!mounted) return;
-    final oldStartTime = meta?.startTime;
-    if (oldStartTime != null) {
-      final oldDate = DateTime(oldStartTime.toLocal().year,
-          oldStartTime.toLocal().month, oldStartTime.toLocal().day);
-      final newDate =
-          DateTime(selectedDate.year, selectedDate.month, selectedDate.day);
-      final delta = newDate.difference(oldDate);
-      if (delta != Duration.zero) {
-        final pois = ref.read(mapStateProvider).userPois;
-        final shifted = pois.map((p) => _shiftPoiSchedule(p, delta)).toList();
-        await ref.read(mapStateProvider.notifier).replaceAllUserPois(shifted);
-      }
-    }
-    if (mounted) Navigator.pop(context);
   }
 
   Future<void> _onEditTap(UserPoi poi) async {
