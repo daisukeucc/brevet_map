@@ -127,6 +127,7 @@ Future<void> handleConfirmSharePreview(
         final poi =
             await userPoiFromMapTapAddForm(data: data, position: position);
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+        await recalculateSchedulesAfterAdd(ref);
         if (context.mounted) {
           showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
         }

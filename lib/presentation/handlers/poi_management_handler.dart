@@ -334,6 +334,45 @@ List<UserPoi> _recalculatePoiSchedules({
   return result;
 }
 
+/// POI追加後にスタートPOIの時刻を基準に全POIのスケジュールを再計算する。
+/// スタートPOIに時刻が設定されていない場合は何もしない。
+Future<void> recalculateSchedulesAfterAdd(WidgetRef ref) async {
+  final ms = ref.read(mapStateProvider);
+  final pois = ms.userPois;
+
+  DateTime? startDeparture;
+  for (final p in pois) {
+    final ext = p.bmExt;
+    if (ext != null && GpxPoiTag.isStartType(ext.type)) {
+      startDeparture = ext.schedule.departure ?? ext.schedule.arrival;
+      break;
+    }
+  }
+  if (startDeparture == null) return;
+
+  final routePoints = ms.savedRoutePoints;
+  final totalRouteKm = routePoints != null && routePoints.isNotEmpty
+      ? distanceAlongTrackFromStart(routePoints, routePoints.length - 1) / 1000
+      : 0.0;
+
+  final meta = await loadBrevetMeta();
+  final finishClose = _closeForFinishFromStartDeparture(
+    startDeparture: startDeparture,
+    meta: meta,
+    totalRouteKm: totalRouteKm,
+  );
+
+  final recalculated = _recalculatePoiSchedules(
+    pois: pois,
+    startDeparture: startDeparture,
+    finishClose: finishClose,
+    trackPoints: routePoints,
+    trackElevations: ms.savedTrackElevations,
+  );
+
+  await ref.read(mapStateProvider.notifier).replaceAllUserPois(recalculated);
+}
+
 /// POI追加メニューがタップされたときのエントリポイント。
 /// 戻り値で何が選択されたかを返す（null = キャンセル）。
 Future<Object?> showPoiManagementDialog(
@@ -426,6 +465,7 @@ Future<void> handleDistanceInputPoiAdd(
           isNote: data.isNote,
         );
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+        await recalculateSchedulesAfterAdd(ref);
         if (context.mounted) {
           showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
         }
@@ -545,6 +585,7 @@ Future<void> handleMapLongPressPoiAdd(
         final poi =
             await userPoiFromMapTapAddForm(data: data, position: position);
         await ref.read(mapStateProvider.notifier).addUserPoi(poi);
+        await recalculateSchedulesAfterAdd(ref);
         if (context.mounted) {
           showAppSnackBar(context, AppLocalizations.of(context)!.poiRegistered);
         }
