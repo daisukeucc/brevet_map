@@ -137,26 +137,6 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
   /// チェックイン OK 後のアニメーション用（復路ルートの緑）。未再生時は null。
   final double? checkInElapsedHours;
 
-  /// 軸線より上のチャート領域（経過バー）の背景
-  static const Color _chartPlotBackgroundColor = Colors.black54;
-
-  /// 軸線から下（目盛り・時間ラベル）の帯の背景
-  static const Color _chartLabelStripBackgroundColor = Colors.black38;
-  static const Color _chartLabelColor = Colors.white;
-  static const Color _chartAxisColor = Colors.white;
-
-  /// 上段スケジュール経過バー
-  static const Color _scheduleBarColor = Colors.cyanAccent;
-
-  /// 下段チェックイン経過バー
-  static const Color _checkInBarColor = Colors.cyan;
-
-  static const _tickStyle = TextStyle(
-    fontSize: 10,
-    color: _chartLabelColor,
-    height: 1.0,
-  );
-
   static String _hoursMiddleLabel(double hours) {
     final r = hours.roundToDouble();
     if ((hours - r).abs() < 1e-6) return '${r.toInt()}';
@@ -195,7 +175,9 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
 
   /// ラベル下側までの描画高（[paint] と [CustomPaint] の高さを一致させる）。
   static double get paintHeight =>
-      _labelY + _tickStyle.fontSize! * _tickStyle.height! + _labelBottomPadding;
+      _labelY +
+      AppTextStyles.chartTick.fontSize! * AppTextStyles.chartTick.height! +
+      _labelBottomPadding;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -208,20 +190,20 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
 
     canvas.drawRect(
       Rect.fromLTWH(0, 0, w, axisY),
-      Paint()..color = _chartPlotBackgroundColor,
+      Paint()..color = AppColors.chartPlotBackground,
     );
     canvas.drawRect(
       Rect.fromLTWH(0, axisY, w, h - axisY),
-      Paint()..color = _chartLabelStripBackgroundColor,
+      Paint()..color = AppColors.chartLabelStripBackground,
     );
 
     final axisPaint = Paint()
-      ..color = _chartAxisColor
+      ..color = AppColors.chartAxis
       ..strokeWidth = 1;
     canvas.drawLine(Offset(0, _axisY), Offset(w, _axisY), axisPaint);
 
     final tickPaint = Paint()
-      ..color = _chartAxisColor
+      ..color = AppColors.chartAxis
       ..strokeWidth = 0.9;
 
     final tickStepHours = axisTickStepHours.isFinite && axisTickStepHours > 0
@@ -233,8 +215,8 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
     for (var h = 0.0; h < limit - 1e-9; h += tickStepHours) {
       lastMiddleHour = h;
     }
-    final hideLastMiddleLabel = lastMiddleHour >= 0 &&
-        lastMiddleHour.floor() == limit.floor();
+    final hideLastMiddleLabel =
+        lastMiddleHour >= 0 && lastMiddleHour.floor() == limit.floor();
 
     /// 左端 0h、右端は制限時間。中間は [axisTickStepHours] 間隔。
     for (var hour = 0.0; hour < limit - 1e-9; hour += tickStepHours) {
@@ -250,7 +232,7 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
       if (!skipLabel) {
         final labelText = hour < 1e-9 ? '0 (h)' : _hoursMiddleLabel(hour);
         final tp = TextPainter(
-          text: TextSpan(text: labelText, style: _tickStyle),
+          text: TextSpan(text: labelText, style: AppTextStyles.chartTick),
           textDirection: TextDirection.ltr,
         );
         tp.layout();
@@ -267,7 +249,8 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
 
     canvas.drawLine(Offset(w, _axisY), Offset(w, _axisY + _tickH), tickPaint);
     final endTp = TextPainter(
-      text: TextSpan(text: _hoursEndLabel(limit), style: _tickStyle),
+      text:
+          TextSpan(text: _hoursEndLabel(limit), style: AppTextStyles.chartTick),
       textDirection: TextDirection.ltr,
     );
     endTp.layout();
@@ -286,7 +269,7 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
           limit: limit,
           elapsedHours: eh,
           centerY: _orangeBarCenterY,
-          color: _scheduleBarColor,
+          color: AppColors.chartScheduleBar,
         );
       }
     }
@@ -299,7 +282,7 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
         limit: limit,
         elapsedHours: ci,
         centerY: _blueBarCenterY,
-        color: _checkInBarColor,
+        color: AppColors.chartCheckInBar,
       );
     }
   }
@@ -1449,7 +1432,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                     child: Icon(
                                       Icons.chevron_left,
                                       size: 36,
-                                      color: Colors.black38,
+                                      color: AppColors.mutedLight,
                                     ),
                                   ),
                                 ),
@@ -1468,7 +1451,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                     child: Icon(
                                       Icons.chevron_right,
                                       size: 36,
-                                      color: Colors.black38,
+                                      color: AppColors.mutedLight,
                                     ),
                                   ),
                                 ),

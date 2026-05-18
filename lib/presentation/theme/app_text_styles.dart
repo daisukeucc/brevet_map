@@ -2,10 +2,26 @@ import 'package:flutter/material.dart';
 
 /// アプリ全体で使用するカラー定数
 abstract class AppColors {
+  // static const Color muted = Color(0x9E000000);
   static const Color muted = Colors.black54;
 
   /// [muted] より一段薄い補助テキスト（読み取り専用行など）
   static const Color mutedLight = Colors.black38;
+
+  /// 軸線より上のチャート領域（経過バー）の背景
+  static const Color chartPlotBackground = Color(0xB3000000);
+
+  /// 軸線から下（目盛り・時間ラベル）の帯の背景
+  static const Color chartLabelStripBackground = Color(0x9E000000);
+
+  /// チャート軸線
+  static const Color chartAxis = Colors.white;
+
+  /// 上段スケジュール経過バー
+  static const Color chartScheduleBar = Colors.cyanAccent;
+
+  /// 下段チェックイン経過バー
+  static const Color chartCheckInBar = Colors.cyan;
 }
 
 /// アプリ全体で使用するテキストスタイル
@@ -85,4 +101,11 @@ abstract class AppTextStyles {
   /// チェックボックスラベル
   static const TextStyle checkBoxLabel =
       TextStyle(fontSize: 15, color: Colors.black87);
+
+  /// チャート目盛りラベル
+  static const TextStyle chartTick = TextStyle(
+    fontSize: 10,
+    color: Colors.white,
+    height: 1.0,
+  );
 }
