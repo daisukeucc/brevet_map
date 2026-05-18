@@ -369,12 +369,18 @@ class PoiMapDetailSheetController {
     await animateToPoiPreservingZoom(poi.position);
     if (!isMounted() || !context.mounted) return;
 
+    // Start・Finish は専用フラグアイコンで一意に識別できるためダイアログをスキップ
+    final isStartOrFinish = GpxPoiTag.isStartType(poi.bmExt?.type) ||
+        GpxPoiTag.isFinishType(poi.bmExt?.type);
+
     // 同一座標に複数POIがある場合は選択ダイアログを表示
-    final overlapping = _ref
-        .read(mapStateProvider)
-        .userPois
-        .where((p) => _isAtSameLocation(p, poi))
-        .toList();
+    final overlapping = isStartOrFinish
+        ? <UserPoi>[]
+        : _ref
+            .read(mapStateProvider)
+            .userPois
+            .where((p) => _isAtSameLocation(p, poi))
+            .toList();
     if (overlapping.length > 1) {
       final l10n = AppLocalizations.of(context)!;
       final unit = _ref.read(distanceUnitProvider);
