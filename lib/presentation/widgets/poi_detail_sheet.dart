@@ -230,7 +230,7 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
       final skipLabel =
           hideLastMiddleLabel && (hour - lastMiddleHour).abs() < 1e-9;
       if (!skipLabel) {
-        final labelText = hour < 1e-9 ? '0 (h)' : _hoursMiddleLabel(hour);
+        final labelText = hour < 1e-9 ? '0 h' : _hoursMiddleLabel(hour);
         final tp = TextPainter(
           text: TextSpan(text: labelText, style: AppTextStyles.chartTick),
           textDirection: TextDirection.ltr,
