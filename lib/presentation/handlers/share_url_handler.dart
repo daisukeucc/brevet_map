@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/coordinates_from_url.dart';
 import '../../utils/map_utils.dart';
@@ -78,15 +80,49 @@ Future<void> handleConfirmSharePreview(
     }
   }
 
+  final brevetMeta = await loadBrevetMeta();
+  if (!context.mounted) return;
+
+  UserPoi? findPreviousPoiFor(double km) {
+    final list = ref.read(mapStateProvider).userPois;
+    UserPoi? prev;
+    for (final p in list) {
+      if (p.km != null &&
+          !p.isNote &&
+          p.km! < km &&
+          (prev == null || p.km! > prev.km!)) {
+        prev = p;
+      }
+    }
+    return prev;
+  }
+
+  double? elevationGainFromRouteStartFor(double km) {
+    final ms = ref.read(mapStateProvider);
+    final pts = ms.savedRoutePoints;
+    final elevs = ms.savedTrackElevations;
+    if (pts == null ||
+        pts.isEmpty ||
+        elevs == null ||
+        elevs.length != pts.length) {
+      return null;
+    }
+    final i = trackIndexNearestAlongRouteKm(pts, km, distanceBetweenLatLng);
+    return elevationGainBetweenIndices(elevs, 0, i);
+  }
+
   await showDialog<void>(
     context: context,
     barrierColor: Colors.black54,
     barrierDismissible: false,
-    builder: (dialogContext) => MapTapPoiAddDialog(
+    builder: (dialogContext) => AddPoiDialog(
       initialTitle: placeName,
       distanceUnit: distanceUnit,
       totalRouteKm: totalRouteKm,
       initialKmText: initialKmText,
+      brevetStartTimeUtc: brevetMeta?.startTime,
+      findPreviousPoi: findPreviousPoiFor,
+      elevationGainFromRouteStart: elevationGainFromRouteStartFor,
       onSave: (data) async {
         final poi =
             await userPoiFromMapTapAddForm(data: data, position: position);
