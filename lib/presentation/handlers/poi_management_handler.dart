@@ -210,8 +210,18 @@ UserPoi _userPoiWithFinishClose(UserPoi p, DateTime? close) {
   );
 }
 
+/// POIの滞在時間（出発 - 到着）を返す。未設定・逆順の場合はデフォルト15分。
+Duration _stayDuration(BmSchedule sched) {
+  final arr = sched.arrival;
+  final dep = sched.departure;
+  if (arr != null && dep != null && dep.isAfter(arr)) {
+    return dep.difference(arr);
+  }
+  return const Duration(minutes: 15);
+}
+
 /// スタートの基準日時（出発が設定されていれば出発、なければ到着）を起点に全POIの日時を再計算する。
-/// ルール2: 各POI出発 = 到着 + 15分
+/// ルール2: 各POI出発 = 到着 + 元の滞在時間（未設定時は15分）
 /// ルール3: ゴールのクローズ = [finishClose]（スタート基準日時 + 制限時間）
 /// ルール4: 各POI到着 = スタート基準日時 + estimateArrivalFromRouteStart（km・標高から算出）
 /// km 未設定・isNote の POI はそのままにする。スタートPOI は変更しない。
@@ -277,7 +287,7 @@ List<UserPoi> _recalculatePoiSchedules({
           arrival: estimated,
           departure: GpxPoiTag.isFinishType(ext.type)
               ? null
-              : estimated.add(const Duration(minutes: 15)),
+              : estimated.add(_stayDuration(ext.schedule)),
           close: GpxPoiTag.isFinishType(ext.type)
               ? finishClose
               : ext.schedule.close,
@@ -319,7 +329,7 @@ List<UserPoi> _recalculatePoiSchedules({
           schedule: BmSchedule(
             arrival: newArr,
             departure: ext.schedule.departure != null
-                ? newArr.add(const Duration(minutes: 15))
+                ? newArr.add(_stayDuration(ext.schedule))
                 : null,
             close: ext.schedule.close,
             result: ext.schedule.result,
