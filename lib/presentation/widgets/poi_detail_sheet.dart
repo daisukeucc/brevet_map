@@ -159,13 +159,13 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
   /// 始点・終点ラベル用の左右インセット。
   static const _labelEndInset = 3.0;
 
-  static double get _orangeBarCenterY => _barStrokeWidth / 2;
+  static double get _checkInBarCenterY => _barStrokeWidth / 2;
 
-  static double get _blueBarCenterY =>
-      _orangeBarCenterY + _barStrokeWidth + _barStackGap;
+  static double get _scheduleBarCenterY =>
+      _checkInBarCenterY + _barStrokeWidth + _barStackGap;
 
   static double get _axisY =>
-      _blueBarCenterY + _barStrokeWidth / 2 + _axisPadBelowBlueBar;
+      _scheduleBarCenterY + _barStrokeWidth / 2 + _axisPadBelowBlueBar;
 
   /// 縦目盛り下端と時間ラベル上端の間に 1px。
   static double get _labelY => _axisY + _tickH + 1;
@@ -268,8 +268,8 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
           w: w,
           limit: limit,
           elapsedHours: eh,
-          centerY: _orangeBarCenterY,
-          color: AppColors.chartScheduleBar,
+          centerY: _checkInBarCenterY,
+          color: AppColors.chartCheckInBar,
         );
       }
     }
@@ -281,8 +281,8 @@ class _PoiElapsedTimeChartPainter extends CustomPainter {
         w: w,
         limit: limit,
         elapsedHours: ci,
-        centerY: _blueBarCenterY,
-        color: AppColors.chartCheckInBar,
+        centerY: _scheduleBarCenterY,
+        color: AppColors.chartScheduleBar,
       );
     }
   }
@@ -1132,6 +1132,7 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
   late final CurvedAnimation _checkInChartCurve;
   bool _checkInChartAnimationActive = false;
   double _checkInTargetHours = 0;
+  bool _checkInAnimating = false;
 
   /// シート表示中に確定したチェックイン状態（永続化後も [widget.checkInResultUtc] は古いままのため）。
   bool _sessionCheckInExplicit = false;
@@ -1149,6 +1150,11 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
       curve: Curves.easeOutCubic,
     );
     _checkInChartAnim.addListener(() => setState(() {}));
+    _checkInChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkInAnimating = false);
+      }
+    });
   }
 
   @override
@@ -1231,6 +1237,9 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                       ? null
                       : (_, utc) => _wrapCommitCheckIn(utc),
                   verifyLocationOnCheckIn: widget.verifyLocationOnCheckIn,
+                  checkInAnimating: _checkInAnimating,
+                  onCheckInTapStart: () => setState(() => _checkInAnimating = true),
+                  onCheckInTapCancel: () => setState(() => _checkInAnimating = false),
                   contentLayoutMaxWidth: constraints.maxWidth,
                   sheetPadding: sheetPadding,
                   distanceLeft: distanceLeft,
@@ -1270,6 +1279,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
   late final CurvedAnimation _checkInChartCurve;
   bool _checkInChartAnimationActive = false;
   double _checkInTargetHours = 0;
+  bool _checkInAnimating = false;
 
   final Map<int, DateTime?> _checkInSessionByIndex = {};
 
@@ -1286,6 +1296,11 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
       curve: Curves.easeOutCubic,
     );
     _checkInChartAnim.addListener(() => setState(() {}));
+    _checkInChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkInAnimating = false);
+      }
+    });
   }
 
   @override
@@ -1299,6 +1314,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
     setState(() {
       _checkInChartAnimationActive = false;
       _checkInTargetHours = 0;
+      _checkInAnimating = false;
     });
     _checkInChartAnim.reset();
   }
@@ -1408,6 +1424,11 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                 },
                           verifyLocationOnCheckIn:
                               widget.verifyLocationOnCheckIn,
+                          checkInAnimating: _checkInAnimating,
+                          onCheckInTapStart: () =>
+                              setState(() => _checkInAnimating = true),
+                          onCheckInTapCancel: () =>
+                              setState(() => _checkInAnimating = false),
                           contentLayoutMaxWidth: expandedW,
                           sheetPadding: sheetPadding,
                           distanceLeft: distanceLeft,
@@ -1499,6 +1520,9 @@ class _PoiContentBlock extends StatelessWidget {
     this.checkInResultUtc,
     this.onCommitCheckInForEntry,
     required this.verifyLocationOnCheckIn,
+    this.checkInAnimating = false,
+    this.onCheckInTapStart,
+    this.onCheckInTapCancel,
   });
 
   final String? name;
@@ -1539,6 +1563,15 @@ class _PoiContentBlock extends StatelessWidget {
   /// false のとき位置取得・距離判定を省略し確認ダイアログのみ。
   final bool verifyLocationOnCheckIn;
 
+  /// チェックインバーアニメーション再生中 true（アイコンを bookmark に切り替える）。
+  final bool checkInAnimating;
+
+  /// チェックインアイコンをタップした瞬間に呼ばれるコールバック。
+  final VoidCallback? onCheckInTapStart;
+
+  /// チェックインダイアログでキャンセルされたとき（アニメーション未開始で処理が終了したとき）に呼ばれる。
+  final VoidCallback? onCheckInTapCancel;
+
   String _formatTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
     return DateFormat('H:mm', locale).format(dt.toLocal());
@@ -1566,13 +1599,13 @@ class _PoiContentBlock extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.muted,
+        border: Border.all(color: AppColors.poiDateBadge, width: 1),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
         _formatDate(dt, context),
         style: AppTextStyles.bodySmall.copyWith(
-          color: Colors.white,
+          color: AppColors.poiDateBadge,
           height: 1.0,
         ),
       ),
@@ -1665,72 +1698,51 @@ class _PoiContentBlock extends StatelessWidget {
                   Text(elevationGain!, style: AppTextStyles.poiLarge),
                   if (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) ||
                       onCommitCheckInForEntry != null) ...[
-                    const SizedBox(width: 15),
-                    SizedBox(
-                      width: 42,
-                      height: 30,
-                      child: FittedBox(
-                        fit: BoxFit.contain,
-                        alignment: Alignment.centerRight,
-                        child: SwitchTheme(
-                          data: SwitchThemeData(
-                            thumbColor:
-                                WidgetStateProperty.resolveWith((states) {
-                              if (states.contains(WidgetState.disabled)) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return Colors.white70;
-                                }
-                                return null;
-                              }
-                              if (states.contains(WidgetState.selected)) {
-                                return Colors.white;
-                              }
-                              return null;
-                            }),
-                            trackColor:
-                                WidgetStateProperty.resolveWith((states) {
-                              if (states.contains(WidgetState.disabled)) {
-                                if (states.contains(WidgetState.selected)) {
-                                  return AppColors.muted
-                                      .withValues(alpha: 0.45);
-                                }
-                                return null;
-                              }
-                              if (states.contains(WidgetState.selected)) {
-                                return AppColors.muted;
-                              }
-                              return null;
-                            }),
-                          ),
-                          child: Switch(
-                            value: _poiCheckInToggleOnFromResultUtc(
-                                checkInResultUtc),
-                            materialTapTargetSize:
-                                MaterialTapTargetSize.shrinkWrap,
-                            onChanged: !_poiCheckInToggleOnFromResultUtc(
-                                        checkInResultUtc) &&
-                                    onCommitCheckInForEntry != null
-                                ? (v) {
-                                    if (!v) return;
-                                    final ei = checkInTapEntryIndex;
-                                    unawaited(
-                                      _runPoiCheckInToggleTap(
-                                        context: context,
-                                        poiPosition: poiPosition,
-                                        verifyLocationOnCheckIn:
-                                            verifyLocationOnCheckIn,
-                                        turnOn: true,
-                                        timeChart: timeChart,
-                                        onBeginCheckInChartAnimation:
-                                            onBeginCheckInChartAnimation,
-                                        onCommit: (utc) =>
-                                            onCommitCheckInForEntry!(ei, utc),
-                                        onClear: () async {},
-                                      ),
-                                    );
+                    const SizedBox(width: 5),
+                    GestureDetector(
+                      onTap:
+                          !_poiCheckInToggleOnFromResultUtc(checkInResultUtc) &&
+                                  onCommitCheckInForEntry != null
+                              ? () async {
+                                  onCheckInTapStart?.call();
+                                  final ei = checkInTapEntryIndex;
+                                  var animationStarted = false;
+                                  await _runPoiCheckInToggleTap(
+                                    context: context,
+                                    poiPosition: poiPosition,
+                                    verifyLocationOnCheckIn:
+                                        verifyLocationOnCheckIn,
+                                    turnOn: true,
+                                    timeChart: timeChart,
+                                    onBeginCheckInChartAnimation:
+                                        onBeginCheckInChartAnimation == null
+                                            ? null
+                                            : (hours) {
+                                                animationStarted = true;
+                                                onBeginCheckInChartAnimation!(
+                                                    hours);
+                                              },
+                                    onCommit: (utc) =>
+                                        onCommitCheckInForEntry!(ei, utc),
+                                    onClear: () async {},
+                                  );
+                                  if (!animationStarted) {
+                                    onCheckInTapCancel?.call();
                                   }
-                                : null,
-                          ),
+                                }
+                              : null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        child: Icon(
+                          _poiCheckInToggleOnFromResultUtc(checkInResultUtc)
+                              ? Icons.view_list
+                              : checkInAnimating
+                                  ? Icons.bookmark
+                                  : Icons.bookmark_add_outlined,
+                          size: 30,
+                          color: checkInAnimating
+                              ? AppColors.mutedLight
+                              : AppColors.muted,
                         ),
                       ),
                     ),
