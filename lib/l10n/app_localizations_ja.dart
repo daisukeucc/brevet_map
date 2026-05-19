@@ -674,6 +674,10 @@ class AppLocalizationsJa extends AppLocalizations {
       'ver1.2ではPOI情報を大幅に拡充しました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！\n\n- POI種別にフォトチェックやコンビニ等を追加\n- POI情報にURLリンク項目を追加\n- PC間の標高グラフ表示\n- PC到着予想時刻の自動設定';
 
   @override
+  String get releaseNotesV13020Message =>
+      'ver1.3ではチェックイン機能を追加し、各POIに走行実績を登録できるようになりました！\n準備した走行計画と比較することで、先行/遅れが分かり、その後の走り方の目安にすることができます。\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！';
+
+  @override
   String get poiSaveAsNote => 'メモとして保存';
 
   @override

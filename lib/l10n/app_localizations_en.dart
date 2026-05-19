@@ -692,6 +692,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs';
 
   @override
+  String get releaseNotesV13020Message =>
+      'Version 1.3 introduces check-in functionality, allowing you to log your actual ride progress at each POI!\nBy comparing with your planned schedule, you can see how far ahead or behind you are and adjust your pace accordingly.\nAll features are unlocked in this version, so feel free to give it a try!';
+
+  @override
   String get poiSaveAsNote => 'Save as note';
 
   @override

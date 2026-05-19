@@ -694,6 +694,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'In Version 1.2 haben wir die POI-Informationen deutlich erweitert!\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!\n\n- Neue POI-Typen wie Foto-Kontrollen und Geschäfte\n- URL-Linkfeld in den POI-Informationen\n- Höhenprofil zwischen den Kontrollpunkten\n- Automatische Schätzung der Ankunftszeiten an den Kontrollpunkten';
 
   @override
+  String get releaseNotesV13020Message =>
+      'Version 1.3 führt die Check-in-Funktion ein, mit der du deinen tatsächlichen Fahrfortschritt an jedem POI erfassen kannst!\nDurch den Vergleich mit deinem geplanten Zeitplan siehst du, wie weit du voraus oder im Rückstand bist, und kannst dein Tempo entsprechend anpassen.\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!';
+
+  @override
   String get poiSaveAsNote => 'Als Notiz speichern';
 
   @override

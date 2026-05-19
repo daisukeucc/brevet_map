@@ -677,6 +677,10 @@ class AppLocalizationsKo extends AppLocalizations {
       '버전 1.2에서 POI 정보를 대폭 확장했습니다!\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!\n\n- POI 유형에 포토 체크·편의점 등 추가\n- POI 정보에 URL 링크 항목 추가\n- 체크포인트 구간의 고도 그래프 표시\n- 체크포인트 도착 예정 시각 자동 설정';
 
   @override
+  String get releaseNotesV13020Message =>
+      '버전 1.3에서는 체크인 기능을 추가하여 각 POI에서 실제 주행 실적을 기록할 수 있게 되었습니다!\n계획한 일정과 비교하여 얼마나 앞서거나 뒤처지고 있는지 파악하고 이후 페이스 조절에 활용할 수 있습니다.\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!';
+
+  @override
   String get poiSaveAsNote => '메모로 저장';
 
   @override

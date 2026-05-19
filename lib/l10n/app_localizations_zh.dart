@@ -667,6 +667,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '1.2 版本大幅扩充了 POI 信息！\n此版本已解锁全部功能，欢迎体验！\n\n- 新增 POI 类型：拍照检查点、便利店等\n- POI 信息新增 URL 链接字段\n- 检查点之间的海拔剖面图显示\n- 检查点预计到达时间自动设置';
 
   @override
+  String get releaseNotesV13020Message =>
+      '版本1.3新增打卡功能，可在每个POI记录实际骑行进度！\n通过与计划行程对比，可以了解自己的领先或落后情况，并据此调整骑行节奏。\n本版本所有功能均已开放，欢迎体验！';
+
+  @override
   String get poiSaveAsNote => '保存为备注';
 
   @override
@@ -1367,6 +1371,10 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   @override
   String get releaseNotesV12019Message =>
       '1.2 版本大幅擴充了 POI 資訊！\n此版本已開放所有功能，歡迎體驗！\n\n- 新增 POI 類型：拍照檢查點、便利商店等\n- POI 資訊新增 URL 連結欄位\n- 檢查點之間的標高圖表顯示\n- 檢查點預計抵達時間自動設定';
+
+  @override
+  String get releaseNotesV13020Message =>
+      '版本1.3新增打卡功能，可在每個POI記錄實際騎行進度！\n透過與計劃行程對比，可以了解自己的領先或落後情況，並據此調整騎行節奏。\n本版本所有功能均已開放，歡迎體驗！';
 
   @override
   String get poiSaveAsNote => '儲存為備註';
