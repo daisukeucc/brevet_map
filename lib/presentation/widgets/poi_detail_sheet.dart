@@ -14,6 +14,7 @@ import '../../utils/connectivity_check.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart' show AppColors, AppTextStyles;
 import '../utils/snackbar_utils.dart';
+import 'poi_schedule_table_dialog.dart';
 
 /// POIシートタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
 class PoiElevationOnDemand {
@@ -1027,110 +1028,6 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   }
 }
 
-/// チェックイン済み POI の通過記録テーブルダイアログ。
-class _PoiScheduleTableDialog extends StatelessWidget {
-  const _PoiScheduleTableDialog({required this.entries});
-
-  final List<PoiSheetEntry> entries;
-
-  static String _short(String? s) {
-    if (s == null || s.isEmpty) return '-';
-    return s.length <= 6 ? s : '${s.substring(0, 6)}...';
-  }
-
-  static String _fmtTime(DateTime dt, String locale) =>
-      DateFormat('M/d H:mm', locale).format(dt.toLocal());
-
-  static String _ahead(DateTime arrival, DateTime result) {
-    final d = arrival.difference(result);
-    final abs = d.abs();
-    final h = abs.inHours.toString().padLeft(2, '0');
-    final m = (abs.inMinutes % 60).toString().padLeft(2, '0');
-    return d.isNegative ? '- $h:$m' : '+ $h:$m';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final locale = Localizations.localeOf(context).toString();
-    const ts = TextStyle(fontSize: 13, color: Colors.black87);
-    const th =
-        TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black54);
-
-    return Dialog(
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child:
-                  Text(l10n.poiScheduleTableTitle, style: AppTextStyles.headline),
-            ),
-            const SizedBox(height: 12),
-            ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.55,
-              ),
-              child: SingleChildScrollView(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    headingRowHeight: 38,
-                    dataRowMinHeight: 40,
-                    dataRowMaxHeight: 40,
-                    columnSpacing: 20,
-                    horizontalMargin: 20,
-                    headingRowColor: WidgetStateProperty.all(
-                        Colors.black.withValues(alpha: 0.04)),
-                    columns: [
-                      DataColumn(label: Text('km', style: th)),
-                      DataColumn(label: Text(l10n.title, style: th)),
-                      DataColumn(label: Text(l10n.arrivalShort, style: th)),
-                      DataColumn(label: Text(l10n.poiScheduleColResult, style: th)),
-                      DataColumn(label: Text(l10n.poiScheduleColAhead, style: th)),
-                    ],
-                    rows: entries.map((e) {
-                      final arr = e.arrival;
-                      final res = e.checkInResultUtc;
-                      return DataRow(cells: [
-                        DataCell(Text(e.distance ?? '-', style: ts)),
-                        DataCell(Text(_short(e.name), style: ts)),
-                        DataCell(
-                            Text(arr != null ? _fmtTime(arr, locale) : '-',
-                                style: ts)),
-                        DataCell(
-                            Text(res != null ? _fmtTime(res, locale) : '-',
-                                style: ts)),
-                        DataCell(Text(
-                          (arr != null && res != null) ? _ahead(arr, res) : '-',
-                          style: ts,
-                        )),
-                      ]);
-                    }).toList(),
-                  ),
-                ),
-              ),
-            ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l10n.trialInfoClose, style: AppTextStyles.button),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// POI タップ時に表示するボトムシート。名前と説明を表示。
 /// [entries] が2件以上のときは同一カテゴリ（GPX / ユーザー）内のシート内移動（＞）を表示する。
 void showPoiDetailSheet(
@@ -1822,8 +1719,17 @@ class _PoiContentBlock extends StatelessWidget {
                           ? (scheduleEntries != null
                               ? () => showDialog<void>(
                                     context: context,
-                                    builder: (_) => _PoiScheduleTableDialog(
-                                      entries: scheduleEntries!,
+                                    builder: (_) => PoiScheduleTableDialog(
+                                      distanceUnit: distanceUnit,
+                                      rows: scheduleEntries!
+                                          .map((e) => PoiScheduleRow(
+                                                distance: e.distance,
+                                                name: e.name,
+                                                arrival: e.arrival,
+                                                checkInResultUtc:
+                                                    e.checkInResultUtc,
+                                              ))
+                                          .toList(),
                                     ),
                                   )
                               : null)
@@ -1879,8 +1785,16 @@ class _PoiContentBlock extends StatelessWidget {
                   GestureDetector(
                     onTap: () => showDialog<void>(
                       context: context,
-                      builder: (_) => _PoiScheduleTableDialog(
-                        entries: scheduleEntries!,
+                      builder: (_) => PoiScheduleTableDialog(
+                        distanceUnit: distanceUnit,
+                        rows: scheduleEntries!
+                            .map((e) => PoiScheduleRow(
+                                  distance: e.distance,
+                                  name: e.name,
+                                  arrival: e.arrival,
+                                  checkInResultUtc: e.checkInResultUtc,
+                                ))
+                            .toList(),
                       ),
                     ),
                     child: const Padding(

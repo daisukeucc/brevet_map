@@ -710,5 +710,8 @@ class AppLocalizationsJa extends AppLocalizations {
   String get poiScheduleColResult => '実績';
 
   @override
-  String get poiScheduleColAhead => '差';
+  String get poiScheduleColAhead => '先行';
+
+  @override
+  String get poiScheduleColPoint => 'ポイント';
 }

@@ -339,5 +339,6 @@
 ,
   "poiScheduleTableTitle": "บันทึกการเช็คอิน",
   "poiScheduleColResult": "ผลลัพธ์",
-  "poiScheduleColAhead": "ผลต่าง"
+  "poiScheduleColAhead": "ผลต่าง",
+  "poiScheduleColPoint": "จุด"
 }

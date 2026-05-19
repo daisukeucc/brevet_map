@@ -733,4 +733,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get poiScheduleColAhead => 'Diferencia';
+
+  @override
+  String get poiScheduleColPoint => 'Punto';
 }

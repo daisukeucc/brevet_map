@@ -1408,6 +1408,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ahead'**
   String get poiScheduleColAhead;
+
+  /// No description provided for @poiScheduleColPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point'**
+  String get poiScheduleColPoint;
 }
 
 class _AppLocalizationsDelegate

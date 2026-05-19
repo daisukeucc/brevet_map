@@ -340,5 +340,6 @@
 ,
   "poiScheduleTableTitle": "체크인 기록",
   "poiScheduleColResult": "실적",
-  "poiScheduleColAhead": "차이"
+  "poiScheduleColAhead": "차이",
+  "poiScheduleColPoint": "포인트"
 }

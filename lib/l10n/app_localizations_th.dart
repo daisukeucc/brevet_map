@@ -729,4 +729,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get poiScheduleColAhead => 'ผลต่าง';
+
+  @override
+  String get poiScheduleColPoint => 'จุด';
 }

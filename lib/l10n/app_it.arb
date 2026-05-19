@@ -340,5 +340,6 @@
 ,
   "poiScheduleTableTitle": "Registro del check-in",
   "poiScheduleColResult": "Risultato",
-  "poiScheduleColAhead": "Differenza"
+  "poiScheduleColAhead": "Differenza",
+  "poiScheduleColPoint": "Punto"
 }

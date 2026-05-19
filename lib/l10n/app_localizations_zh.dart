@@ -704,6 +704,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get poiScheduleColAhead => '差值';
+
+  @override
+  String get poiScheduleColPoint => '点';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1397,4 +1400,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get poiScheduleColAhead => '差值';
+
+  @override
+  String get poiScheduleColPoint => '點';
 }

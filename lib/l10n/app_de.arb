@@ -340,5 +340,6 @@
 ,
   "poiScheduleTableTitle": "Check-in-Verlauf",
   "poiScheduleColResult": "Ergebnis",
-  "poiScheduleColAhead": "Differenz"
+  "poiScheduleColAhead": "Differenz",
+  "poiScheduleColPoint": "Punkt"
 }

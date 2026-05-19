@@ -735,4 +735,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get poiScheduleColAhead => 'Écart';
+
+  @override
+  String get poiScheduleColPoint => 'Point';
 }

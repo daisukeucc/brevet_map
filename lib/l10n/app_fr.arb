@@ -340,5 +340,6 @@
 ,
   "poiScheduleTableTitle": "Historique de pointage",
   "poiScheduleColResult": "Résultat",
-  "poiScheduleColAhead": "Écart"
+  "poiScheduleColAhead": "Écart",
+  "poiScheduleColPoint": "Point"
 }
