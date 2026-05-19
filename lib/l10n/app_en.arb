@@ -363,5 +363,6 @@
   "poiScheduleColResult": "Result",
   "poiScheduleColAhead": "Ahead",
   "poiScheduleColPoint": "Point",
+  "poiScheduleColStartClose": "Start/Close",
   "csvDownload": "Download"
 }

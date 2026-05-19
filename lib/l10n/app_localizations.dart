@@ -1415,6 +1415,12 @@ abstract class AppLocalizations {
   /// **'Point'**
   String get poiScheduleColPoint;
 
+  /// No description provided for @poiScheduleColStartClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Start/Close'**
+  String get poiScheduleColStartClose;
+
   /// No description provided for @csvDownload.
   ///
   /// In en, this message translates to:

@@ -709,6 +709,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiScheduleColPoint => '点';
 
   @override
+  String get poiScheduleColStartClose => 'Start/Close';
+
+  @override
   String get csvDownload => '下载';
 }
 

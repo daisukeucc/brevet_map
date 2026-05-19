@@ -737,5 +737,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get poiScheduleColPoint => 'Punkt';
 
   @override
+  String get poiScheduleColStartClose => 'Start/Close';
+
+  @override
   String get csvDownload => 'Herunterladen';
 }

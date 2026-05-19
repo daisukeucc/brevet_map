@@ -719,5 +719,8 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiScheduleColPoint => '포인트';
 
   @override
+  String get poiScheduleColStartClose => 'Start/Close';
+
+  @override
   String get csvDownload => '다운로드';
 }

@@ -1747,6 +1747,12 @@ class _PoiContentBlock extends StatelessWidget {
                                                     ? sessionCheckInsByIndex![
                                                         e.key]
                                                     : e.value.checkInResultUtc,
+                                                startClose: (e.value.arrival ==
+                                                            null &&
+                                                        e.value.departure !=
+                                                            null)
+                                                    ? e.value.departure
+                                                    : e.value.close,
                                               ))
                                           .toList(),
                                     ),
@@ -1820,6 +1826,11 @@ class _PoiContentBlock extends StatelessWidget {
                                               true
                                           ? sessionCheckInsByIndex![e.key]
                                           : e.value.checkInResultUtc,
+                                  startClose:
+                                      (e.value.arrival == null &&
+                                              e.value.departure != null)
+                                          ? e.value.departure
+                                          : e.value.close,
                                 ))
                             .toList(),
                       ),

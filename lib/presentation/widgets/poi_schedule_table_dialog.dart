@@ -20,12 +20,16 @@ class PoiScheduleRow {
     required this.name,
     required this.arrival,
     required this.checkInResultUtc,
+    this.startClose,
   });
 
   final String? distance;
   final String? name;
   final DateTime? arrival;
   final DateTime? checkInResultUtc;
+
+  /// Start POI は出発予定時刻、それ以外はクローズ時刻。
+  final DateTime? startClose;
 }
 
 /// POI 通過記録テーブルダイアログ。
@@ -85,18 +89,19 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
 
   String _buildCsv(String locale) {
     final distLabel = widget.distanceUnit == 1 ? 'mi' : 'km';
-    final header = [distLabel, 'point', 'arrival', 'result', 'ahead'];
+    final header = [distLabel, 'point', 'arrival', 'result', 'ahead', 'start/close'];
     final lines = <String>[header.join(',')];
     for (final r in widget.rows) {
       final arr = r.arrival;
       final res = r.checkInResultUtc;
+      final sc = r.startClose;
       lines.add([
         _csvField(r.distance ?? ''),
         _csvField(r.name ?? ''),
         _csvField(arr != null ? _fmtTime(arr, locale) : ''),
         _csvField(res != null ? _fmtTime(res, locale) : ''),
-        _csvField(
-            (arr != null && res != null) ? _ahead(arr, res) : ''),
+        _csvField((arr != null && res != null) ? _ahead(arr, res) : ''),
+        _csvField(sc != null ? _fmtTime(sc, locale) : ''),
       ].join(','));
     }
     return lines.join('\n');
@@ -256,12 +261,16 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                       DataColumn(
                           label:
                               Text(l10n.poiScheduleColAhead, style: th)),
+                      DataColumn(
+                          label: Text(l10n.poiScheduleColStartClose,
+                              style: th)),
                     ],
                     rows: widget.rows.indexed.map((entry) {
                       final i = entry.$1;
                       final r = entry.$2;
                       final arr = r.arrival;
                       final res = r.checkInResultUtc;
+                      final sc = r.startClose;
                       final isHighlight = widget.highlightIndex == i;
                       return DataRow(
                         color: isHighlight
@@ -288,6 +297,9 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                                 : '--',
                             style: ts,
                           )),
+                          DataCell(Text(
+                              sc != null ? _fmtTime(sc, locale) : '--',
+                              style: ts)),
                         ],
                       );
                     }).toList(),

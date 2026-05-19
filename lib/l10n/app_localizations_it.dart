@@ -737,5 +737,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get poiScheduleColPoint => 'Punto';
 
   @override
+  String get poiScheduleColStartClose => 'Start/Close';
+
+  @override
   String get csvDownload => 'Scarica';
 }
