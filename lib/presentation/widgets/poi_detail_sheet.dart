@@ -1247,6 +1247,9 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                   onCheckInTapStart: () => setState(() => _checkInAnimating = true),
                   onCheckInTapCancel: () => setState(() => _checkInAnimating = false),
                   scheduleEntries: widget.allEntries,
+                  sessionCheckInsByIndex: _sessionCheckInExplicit
+                      ? {0: _sessionCheckInUtc}
+                      : null,
                   contentLayoutMaxWidth: constraints.maxWidth,
                   sheetPadding: sheetPadding,
                   distanceLeft: distanceLeft,
@@ -1437,6 +1440,10 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                           onCheckInTapCancel: () =>
                               setState(() => _checkInAnimating = false),
                           scheduleEntries: widget.entries,
+                          sessionCheckInsByIndex:
+                              _checkInSessionByIndex.isEmpty
+                                  ? null
+                                  : Map.of(_checkInSessionByIndex),
                           contentLayoutMaxWidth: expandedW,
                           sheetPadding: sheetPadding,
                           distanceLeft: distanceLeft,
@@ -1532,6 +1539,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.onCheckInTapStart,
     this.onCheckInTapCancel,
     this.scheduleEntries,
+    this.sessionCheckInsByIndex,
   });
 
   final String? name;
@@ -1583,6 +1591,9 @@ class _PoiContentBlock extends StatelessWidget {
 
   /// view_list タップ時に表示するスケジュールテーブルの全エントリ。
   final List<PoiSheetEntry>? scheduleEntries;
+
+  /// シート表示中に確定したチェックイン（index → UTC）。[scheduleEntries] の古い値を上書きする。
+  final Map<int, DateTime?>? sessionCheckInsByIndex;
 
   String _formatTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
@@ -1721,13 +1732,21 @@ class _PoiContentBlock extends StatelessWidget {
                                     context: context,
                                     builder: (_) => PoiScheduleTableDialog(
                                       distanceUnit: distanceUnit,
+                                      highlightIndex: checkInTapEntryIndex,
                                       rows: scheduleEntries!
+                                          .asMap()
+                                          .entries
                                           .map((e) => PoiScheduleRow(
-                                                distance: e.distance,
-                                                name: e.name,
-                                                arrival: e.arrival,
-                                                checkInResultUtc:
-                                                    e.checkInResultUtc,
+                                                distance: e.value.distance,
+                                                name: e.value.name,
+                                                arrival: e.value.arrival,
+                                                checkInResultUtc: sessionCheckInsByIndex
+                                                            ?.containsKey(
+                                                                e.key) ==
+                                                        true
+                                                    ? sessionCheckInsByIndex![
+                                                        e.key]
+                                                    : e.value.checkInResultUtc,
                                               ))
                                           .toList(),
                                     ),
@@ -1788,11 +1807,18 @@ class _PoiContentBlock extends StatelessWidget {
                       builder: (_) => PoiScheduleTableDialog(
                         distanceUnit: distanceUnit,
                         rows: scheduleEntries!
+                            .asMap()
+                            .entries
                             .map((e) => PoiScheduleRow(
-                                  distance: e.distance,
-                                  name: e.name,
-                                  arrival: e.arrival,
-                                  checkInResultUtc: e.checkInResultUtc,
+                                  distance: e.value.distance,
+                                  name: e.value.name,
+                                  arrival: e.value.arrival,
+                                  checkInResultUtc:
+                                      sessionCheckInsByIndex?.containsKey(
+                                                  e.key) ==
+                                              true
+                                          ? sessionCheckInsByIndex![e.key]
+                                          : e.value.checkInResultUtc,
                                 ))
                             .toList(),
                       ),

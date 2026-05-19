@@ -25,12 +25,16 @@ class PoiScheduleTableDialog extends StatelessWidget {
     super.key,
     required this.rows,
     this.distanceUnit = 0,
+    this.highlightIndex,
   });
 
   final List<PoiScheduleRow> rows;
 
   /// 0=km, 1=mi（[formatDistance] と同じ）。距離列ヘッダーに反映する。
   final int distanceUnit;
+
+  /// 背景をグレーにする行インデックス（現在表示中の POI）。
+  final int? highlightIndex;
 
   static String _short(String? s) {
     if (s == null || s.isEmpty) return '-';
@@ -99,25 +103,34 @@ class PoiScheduleTableDialog extends StatelessWidget {
                       DataColumn(
                           label: Text(l10n.poiScheduleColAhead, style: th)),
                     ],
-                    rows: rows.map((r) {
+                    rows: rows.indexed.map((entry) {
+                      final i = entry.$1;
+                      final r = entry.$2;
                       final arr = r.arrival;
                       final res = r.checkInResultUtc;
-                      return DataRow(cells: [
-                        DataCell(Text(r.distance ?? '--', style: ts)),
-                        DataCell(Text(_short(r.name), style: ts)),
-                        DataCell(Text(
-                            arr != null ? _fmtTime(arr, locale) : '--',
-                            style: ts)),
-                        DataCell(Text(
-                            res != null ? _fmtTime(res, locale) : '--',
-                            style: ts)),
-                        DataCell(Text(
-                          (arr != null && res != null)
-                              ? _ahead(arr, res)
-                              : '--',
-                          style: ts,
-                        )),
-                      ]);
+                      final isHighlight = highlightIndex == i;
+                      return DataRow(
+                        color: isHighlight
+                            ? WidgetStateProperty.all(
+                                Colors.black.withValues(alpha: 0.06))
+                            : null,
+                        cells: [
+                          DataCell(Text(r.distance ?? '--', style: ts)),
+                          DataCell(Text(_short(r.name), style: ts)),
+                          DataCell(Text(
+                              arr != null ? _fmtTime(arr, locale) : '--',
+                              style: ts)),
+                          DataCell(Text(
+                              res != null ? _fmtTime(res, locale) : '--',
+                              style: ts)),
+                          DataCell(Text(
+                            (arr != null && res != null)
+                                ? _ahead(arr, res)
+                                : '--',
+                            style: ts,
+                          )),
+                        ],
+                      );
                     }).toList(),
                   ),
                 ),
