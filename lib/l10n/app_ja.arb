@@ -330,5 +330,6 @@
   "poiScheduleTableTitle": "通過記録",
   "poiScheduleColResult": "実績",
   "poiScheduleColAhead": "先行",
-  "poiScheduleColPoint": "ポイント"
+  "poiScheduleColPoint": "ポイント",
+  "csvDownload": "CSVダウンロード"
 }

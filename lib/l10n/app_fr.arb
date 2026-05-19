@@ -341,5 +341,6 @@
   "poiScheduleTableTitle": "Historique de pointage",
   "poiScheduleColResult": "Résultat",
   "poiScheduleColAhead": "Écart",
-  "poiScheduleColPoint": "Point"
+  "poiScheduleColPoint": "Point",
+  "csvDownload": "Télécharger"
 }

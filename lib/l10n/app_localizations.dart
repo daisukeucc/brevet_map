@@ -1414,6 +1414,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Point'**
   String get poiScheduleColPoint;
+
+  /// No description provided for @csvDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get csvDownload;
 }
 
 class _AppLocalizationsDelegate

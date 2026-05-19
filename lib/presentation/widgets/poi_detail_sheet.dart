@@ -1806,6 +1806,7 @@ class _PoiContentBlock extends StatelessWidget {
                       context: context,
                       builder: (_) => PoiScheduleTableDialog(
                         distanceUnit: distanceUnit,
+                        showDownloadButton: true,
                         rows: scheduleEntries!
                             .asMap()
                             .entries

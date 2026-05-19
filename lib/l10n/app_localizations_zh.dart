@@ -707,6 +707,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get poiScheduleColPoint => '点';
+
+  @override
+  String get csvDownload => '下载';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1403,4 +1406,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get poiScheduleColPoint => '點';
+
+  @override
+  String get csvDownload => '下載';
 }

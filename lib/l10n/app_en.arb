@@ -362,5 +362,6 @@
   "poiScheduleTableTitle": "Check-in Records",
   "poiScheduleColResult": "Result",
   "poiScheduleColAhead": "Ahead",
-  "poiScheduleColPoint": "Point"
+  "poiScheduleColPoint": "Point",
+  "csvDownload": "Download"
 }

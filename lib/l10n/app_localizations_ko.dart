@@ -717,4 +717,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get poiScheduleColPoint => '포인트';
+
+  @override
+  String get csvDownload => '다운로드';
 }

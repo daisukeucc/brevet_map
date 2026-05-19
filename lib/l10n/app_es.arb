@@ -341,5 +341,6 @@
   "poiScheduleTableTitle": "Historial de fichaje",
   "poiScheduleColResult": "Resultado",
   "poiScheduleColAhead": "Diferencia",
-  "poiScheduleColPoint": "Punto"
+  "poiScheduleColPoint": "Punto",
+  "csvDownload": "Descargar"
 }

@@ -341,5 +341,6 @@
   "poiScheduleTableTitle": "打卡记录",
   "poiScheduleColResult": "实绩",
   "poiScheduleColAhead": "差值",
-  "poiScheduleColPoint": "点"
+  "poiScheduleColPoint": "点",
+  "csvDownload": "下载"
 }

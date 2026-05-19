@@ -732,4 +732,7 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get poiScheduleColPoint => 'จุด';
+
+  @override
+  String get csvDownload => 'ดาวน์โหลด';
 }
