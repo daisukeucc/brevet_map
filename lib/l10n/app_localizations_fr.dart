@@ -726,4 +726,13 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get selectPoiAtSameLocation => 'Sélectionner un POI';
+
+  @override
+  String get poiScheduleTableTitle => 'Historique de pointage';
+
+  @override
+  String get poiScheduleColResult => 'Résultat';
+
+  @override
+  String get poiScheduleColAhead => 'Écart';
 }

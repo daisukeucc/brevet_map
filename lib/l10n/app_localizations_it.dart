@@ -723,4 +723,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get selectPoiAtSameLocation => 'Seleziona POI';
+
+  @override
+  String get poiScheduleTableTitle => 'Registro del check-in';
+
+  @override
+  String get poiScheduleColResult => 'Risultato';
+
+  @override
+  String get poiScheduleColAhead => 'Differenza';
 }

@@ -1027,6 +1027,110 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   }
 }
 
+/// チェックイン済み POI の通過記録テーブルダイアログ。
+class _PoiScheduleTableDialog extends StatelessWidget {
+  const _PoiScheduleTableDialog({required this.entries});
+
+  final List<PoiSheetEntry> entries;
+
+  static String _short(String? s) {
+    if (s == null || s.isEmpty) return '-';
+    return s.length <= 6 ? s : '${s.substring(0, 6)}...';
+  }
+
+  static String _fmtTime(DateTime dt, String locale) =>
+      DateFormat('M/d H:mm', locale).format(dt.toLocal());
+
+  static String _ahead(DateTime arrival, DateTime result) {
+    final d = arrival.difference(result);
+    final abs = d.abs();
+    final h = abs.inHours.toString().padLeft(2, '0');
+    final m = (abs.inMinutes % 60).toString().padLeft(2, '0');
+    return d.isNegative ? '- $h:$m' : '+ $h:$m';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final locale = Localizations.localeOf(context).toString();
+    const ts = TextStyle(fontSize: 13, color: Colors.black87);
+    const th =
+        TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black54);
+
+    return Dialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 20, 0, 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child:
+                  Text(l10n.poiScheduleTableTitle, style: AppTextStyles.headline),
+            ),
+            const SizedBox(height: 12),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.55,
+              ),
+              child: SingleChildScrollView(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    headingRowHeight: 38,
+                    dataRowMinHeight: 40,
+                    dataRowMaxHeight: 40,
+                    columnSpacing: 20,
+                    horizontalMargin: 20,
+                    headingRowColor: WidgetStateProperty.all(
+                        Colors.black.withValues(alpha: 0.04)),
+                    columns: [
+                      DataColumn(label: Text('km', style: th)),
+                      DataColumn(label: Text(l10n.title, style: th)),
+                      DataColumn(label: Text(l10n.arrivalShort, style: th)),
+                      DataColumn(label: Text(l10n.poiScheduleColResult, style: th)),
+                      DataColumn(label: Text(l10n.poiScheduleColAhead, style: th)),
+                    ],
+                    rows: entries.map((e) {
+                      final arr = e.arrival;
+                      final res = e.checkInResultUtc;
+                      return DataRow(cells: [
+                        DataCell(Text(e.distance ?? '-', style: ts)),
+                        DataCell(Text(_short(e.name), style: ts)),
+                        DataCell(
+                            Text(arr != null ? _fmtTime(arr, locale) : '-',
+                                style: ts)),
+                        DataCell(
+                            Text(res != null ? _fmtTime(res, locale) : '-',
+                                style: ts)),
+                        DataCell(Text(
+                          (arr != null && res != null) ? _ahead(arr, res) : '-',
+                          style: ts,
+                        )),
+                      ]);
+                    }).toList(),
+                  ),
+                ),
+              ),
+            ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l10n.trialInfoClose, style: AppTextStyles.button),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// POI タップ時に表示するボトムシート。名前と説明を表示。
 /// [entries] が2件以上のときは同一カテゴリ（GPX / ユーザー）内のシート内移動（＞）を表示する。
 void showPoiDetailSheet(
@@ -1072,6 +1176,7 @@ void showPoiDetailSheet(
         checkInResultUtc: entries.first.checkInResultUtc,
         onCheckIn: entries.first.onCheckIn,
         verifyLocationOnCheckIn: verifyLocationOnCheckIn,
+        allEntries: entries,
       );
     },
   );
@@ -1097,6 +1202,7 @@ class _PoiDetailSheetBody extends StatefulWidget {
     this.checkInResultUtc,
     this.onCheckIn,
     required this.verifyLocationOnCheckIn,
+    required this.allEntries,
   });
 
   final String? name;
@@ -1121,6 +1227,9 @@ class _PoiDetailSheetBody extends StatefulWidget {
 
   /// false のときチェックインONで位置を取得せず確認ダイアログのみ。
   final bool verifyLocationOnCheckIn;
+
+  /// テーブルダイアログ用：シートに関連する全エントリ。
+  final List<PoiSheetEntry> allEntries;
 
   @override
   State<_PoiDetailSheetBody> createState() => _PoiDetailSheetBodyState();
@@ -1240,6 +1349,7 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                   checkInAnimating: _checkInAnimating,
                   onCheckInTapStart: () => setState(() => _checkInAnimating = true),
                   onCheckInTapCancel: () => setState(() => _checkInAnimating = false),
+                  scheduleEntries: widget.allEntries,
                   contentLayoutMaxWidth: constraints.maxWidth,
                   sheetPadding: sheetPadding,
                   distanceLeft: distanceLeft,
@@ -1429,6 +1539,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                               setState(() => _checkInAnimating = true),
                           onCheckInTapCancel: () =>
                               setState(() => _checkInAnimating = false),
+                          scheduleEntries: widget.entries,
                           contentLayoutMaxWidth: expandedW,
                           sheetPadding: sheetPadding,
                           distanceLeft: distanceLeft,
@@ -1523,6 +1634,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.checkInAnimating = false,
     this.onCheckInTapStart,
     this.onCheckInTapCancel,
+    this.scheduleEntries,
   });
 
   final String? name;
@@ -1571,6 +1683,9 @@ class _PoiContentBlock extends StatelessWidget {
 
   /// チェックインダイアログでキャンセルされたとき（アニメーション未開始で処理が終了したとき）に呼ばれる。
   final VoidCallback? onCheckInTapCancel;
+
+  /// view_list タップ時に表示するスケジュールテーブルの全エントリ。
+  final List<PoiSheetEntry>? scheduleEntries;
 
   String _formatTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
@@ -1645,8 +1760,11 @@ class _PoiContentBlock extends StatelessWidget {
         );
     final canTapSheetForElevationChart =
         showSegmentChartPrecomputed || showElevationChartOnDemand;
-    final showStatsRow =
-        hasDistance || showElevationGainIcon || showElevationChartIcon;
+    final showStartPoiListIcon = isRouteStartPoi && scheduleEntries != null;
+    final showStatsRow = hasDistance ||
+        showElevationGainIcon ||
+        showElevationChartIcon ||
+        showStartPoiListIcon;
     final hasName = name != null && name!.isNotEmpty;
     final hasDescription = description != null && description!.isNotEmpty;
     final parsedUrl = url != null ? _parseOpenableUrl(url!) : null;
@@ -1700,9 +1818,16 @@ class _PoiContentBlock extends StatelessWidget {
                       onCommitCheckInForEntry != null) ...[
                     const SizedBox(width: 5),
                     GestureDetector(
-                      onTap:
-                          !_poiCheckInToggleOnFromResultUtc(checkInResultUtc) &&
-                                  onCommitCheckInForEntry != null
+                      onTap: _poiCheckInToggleOnFromResultUtc(checkInResultUtc)
+                          ? (scheduleEntries != null
+                              ? () => showDialog<void>(
+                                    context: context,
+                                    builder: (_) => _PoiScheduleTableDialog(
+                                      entries: scheduleEntries!,
+                                    ),
+                                  )
+                              : null)
+                          : (onCommitCheckInForEntry != null
                               ? () async {
                                   onCheckInTapStart?.call();
                                   final ei = checkInTapEntryIndex;
@@ -1730,7 +1855,7 @@ class _PoiContentBlock extends StatelessWidget {
                                     onCheckInTapCancel?.call();
                                   }
                                 }
-                              : null,
+                              : null),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         child: Icon(
@@ -1747,6 +1872,26 @@ class _PoiContentBlock extends StatelessWidget {
                       ),
                     ),
                   ],
+                ],
+                if (showStartPoiListIcon) ...[
+                  if (hasDistance || showElevationGainIcon)
+                    const SizedBox(width: 5),
+                  GestureDetector(
+                    onTap: () => showDialog<void>(
+                      context: context,
+                      builder: (_) => _PoiScheduleTableDialog(
+                        entries: scheduleEntries!,
+                      ),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Icon(
+                        Icons.view_list,
+                        size: 30,
+                        color: AppColors.muted,
+                      ),
+                    ),
+                  ),
                 ],
               ],
             ),

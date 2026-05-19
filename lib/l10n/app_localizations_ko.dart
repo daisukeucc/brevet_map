@@ -705,4 +705,13 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get selectPoiAtSameLocation => 'POI 선택';
+
+  @override
+  String get poiScheduleTableTitle => '체크인 기록';
+
+  @override
+  String get poiScheduleColResult => '실적';
+
+  @override
+  String get poiScheduleColAhead => '차이';
 }

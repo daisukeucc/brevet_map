@@ -702,4 +702,13 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get selectPoiAtSameLocation => 'POIを選択';
+
+  @override
+  String get poiScheduleTableTitle => '通過記録';
+
+  @override
+  String get poiScheduleColResult => '実績';
+
+  @override
+  String get poiScheduleColAhead => '差';
 }

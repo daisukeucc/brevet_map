@@ -337,4 +337,8 @@
   "poiCheckInLocationAcquireFailedTitle": "Standort konnte nicht ermittelt werden",
   "poiCheckInLocationUnavailableDetail": "Ihre aktuelle Position konnte nicht ermittelt werden. Versuchen Sie es gegebenenfalls erneut im Freien oder prüfen Sie GPS sowie in den Geräteeinstellungen den Punkt „Standort“ und die App-Berechtigungen.",
   "selectPoiAtSameLocation": "POI auswählen"
+,
+  "poiScheduleTableTitle": "Check-in-Verlauf",
+  "poiScheduleColResult": "Ergebnis",
+  "poiScheduleColAhead": "Differenz"
 }

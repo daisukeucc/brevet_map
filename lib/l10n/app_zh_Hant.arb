@@ -336,4 +336,8 @@
   "poiCheckInLocationAcquireFailedTitle": "無法取得位置",
   "poiCheckInLocationUnavailableDetail": "無法取得現在地。請在室外等環境重試；並請確認 GPS，以及終端設定中的「位置資訊」與應用程式的相關權限。",
   "selectPoiAtSameLocation": "選擇 POI"
+,
+  "poiScheduleTableTitle": "打卡記錄",
+  "poiScheduleColResult": "實績",
+  "poiScheduleColAhead": "差值"
 }

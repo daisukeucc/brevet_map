@@ -1390,6 +1390,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select POI'**
   String get selectPoiAtSameLocation;
+
+  /// No description provided for @poiScheduleTableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in Records'**
+  String get poiScheduleTableTitle;
+
+  /// No description provided for @poiScheduleColResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get poiScheduleColResult;
+
+  /// No description provided for @poiScheduleColAhead.
+  ///
+  /// In en, this message translates to:
+  /// **'Ahead'**
+  String get poiScheduleColAhead;
 }
 
 class _AppLocalizationsDelegate

@@ -724,4 +724,13 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get selectPoiAtSameLocation => 'Seleccionar POI';
+
+  @override
+  String get poiScheduleTableTitle => 'Historial de fichaje';
+
+  @override
+  String get poiScheduleColResult => 'Resultado';
+
+  @override
+  String get poiScheduleColAhead => 'Diferencia';
 }

@@ -720,4 +720,13 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get selectPoiAtSameLocation => 'เลือก POI';
+
+  @override
+  String get poiScheduleTableTitle => 'บันทึกการเช็คอิน';
+
+  @override
+  String get poiScheduleColResult => 'ผลลัพธ์';
+
+  @override
+  String get poiScheduleColAhead => 'ผลต่าง';
 }

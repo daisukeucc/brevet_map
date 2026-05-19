@@ -695,6 +695,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get selectPoiAtSameLocation => '选择 POI';
+
+  @override
+  String get poiScheduleTableTitle => '打卡记录';
+
+  @override
+  String get poiScheduleColResult => '实绩';
+
+  @override
+  String get poiScheduleColAhead => '差值';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -1379,4 +1388,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get selectPoiAtSameLocation => '選擇 POI';
+
+  @override
+  String get poiScheduleTableTitle => '打卡記錄';
+
+  @override
+  String get poiScheduleColResult => '實績';
+
+  @override
+  String get poiScheduleColAhead => '差值';
 }
