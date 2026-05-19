@@ -65,6 +65,24 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
     return s.length <= 6 ? s : '${s.substring(0, 6)}...';
   }
 
+  void _showFullName(BuildContext ctx, String name) {
+    showDialog<void>(
+      context: ctx,
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
+          child: Text(name,
+              style: TextStyle(
+                  fontSize: 16, color: Colors.black87.withValues(alpha: 0.7))),
+        ),
+      ),
+    );
+  }
+
   static String _fmtTime(DateTime dt, String locale) {
     final local = dt.toLocal();
     final date = DateFormat.Md(locale).format(local);
@@ -89,7 +107,14 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
 
   String _buildCsv(String locale) {
     final distLabel = widget.distanceUnit == 1 ? 'mi' : 'km';
-    final header = [distLabel, 'point', 'arrival', 'result', 'ahead', 'start/close'];
+    final header = [
+      distLabel,
+      'point',
+      'arrival',
+      'result',
+      'ahead',
+      'start/close'
+    ];
     final lines = <String>[header.join(',')];
     for (final r in widget.rows) {
       final arr = r.arrival;
@@ -189,8 +214,7 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
             sharePositionOrigin:
                 Rect.fromPoints(const Offset(0, 0), const Offset(1, 1)),
           );
-          unawaited(
-              Future<void>.delayed(const Duration(minutes: 10), () async {
+          unawaited(Future<void>.delayed(const Duration(minutes: 10), () async {
             try {
               if (await shareDir.exists()) {
                 await shareDir.delete(recursive: true);
@@ -225,8 +249,8 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 5, 20, 10),
-              child: Text(l10n.poiScheduleTableTitle,
-                  style: AppTextStyles.title),
+              child:
+                  Text(l10n.poiScheduleTableTitle, style: AppTextStyles.title),
             ),
             const SizedBox(height: 12),
             ConstrainedBox(
@@ -247,23 +271,18 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                         Colors.black.withValues(alpha: 0.04)),
                     columns: [
                       DataColumn(
-                          label: Text(
-                              widget.distanceUnit == 1 ? 'mi' : 'km',
+                          label: Text(widget.distanceUnit == 1 ? 'mi' : 'km',
                               style: th)),
                       DataColumn(
+                          label: Text(l10n.poiScheduleColPoint, style: th)),
+                      DataColumn(label: Text(l10n.arrivalShort, style: th)),
+                      DataColumn(
+                          label: Text(l10n.poiScheduleColResult, style: th)),
+                      DataColumn(
+                          label: Text(l10n.poiScheduleColAhead, style: th)),
+                      DataColumn(
                           label:
-                              Text(l10n.poiScheduleColPoint, style: th)),
-                      DataColumn(
-                          label: Text(l10n.arrivalShort, style: th)),
-                      DataColumn(
-                          label:
-                              Text(l10n.poiScheduleColResult, style: th)),
-                      DataColumn(
-                          label:
-                              Text(l10n.poiScheduleColAhead, style: th)),
-                      DataColumn(
-                          label: Text(l10n.poiScheduleColStartClose,
-                              style: th)),
+                              Text(l10n.poiScheduleColStartClose, style: th)),
                     ],
                     rows: widget.rows.indexed.map((entry) {
                       final i = entry.$1;
@@ -278,18 +297,18 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                                 Colors.black.withValues(alpha: 0.06))
                             : null,
                         cells: [
+                          DataCell(Text(r.distance ?? '--', style: ts)),
                           DataCell(
-                              Text(r.distance ?? '--', style: ts)),
-                          DataCell(Text(_short(r.name), style: ts)),
+                            Text(_short(r.name), style: ts),
+                            onTap: r.name != null
+                                ? () => _showFullName(context, r.name!)
+                                : null,
+                          ),
                           DataCell(Text(
-                              arr != null
-                                  ? _fmtTime(arr, locale)
-                                  : '--',
+                              arr != null ? _fmtTime(arr, locale) : '--',
                               style: ts)),
                           DataCell(Text(
-                              res != null
-                                  ? _fmtTime(res, locale)
-                                  : '--',
+                              res != null ? _fmtTime(res, locale) : '--',
                               style: ts)),
                           DataCell(Text(
                             (arr != null && res != null)
@@ -315,13 +334,13 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                   if (widget.showDownloadButton)
                     TextButton(
                       onPressed: _isDownloading ? null : _download,
-                      child: Text(l10n.csvDownload,
-                          style: AppTextStyles.button),
+                      child:
+                          Text(l10n.csvDownload, style: AppTextStyles.button),
                     ),
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text(l10n.trialInfoClose,
-                        style: AppTextStyles.button),
+                    child:
+                        Text(l10n.trialInfoClose, style: AppTextStyles.button),
                   ),
                 ],
               ),
