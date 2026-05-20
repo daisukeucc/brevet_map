@@ -64,6 +64,57 @@ UserPoi _userPoiWithCheckInResult(UserPoi p, DateTime utc) {
     departure: sched.departure,
     close: sched.close,
     result: utc,
+    rest: sched.rest,
+  );
+  if (ext != null) {
+    return UserPoi(
+      type: p.type,
+      km: p.km,
+      title: p.title,
+      body: p.body,
+      url: p.url,
+      lat: p.lat,
+      lng: p.lng,
+      gpxCmt: p.gpxCmt,
+      gpxType: p.gpxType,
+      isNote: p.isNote,
+      bmExt: BmPoiExtension(
+        type: ext.type,
+        schedule: newSched,
+        distanceKm: ext.distanceKm,
+        displayOrder: ext.displayOrder,
+        isNote: ext.isNote,
+      ),
+    );
+  }
+  return UserPoi(
+    type: p.type,
+    km: p.km,
+    title: p.title,
+    body: p.body,
+    url: p.url,
+    lat: p.lat,
+    lng: p.lng,
+    gpxCmt: p.gpxCmt,
+    gpxType: p.gpxType,
+    isNote: p.isNote,
+    bmExt: BmPoiExtension(
+      type: p.poiType.defaultBmPoiType,
+      schedule: newSched,
+      distanceKm: p.km ?? 0,
+    ),
+  );
+}
+
+UserPoi _userPoiWithRestResult(UserPoi p, DateTime utc) {
+  final ext = p.bmExt;
+  final sched = ext?.schedule ?? const BmSchedule();
+  final newSched = BmSchedule(
+    arrival: sched.arrival,
+    departure: sched.departure,
+    close: sched.close,
+    result: sched.result,
+    rest: utc,
   );
   if (ext != null) {
     return UserPoi(
@@ -501,6 +552,17 @@ class PoiMapDetailSheetController {
                   .read(mapStateProvider.notifier)
                   .updateUserPoi(poiRef, updated);
             },
+            restUtc: sched?.rest,
+            onCheckOut: (utc) async {
+              final currentPois = _ref.read(mapStateProvider).userPois;
+              final currentIdx = UserPoi.indexInList(currentPois, poiRef);
+              final currentPoi =
+                  currentIdx >= 0 ? currentPois[currentIdx] : poiRef;
+              final updated = _userPoiWithRestResult(currentPoi, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(currentPoi, updated);
+            },
           ),
         );
       }
@@ -576,6 +638,17 @@ class PoiMapDetailSheetController {
               await _ref
                   .read(mapStateProvider.notifier)
                   .updateUserPoi(poi, updated);
+            },
+            restUtc: sched?.rest,
+            onCheckOut: (utc) async {
+              final currentPois = _ref.read(mapStateProvider).userPois;
+              final currentIdx = UserPoi.indexInList(currentPois, poi);
+              final currentPoi =
+                  currentIdx >= 0 ? currentPois[currentIdx] : poi;
+              final updated = _userPoiWithRestResult(currentPoi, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(currentPoi, updated);
             },
           ),
         ],

@@ -270,6 +270,11 @@ void _addWpt(
                   builder.text(_toIso8601(bmPoiExt.schedule.result!));
                 });
               }
+              if (bmPoiExt.schedule.rest != null) {
+                builder.element('bm:rest', nest: () {
+                  builder.text(_toIso8601(bmPoiExt.schedule.rest!));
+                });
+              }
             });
           }
           if (userPoiKm != null) {

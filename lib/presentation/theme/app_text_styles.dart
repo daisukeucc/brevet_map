@@ -24,6 +24,9 @@ abstract class AppColors {
 
   /// POI 日付バッジの枠線・テキスト色
   static const Color poiDateBadge = muted;
+
+  /// チェックイン済み表示色（到着実績時刻・休憩実績時刻・日付バッジ）
+  static const Color checkInResult = Color(0xFFB71C1C);
 }
 
 /// アプリ全体で使用するテキストスタイル

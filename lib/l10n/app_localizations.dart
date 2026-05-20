@@ -389,6 +389,18 @@ abstract class AppLocalizations {
   /// **'Actual arrival'**
   String get poiArrivalActual;
 
+  /// No description provided for @poiRestActual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual rest'**
+  String get poiRestActual;
+
+  /// No description provided for @poiCheckOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out?'**
+  String get poiCheckOut;
+
   /// No description provided for @arrivalShort.
   ///
   /// In en, this message translates to:

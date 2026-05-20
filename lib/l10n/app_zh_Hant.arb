@@ -53,6 +53,8 @@
   "plannedDeparture": "出發",
   "plannedClose": "截止時間",
   "poiArrivalActual": "實際到達",
+  "poiRestActual": "實際休息",
+  "poiCheckOut": "確認出發？",
   "arrivalShort": "到達",
   "departureShort": "出發",
   "distance": "距離",

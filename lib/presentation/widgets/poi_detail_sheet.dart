@@ -14,6 +14,7 @@ import '../../utils/connectivity_check.dart';
 import '../../utils/map_utils.dart';
 import '../theme/app_text_styles.dart' show AppColors, AppTextStyles;
 import '../utils/snackbar_utils.dart';
+import 'confirm_dialog.dart';
 import 'poi_schedule_table_dialog.dart';
 
 /// POIシートタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
@@ -419,6 +420,8 @@ class PoiSheetEntry {
     this.isRouteStartPoi = true,
     this.checkInResultUtc,
     this.onCheckIn,
+    this.restUtc,
+    this.onCheckOut,
   });
 
   final String? name;
@@ -460,6 +463,12 @@ class PoiSheetEntry {
 
   /// User POI のチェックイン。[BmSchedule.result] に UTC を書き込む。未設定時のみシートから呼べる。
   final Future<void> Function(DateTime checkInUtc)? onCheckIn;
+
+  /// 対応 POI の [BmSchedule.rest]（チェックアウト実績時刻）。
+  final DateTime? restUtc;
+
+  /// チェックアウト確定コールバック。[BmSchedule.rest] に UTC を書き込む。
+  final Future<void> Function(DateTime restUtc)? onCheckOut;
 }
 
 /// チェックイントグル：[BmSchedule.result] の有無のみで ON/OFF（保存しているかどうか）。
@@ -1072,6 +1081,8 @@ void showPoiDetailSheet(
         isRouteStartPoi: entries.first.isRouteStartPoi,
         checkInResultUtc: entries.first.checkInResultUtc,
         onCheckIn: entries.first.onCheckIn,
+        restUtc: entries.first.restUtc,
+        onCheckOut: entries.first.onCheckOut,
         verifyLocationOnCheckIn: verifyLocationOnCheckIn,
         allEntries: entries,
       );
@@ -1098,6 +1109,8 @@ class _PoiDetailSheetBody extends StatefulWidget {
     this.isRouteStartPoi = true,
     this.checkInResultUtc,
     this.onCheckIn,
+    this.restUtc,
+    this.onCheckOut,
     required this.verifyLocationOnCheckIn,
     required this.allEntries,
   });
@@ -1122,6 +1135,10 @@ class _PoiDetailSheetBody extends StatefulWidget {
   final DateTime? checkInResultUtc;
   final Future<void> Function(DateTime checkInUtc)? onCheckIn;
 
+  /// [BmSchedule.rest]（チェックアウト実績時刻）。
+  final DateTime? restUtc;
+  final Future<void> Function(DateTime restUtc)? onCheckOut;
+
   /// false のときチェックインONで位置を取得せず確認ダイアログのみ。
   final bool verifyLocationOnCheckIn;
 
@@ -1143,6 +1160,10 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
   /// シート表示中に確定したチェックイン状態（永続化後も [widget.checkInResultUtc] は古いままのため）。
   bool _sessionCheckInExplicit = false;
   DateTime? _sessionCheckInUtc;
+
+  /// シート表示中に確定したチェックアウト状態（永続化後も [widget.restUtc] は古いままのため）。
+  bool _sessionCheckOutExplicit = false;
+  DateTime? _sessionRestUtc;
 
   @override
   void initState() {
@@ -1186,12 +1207,24 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
   DateTime? get _effectiveCheckInResultUtc =>
       _sessionCheckInExplicit ? _sessionCheckInUtc : widget.checkInResultUtc;
 
+  DateTime? get _effectiveRestUtc =>
+      _sessionCheckOutExplicit ? _sessionRestUtc : widget.restUtc;
+
   Future<void> _wrapCommitCheckIn(DateTime utc) async {
     await widget.onCheckIn!(utc);
     if (!mounted) return;
     setState(() {
       _sessionCheckInExplicit = true;
       _sessionCheckInUtc = utc;
+    });
+  }
+
+  Future<void> _wrapCommitCheckOut(DateTime utc) async {
+    await widget.onCheckOut!(utc);
+    if (!mounted) return;
+    setState(() {
+      _sessionCheckOutExplicit = true;
+      _sessionRestUtc = utc;
     });
   }
 
@@ -1242,14 +1275,19 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                   onCommitCheckInForEntry: widget.onCheckIn == null
                       ? null
                       : (_, utc) => _wrapCommitCheckIn(utc),
+                  restUtc: _effectiveRestUtc,
+                  onCommitCheckOutForEntry: widget.onCheckOut == null
+                      ? null
+                      : (_, utc) => _wrapCommitCheckOut(utc),
                   verifyLocationOnCheckIn: widget.verifyLocationOnCheckIn,
                   checkInAnimating: _checkInAnimating,
-                  onCheckInTapStart: () => setState(() => _checkInAnimating = true),
-                  onCheckInTapCancel: () => setState(() => _checkInAnimating = false),
+                  onCheckInTapStart: () =>
+                      setState(() => _checkInAnimating = true),
+                  onCheckInTapCancel: () =>
+                      setState(() => _checkInAnimating = false),
                   scheduleEntries: widget.allEntries,
-                  sessionCheckInsByIndex: _sessionCheckInExplicit
-                      ? {0: _sessionCheckInUtc}
-                      : null,
+                  sessionCheckInsByIndex:
+                      _sessionCheckInExplicit ? {0: _sessionCheckInUtc} : null,
                   contentLayoutMaxWidth: constraints.maxWidth,
                   sheetPadding: sheetPadding,
                   distanceLeft: distanceLeft,
@@ -1292,6 +1330,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
   bool _checkInAnimating = false;
 
   final Map<int, DateTime?> _checkInSessionByIndex = {};
+  final Map<int, DateTime?> _restSessionByIndex = {};
 
   @override
   void initState() {
@@ -1345,6 +1384,10 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
   DateTime? _effectiveCheckInUtc(int i) => _checkInSessionByIndex.containsKey(i)
       ? _checkInSessionByIndex[i]
       : widget.entries[i].checkInResultUtc;
+
+  DateTime? _effectiveRestUtc(int i) => _restSessionByIndex.containsKey(i)
+      ? _restSessionByIndex[i]
+      : widget.entries[i].restUtc;
 
   void _goNext() {
     _resetCheckInChartAnimation();
@@ -1432,6 +1475,18 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                         utc,
                                   );
                                 },
+                          restUtc: _effectiveRestUtc(ix),
+                          onCommitCheckOutForEntry: e.onCheckOut == null
+                              ? null
+                              : (entryIndex, utc) async {
+                                  await widget
+                                      .entries[entryIndex].onCheckOut!(utc);
+                                  if (!mounted) return;
+                                  setState(
+                                    () => _restSessionByIndex[entryIndex] =
+                                        utc,
+                                  );
+                                },
                           verifyLocationOnCheckIn:
                               widget.verifyLocationOnCheckIn,
                           checkInAnimating: _checkInAnimating,
@@ -1440,10 +1495,9 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                           onCheckInTapCancel: () =>
                               setState(() => _checkInAnimating = false),
                           scheduleEntries: widget.entries,
-                          sessionCheckInsByIndex:
-                              _checkInSessionByIndex.isEmpty
-                                  ? null
-                                  : Map.of(_checkInSessionByIndex),
+                          sessionCheckInsByIndex: _checkInSessionByIndex.isEmpty
+                              ? null
+                              : Map.of(_checkInSessionByIndex),
                           contentLayoutMaxWidth: expandedW,
                           sheetPadding: sheetPadding,
                           distanceLeft: distanceLeft,
@@ -1534,6 +1588,8 @@ class _PoiContentBlock extends StatelessWidget {
     this.checkInTapEntryIndex = 0,
     this.checkInResultUtc,
     this.onCommitCheckInForEntry,
+    this.restUtc,
+    this.onCommitCheckOutForEntry,
     required this.verifyLocationOnCheckIn,
     this.checkInAnimating = false,
     this.onCheckInTapStart,
@@ -1577,6 +1633,13 @@ class _PoiContentBlock extends StatelessWidget {
   final Future<void> Function(int entryIndex, DateTime utc)?
       onCommitCheckInForEntry;
 
+  /// [BmSchedule.rest]（チェックアウト実績時刻）。非 null ＝チェックアウト済み。
+  final DateTime? restUtc;
+
+  /// チェックアウト確定コールバック。チェックイン済み・チェックアウト未の場合のみ有効。
+  final Future<void> Function(int entryIndex, DateTime utc)?
+      onCommitCheckOutForEntry;
+
   /// false のとき位置取得・距離判定を省略し確認ダイアログのみ。
   final bool verifyLocationOnCheckIn;
 
@@ -1618,17 +1681,18 @@ class _PoiContentBlock extends StatelessWidget {
     return uri;
   }
 
-  Widget _buildDateBadge(DateTime dt, BuildContext context) {
+  Widget _buildDateBadge(DateTime dt, BuildContext context, {Color? color}) {
+    final c = color ?? AppColors.poiDateBadge;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.poiDateBadge, width: 1),
+        border: Border.all(color: c, width: 1),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
         _formatDate(dt, context),
         style: AppTextStyles.bodySmall.copyWith(
-          color: AppColors.poiDateBadge,
+          color: c,
           height: 1.0,
         ),
       ),
@@ -1680,7 +1744,9 @@ class _PoiContentBlock extends StatelessWidget {
     final hasArrival = arrival != null;
     final hasDeparture = departure != null;
     final hasClose = close != null;
-    final hasSchedule = hasArrival || hasDeparture || hasClose;
+    final hasCheckedIn = checkInResultUtc != null;
+    final hasCheckedOut = restUtc != null;
+    final hasSchedule = hasArrival || hasDeparture || hasClose || hasCheckedIn || hasCheckedOut;
 
     void openElevationChart() {
       if (showSegmentChartPrecomputed) {
@@ -1722,86 +1788,78 @@ class _PoiContentBlock extends StatelessWidget {
                       size: 23, color: AppColors.muted),
                   const SizedBox(width: 3),
                   Text(elevationGain!, style: AppTextStyles.poiLarge),
-                  if (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) ||
-                      onCommitCheckInForEntry != null) ...[
+                  if (!hasCheckedOut &&
+                      (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) ||
+                          onCommitCheckInForEntry != null)) ...[
                     const SizedBox(width: 5),
-                    GestureDetector(
-                      onTap: _poiCheckInToggleOnFromResultUtc(checkInResultUtc)
-                          ? (scheduleEntries != null
-                              ? () => showDialog<void>(
-                                    context: context,
-                                    builder: (_) => PoiScheduleTableDialog(
-                                      distanceUnit: distanceUnit,
-                                      highlightIndex: checkInTapEntryIndex,
-                                      rows: scheduleEntries!
-                                          .asMap()
-                                          .entries
-                                          .map((e) => PoiScheduleRow(
-                                                distance: e.value.distance,
-                                                name: e.value.name,
-                                                arrival: e.value.arrival,
-                                                checkInResultUtc: sessionCheckInsByIndex
-                                                            ?.containsKey(
-                                                                e.key) ==
-                                                        true
-                                                    ? sessionCheckInsByIndex![
-                                                        e.key]
-                                                    : e.value.checkInResultUtc,
-                                                startClose: (e.value.arrival ==
-                                                            null &&
-                                                        e.value.departure !=
-                                                            null)
-                                                    ? e.value.departure
-                                                    : e.value.close,
-                                              ))
-                                          .toList(),
-                                    ),
-                                  )
-                              : null)
-                          : (onCommitCheckInForEntry != null
-                              ? () async {
-                                  onCheckInTapStart?.call();
-                                  final ei = checkInTapEntryIndex;
-                                  var animationStarted = false;
-                                  await _runPoiCheckInToggleTap(
-                                    context: context,
-                                    poiPosition: poiPosition,
-                                    verifyLocationOnCheckIn:
-                                        verifyLocationOnCheckIn,
-                                    turnOn: true,
-                                    timeChart: timeChart,
-                                    onBeginCheckInChartAnimation:
-                                        onBeginCheckInChartAnimation == null
-                                            ? null
-                                            : (hours) {
-                                                animationStarted = true;
-                                                onBeginCheckInChartAnimation!(
-                                                    hours);
-                                              },
-                                    onCommit: (utc) =>
-                                        onCommitCheckInForEntry!(ei, utc),
-                                    onClear: () async {},
-                                  );
-                                  if (!animationStarted) {
-                                    onCheckInTapCancel?.call();
-                                  }
-                                }
-                              : null),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(
-                          _poiCheckInToggleOnFromResultUtc(checkInResultUtc)
-                              ? Icons.view_list
-                              : checkInAnimating
-                                  ? Icons.bookmark
-                                  : Icons.bookmark_add_outlined,
-                          size: 30,
-                          color: checkInAnimating
-                              ? AppColors.mutedLight
-                              : AppColors.muted,
+                    if (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) && !hasCheckedOut) ...[
+                      // チェックイン済み・チェックアウト前: arrow_circle_up（タップでチェックアウト）
+                      if (onCommitCheckOutForEntry != null)
+                        GestureDetector(
+                          onTap: () async {
+                            final l10n = AppLocalizations.of(context)!;
+                            final confirmed = await showConfirmDialog(
+                              context,
+                              message: l10n.poiCheckOut,
+                              cancelText: l10n.cancel,
+                              confirmText: l10n.ok,
+                            );
+                            if (confirmed != true) return;
+                            final utc = DateTime.now().toUtc();
+                            await onCommitCheckOutForEntry!(checkInTapEntryIndex, utc);
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 12),
+                            child: Icon(Icons.arrow_circle_up,
+                                size: 30, color: AppColors.muted),
+                          ),
+                        )
+                      else
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 12),
+                          child: Icon(Icons.arrow_circle_up,
+                              size: 30, color: AppColors.muted),
+                        ),
+                    ] else if (onCommitCheckInForEntry != null) ...[
+                      // 未チェックイン: arrow_circle_down（タップでチェックイン）
+                      GestureDetector(
+                        onTap: () async {
+                          onCheckInTapStart?.call();
+                          final ei = checkInTapEntryIndex;
+                          var animationStarted = false;
+                          await _runPoiCheckInToggleTap(
+                            context: context,
+                            poiPosition: poiPosition,
+                            verifyLocationOnCheckIn: verifyLocationOnCheckIn,
+                            turnOn: true,
+                            timeChart: timeChart,
+                            onBeginCheckInChartAnimation:
+                                onBeginCheckInChartAnimation == null
+                                    ? null
+                                    : (hours) {
+                                        animationStarted = true;
+                                        onBeginCheckInChartAnimation!(hours);
+                                      },
+                            onCommit: (utc) =>
+                                onCommitCheckInForEntry!(ei, utc),
+                            onClear: () async {},
+                          );
+                          if (!animationStarted) {
+                            onCheckInTapCancel?.call();
+                          }
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Icon(
+                            Icons.arrow_circle_down,
+                            size: 30,
+                            color: checkInAnimating
+                                ? AppColors.mutedLight
+                                : AppColors.muted,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
                 ],
                 if (showStartPoiListIcon) ...[
@@ -1820,17 +1878,15 @@ class _PoiContentBlock extends StatelessWidget {
                                   distance: e.value.distance,
                                   name: e.value.name,
                                   arrival: e.value.arrival,
-                                  checkInResultUtc:
-                                      sessionCheckInsByIndex?.containsKey(
-                                                  e.key) ==
-                                              true
-                                          ? sessionCheckInsByIndex![e.key]
-                                          : e.value.checkInResultUtc,
-                                  startClose:
-                                      (e.value.arrival == null &&
-                                              e.value.departure != null)
-                                          ? e.value.departure
-                                          : e.value.close,
+                                  checkInResultUtc: sessionCheckInsByIndex
+                                              ?.containsKey(e.key) ==
+                                          true
+                                      ? sessionCheckInsByIndex![e.key]
+                                      : e.value.checkInResultUtc,
+                                  startClose: (e.value.arrival == null &&
+                                          e.value.departure != null)
+                                      ? e.value.departure
+                                      : e.value.close,
                                 ))
                             .toList(),
                       ),
@@ -1856,30 +1912,42 @@ class _PoiContentBlock extends StatelessWidget {
             child: Row(
               children: [
                 _buildDateBadge(
-                  (arrival ?? departure ?? close)!,
+                  (checkInResultUtc ?? arrival ?? departure ?? close)!,
                   context,
+                  color: hasCheckedIn ? AppColors.checkInResult : null,
                 ),
                 const SizedBox(width: 6),
-                if (hasArrival) ...[
-                  const Icon(Icons.arrow_downward,
-                      size: 17, color: AppColors.muted),
+                if (hasArrival || hasCheckedIn) ...[
+                  Icon(Icons.arrow_downward,
+                      size: 17,
+                      color: hasCheckedIn
+                          ? AppColors.checkInResult
+                          : AppColors.muted),
                   const SizedBox(width: 1),
                   Text(
-                    _formatTime(arrival!, context),
-                    style: AppTextStyles.poiSchedule,
+                    _formatTime((checkInResultUtc ?? arrival)!, context),
+                    style: hasCheckedIn
+                        ? AppTextStyles.poiSchedule
+                            .copyWith(color: AppColors.checkInResult)
+                        : AppTextStyles.poiSchedule,
                   ),
                 ],
-                if (hasArrival && hasDeparture) const SizedBox(width: 8),
-                if (hasDeparture) ...[
-                  const Icon(Icons.arrow_upward,
-                      size: 17, color: AppColors.muted),
+                if ((hasArrival || hasCheckedIn) && (hasDeparture || hasCheckedOut))
+                  const SizedBox(width: 8),
+                if (hasDeparture || hasCheckedOut) ...[
+                  Icon(Icons.arrow_upward,
+                      size: 17,
+                      color: hasCheckedOut ? AppColors.checkInResult : AppColors.muted),
                   const SizedBox(width: 1),
                   Text(
-                    _formatTime(departure!, context),
-                    style: AppTextStyles.poiSchedule,
+                    _formatTime((restUtc ?? departure)!, context),
+                    style: hasCheckedOut
+                        ? AppTextStyles.poiSchedule
+                            .copyWith(color: AppColors.checkInResult)
+                        : AppTextStyles.poiSchedule,
                   ),
                 ],
-                if ((hasArrival || hasDeparture) && hasClose)
+                if ((hasArrival || hasCheckedIn || hasDeparture || hasCheckedOut) && hasClose)
                   const SizedBox(width: 12),
                 if (hasClose) ...[
                   const Icon(Icons.lock_outline,

@@ -45,6 +45,7 @@ class BmSchedule {
     this.departure,
     this.close,
     this.result,
+    this.rest,
   });
 
   final DateTime? arrival;
@@ -52,8 +53,15 @@ class BmSchedule {
   final DateTime? close;
   final DateTime? result;
 
+  /// 休憩実績時刻（`<bm:rest>`）。
+  final DateTime? rest;
+
   bool get isEmpty =>
-      arrival == null && departure == null && close == null && result == null;
+      arrival == null &&
+      departure == null &&
+      close == null &&
+      result == null &&
+      rest == null;
 
   Map<String, dynamic> toJson() => {
         if (arrival != null) 'arrival': arrival!.toUtc().toIso8601String(),
@@ -61,6 +69,7 @@ class BmSchedule {
           'departure': departure!.toUtc().toIso8601String(),
         if (close != null) 'close': close!.toUtc().toIso8601String(),
         if (result != null) 'result': result!.toUtc().toIso8601String(),
+        if (rest != null) 'rest': rest!.toUtc().toIso8601String(),
       };
 
   static BmSchedule fromJson(Map<String, dynamic> json) => BmSchedule(
@@ -75,6 +84,9 @@ class BmSchedule {
             : null,
         result: json['result'] != null
             ? DateTime.parse(json['result'] as String)
+            : null,
+        rest: json['rest'] != null
+            ? DateTime.parse(json['rest'] as String)
             : null,
       );
 }

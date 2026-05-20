@@ -152,6 +152,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get poiArrivalActual => 'Llegada real';
 
   @override
+  String get poiRestActual => 'Descanso real';
+
+  @override
+  String get poiCheckOut => '¿Registrar salida?';
+
+  @override
   String get arrivalShort => 'Llegada';
 
   @override

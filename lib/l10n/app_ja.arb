@@ -53,6 +53,8 @@
   "plannedDeparture": "出発予定",
   "plannedClose": "クローズ",
   "poiArrivalActual": "到着実績",
+  "poiRestActual": "休憩実績",
+  "poiCheckOut": "チェックアウトしますか？",
   "arrivalShort": "到着予定",
   "departureShort": "出発予定",
   "distance": "距離",

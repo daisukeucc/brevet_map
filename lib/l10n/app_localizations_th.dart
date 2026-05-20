@@ -152,6 +152,12 @@ class AppLocalizationsTh extends AppLocalizations {
   String get poiArrivalActual => 'เวลามาถึงจริง';
 
   @override
+  String get poiRestActual => 'เวลาพักจริง';
+
+  @override
+  String get poiCheckOut => 'เช็คเอาต์?';
+
+  @override
   String get arrivalShort => 'มาถึง';
 
   @override

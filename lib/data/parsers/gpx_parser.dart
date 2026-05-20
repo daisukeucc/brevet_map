@@ -220,7 +220,7 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
       bmPoi.findElements('bm:type').firstOrNull?.innerText.trim() ?? 'generic';
 
   final schedEl = bmPoi.findElements('bm:schedule').firstOrNull;
-  DateTime? arrival, departure, close, result;
+  DateTime? arrival, departure, close, result, rest;
   if (schedEl != null) {
     arrival = _parseDateTime(
         schedEl.findElements('bm:arrival').firstOrNull?.innerText.trim());
@@ -230,6 +230,8 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
         schedEl.findElements('bm:close').firstOrNull?.innerText.trim());
     result = _parseDateTime(
         schedEl.findElements('bm:result').firstOrNull?.innerText.trim());
+    rest = _parseDateTime(
+        schedEl.findElements('bm:rest').firstOrNull?.innerText.trim());
   }
 
   final routeInfoEl = bmPoi.findElements('bm:routeInfo').firstOrNull;
@@ -260,7 +262,8 @@ BmBrevetMeta? _parseBrevetMeta(XmlElement? metadata) {
           arrival: arrival,
           departure: departure,
           close: close,
-          result: result),
+          result: result,
+          rest: rest),
       distanceKm: distanceKm,
       displayOrder: displayOrder,
       isNote: isNote,

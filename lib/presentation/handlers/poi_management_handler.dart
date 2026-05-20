@@ -44,6 +44,7 @@ class AddPoiFormData {
     this.departure,
     this.close,
     this.result,
+    this.rest,
     this.isNote = false,
   });
   final double? km;
@@ -55,6 +56,7 @@ class AddPoiFormData {
   final DateTime? departure;
   final DateTime? close;
   final DateTime? result;
+  final DateTime? rest;
   final bool isNote;
 }
 
@@ -99,7 +101,8 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   if (data.arrival == null &&
       data.departure == null &&
       data.close == null &&
-      data.result == null) {
+      data.result == null &&
+      data.rest == null) {
     return null;
   }
   return BmPoiExtension(
@@ -110,6 +113,7 @@ Future<BmPoiExtension?> _buildBmPoiExtForAdd({
       departure: data.departure,
       close: data.close,
       result: data.result,
+      rest: data.rest,
     ),
   );
 }
@@ -125,7 +129,8 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
       data.arrival == null &&
       data.departure == null &&
       data.close == null &&
-      data.result == null) {
+      data.result == null &&
+      data.rest == null) {
     return null;
   }
   return BmPoiExtension(
@@ -137,6 +142,7 @@ Future<BmPoiExtension?> _buildBmPoiExtForEdit({
       departure: data.departure,
       close: data.close,
       result: data.result,
+      rest: data.rest,
     ),
   );
 }
@@ -1809,6 +1815,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
   DateTime? _departure;
   DateTime? _close;
   DateTime? _result;
+  DateTime? _rest;
   bool _saving = false;
   bool _isNote = false;
 
@@ -1947,6 +1954,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     _maybeAutofillScheduleFromDistance(poi);
     _close = poi.bmExt?.schedule.close;
     _result = poi.bmExt?.schedule.result;
+    _rest = poi.bmExt?.schedule.rest;
     _kmError = null;
     _isNote = poi.isNote;
   }
@@ -2112,6 +2120,9 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
     if (!_sameDtMinute(_result, _currentPoi.bmExt?.schedule.result)) {
       return true;
     }
+    if (!_sameDtMinute(_rest, _currentPoi.bmExt?.schedule.rest)) {
+      return true;
+    }
 
     return false;
   }
@@ -2144,6 +2155,7 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       departure: _departure,
       close: _close,
       result: _result,
+      rest: _rest,
       isNote: _isNote,
     );
   }
@@ -2279,13 +2291,22 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       shape: const RoundedRectangleBorder(),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-        child: SingleChildScrollView(
-          child: KeyedSubtree(
-            key: ObjectKey(_currentPoi),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.72,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Flexible(
+                child: SingleChildScrollView(
+                  child: KeyedSubtree(
+                  key: ObjectKey(_currentPoi),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -2462,61 +2483,78 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
                   label: l10n.poiArrivalActual,
                   dateTime: _result,
                   onPick: null,
-                  onClear: () => setState(() => _result = null),
+                  onClear: () => setState(() {
+                    _result = null;
+                    _rest = null;
+                  }),
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      onPressed:
-                          (!_saving && widget.onPrev(_currentPoi) != null)
-                              ? _handlePrev
-                              : null,
-                      icon: const Icon(Icons.arrow_back_ios),
-                      color: Colors.black38,
-                      disabledColor: Colors.black12,
-                      padding: EdgeInsets.zero,
-                      constraints:
-                          const BoxConstraints(minWidth: 36, minHeight: 36),
-                    ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: _saving ? null : () => Navigator.pop(context),
-                      child: Text(l10n.cancel, style: AppTextStyles.button),
-                    ),
-                    const SizedBox(width: 8),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 0),
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      ),
-                      onPressed: _saving ? null : _handleChange,
-                      child: Text(l10n.change, style: AppTextStyles.button),
-                    ),
-                    IconButton(
-                      onPressed:
-                          (!_saving && widget.onNext(_currentPoi) != null)
-                              ? _handleNext
-                              : null,
-                      icon: const Icon(Icons.arrow_forward_ios),
-                      color: Colors.black38,
-                      disabledColor: Colors.black12,
-                      padding: EdgeInsets.zero,
-                      constraints:
-                          const BoxConstraints(minWidth: 36, minHeight: 36),
-                    ),
-                  ],
+                const SizedBox(height: 8),
+                _TimePickerRow(
+                  label: l10n.poiRestActual,
+                  dateTime: _rest,
+                  onPick: null,
+                  onClear: () => setState(() {
+                    _result = null;
+                    _rest = null;
+                  }),
+                ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed:
+                      (!_saving && widget.onPrev(_currentPoi) != null)
+                          ? _handlePrev
+                          : null,
+                  icon: const Icon(Icons.arrow_back_ios),
+                  color: Colors.black38,
+                  disabledColor: Colors.black12,
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 36, minHeight: 36),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: _saving ? null : () => Navigator.pop(context),
+                  child: Text(l10n.cancel, style: AppTextStyles.button),
+                ),
+                const SizedBox(width: 8),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 0),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: _saving ? null : _handleChange,
+                  child: Text(l10n.change, style: AppTextStyles.button),
+                ),
+                IconButton(
+                  onPressed:
+                      (!_saving && widget.onNext(_currentPoi) != null)
+                          ? _handleNext
+                          : null,
+                  icon: const Icon(Icons.arrow_forward_ios),
+                  color: Colors.black38,
+                  disabledColor: Colors.black12,
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 36, minHeight: 36),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
-    );
+    ),
+  );
   }
 }
 

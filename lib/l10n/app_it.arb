@@ -53,6 +53,8 @@
   "plannedDeparture": "Partenza",
   "plannedClose": "Orario limite",
   "poiArrivalActual": "Arrivo effettivo",
+  "poiRestActual": "Riposo effettivo",
+  "poiCheckOut": "Effettuare il check-out?",
   "arrivalShort": "Arrivo",
   "departureShort": "Partenza",
   "distance": "Distanza",

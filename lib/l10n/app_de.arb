@@ -53,6 +53,8 @@
   "plannedDeparture": "Abfahrt",
   "plannedClose": "Schlusszeit",
   "poiArrivalActual": "Ist-Ankunft",
+  "poiRestActual": "Ist-Pause",
+  "poiCheckOut": "Auschecken?",
   "arrivalShort": "Ankunft",
   "departureShort": "Abfahrt",
   "distance": "Distanz",
