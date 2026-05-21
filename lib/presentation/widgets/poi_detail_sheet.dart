@@ -1882,6 +1882,7 @@ class _PoiContentBlock extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 23),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildDateBadge(
                   (checkInResultUtc ?? arrival ?? departure ?? close)!,
@@ -1938,6 +1939,15 @@ class _PoiContentBlock extends StatelessWidget {
                   Text(_formatTime(close!, context),
                       style: AppTextStyles.poiSchedule),
                 ],
+                const SizedBox(width: 8),
+                Transform.translate(
+                  offset: const Offset(0, -1),
+                  child: Icon(Icons.more_time,
+                      size: 18,
+                      color: hasCheckedOut
+                          ? AppColors.checkInResult
+                          : AppColors.muted),
+                ),
               ],
             ),
           ),
