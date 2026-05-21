@@ -260,11 +260,14 @@ class PoiMapDetailSheetController {
         ? (departure ?? arrival)
         : (arrival ?? departure);
     final elapsed = _elapsedHoursFromBrevetStart(brevetStartUtc, instant);
+    final departureElapsed =
+        _elapsedHoursFromBrevetStart(brevetStartUtc, departure);
     return PoiSheetTimeChart(
       brevetStartUtc: brevetStartUtc,
       timeLimitHours: timeLimitHours,
       axisTickStepHours: axisTickStepHours,
       elapsedHoursFromStart: elapsed,
+      departureElapsedHoursFromStart: departureElapsed,
       drawElapsedBar: !isRouteStartPoi,
     );
   }

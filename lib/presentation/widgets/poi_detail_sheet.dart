@@ -96,6 +96,7 @@ class PoiSheetTimeChart {
     required this.timeLimitHours,
     required this.axisTickStepHours,
     this.elapsedHoursFromStart,
+    this.departureElapsedHoursFromStart,
     required this.drawElapsedBar,
   });
 
@@ -105,8 +106,11 @@ class PoiSheetTimeChart {
   /// 横軸の目盛り間隔（時間）。公認距離テーブルに基づきコントローラ側で決定する。
   final double axisTickStepHours;
 
-  /// [brevetStartUtc] から [arrival] までの経過（時間）。未設定時は横線なし。
+  /// [brevetStartUtc] から到着予定時刻 [arrival] までの経過（時間）。未設定時は横線なし。
   final double? elapsedHoursFromStart;
+
+  /// [brevetStartUtc] から出発予定時刻 [departure] までの経過（時間）。チェックアウト済み時の上段バーに使用。
+  final double? departureElapsedHoursFromStart;
 
   /// スタート POI など、経過横線を描かないとき false。
   final bool drawElapsedBar;
@@ -324,11 +328,17 @@ class _PoiElapsedTimeChartStrip extends StatelessWidget {
     required this.data,
     required this.viewportWidth,
     this.checkInElapsedHours,
+    this.overrideElapsedHours,
   });
 
   final PoiSheetTimeChart data;
   final double viewportWidth;
+
+  /// 下段バー（実績）の経過時間。
   final double? checkInElapsedHours;
+
+  /// 上段バーを [data.elapsedHoursFromStart] の代わりに使う値（チェックアウト済み時の出発予定）。
+  final double? overrideElapsedHours;
 
   @override
   Widget build(BuildContext context) {
@@ -346,7 +356,7 @@ class _PoiElapsedTimeChartStrip extends StatelessWidget {
           timeLimitHours: data.timeLimitHours,
           axisTickStepHours: data.axisTickStepHours,
           drawBar: data.drawElapsedBar,
-          elapsedHours: data.elapsedHoursFromStart,
+          elapsedHours: overrideElapsedHours ?? data.elapsedHoursFromStart,
           checkInElapsedHours: checkInElapsedHours,
         ),
       ),
@@ -361,6 +371,9 @@ class _PoiSheetTimeChartHeader extends StatelessWidget {
     required this.viewportWidth,
     required this.checkInResultUtcForBar,
     this.checkInAnimatedElapsedHours,
+    this.restUtcForBar,
+    this.checkOutAnimatedElapsedHours,
+    this.checkOutUpperAnimatedElapsedHours,
   });
 
   static const double _horizontalInset = 0;
@@ -376,12 +389,38 @@ class _PoiSheetTimeChartHeader extends StatelessWidget {
   /// チェックイン確定後のアニメーション中の経過時間。非 null のとき [checkInResultUtcForBar] より優先。
   final double? checkInAnimatedElapsedHours;
 
+  /// チェックアウト実績 UTC ([BmSchedule.rest])。非 null のとき「チェックアウト済み」モード：
+  /// 上段＝出発予定、下段＝出発実績（休憩時間）。
+  final DateTime? restUtcForBar;
+
+  /// チェックアウト確定後アニメーション中の下段（出発実績）経過時間。非 null のとき [restUtcForBar] 算出値より優先。
+  final double? checkOutAnimatedElapsedHours;
+
+  /// チェックアウト確定後アニメーション中の上段（出発予定）経過時間。非 null のとき [data.departureElapsedHoursFromStart] より優先。
+  final double? checkOutUpperAnimatedElapsedHours;
+
   @override
   Widget build(BuildContext context) {
     final innerW = math.max(
       1.0,
       viewportWidth - 2 * _horizontalInset,
     );
+
+    final rest = restUtcForBar;
+    if (rest != null) {
+      // チェックアウト済み: 上段=出発予定、下段=出発実績（アニメーション中は animated 値を優先）
+      final restElapsed =
+          poiSheetElapsedHoursFromBrevetStart(data.brevetStartUtc, rest);
+      return _PoiElapsedTimeChartStrip(
+        data: data,
+        viewportWidth: innerW,
+        overrideElapsedHours:
+            checkOutUpperAnimatedElapsedHours ?? data.departureElapsedHoursFromStart,
+        checkInElapsedHours: checkOutAnimatedElapsedHours ?? restElapsed,
+      );
+    }
+
+    // 未チェックイン / チェックイン済み: 上段=到着予定、下段=到着実績（またはアニメーション）
     final animated = checkInAnimatedElapsedHours;
     final double? resolvedCheckInElapsed;
     if (animated != null) {
@@ -1150,12 +1189,18 @@ class _PoiDetailSheetBody extends StatefulWidget {
 }
 
 class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _checkInChartAnim;
   late final CurvedAnimation _checkInChartCurve;
   bool _checkInChartAnimationActive = false;
   double _checkInTargetHours = 0;
   bool _checkInAnimating = false;
+
+  late final AnimationController _checkOutChartAnim;
+  late final CurvedAnimation _checkOutChartCurve;
+  bool _checkOutChartAnimationActive = false;
+  double _checkOutTargetHours = 0;
+  double _checkOutUpperTargetHours = 0;
 
   /// シート表示中に確定したチェックイン状態（永続化後も [widget.checkInResultUtc] は古いままのため）。
   bool _sessionCheckInExplicit = false;
@@ -1182,12 +1227,29 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
         setState(() => _checkInAnimating = false);
       }
     });
+
+    _checkOutChartAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _checkOutChartCurve = CurvedAnimation(
+      parent: _checkOutChartAnim,
+      curve: Curves.easeOutCubic,
+    );
+    _checkOutChartAnim.addListener(() => setState(() {}));
+    _checkOutChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkOutChartAnimationActive = false);
+      }
+    });
   }
 
   @override
   void dispose() {
     _checkInChartCurve.dispose();
     _checkInChartAnim.dispose();
+    _checkOutChartCurve.dispose();
+    _checkOutChartAnim.dispose();
     super.dispose();
   }
 
@@ -1199,9 +1261,29 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
     _checkInChartAnim.forward(from: 0);
   }
 
+  void _onBeginCheckOutChartAnimation(
+      double upperTargetHours, double lowerTargetHours) {
+    setState(() {
+      _checkOutChartAnimationActive = true;
+      _checkOutUpperTargetHours = upperTargetHours;
+      _checkOutTargetHours = lowerTargetHours;
+    });
+    _checkOutChartAnim.forward(from: 0);
+  }
+
   double? get _checkInDisplayElapsedHours {
     if (!_checkInChartAnimationActive) return null;
     return _checkInChartCurve.value * _checkInTargetHours;
+  }
+
+  double? get _checkOutDisplayElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutTargetHours;
+  }
+
+  double? get _checkOutDisplayUpperElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutUpperTargetHours;
   }
 
   DateTime? get _effectiveCheckInResultUtc =>
@@ -1226,6 +1308,16 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
       _sessionCheckOutExplicit = true;
       _sessionRestUtc = utc;
     });
+    if (!mounted) return;
+    final tc = widget.timeChart;
+    if (tc != null) {
+      final lowerTh =
+          poiSheetElapsedHoursFromBrevetStart(tc.brevetStartUtc, utc);
+      final upperTh = tc.departureElapsedHoursFromStart;
+      if (lowerTh != null || upperTh != null) {
+        _onBeginCheckOutChartAnimation(upperTh ?? 0, lowerTh ?? 0);
+      }
+    }
   }
 
   @override
@@ -1250,6 +1342,10 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                     viewportWidth: chartW,
                     checkInAnimatedElapsedHours: _checkInDisplayElapsedHours,
                     checkInResultUtcForBar: _effectiveCheckInResultUtc,
+                    restUtcForBar: _effectiveRestUtc,
+                    checkOutAnimatedElapsedHours: _checkOutDisplayElapsedHours,
+                    checkOutUpperAnimatedElapsedHours:
+                        _checkOutDisplayUpperElapsedHours,
                   ),
                 _PoiContentBlock(
                   name: widget.name,
@@ -1321,13 +1417,19 @@ class _PoiDetailSheetNavigate extends StatefulWidget {
 }
 
 class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late int _index;
   late final AnimationController _checkInChartAnim;
   late final CurvedAnimation _checkInChartCurve;
   bool _checkInChartAnimationActive = false;
   double _checkInTargetHours = 0;
   bool _checkInAnimating = false;
+
+  late final AnimationController _checkOutChartAnim;
+  late final CurvedAnimation _checkOutChartCurve;
+  bool _checkOutChartAnimationActive = false;
+  double _checkOutTargetHours = 0;
+  double _checkOutUpperTargetHours = 0;
 
   final Map<int, DateTime?> _checkInSessionByIndex = {};
   final Map<int, DateTime?> _restSessionByIndex = {};
@@ -1350,12 +1452,29 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
         setState(() => _checkInAnimating = false);
       }
     });
+
+    _checkOutChartAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _checkOutChartCurve = CurvedAnimation(
+      parent: _checkOutChartAnim,
+      curve: Curves.easeOutCubic,
+    );
+    _checkOutChartAnim.addListener(() => setState(() {}));
+    _checkOutChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkOutChartAnimationActive = false);
+      }
+    });
   }
 
   @override
   void dispose() {
     _checkInChartCurve.dispose();
     _checkInChartAnim.dispose();
+    _checkOutChartCurve.dispose();
+    _checkOutChartAnim.dispose();
     super.dispose();
   }
 
@@ -1376,9 +1495,29 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
     _checkInChartAnim.forward(from: 0);
   }
 
+  void _onBeginCheckOutChartAnimation(
+      double upperTargetHours, double lowerTargetHours) {
+    setState(() {
+      _checkOutChartAnimationActive = true;
+      _checkOutUpperTargetHours = upperTargetHours;
+      _checkOutTargetHours = lowerTargetHours;
+    });
+    _checkOutChartAnim.forward(from: 0);
+  }
+
   double? get _checkInDisplayElapsedHours {
     if (!_checkInChartAnimationActive) return null;
     return _checkInChartCurve.value * _checkInTargetHours;
+  }
+
+  double? get _checkOutDisplayElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutTargetHours;
+  }
+
+  double? get _checkOutDisplayUpperElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutUpperTargetHours;
   }
 
   DateTime? _effectiveCheckInUtc(int i) => _checkInSessionByIndex.containsKey(i)
@@ -1437,6 +1576,10 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                     viewportWidth: chartW,
                     checkInAnimatedElapsedHours: _checkInDisplayElapsedHours,
                     checkInResultUtcForBar: _effectiveCheckInUtc(ix),
+                    restUtcForBar: _effectiveRestUtc(ix),
+                    checkOutAnimatedElapsedHours: _checkOutDisplayElapsedHours,
+                    checkOutUpperAnimatedElapsedHours:
+                        _checkOutDisplayUpperElapsedHours,
                   ),
                 IntrinsicHeight(
                   child: Row(
@@ -1485,6 +1628,19 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                   setState(
                                     () => _restSessionByIndex[entryIndex] = utc,
                                   );
+                                  if (!mounted) return;
+                                  final tc = widget.entries[entryIndex].timeChart;
+                                  if (tc != null) {
+                                    final lowerTh =
+                                        poiSheetElapsedHoursFromBrevetStart(
+                                            tc.brevetStartUtc, utc);
+                                    final upperTh =
+                                        tc.departureElapsedHoursFromStart;
+                                    if (lowerTh != null || upperTh != null) {
+                                      _onBeginCheckOutChartAnimation(
+                                          upperTh ?? 0, lowerTh ?? 0);
+                                    }
+                                  }
                                 },
                           verifyLocationOnCheckIn:
                               widget.verifyLocationOnCheckIn,
@@ -1835,10 +1991,14 @@ class _PoiContentBlock extends StatelessWidget {
                           await onCommitCheckOutForEntry!(
                               checkInTapEntryIndex, utc);
                         },
-                        child: const _CheckInBadge(label: _kCheckOutBadgeLabel),
+                        child: const _CheckInBadge(
+                            label: _kCheckOutBadgeLabel,
+                            color: AppColors.checkInResult),
                       )
                     else
-                      const _CheckInBadge(label: _kCheckOutBadgeLabel),
+                      const _CheckInBadge(
+                          label: _kCheckOutBadgeLabel,
+                          color: AppColors.checkInResult),
                   ] else if (onCommitCheckInForEntry != null) ...[
                     // 未チェックイン: C/I バッジ（タップでチェックイン）
                     GestureDetector(
@@ -2544,16 +2704,19 @@ class _SegmentElevationAreaPainter extends CustomPainter {
 const _kCheckInBadgeLabel = 'C/I';
 const _kCheckOutBadgeLabel = 'C/O';
 
-/// C/I・C/O テキストバッジ（グレー背景・白文字）
+/// C/I・C/O テキストバッジ（グレー or カスタム背景・白文字）
 class _CheckInBadge extends StatelessWidget {
-  const _CheckInBadge({required this.label, this.dimmed = false});
+  const _CheckInBadge({required this.label, this.dimmed = false, this.color});
 
   final String label;
   final bool dimmed;
 
+  /// 指定時はこの色を背景に使う。未指定はグレー。
+  final Color? color;
+
   @override
   Widget build(BuildContext context) {
-    final bg = dimmed ? AppColors.mutedLight : AppColors.mutedLarge;
+    final bg = color ?? (dimmed ? AppColors.mutedLight : AppColors.mutedLarge);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
