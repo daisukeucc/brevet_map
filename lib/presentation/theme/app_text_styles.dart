@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 /// アプリ全体で使用するカラー定数
 abstract class AppColors {
-  static const Color muted = Colors.black54;
+  static const Color muted = Color(0xA6000A18);
+
+  static const Color mutedLarge = Color(0x99000A18);
 
   /// [muted] より一段薄い補助テキスト（読み取り専用行など）
   static const Color mutedLight = Colors.black38;
@@ -52,7 +54,7 @@ abstract class AppTextStyles {
   static const TextStyle poiLarge = TextStyle(
     fontSize: 23,
     fontWeight: FontWeight.w700,
-    color: AppColors.muted,
+    color: AppColors.mutedLarge,
   );
 
   static const TextStyle poiMedium = TextStyle(

@@ -1408,10 +1408,10 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
     final e = widget.entries[ix];
     final hasDistance = e.distance != null && e.distance!.trim().isNotEmpty;
     final prevPadding = hasDistance
-        ? const EdgeInsets.only(top: 20, bottom: 5)
+        ? const EdgeInsets.only(top: 20, bottom: 10)
         : const EdgeInsets.only(top: 20, bottom: 5);
     final nextPadding = hasDistance
-        ? const EdgeInsets.only(top: 5, bottom: 20)
+        ? const EdgeInsets.only(top: 10, bottom: 20)
         : const EdgeInsets.only(top: 5, bottom: 20);
     const sheetPadding = EdgeInsets.fromLTRB(0, 18, 15, 25);
     return SizedBox(
@@ -1516,12 +1516,13 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                     Colors.grey.withValues(alpha: 0.2),
                                 child: Padding(
                                   padding: prevPadding,
-                                  child: const Align(
+                                  child: Align(
                                     alignment: Alignment.bottomCenter,
                                     child: Icon(
                                       Icons.chevron_left,
                                       size: 36,
-                                      color: AppColors.mutedLight,
+                                      color: AppColors.mutedLarge
+                                          .withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ),
@@ -1535,12 +1536,13 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                     Colors.grey.withValues(alpha: 0.2),
                                 child: Padding(
                                   padding: nextPadding,
-                                  child: const Align(
+                                  child: Align(
                                     alignment: Alignment.topCenter,
                                     child: Icon(
                                       Icons.chevron_right,
                                       size: 36,
-                                      color: AppColors.mutedLight,
+                                      color: AppColors.mutedLarge
+                                          .withValues(alpha: 0.5),
                                     ),
                                   ),
                                 ),
@@ -1680,18 +1682,20 @@ class _PoiContentBlock extends StatelessWidget {
     return uri;
   }
 
-  Widget _buildDateBadge(DateTime dt, BuildContext context, {Color? color}) {
+  Widget _buildDateBadge(DateTime dt, BuildContext context,
+      {Color? color, bool filled = false}) {
     final c = color ?? AppColors.poiDateBadge;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       decoration: BoxDecoration(
-        border: Border.all(color: c, width: 1),
+        color: filled ? c : null,
+        border: Border.all(color: c, width: 1.0),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
         _formatDate(dt, context),
         style: AppTextStyles.bodySmall.copyWith(
-          color: c,
+          color: filled ? Colors.white : c,
           height: 1.0,
         ),
       ),
@@ -1789,15 +1793,16 @@ class _PoiContentBlock extends StatelessWidget {
                         children: [
                           if (hasDistance) ...[
                             const Icon(Icons.location_on,
-                                size: 23, color: AppColors.muted),
+                                size: 23, color: AppColors.mutedLarge),
                             const SizedBox(width: 3),
                             Text(distance!, style: AppTextStyles.poiLarge),
+                            const SizedBox(width: 4),
                           ],
                           if (hasDistance && showElevationGainIcon)
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8),
                           if (showElevationGainIcon) ...[
                             const Icon(Icons.trending_up,
-                                size: 23, color: AppColors.muted),
+                                size: 23, color: AppColors.mutedLarge),
                             const SizedBox(width: 3),
                             Text(elevationGain!, style: AppTextStyles.poiLarge),
                             const SizedBox(width: 5),
@@ -1806,14 +1811,15 @@ class _PoiContentBlock extends StatelessWidget {
                       ),
                     ),
                   ),
-                // チェックインアイコンは InkWell の外（タップエリア外）
+                // チェックインバッジ（InkWell の外・タップエリア外）
                 if (showElevationGainIcon &&
                     !hasCheckedOut &&
                     (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) ||
                         onCommitCheckInForEntry != null)) ...[
+                  const SizedBox(width: 10),
                   if (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) &&
                       !hasCheckedOut) ...[
-                    // チェックイン済み・チェックアウト前: arrow_circle_up（タップでチェックアウト）
+                    // チェックイン済み・チェックアウト前: C/O バッジ（タップでチェックアウト）
                     if (onCommitCheckOutForEntry != null)
                       GestureDetector(
                         onTap: () async {
@@ -1829,20 +1835,12 @@ class _PoiContentBlock extends StatelessWidget {
                           await onCommitCheckOutForEntry!(
                               checkInTapEntryIndex, utc);
                         },
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 12),
-                          child: Icon(Icons.arrow_circle_up,
-                              size: 30, color: AppColors.muted),
-                        ),
+                        child: const _CheckInBadge(label: _kCheckOutBadgeLabel),
                       )
                     else
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(Icons.arrow_circle_up,
-                            size: 30, color: AppColors.muted),
-                      ),
+                      const _CheckInBadge(label: _kCheckOutBadgeLabel),
                   ] else if (onCommitCheckInForEntry != null) ...[
-                    // 未チェックイン: arrow_circle_down（タップでチェックイン）
+                    // 未チェックイン: C/I バッジ（タップでチェックイン）
                     GestureDetector(
                       onTap: () async {
                         onCheckInTapStart?.call();
@@ -1868,15 +1866,9 @@ class _PoiContentBlock extends StatelessWidget {
                           onCheckInTapCancel?.call();
                         }
                       },
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Icon(
-                          Icons.arrow_circle_down,
-                          size: 30,
-                          color: checkInAnimating
-                              ? AppColors.mutedLight
-                              : AppColors.muted,
-                        ),
+                      child: _CheckInBadge(
+                        label: _kCheckInBadgeLabel,
+                        dimmed: checkInAnimating,
                       ),
                     ),
                   ],
@@ -1895,11 +1887,13 @@ class _PoiContentBlock extends StatelessWidget {
                   (checkInResultUtc ?? arrival ?? departure ?? close)!,
                   context,
                   color: hasCheckedIn ? AppColors.checkInResult : null,
+                  filled: hasCheckedIn,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 7),
                 if (hasArrival || hasCheckedIn) ...[
                   Icon(Icons.arrow_downward,
-                      size: 17,
+                      size: 15,
+                      fontWeight: FontWeight.w600,
                       color: hasCheckedIn
                           ? AppColors.checkInResult
                           : AppColors.muted),
@@ -1914,10 +1908,11 @@ class _PoiContentBlock extends StatelessWidget {
                 ],
                 if ((hasArrival || hasCheckedIn) &&
                     (hasDeparture || hasCheckedOut))
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                 if (hasDeparture || hasCheckedOut) ...[
                   Icon(Icons.arrow_upward,
-                      size: 17,
+                      size: 15,
+                      fontWeight: FontWeight.w600,
                       color: hasCheckedOut
                           ? AppColors.checkInResult
                           : AppColors.muted),
@@ -1951,8 +1946,8 @@ class _PoiContentBlock extends StatelessWidget {
           const SizedBox(height: 12),
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
-            child:
-                const Divider(height: 1, thickness: 1, color: Colors.black26),
+            child: const Divider(
+                height: 1, thickness: 1, color: AppColors.mutedLarge),
           ),
           const SizedBox(height: 12),
         ] else
@@ -2534,4 +2529,35 @@ class _SegmentElevationAreaPainter extends CustomPainter {
       oldDelegate.kmAlongRouteEnd != kmAlongRouteEnd ||
       oldDelegate.distanceUnit != distanceUnit ||
       oldDelegate.textScaler != textScaler;
+}
+
+const _kCheckInBadgeLabel = 'C/I';
+const _kCheckOutBadgeLabel = 'C/O';
+
+/// C/I・C/O テキストバッジ（グレー背景・白文字）
+class _CheckInBadge extends StatelessWidget {
+  const _CheckInBadge({required this.label, this.dimmed = false});
+
+  final String label;
+  final bool dimmed;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = dimmed ? AppColors.mutedLight : AppColors.mutedLarge;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.bodySmall.copyWith(
+          color: Colors.white,
+          height: 1.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
 }
