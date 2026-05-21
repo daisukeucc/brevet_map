@@ -414,8 +414,8 @@ class _PoiSheetTimeChartHeader extends StatelessWidget {
       return _PoiElapsedTimeChartStrip(
         data: data,
         viewportWidth: innerW,
-        overrideElapsedHours:
-            checkOutUpperAnimatedElapsedHours ?? data.departureElapsedHoursFromStart,
+        overrideElapsedHours: checkOutUpperAnimatedElapsedHours ??
+            data.departureElapsedHoursFromStart,
         checkInElapsedHours: checkOutAnimatedElapsedHours ?? restElapsed,
       );
     }
@@ -1629,7 +1629,8 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                                     () => _restSessionByIndex[entryIndex] = utc,
                                   );
                                   if (!mounted) return;
-                                  final tc = widget.entries[entryIndex].timeChart;
+                                  final tc =
+                                      widget.entries[entryIndex].timeChart;
                                   if (tc != null) {
                                     final lowerTh =
                                         poiSheetElapsedHoursFromBrevetStart(
@@ -1922,51 +1923,59 @@ class _PoiContentBlock extends StatelessWidget {
       }
     }
 
+    void openScheduleTable() {
+      showDialog<void>(
+        context: context,
+        builder: (_) => PoiScheduleTableDialog(
+          distanceUnit: distanceUnit,
+          showDownloadButton: true,
+          rows: scheduleEntries!
+              .asMap()
+              .entries
+              .map((e) => PoiScheduleRow(
+                    distance: e.value.distance,
+                    name: e.value.name,
+                    arrival: e.value.arrival,
+                    checkInResultUtc:
+                        sessionCheckInsByIndex?.containsKey(e.key) == true
+                            ? sessionCheckInsByIndex![e.key]
+                            : e.value.checkInResultUtc,
+                    startClose:
+                        (e.value.arrival == null && e.value.departure != null)
+                            ? e.value.departure
+                            : e.value.close,
+                  ))
+              .toList(),
+        ),
+      );
+    }
+
     final column = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 距離 + 獲得標高（1行）。canTapSheetForElevationChart のとき行全体で標高グラフを開く。
-        // 距離 + 獲得標高部分のみ InkWell（チェックインアイコン・左余白はタップエリア外）
         if (showStatsRow)
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                if (hasDistance || showElevationGainIcon)
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: canTapSheetForElevationChart
-                          ? openElevationChart
-                          : null,
-                      splashColor: Colors.grey.withValues(alpha: 0.25),
-                      highlightColor: Colors.grey.withValues(alpha: 0.12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (hasDistance) ...[
-                            const Icon(Icons.location_on,
-                                size: 23, color: AppColors.mutedLarge),
-                            const SizedBox(width: 3),
-                            Text(distance!, style: AppTextStyles.poiLarge),
-                            const SizedBox(width: 4),
-                          ],
-                          if (hasDistance && showElevationGainIcon)
-                            const SizedBox(width: 8),
-                          if (showElevationGainIcon) ...[
-                            const Icon(Icons.trending_up,
-                                size: 23, color: AppColors.mutedLarge),
-                            const SizedBox(width: 3),
-                            Text(elevationGain!, style: AppTextStyles.poiLarge),
-                            const SizedBox(width: 5),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
+                if (hasDistance) ...[
+                  const Icon(Icons.location_on,
+                      size: 23, color: AppColors.mutedLarge),
+                  const SizedBox(width: 3),
+                  Text(distance!, style: AppTextStyles.poiLarge),
+                  const SizedBox(width: 4),
+                ],
+                if (hasDistance && showElevationGainIcon)
+                  const SizedBox(width: 8),
+                if (showElevationGainIcon) ...[
+                  const Icon(Icons.trending_up,
+                      size: 23, color: AppColors.mutedLarge),
+                  const SizedBox(width: 3),
+                  Text(elevationGain!, style: AppTextStyles.poiLarge),
+                  const SizedBox(width: 5),
+                ],
                 // チェックインバッジ（InkWell の外・タップエリア外）
                 if (showElevationGainIcon &&
                     !hasCheckedOut &&
@@ -1977,7 +1986,7 @@ class _PoiContentBlock extends StatelessWidget {
                       !hasCheckedOut) ...[
                     // チェックイン済み・チェックアウト前: C/O バッジ（タップでチェックアウト）
                     if (onCommitCheckOutForEntry != null)
-                      GestureDetector(
+                      _TappableCheckOutBadge(
                         onTap: () async {
                           final l10n = AppLocalizations.of(context)!;
                           final confirmed = await showConfirmDialog(
@@ -1991,9 +2000,6 @@ class _PoiContentBlock extends StatelessWidget {
                           await onCommitCheckOutForEntry!(
                               checkInTapEntryIndex, utc);
                         },
-                        child: const _CheckInBadge(
-                            label: _kCheckOutBadgeLabel,
-                            color: AppColors.checkInResult),
                       )
                     else
                       const _CheckInBadge(
@@ -2041,74 +2047,82 @@ class _PoiContentBlock extends StatelessWidget {
           if (showStatsRow) const SizedBox(height: 3),
           Padding(
             padding: const EdgeInsets.only(left: 23),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                _buildDateBadge(
-                  (checkInResultUtc ?? arrival ?? departure ?? close)!,
-                  context,
-                  color: hasCheckedIn ? AppColors.checkInResult : null,
-                  filled: hasCheckedIn,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: canTapSheetForScheduleTable ? openScheduleTable : null,
+                splashColor: Colors.grey.withValues(alpha: 0.25),
+                highlightColor: Colors.grey.withValues(alpha: 0.12),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    _buildDateBadge(
+                      (checkInResultUtc ?? arrival ?? departure ?? close)!,
+                      context,
+                      color: hasCheckedIn ? AppColors.checkInResult : null,
+                      filled: hasCheckedIn,
+                    ),
+                    const SizedBox(width: 7),
+                    if (hasArrival || hasCheckedIn) ...[
+                      Icon(Icons.arrow_downward,
+                          size: 15,
+                          fontWeight: FontWeight.w600,
+                          color: hasCheckedIn
+                              ? AppColors.checkInResult
+                              : AppColors.muted),
+                      const SizedBox(width: 1),
+                      Text(
+                        _formatTime((checkInResultUtc ?? arrival)!, context),
+                        style: hasCheckedIn
+                            ? AppTextStyles.poiSchedule
+                                .copyWith(color: AppColors.checkInResult)
+                            : AppTextStyles.poiSchedule,
+                      ),
+                    ],
+                    if ((hasArrival || hasCheckedIn) &&
+                        (hasDeparture || hasCheckedOut))
+                      const SizedBox(width: 6),
+                    if (hasDeparture || hasCheckedOut) ...[
+                      Icon(Icons.arrow_upward,
+                          size: 15,
+                          fontWeight: FontWeight.w600,
+                          color: hasCheckedOut
+                              ? AppColors.checkInResult
+                              : AppColors.muted),
+                      const SizedBox(width: 1),
+                      Text(
+                        _formatTime((restUtc ?? departure)!, context),
+                        style: hasCheckedOut
+                            ? AppTextStyles.poiSchedule
+                                .copyWith(color: AppColors.checkInResult)
+                            : AppTextStyles.poiSchedule,
+                      ),
+                    ],
+                    if ((hasArrival ||
+                            hasCheckedIn ||
+                            hasDeparture ||
+                            hasCheckedOut) &&
+                        hasClose)
+                      const SizedBox(width: 12),
+                    if (hasClose) ...[
+                      const Icon(Icons.lock_outline,
+                          size: 17, color: AppColors.muted),
+                      const SizedBox(width: 1),
+                      Text(_formatTime(close!, context),
+                          style: AppTextStyles.poiSchedule),
+                    ],
+                    const SizedBox(width: 8),
+                    Transform.translate(
+                      offset: const Offset(0, -1),
+                      child: Icon(Icons.more_time,
+                          size: 18,
+                          color: hasCheckedOut
+                              ? AppColors.checkInResult
+                              : AppColors.muted),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 7),
-                if (hasArrival || hasCheckedIn) ...[
-                  Icon(Icons.arrow_downward,
-                      size: 15,
-                      fontWeight: FontWeight.w600,
-                      color: hasCheckedIn
-                          ? AppColors.checkInResult
-                          : AppColors.muted),
-                  const SizedBox(width: 1),
-                  Text(
-                    _formatTime((checkInResultUtc ?? arrival)!, context),
-                    style: hasCheckedIn
-                        ? AppTextStyles.poiSchedule
-                            .copyWith(color: AppColors.checkInResult)
-                        : AppTextStyles.poiSchedule,
-                  ),
-                ],
-                if ((hasArrival || hasCheckedIn) &&
-                    (hasDeparture || hasCheckedOut))
-                  const SizedBox(width: 6),
-                if (hasDeparture || hasCheckedOut) ...[
-                  Icon(Icons.arrow_upward,
-                      size: 15,
-                      fontWeight: FontWeight.w600,
-                      color: hasCheckedOut
-                          ? AppColors.checkInResult
-                          : AppColors.muted),
-                  const SizedBox(width: 1),
-                  Text(
-                    _formatTime((restUtc ?? departure)!, context),
-                    style: hasCheckedOut
-                        ? AppTextStyles.poiSchedule
-                            .copyWith(color: AppColors.checkInResult)
-                        : AppTextStyles.poiSchedule,
-                  ),
-                ],
-                if ((hasArrival ||
-                        hasCheckedIn ||
-                        hasDeparture ||
-                        hasCheckedOut) &&
-                    hasClose)
-                  const SizedBox(width: 12),
-                if (hasClose) ...[
-                  const Icon(Icons.lock_outline,
-                      size: 17, color: AppColors.muted),
-                  const SizedBox(width: 1),
-                  Text(_formatTime(close!, context),
-                      style: AppTextStyles.poiSchedule),
-                ],
-                const SizedBox(width: 8),
-                Transform.translate(
-                  offset: const Offset(0, -1),
-                  child: Icon(Icons.more_time,
-                      size: 18,
-                      color: hasCheckedOut
-                          ? AppColors.checkInResult
-                          : AppColors.muted),
-                ),
-              ],
+              ),
             ),
           ),
         ],
@@ -2195,38 +2209,11 @@ class _PoiContentBlock extends StatelessWidget {
       child: SizedBox(width: double.infinity, child: column),
     );
 
-    void openScheduleTable() {
-      showDialog<void>(
-        context: context,
-        builder: (_) => PoiScheduleTableDialog(
-          distanceUnit: distanceUnit,
-          showDownloadButton: true,
-          rows: scheduleEntries!
-              .asMap()
-              .entries
-              .map((e) => PoiScheduleRow(
-                    distance: e.value.distance,
-                    name: e.value.name,
-                    arrival: e.value.arrival,
-                    checkInResultUtc:
-                        sessionCheckInsByIndex?.containsKey(e.key) == true
-                            ? sessionCheckInsByIndex![e.key]
-                            : e.value.checkInResultUtc,
-                    startClose:
-                        (e.value.arrival == null && e.value.departure != null)
-                            ? e.value.departure
-                            : e.value.close,
-                  ))
-              .toList(),
-        ),
-      );
-    }
-
-    if (canTapSheetForScheduleTable) {
+    if (canTapSheetForElevationChart) {
       return Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: openScheduleTable,
+          onTap: openElevationChart,
           splashColor: Colors.grey.withValues(alpha: 0.25),
           highlightColor: Colors.grey.withValues(alpha: 0.12),
           child: paddedContent,
@@ -2703,6 +2690,39 @@ class _SegmentElevationAreaPainter extends CustomPainter {
 
 const _kCheckInBadgeLabel = 'C/I';
 const _kCheckOutBadgeLabel = 'C/O';
+
+/// 押下時に背景色を暗くする C/O バッジ（チェックアウトボタン用）。
+class _TappableCheckOutBadge extends StatefulWidget {
+  const _TappableCheckOutBadge({required this.onTap});
+
+  final Future<void> Function() onTap;
+
+  @override
+  State<_TappableCheckOutBadge> createState() => _TappableCheckOutBadgeState();
+}
+
+class _TappableCheckOutBadgeState extends State<_TappableCheckOutBadge> {
+  bool _pressed = false;
+
+  static const _normalColor = AppColors.checkInResult;
+  static final _pressedColor = AppColors.checkInResult.withValues(alpha: 0.6);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: () async {
+        await widget.onTap();
+        if (mounted) setState(() => _pressed = false);
+      },
+      child: _CheckInBadge(
+        label: _kCheckOutBadgeLabel,
+        color: _pressed ? _pressedColor : _normalColor,
+      ),
+    );
+  }
+}
 
 /// C/I・C/O テキストバッジ（グレー or カスタム背景・白文字）
 class _CheckInBadge extends StatelessWidget {
