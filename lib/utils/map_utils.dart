@@ -365,12 +365,37 @@ int _previousPoiWithDistanceIndex(int poiIndex, List<bool> hasKm) {
       ? elevations
       : List<double?>.filled(trackPoints.length, null);
 
-  final segmentKm =
+  // Prefer registered km values to match the POI sheet's distance display.
+  double? regSegmentKm;
+  double? regKmStart;
+  double? regKmEnd;
+  if (poiIndex > 0 &&
+      poiKmAlongRoute != null &&
+      poiKmAlongRoute.length == poiPositions.length) {
+    final endK = poiKmAlongRoute[poiIndex];
+    final prevIdx = (poiHasDistanceKm != null &&
+            poiHasDistanceKm.length == poiPositions.length)
+        ? _previousPoiWithDistanceIndex(poiIndex, poiHasDistanceKm)
+        : poiIndex - 1;
+    final startK = prevIdx >= 0 ? poiKmAlongRoute[prevIdx] : 0.0;
+    if (endK != null &&
+        endK.isFinite &&
+        endK >= 0 &&
+        startK != null &&
+        startK.isFinite &&
+        startK >= 0 &&
+        endK >= startK) {
+      regSegmentKm = endK - startK;
+      regKmStart = startK;
+      regKmEnd = endK;
+    }
+  }
+  final segmentKm = regSegmentKm ??
       distanceAlongTrackBetweenIndices(trackPoints, lo, hi) / 1000.0;
   final kmAlongRouteStart =
-      distanceAlongTrackFromStart(trackPoints, lo) / 1000.0;
+      regKmStart ?? distanceAlongTrackFromStart(trackPoints, lo) / 1000.0;
   final kmAlongRouteEnd =
-      distanceAlongTrackFromStart(trackPoints, hi) / 1000.0;
+      regKmEnd ?? distanceAlongTrackFromStart(trackPoints, hi) / 1000.0;
   final segmentElevationGainM =
       elevationGainBetweenIndices(alignedElev, lo, hi);
   final segmentElevationLossM =
