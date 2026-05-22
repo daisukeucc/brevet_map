@@ -858,75 +858,95 @@ class _ElevationOnDemandDialog extends StatefulWidget {
 class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   ElevationSegmentChartData? _chart;
   bool _loading = true;
+  bool _failed = false;
+  bool _cancelled = false;
   String? _previewDistLabel;
   String? _previewGainLabel;
   String? _previewLossLabel;
+
+  // initState で事前計算したスライスデータ（compute に渡すデータ量を区間分に絞る）
+  ({
+    List<LatLng> trackSlice,
+    List<double?> elevationSlice,
+    double segmentKm,
+    double kmAlongRouteStart,
+    double kmAlongRouteEnd,
+    double segmentElevationGainM,
+    double segmentElevationLossM,
+  })? _slice;
 
   @override
   void initState() {
     super.initState();
     final req = widget.req;
-    final alignedElev = req.elevations.length == req.trackPoints.length
-        ? req.elevations
-        : List<double?>.filled(req.trackPoints.length, null);
-    final m = elevationSegmentMetricsPreview(
+    // 区間スライスと計算済みメトリクスをメインスレッドで取得
+    final slice = elevationSegmentSlice(
       trackPoints: req.trackPoints,
-      elevations: alignedElev,
+      elevations: req.elevations,
       poiPositions: req.poiPositions,
       poiIndex: req.poiIndex,
       poiHasDistanceKm: req.poiHasDistanceKm,
       poiKmAlongRoute: req.poiKmAlongRoute,
     );
-    if (m != null) {
-      _previewDistLabel = formatDistance(m.segmentKm, req.distanceUnit);
-      _previewGainLabel = formatElevationChange(m.gainM, req.distanceUnit);
-      _previewLossLabel = formatElevationChange(m.lossM, req.distanceUnit);
+    if (slice != null) {
+      _slice = slice;
+      _previewDistLabel = formatDistance(slice.segmentKm, req.distanceUnit);
+      _previewGainLabel =
+          formatElevationChange(slice.segmentElevationGainM, req.distanceUnit);
+      _previewLossLabel =
+          formatElevationChange(slice.segmentElevationLossM, req.distanceUnit);
     }
     _buildChart();
   }
 
+  @override
+  void dispose() {
+    _cancelled = true;
+    super.dispose();
+  }
+
   Future<void> _buildChart() async {
+    final slice = _slice;
+    if (slice == null) {
+      if (mounted) setState(() { _loading = false; _failed = true; });
+      return;
+    }
     try {
-      final req = widget.req;
       final chart = await compute(
-        computeElevationSegmentChartData,
+        computeElevationChartFromSlice,
         (
-          trackPoints: req.trackPoints,
-          elevations: req.elevations.length == req.trackPoints.length
-              ? req.elevations
-              : List<double?>.filled(req.trackPoints.length, null),
-          poiPositions: req.poiPositions,
-          poiIndex: req.poiIndex,
+          trackSlice: slice.trackSlice,
+          elevationSlice: slice.elevationSlice,
+          segmentKm: slice.segmentKm,
+          kmAlongRouteStart: slice.kmAlongRouteStart,
+          kmAlongRouteEnd: slice.kmAlongRouteEnd,
+          segmentElevationGainM: slice.segmentElevationGainM,
+          segmentElevationLossM: slice.segmentElevationLossM,
           maxSamples: 450,
-          poiHasDistanceKm: req.poiHasDistanceKm,
-          poiKmAlongRoute: req.poiKmAlongRoute,
         ),
       ).timeout(
-        const Duration(seconds: 45),
-        onTimeout: () => throw TimeoutException(
-          'computeElevationSegmentChartData',
-          const Duration(seconds: 45),
-        ),
+        const Duration(seconds: 15),
+        onTimeout: () => null,
       );
-      if (!mounted) return;
-      if (chart == null || !chart.hasElevation) {
-        Navigator.of(context).maybePop();
+      if (_cancelled || !mounted) return;
+      if (chart == null) {
+        setState(() {
+          _loading = false;
+          _failed = true;
+        });
         return;
       }
-      try {
-        setState(() {
-          _chart = chart;
-          _loading = false;
-        });
-      } catch (e, st) {
-        debugPrint('Elevation chart setState failed: $e\n$st');
-        if (!mounted) return;
-        Navigator.of(context).maybePop();
-      }
+      setState(() {
+        _chart = chart;
+        _loading = false;
+      });
     } catch (e, st) {
       debugPrint('Elevation chart compute failed: $e\n$st');
-      if (!mounted) return;
-      Navigator.of(context).maybePop();
+      if (_cancelled || !mounted) return;
+      setState(() {
+        _loading = false;
+        _failed = true;
+      });
     }
   }
 
@@ -1018,6 +1038,11 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
                         textScaler: MediaQuery.textScalerOf(context),
                         textDirection: Directionality.of(context),
                       ),
+                    )
+                  else if (_failed)
+                    const Center(
+                      child: Icon(Icons.signal_wifi_statusbar_null,
+                          size: 32, color: Colors.black26),
                     )
                   else
                     const Center(

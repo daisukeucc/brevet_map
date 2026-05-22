@@ -328,6 +328,149 @@ int _previousPoiWithDistanceIndex(int poiIndex, List<bool> hasKm) {
   return (segmentKm: segmentKm, gainM: gainM, lossM: lossM);
 }
 
+/// メイン isolate 上で区間スライスと計算済みメトリクスを取得する。
+/// compute に渡すデータを区間分のみに絞ることでシリアライズコストを削減する。
+({
+  List<LatLng> trackSlice,
+  List<double?> elevationSlice,
+  double segmentKm,
+  double kmAlongRouteStart,
+  double kmAlongRouteEnd,
+  double segmentElevationGainM,
+  double segmentElevationLossM,
+})? elevationSegmentSlice({
+  required List<LatLng> trackPoints,
+  required List<double?> elevations,
+  required List<LatLng> poiPositions,
+  required int poiIndex,
+  List<bool>? poiHasDistanceKm,
+  List<double?>? poiKmAlongRoute,
+}) {
+  if (trackPoints.isEmpty || poiPositions.isEmpty) return null;
+  if (poiIndex < 0 || poiIndex >= poiPositions.length) return null;
+
+  final bounds = segmentIndicesForElevationChart(
+    trackPoints,
+    poiPositions,
+    poiIndex,
+    poiHasDistanceKm: poiHasDistanceKm,
+    poiKmAlongRoute: poiKmAlongRoute,
+    segmentMeters: _haversineMeters,
+  );
+  if (bounds == null) return null;
+
+  final lo = bounds.lo;
+  final hi = bounds.hi;
+  final alignedElev = elevations.length == trackPoints.length
+      ? elevations
+      : List<double?>.filled(trackPoints.length, null);
+
+  final segmentKm =
+      distanceAlongTrackBetweenIndices(trackPoints, lo, hi) / 1000.0;
+  final kmAlongRouteStart =
+      distanceAlongTrackFromStart(trackPoints, lo) / 1000.0;
+  final kmAlongRouteEnd =
+      distanceAlongTrackFromStart(trackPoints, hi) / 1000.0;
+  final segmentElevationGainM =
+      elevationGainBetweenIndices(alignedElev, lo, hi);
+  final segmentElevationLossM =
+      elevationLossBetweenIndices(alignedElev, lo, hi);
+
+  return (
+    trackSlice: trackPoints.sublist(lo, hi + 1),
+    elevationSlice: alignedElev.sublist(lo, hi + 1),
+    segmentKm: segmentKm,
+    kmAlongRouteStart: kmAlongRouteStart,
+    kmAlongRouteEnd: kmAlongRouteEnd,
+    segmentElevationGainM: segmentElevationGainM,
+    segmentElevationLossM: segmentElevationLossM,
+  );
+}
+
+/// [elevationSegmentSlice] の出力を compute() で処理するための入力型。
+typedef ElevationSegmentSliceInput = ({
+  List<LatLng> trackSlice,
+  List<double?> elevationSlice,
+  double segmentKm,
+  double kmAlongRouteStart,
+  double kmAlongRouteEnd,
+  double segmentElevationGainM,
+  double segmentElevationLossM,
+  int maxSamples,
+});
+
+/// compute() で実行する。区間スライスのみを受け取り標高グラフデータを構築する。
+ElevationSegmentChartData? computeElevationChartFromSlice(
+    ElevationSegmentSliceInput input) {
+  final track = input.trackSlice;
+  if (track.isEmpty) return null;
+
+  final elev = input.elevationSlice;
+  final alignedElev = elev.length == track.length
+      ? elev
+      : List<double?>.filled(track.length, null);
+
+  final kmRaw = <double>[];
+  final eleNullable = List<double?>.from(alignedElev);
+  double cumKm = 0;
+  for (var i = 0; i < track.length; i++) {
+    if (i > 0) {
+      cumKm += _haversineMeters(track[i - 1], track[i]) / 1000.0;
+    }
+    kmRaw.add(cumKm);
+  }
+
+  double? last;
+  for (var i = 0; i < eleNullable.length; i++) {
+    final e = eleNullable[i];
+    if (e != null && e.isFinite) {
+      last = e;
+    } else if (last != null) {
+      eleNullable[i] = last;
+    }
+  }
+  last = null;
+  for (var i = eleNullable.length - 1; i >= 0; i--) {
+    final e = eleNullable[i];
+    if (e != null && e.isFinite) {
+      last = e;
+    } else if (last != null) {
+      eleNullable[i] = last;
+    }
+  }
+
+  final elevFilled = <double>[];
+  for (final e in eleNullable) {
+    elevFilled.add((e != null && e.isFinite) ? e : double.nan);
+  }
+
+  final maxSamples = input.maxSamples;
+  final kmDown = <double>[];
+  final eleDown = <double>[];
+  if (kmRaw.length <= maxSamples) {
+    kmDown.addAll(kmRaw);
+    eleDown.addAll(elevFilled);
+  } else {
+    final step = kmRaw.length / maxSamples;
+    for (var i = 0; i < maxSamples; i++) {
+      final j = (i * step).floor().clamp(0, kmRaw.length - 1);
+      kmDown.add(kmRaw[j]);
+      eleDown.add(elevFilled[j]);
+    }
+  }
+
+  final result = ElevationSegmentChartData(
+    segmentKm: input.segmentKm,
+    segmentElevationGainM: input.segmentElevationGainM,
+    segmentElevationLossM: input.segmentElevationLossM,
+    kmAlongRouteStart: input.kmAlongRouteStart,
+    kmAlongRouteEnd: input.kmAlongRouteEnd,
+    kmFromSegmentStart: kmDown,
+    elevationMeters: eleDown,
+  );
+  return result.hasElevation ? result : null;
+}
+
 /// 「直前の POI（またはスタート）からこの POI」までのルート区間の距離・標高サンプルを構築する。
 /// [poiIndex] が 0 のときは **トラック全体**（スタート〜終点）を対象とし、それ以外は前地点から当該 POI までの区間のみとする。
 /// [elevations] がトラックと不一致または空のときは標高は前方埋めのみ試み、無ければ NaN を詰める。
