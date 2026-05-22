@@ -55,7 +55,6 @@
   "poiArrivalActual": "실제 도착",
   "poiRestActual": "실제 휴식",
   "poiCheckOut": "체크아웃하시겠습니까?",
-  "arrivalShort": "도착",
   "departureShort": "출발",
   "distance": "거리",
   "titleNone": "(제목 없음)",
@@ -339,11 +338,7 @@
   "poiCheckInNotAvailableTitle": "체크인할 수 없습니다",
   "poiCheckInLocationAcquireFailedTitle": "위치 정보를 가져올 수 없습니다",
   "poiCheckInLocationUnavailableDetail": "현재 위치를 가져오지 못했습니다. 가능하면 실외에서 다시 시도하거나, GPS와 단말 설정의 위치 정보 및 앱 권한을 확인해 주세요.",
-  "selectPoiAtSameLocation": "POI 선택"
-,
+  "selectPoiAtSameLocation": "POI 선택",
   "poiScheduleTableTitle": "체크인 기록",
-  "poiScheduleColResult": "실적",
-  "poiScheduleColAhead": "차이",
-  "poiScheduleColPoint": "포인트",
   "csvDownload": "다운로드"
 }

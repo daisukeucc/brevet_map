@@ -55,7 +55,6 @@
   "poiArrivalActual": "Ist-Ankunft",
   "poiRestActual": "Ist-Pause",
   "poiCheckOut": "Auschecken?",
-  "arrivalShort": "Ankunft",
   "departureShort": "Abfahrt",
   "distance": "Distanz",
   "titleNone": "(Kein Titel)",
@@ -339,11 +338,7 @@
   "poiCheckInNotAvailableTitle": "Einchecken nicht möglich",
   "poiCheckInLocationAcquireFailedTitle": "Standort konnte nicht ermittelt werden",
   "poiCheckInLocationUnavailableDetail": "Ihre aktuelle Position konnte nicht ermittelt werden. Versuchen Sie es gegebenenfalls erneut im Freien oder prüfen Sie GPS sowie in den Geräteeinstellungen den Punkt „Standort“ und die App-Berechtigungen.",
-  "selectPoiAtSameLocation": "POI auswählen"
-,
+  "selectPoiAtSameLocation": "POI auswählen",
   "poiScheduleTableTitle": "Check-in-Verlauf",
-  "poiScheduleColResult": "Ergebnis",
-  "poiScheduleColAhead": "Differenz",
-  "poiScheduleColPoint": "Punkt",
   "csvDownload": "Herunterladen"
 }

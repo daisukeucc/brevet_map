@@ -55,7 +55,6 @@
   "poiArrivalActual": "到着実績",
   "poiRestActual": "休憩実績",
   "poiCheckOut": "チェックアウトしますか？",
-  "arrivalShort": "到着予定",
   "departureShort": "出発予定",
   "distance": "距離",
   "titleNone": "(タイトルなし)",
@@ -328,11 +327,7 @@
   "poiCheckInNotAvailableTitle": "チェックインできません",
   "poiCheckInLocationAcquireFailedTitle": "位置情報を取得できませんでした",
   "poiCheckInLocationUnavailableDetail": "現在地を取得できませんでした。屋外などで再度お試しいただくか、GPSおよび端末設定の「位置情報」やアプリの権限を確認してください。",
-  "selectPoiAtSameLocation": "POIを選択"
-,
+  "selectPoiAtSameLocation": "POIを選択",
   "poiScheduleTableTitle": "通過記録",
-  "poiScheduleColResult": "実績",
-  "poiScheduleColAhead": "先行",
-  "poiScheduleColPoint": "ポイント",
   "csvDownload": "CSVダウンロード"
 }

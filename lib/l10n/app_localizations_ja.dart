@@ -157,9 +157,6 @@ class AppLocalizationsJa extends AppLocalizations {
   String get poiCheckOut => 'チェックアウトしますか？';
 
   @override
-  String get arrivalShort => '到着予定';
-
-  @override
   String get departureShort => '出発予定';
 
   @override
@@ -715,18 +712,6 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get poiScheduleTableTitle => '通過記録';
-
-  @override
-  String get poiScheduleColResult => '実績';
-
-  @override
-  String get poiScheduleColAhead => '先行';
-
-  @override
-  String get poiScheduleColPoint => 'ポイント';
-
-  @override
-  String get poiScheduleColStartClose => 'Start/Close';
 
   @override
   String get csvDownload => 'CSVダウンロード';

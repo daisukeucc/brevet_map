@@ -447,6 +447,7 @@ class PoiSheetEntry {
     this.url,
     required this.position,
     this.distance,
+    this.segmentDistanceKm,
     this.elevationGain,
     this.arrival,
     this.departure,
@@ -465,6 +466,10 @@ class PoiSheetEntry {
 
   final String? name;
   final String? distance;
+
+  /// 区間距離（km）。テーブル表示用。distanceUnit に関わらず km で保持する。
+  final double? segmentDistanceKm;
+
   final String? elevationGain;
   final String? description;
   final String? url;
@@ -1384,6 +1389,8 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                   scheduleEntries: widget.allEntries,
                   sessionCheckInsByIndex:
                       _sessionCheckInExplicit ? {0: _sessionCheckInUtc} : null,
+                  sessionRestsByIndex:
+                      _sessionCheckOutExplicit ? {0: _sessionRestUtc} : null,
                   contentLayoutMaxWidth: constraints.maxWidth,
                   sheetPadding: sheetPadding,
                   distanceLeft: distanceLeft,
@@ -1654,6 +1661,9 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                           sessionCheckInsByIndex: _checkInSessionByIndex.isEmpty
                               ? null
                               : Map.of(_checkInSessionByIndex),
+                          sessionRestsByIndex: _restSessionByIndex.isEmpty
+                              ? null
+                              : Map.of(_restSessionByIndex),
                           contentLayoutMaxWidth: expandedW,
                           sheetPadding: sheetPadding,
                           distanceLeft: distanceLeft,
@@ -1754,6 +1764,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.onCheckInTapCancel,
     this.scheduleEntries,
     this.sessionCheckInsByIndex,
+    this.sessionRestsByIndex,
   });
 
   final String? name;
@@ -1816,9 +1827,21 @@ class _PoiContentBlock extends StatelessWidget {
   /// シート表示中に確定したチェックイン（index → UTC）。[scheduleEntries] の古い値を上書きする。
   final Map<int, DateTime?>? sessionCheckInsByIndex;
 
+  /// シート表示中に確定したチェックアウト（index → UTC）。[scheduleEntries] の古い値を上書きする。
+  final Map<int, DateTime?>? sessionRestsByIndex;
+
   String _formatTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
     return DateFormat('H:mm', locale).format(dt.toLocal());
+  }
+
+  static String _fmtDiff(DateTime scheduled, DateTime actual) {
+    final d = scheduled.difference(actual);
+    final abs = d.abs();
+    final h = abs.inHours;
+    final m = (abs.inMinutes % 60).toString().padLeft(2, '0');
+    final sign = (d.isNegative && abs.inMinutes > 0) ? '-' : '+';
+    return '$sign$h:$m';
   }
 
   String _formatDate(DateTime dt, BuildContext context) {
@@ -1907,6 +1930,13 @@ class _PoiContentBlock extends StatelessWidget {
         hasArrival || hasDeparture || hasClose || hasCheckedIn || hasCheckedOut;
     final canTapSheetForScheduleTable = hasSchedule && scheduleEntries != null;
 
+    // diff: チェックアウト後は ETD vs ATD、チェックイン後は ETA vs ATA
+    final String? scheduleDiffStr = hasCheckedIn
+        ? (hasCheckedOut && hasDeparture)
+            ? _fmtDiff(departure!, restUtc!)
+            : (hasArrival ? _fmtDiff(arrival!, checkInResultUtc!) : null)
+        : null;
+
     void openElevationChart() {
       if (showSegmentChartPrecomputed) {
         _showPoiElevationSegmentDialog(
@@ -1924,28 +1954,43 @@ class _PoiContentBlock extends StatelessWidget {
     }
 
     void openScheduleTable() {
+      final entries = scheduleEntries!;
+      final isStartOrGoal = entries[checkInTapEntryIndex].isRouteStartPoi ||
+          checkInTapEntryIndex == entries.length - 1;
+      // スケジュールデータのある POI のみ（arrival/departure どちらもない メモ用 POI を除外）
+      final filtered = entries
+          .asMap()
+          .entries
+          .where((e) => e.value.arrival != null || e.value.departure != null)
+          .toList();
+      final newHighlightIndex =
+          filtered.indexWhere((e) => e.key == checkInTapEntryIndex);
       showDialog<void>(
         context: context,
         builder: (_) => PoiScheduleTableDialog(
           distanceUnit: distanceUnit,
-          showDownloadButton: true,
-          rows: scheduleEntries!
-              .asMap()
-              .entries
-              .map((e) => PoiScheduleRow(
-                    distance: e.value.distance,
-                    name: e.value.name,
-                    arrival: e.value.arrival,
-                    checkInResultUtc:
-                        sessionCheckInsByIndex?.containsKey(e.key) == true
-                            ? sessionCheckInsByIndex![e.key]
-                            : e.value.checkInResultUtc,
-                    startClose:
-                        (e.value.arrival == null && e.value.departure != null)
-                            ? e.value.departure
-                            : e.value.close,
-                  ))
-              .toList(),
+          highlightIndex: newHighlightIndex >= 0 ? newHighlightIndex : null,
+          showDownloadButton: isStartOrGoal,
+          rows: filtered.map((e) {
+            final resolvedCheckIn =
+                sessionCheckInsByIndex?.containsKey(e.key) == true
+                    ? sessionCheckInsByIndex![e.key]
+                    : e.value.checkInResultUtc;
+            final resolvedRest = sessionRestsByIndex?.containsKey(e.key) == true
+                ? sessionRestsByIndex![e.key]
+                : e.value.restUtc;
+            return PoiScheduleRow(
+              distance: e.value.distance,
+              segmentDistanceKm: e.value.segmentDistanceKm,
+              elevationGain: e.value.elevationGain,
+              name: e.value.name,
+              arrival: e.value.arrival,
+              departure: e.value.departure,
+              checkInResultUtc: resolvedCheckIn,
+              restUtc: resolvedRest,
+              startClose: e.value.close,
+            );
+          }).toList(),
         ),
       );
     }
@@ -2097,6 +2142,26 @@ class _PoiContentBlock extends StatelessWidget {
                                 .copyWith(color: AppColors.checkInResult)
                             : AppTextStyles.poiSchedule,
                       ),
+                      if (scheduleDiffStr != null) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          scheduleDiffStr[0],
+                          style: AppTextStyles.poiSchedule.copyWith(
+                            color: hasCheckedOut
+                                ? AppColors.checkInResult
+                                : AppColors.muted,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          scheduleDiffStr.substring(1),
+                          style: AppTextStyles.poiSchedule.copyWith(
+                            color: hasCheckedOut
+                                ? AppColors.checkInResult
+                                : AppColors.muted,
+                          ),
+                        ),
+                      ],
                     ],
                     if ((hasArrival ||
                             hasCheckedIn ||

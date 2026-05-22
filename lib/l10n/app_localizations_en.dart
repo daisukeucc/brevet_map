@@ -157,9 +157,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get poiCheckOut => 'Check out?';
 
   @override
-  String get arrivalShort => 'Arrival';
-
-  @override
   String get departureShort => 'Departure';
 
   @override
@@ -733,18 +730,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get poiScheduleTableTitle => 'Check-in Records';
-
-  @override
-  String get poiScheduleColResult => 'Result';
-
-  @override
-  String get poiScheduleColAhead => 'Ahead';
-
-  @override
-  String get poiScheduleColPoint => 'Point';
-
-  @override
-  String get poiScheduleColStartClose => 'Start/Close';
 
   @override
   String get csvDownload => 'Download';

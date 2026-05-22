@@ -401,12 +401,6 @@ abstract class AppLocalizations {
   /// **'Check out?'**
   String get poiCheckOut;
 
-  /// No description provided for @arrivalShort.
-  ///
-  /// In en, this message translates to:
-  /// **'Arrival'**
-  String get arrivalShort;
-
   /// No description provided for @departureShort.
   ///
   /// In en, this message translates to:
@@ -1414,30 +1408,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check-in Records'**
   String get poiScheduleTableTitle;
-
-  /// No description provided for @poiScheduleColResult.
-  ///
-  /// In en, this message translates to:
-  /// **'Result'**
-  String get poiScheduleColResult;
-
-  /// No description provided for @poiScheduleColAhead.
-  ///
-  /// In en, this message translates to:
-  /// **'Ahead'**
-  String get poiScheduleColAhead;
-
-  /// No description provided for @poiScheduleColPoint.
-  ///
-  /// In en, this message translates to:
-  /// **'Point'**
-  String get poiScheduleColPoint;
-
-  /// No description provided for @poiScheduleColStartClose.
-  ///
-  /// In en, this message translates to:
-  /// **'Start/Close'**
-  String get poiScheduleColStartClose;
 
   /// No description provided for @csvDownload.
   ///

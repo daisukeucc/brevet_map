@@ -61,7 +61,6 @@
   "poiArrivalActual": "Actual arrival",
   "poiRestActual": "Actual rest",
   "poiCheckOut": "Check out?",
-  "arrivalShort": "Arrival",
   "departureShort": "Departure",
   "distance": "Distance",
   "titleNone": "(No title)",
@@ -360,12 +359,7 @@
   "poiCheckInNotAvailableTitle": "Cannot check in",
   "poiCheckInLocationAcquireFailedTitle": "Could not get location",
   "poiCheckInLocationUnavailableDetail": "Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.",
-  "selectPoiAtSameLocation": "Select POI"
-,
+  "selectPoiAtSameLocation": "Select POI",
   "poiScheduleTableTitle": "Check-in Records",
-  "poiScheduleColResult": "Result",
-  "poiScheduleColAhead": "Ahead",
-  "poiScheduleColPoint": "Point",
-  "poiScheduleColStartClose": "Start/Close",
   "csvDownload": "Download"
 }

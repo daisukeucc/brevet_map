@@ -156,9 +156,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiCheckOut => '确认出发？';
 
   @override
-  String get arrivalShort => '到达';
-
-  @override
   String get departureShort => '出发';
 
   @override
@@ -710,18 +707,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiScheduleTableTitle => '打卡记录';
 
   @override
-  String get poiScheduleColResult => '实绩';
-
-  @override
-  String get poiScheduleColAhead => '差值';
-
-  @override
-  String get poiScheduleColPoint => '点';
-
-  @override
-  String get poiScheduleColStartClose => 'Start/Close';
-
-  @override
   String get csvDownload => '下载';
 }
 
@@ -875,9 +860,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get poiCheckOut => '確認出發？';
-
-  @override
-  String get arrivalShort => '到達';
 
   @override
   String get departureShort => '出發';
@@ -1420,15 +1402,6 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get poiScheduleTableTitle => '打卡記錄';
-
-  @override
-  String get poiScheduleColResult => '實績';
-
-  @override
-  String get poiScheduleColAhead => '差值';
-
-  @override
-  String get poiScheduleColPoint => '點';
 
   @override
   String get csvDownload => '下載';

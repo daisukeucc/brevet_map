@@ -159,9 +159,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiCheckOut => 'Enregistrer le départ ?';
 
   @override
-  String get arrivalShort => 'Arrivée';
-
-  @override
   String get departureShort => 'Départ';
 
   @override
@@ -739,18 +736,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get poiScheduleTableTitle => 'Historique de pointage';
-
-  @override
-  String get poiScheduleColResult => 'Résultat';
-
-  @override
-  String get poiScheduleColAhead => 'Écart';
-
-  @override
-  String get poiScheduleColPoint => 'Point';
-
-  @override
-  String get poiScheduleColStartClose => 'Start/Close';
 
   @override
   String get csvDownload => 'Télécharger';

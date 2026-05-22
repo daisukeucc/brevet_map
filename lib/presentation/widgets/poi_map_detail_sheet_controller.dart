@@ -313,6 +313,12 @@ class PoiMapDetailSheetController {
       for (var i = 0; i < ordered.length; i++) {
         final isStart = GpxPoiTag.isStartType(ordered[i].bmPoiExt?.type);
         final sched = ordered[i].bmPoiExt?.schedule;
+        final currKm = ordered[i].bmPoiExt?.distanceKm;
+        final prevKm = i > 0 ? ordered[i - 1].bmPoiExt?.distanceKm : null;
+        final segKm =
+            (i > 0 && currKm != null && prevKm != null && currKm >= prevKm)
+                ? currKm - prevKm
+                : null;
         entries.add(
           PoiSheetEntry(
             name: ordered[i].name,
@@ -322,6 +328,7 @@ class PoiMapDetailSheetController {
             departure: sched?.departure,
             close: sched?.close,
             checkInResultUtc: sched?.result,
+            segmentDistanceKm: segKm,
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
@@ -512,10 +519,20 @@ class PoiMapDetailSheetController {
         final sched = ordered[i].bmExt?.schedule;
         final isStartType = GpxPoiTag.isStartType(ordered[i].bmExt?.type);
         final poiRef = ordered[i];
+        final currKm = ordered[i].km;
+        final prevKm = i > 0 ? ordered[i - 1].km : null;
+        final segKm = (i > 0 &&
+                hasKmForSegment &&
+                currKm != null &&
+                prevKm != null &&
+                currKm >= prevKm)
+            ? currKm - prevKm
+            : null;
         entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
+            segmentDistanceKm: segKm,
             elevationGain: hasKmForSegment && rawGains[i] != null
                 ? formatElevationChange(rawGains[i]!, unit)
                 : null,

@@ -157,9 +157,6 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiCheckOut => '체크아웃하시겠습니까?';
 
   @override
-  String get arrivalShort => '도착';
-
-  @override
   String get departureShort => '출발';
 
   @override
@@ -718,18 +715,6 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get poiScheduleTableTitle => '체크인 기록';
-
-  @override
-  String get poiScheduleColResult => '실적';
-
-  @override
-  String get poiScheduleColAhead => '차이';
-
-  @override
-  String get poiScheduleColPoint => '포인트';
-
-  @override
-  String get poiScheduleColStartClose => 'Start/Close';
 
   @override
   String get csvDownload => '다운로드';

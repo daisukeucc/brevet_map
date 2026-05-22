@@ -158,9 +158,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get poiCheckOut => '¿Registrar salida?';
 
   @override
-  String get arrivalShort => 'Llegada';
-
-  @override
   String get departureShort => 'Salida';
 
   @override
@@ -737,18 +734,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get poiScheduleTableTitle => 'Historial de fichaje';
-
-  @override
-  String get poiScheduleColResult => 'Resultado';
-
-  @override
-  String get poiScheduleColAhead => 'Diferencia';
-
-  @override
-  String get poiScheduleColPoint => 'Punto';
-
-  @override
-  String get poiScheduleColStartClose => 'Start/Close';
 
   @override
   String get csvDownload => 'Descargar';

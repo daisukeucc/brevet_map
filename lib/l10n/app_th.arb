@@ -55,7 +55,6 @@
   "poiArrivalActual": "เวลามาถึงจริง",
   "poiRestActual": "เวลาพักจริง",
   "poiCheckOut": "เช็คเอาต์?",
-  "arrivalShort": "มาถึง",
   "departureShort": "ออกเดินทาง",
   "distance": "ระยะทาง",
   "titleNone": "(ไม่มีชื่อ)",
@@ -338,11 +337,7 @@
   "poiCheckInNotAvailableTitle": "ไม่สามารถเช็คอินได้",
   "poiCheckInLocationAcquireFailedTitle": "ไม่สามารถรับตำแหน่งได้",
   "poiCheckInLocationUnavailableDetail": "รับข้อมูลตำแหน่งปัจจุบันของคุณไม่ได้ ลองอีกครั้งในกลางแจ้งหากเป็นไปได้ หรือตรวจสอบ GPS การตั้งค่า «ตำแหน่ง» ในอุปกรณ์ และสิทธิ์ของแอป",
-  "selectPoiAtSameLocation": "เลือก POI"
-,
+  "selectPoiAtSameLocation": "เลือก POI",
   "poiScheduleTableTitle": "บันทึกการเช็คอิน",
-  "poiScheduleColResult": "ผลลัพธ์",
-  "poiScheduleColAhead": "ผลต่าง",
-  "poiScheduleColPoint": "จุด",
   "csvDownload": "ดาวน์โหลด"
 }

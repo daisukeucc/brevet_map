@@ -55,7 +55,6 @@
   "poiArrivalActual": "Llegada real",
   "poiRestActual": "Descanso real",
   "poiCheckOut": "¿Registrar salida?",
-  "arrivalShort": "Llegada",
   "departureShort": "Salida",
   "distance": "Distancia",
   "titleNone": "(Sin título)",
@@ -339,11 +338,7 @@
   "poiCheckInNotAvailableTitle": "No se puede hacer check-in",
   "poiCheckInLocationAcquireFailedTitle": "No se pudo obtener la ubicación",
   "poiCheckInLocationUnavailableDetail": "No se ha podido obtener tu ubicación actual. Intenta de nuevo al aire libre si puedes o revisa el GPS, la ubicación en los ajustes del terminal y los permisos de la aplicación.",
-  "selectPoiAtSameLocation": "Seleccionar POI"
-,
+  "selectPoiAtSameLocation": "Seleccionar POI",
   "poiScheduleTableTitle": "Historial de fichaje",
-  "poiScheduleColResult": "Resultado",
-  "poiScheduleColAhead": "Diferencia",
-  "poiScheduleColPoint": "Punto",
   "csvDownload": "Descargar"
 }
