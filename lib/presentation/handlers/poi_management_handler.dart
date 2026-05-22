@@ -92,7 +92,6 @@ List<DropdownMenuItem<int>> _buildPoiTypeDropdownItems(AppLocalizations l10n) {
       .toList(growable: false);
 }
 
-
 /// 新規 POI の BmPoiExtension を生成する（schedule がすべて未指定なら null）
 Future<BmPoiExtension?> _buildBmPoiExtForAdd({
   required AddPoiFormData data,
@@ -1130,7 +1129,7 @@ class _AddPoiDialogState extends State<AddPoiDialog> {
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -1225,8 +1224,8 @@ class _AddPoiDialogState extends State<AddPoiDialog> {
                   contentPadding: _kPoiTitleBodyFieldContentPadding,
                 ),
                 style: AppTextStyles.poiFormTitleBody,
-                maxLines: 3,
-                minLines: 3,
+                maxLines: null,
+                minLines: 2,
               ),
               const SizedBox(height: 12),
               TextField(
@@ -2290,10 +2289,10 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
       surfaceTintColor: Colors.transparent,
       shape: const RoundedRectangleBorder(),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        padding: const EdgeInsets.fromLTRB(24, 32, 24, 24),
         child: ConstrainedBox(
           constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.72,
+            maxHeight: MediaQuery.of(context).size.height * 0.80,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -2302,259 +2301,264 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
               Flexible(
                 child: SingleChildScrollView(
                   child: KeyedSubtree(
-                  key: ObjectKey(_currentPoi),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 72,
-                      child: TextField(
-                        controller: _kmController,
-                        focusNode: _kmFocusNode,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!.distance,
-                          isDense: true,
-                          errorText: _kmError != null ? ' ' : null,
-                          errorStyle: const TextStyle(height: 0, fontSize: 0),
-                        ),
-                        textAlign: TextAlign.end,
-                        style: const TextStyle(fontSize: 17),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: _kmError != null
-                            ? Text(
-                                _kmError!,
-                                style: TextStyle(
-                                  color: Theme.of(context).colorScheme.error,
-                                  fontSize: 12,
-                                ),
-                              )
-                            : Text(
-                                widget.distanceUnit == 1 ? 'mi' : 'km',
-                                style: AppTextStyles.title,
-                              ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(l10n.poiType, style: AppTextStyles.body),
-                const SizedBox(height: 4),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 220),
-                    child: DropdownButtonFormField<int>(
-                      value: _normalizePoiTypeForForm(_poiType),
-                      menuMaxHeight: 360,
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
-                      ),
-                      items: _buildPoiTypeDropdownItems(l10n),
-                      onChanged: (value) {
-                        if (value == null) return;
-                        FocusScope.of(context).unfocus();
-                        setState(() => _poiType = value);
-                      },
-                      style: AppTextStyles.body.copyWith(color: Colors.black87),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _titleController,
-                  decoration: InputDecoration(
-                    labelText: l10n.title,
-                    isDense: true,
-                    contentPadding: _kPoiTitleBodyFieldContentPadding,
-                  ),
-                  style: AppTextStyles.poiFormTitleBody,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _bodyController,
-                  decoration: InputDecoration(
-                    labelText: l10n.body,
-                    isDense: true,
-                    contentPadding: _kPoiTitleBodyFieldContentPadding,
-                  ),
-                  style: AppTextStyles.poiFormTitleBody,
-                  maxLines: 3,
-                  minLines: 3,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _urlController,
-                  keyboardType: TextInputType.url,
-                  decoration: const InputDecoration(
-                    labelText: 'URL',
-                    isDense: true,
-                    contentPadding: _kPoiTitleBodyFieldContentPadding,
-                  ),
-                  style: AppTextStyles.poiFormTitleBody,
-                ),
-                const SizedBox(height: 15),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: _saving
-                        ? null
-                        : () {
-                            FocusScope.of(context).unfocus();
-                            _setIsNoteAndClearScheduleIfMemo(!_isNote);
-                          },
-                    borderRadius: BorderRadius.circular(4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                    key: ObjectKey(_currentPoi),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Checkbox(
-                          value: _isNote,
-                          onChanged: _saving
-                              ? null
-                              : (v) {
-                                  FocusScope.of(context).unfocus();
-                                  _setIsNoteAndClearScheduleIfMemo(v ?? false);
-                                },
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 72,
+                              child: TextField(
+                                controller: _kmController,
+                                focusNode: _kmFocusNode,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                        decimal: true),
+                                decoration: InputDecoration(
+                                  labelText:
+                                      AppLocalizations.of(context)!.distance,
+                                  isDense: true,
+                                  errorText: _kmError != null ? ' ' : null,
+                                  errorStyle:
+                                      const TextStyle(height: 0, fontSize: 0),
+                                ),
+                                textAlign: TextAlign.end,
+                                style: const TextStyle(fontSize: 17),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 20),
+                                child: _kmError != null
+                                    ? Text(
+                                        _kmError!,
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .error,
+                                          fontSize: 12,
+                                        ),
+                                      )
+                                    : Text(
+                                        widget.distanceUnit == 1 ? 'mi' : 'km',
+                                        style: AppTextStyles.title,
+                                      ),
+                              ),
+                            ),
+                          ],
                         ),
-                        Expanded(
-                          child: Text(
-                            l10n.poiSaveAsNote,
-                            style: AppTextStyles.checkBoxLabel,
+                        const SizedBox(height: 16),
+                        Text(l10n.poiType, style: AppTextStyles.body),
+                        const SizedBox(height: 4),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 220),
+                            child: DropdownButtonFormField<int>(
+                              value: _normalizePoiTypeForForm(_poiType),
+                              menuMaxHeight: 360,
+                              decoration: const InputDecoration(
+                                isDense: true,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
+                              ),
+                              items: _buildPoiTypeDropdownItems(l10n),
+                              onChanged: (value) {
+                                if (value == null) return;
+                                FocusScope.of(context).unfocus();
+                                setState(() => _poiType = value);
+                              },
+                              style: AppTextStyles.body
+                                  .copyWith(color: Colors.black87),
+                            ),
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextField(
+                          controller: _titleController,
+                          decoration: InputDecoration(
+                            labelText: l10n.title,
+                            isDense: true,
+                            contentPadding: _kPoiTitleBodyFieldContentPadding,
+                          ),
+                          style: AppTextStyles.poiFormTitleBody,
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _bodyController,
+                          decoration: InputDecoration(
+                            labelText: l10n.body,
+                            isDense: true,
+                            contentPadding: _kPoiTitleBodyFieldContentPadding,
+                          ),
+                          style: AppTextStyles.poiFormTitleBody,
+                          maxLines: null,
+                          minLines: 2,
+                        ),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _urlController,
+                          keyboardType: TextInputType.url,
+                          decoration: const InputDecoration(
+                            labelText: 'URL',
+                            isDense: true,
+                            contentPadding: _kPoiTitleBodyFieldContentPadding,
+                          ),
+                          style: AppTextStyles.poiFormTitleBody,
+                        ),
+                        const SizedBox(height: 15),
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: _saving
+                                ? null
+                                : () {
+                                    FocusScope.of(context).unfocus();
+                                    _setIsNoteAndClearScheduleIfMemo(!_isNote);
+                                  },
+                            borderRadius: BorderRadius.circular(4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Checkbox(
+                                  value: _isNote,
+                                  onChanged: _saving
+                                      ? null
+                                      : (v) {
+                                          FocusScope.of(context).unfocus();
+                                          _setIsNoteAndClearScheduleIfMemo(
+                                              v ?? false);
+                                        },
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    l10n.poiSaveAsNote,
+                                    style: AppTextStyles.checkBoxLabel,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        _segmentElevationSummaryBar(),
+                        const SizedBox(height: 15),
+                        _TimePickerRow(
+                          label: l10n.plannedArrival,
+                          dateTime: _arrival,
+                          onPick: () => _pickDateTime(
+                            current: _arrival,
+                            onPicked: (dt) {
+                              _arrival = dt;
+                              _departure = dt.add(const Duration(minutes: 15));
+                            },
+                          ),
+                          onClear: () => setState(() => _arrival = null),
+                        ),
+                        const SizedBox(height: 8),
+                        _TimePickerRow(
+                          label: l10n.plannedDeparture,
+                          dateTime: _departure,
+                          onPick: () => _pickDateTime(
+                            current: _departure ?? _arrival,
+                            onPicked: (dt) => _departure = dt,
+                          ),
+                          onClear: () => setState(() => _departure = null),
+                        ),
+                        const SizedBox(height: 8),
+                        _TimePickerRow(
+                          label: l10n.plannedClose,
+                          dateTime: _close,
+                          onPick: () => _pickDateTime(
+                            current: _close,
+                            onPicked: (dt) => _close = dt,
+                          ),
+                          onClear: () => setState(() => _close = null),
+                        ),
+                        const SizedBox(height: 8),
+                        _TimePickerRow(
+                          label: l10n.poiArrivalActual,
+                          dateTime: _result,
+                          onPick: null,
+                          onClear: () => setState(() {
+                            _result = null;
+                            _rest = null;
+                          }),
+                        ),
+                        const SizedBox(height: 8),
+                        _TimePickerRow(
+                          label: l10n.poiRestActual,
+                          dateTime: _rest,
+                          onPick: null,
+                          onClear: () => setState(() {
+                            _result = null;
+                            _rest = null;
+                          }),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 15),
-                _segmentElevationSummaryBar(),
-                const SizedBox(height: 15),
-                _TimePickerRow(
-                  label: l10n.plannedArrival,
-                  dateTime: _arrival,
-                  onPick: () => _pickDateTime(
-                    current: _arrival,
-                    onPicked: (dt) {
-                      _arrival = dt;
-                      _departure = dt.add(const Duration(minutes: 15));
-                    },
-                  ),
-                  onClear: () => setState(() => _arrival = null),
-                ),
-                const SizedBox(height: 8),
-                _TimePickerRow(
-                  label: l10n.plannedDeparture,
-                  dateTime: _departure,
-                  onPick: () => _pickDateTime(
-                    current: _departure ?? _arrival,
-                    onPicked: (dt) => _departure = dt,
-                  ),
-                  onClear: () => setState(() => _departure = null),
-                ),
-                const SizedBox(height: 8),
-                _TimePickerRow(
-                  label: l10n.plannedClose,
-                  dateTime: _close,
-                  onPick: () => _pickDateTime(
-                    current: _close,
-                    onPicked: (dt) => _close = dt,
-                  ),
-                  onClear: () => setState(() => _close = null),
-                ),
-                const SizedBox(height: 8),
-                _TimePickerRow(
-                  label: l10n.poiArrivalActual,
-                  dateTime: _result,
-                  onPick: null,
-                  onClear: () => setState(() {
-                    _result = null;
-                    _rest = null;
-                  }),
-                ),
-                const SizedBox(height: 8),
-                _TimePickerRow(
-                  label: l10n.poiRestActual,
-                  dateTime: _rest,
-                  onPick: null,
-                  onClear: () => setState(() {
-                    _result = null;
-                    _rest = null;
-                  }),
-                ),
-                    ],
-                  ),
-                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed:
-                      (!_saving && widget.onPrev(_currentPoi) != null)
-                          ? _handlePrev
-                          : null,
-                  icon: const Icon(Icons.arrow_back_ios),
-                  color: Colors.black38,
-                  disabledColor: Colors.black12,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 36, minHeight: 36),
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: (!_saving && widget.onPrev(_currentPoi) != null)
+                        ? _handlePrev
+                        : null,
+                    icon: const Icon(Icons.arrow_back_ios),
+                    color: Colors.black38,
+                    disabledColor: Colors.black12,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
                   ),
-                  onPressed: _saving ? null : () => Navigator.pop(context),
-                  child: Text(l10n.cancel, style: AppTextStyles.button),
-                ),
-                const SizedBox(width: 8),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                    child: Text(l10n.cancel, style: AppTextStyles.button),
                   ),
-                  onPressed: _saving ? null : _handleChange,
-                  child: Text(l10n.change, style: AppTextStyles.button),
-                ),
-                IconButton(
-                  onPressed:
-                      (!_saving && widget.onNext(_currentPoi) != null)
-                          ? _handleNext
-                          : null,
-                  icon: const Icon(Icons.arrow_forward_ios),
-                  color: Colors.black38,
-                  disabledColor: Colors.black12,
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 36, minHeight: 36),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 8),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: _saving ? null : _handleChange,
+                    child: Text(l10n.change, style: AppTextStyles.button),
+                  ),
+                  IconButton(
+                    onPressed: (!_saving && widget.onNext(_currentPoi) != null)
+                        ? _handleNext
+                        : null,
+                    icon: const Icon(Icons.arrow_forward_ios),
+                    color: Colors.black38,
+                    disabledColor: Colors.black12,
+                    padding: EdgeInsets.zero,
+                    constraints:
+                        const BoxConstraints(minWidth: 36, minHeight: 36),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }
 
@@ -2588,11 +2592,9 @@ class _TimePickerRow extends StatelessWidget {
     );
     final local = dateTime?.toLocal();
     final locale = Localizations.localeOf(context).toString();
-    final dateText =
-        local != null ? DateFormat.Md(locale).format(local) : null;
-    final timeText = local != null
-        ? DateFormat('H:mm', locale).format(local)
-        : '--:--';
+    final dateText = local != null ? DateFormat.Md(locale).format(local) : null;
+    final timeText =
+        local != null ? DateFormat('H:mm', locale).format(local) : '--:--';
     final dateTimeChip = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
