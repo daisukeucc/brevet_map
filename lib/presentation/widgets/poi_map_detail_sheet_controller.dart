@@ -328,7 +328,9 @@ class PoiMapDetailSheetController {
             departure: sched?.departure,
             close: sched?.close,
             checkInResultUtc: sched?.result,
+            restUtc: sched?.rest,
             segmentDistanceKm: segKm,
+            cumulativeDistanceKm: currKm,
             timeChart: _poiElapsedTimeChart(
               brevetStartUtc: chartBrevetStartUtc,
               timeLimitHours: fields.timeLimitHours,
@@ -533,9 +535,11 @@ class PoiMapDetailSheetController {
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
             segmentDistanceKm: segKm,
+            cumulativeDistanceKm: currKm,
             elevationGain: hasKmForSegment && rawGains[i] != null
                 ? formatElevationChange(rawGains[i]!, unit)
                 : null,
+            rawElevationGainM: hasKmForSegment ? rawGains[i] : null,
             description: ordered[i].body,
             url: ordered[i].url,
             position: ordered[i].position,

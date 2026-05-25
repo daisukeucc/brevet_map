@@ -23,7 +23,9 @@ class PoiScheduleRow {
     required this.arrival,
     required this.checkInResultUtc,
     this.segmentDistanceKm,
+    this.cumulativeDistanceKm,
     this.elevationGain,
+    this.rawElevationGainM,
     this.departure,
     this.restUtc,
     this.startClose,
@@ -41,8 +43,14 @@ class PoiScheduleRow {
   /// 区間距離（km）。distanceUnit に関わらず km で渡す。
   final double? segmentDistanceKm;
 
+  /// スタートからの累積距離（km）。チェックインされていない POI をスキップして遡る際に使う。
+  final double? cumulativeDistanceKm;
+
   /// 獲得標高（整形済み文字列）。
   final String? elevationGain;
+
+  /// 区間獲得標高（メートル値）。未チェックイン POI をスキップして合算するために使う。
+  final double? rawElevationGainM;
 
   /// 出発予定時刻（UTC）。
   final DateTime? departure;
@@ -128,15 +136,71 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
     return '$h:$m';
   }
 
-  /// 前のPOIの出発実績（なければ出発予定）と現在の到着実績の差。
+  /// チェックイン済み（または Start）の直近行インデックスを i より手前で探す。
+  /// 未チェックインの CP はスキップする。見つからなければ null。
+  int? _findRefIndex(int i) {
+    for (var j = i - 1; j >= 0; j--) {
+      final r = widget.rows[j];
+      // チェックイン or チェックアウト済み → 信頼できる通過時刻あり
+      if (r.checkInResultUtc != null || r.restUtc != null) return j;
+      // Start POI（arrival == null）→ 計画出発時刻 = ブルベ開始時刻として信頼できる
+      if (r.arrival == null) return j;
+    }
+    return null;
+  }
+
+  /// 前の（または遡った）POI の出発実績（なければ出発予定）と現在の到着実績の差。
+  /// 直前の POI が未チェックインの場合は、直近のチェックイン済み POI まで遡る。
   Duration? _computeElapsed(int i) {
     if (i == 0) return null;
     final current = widget.rows[i].checkInResultUtc;
     if (current == null) return null;
-    final prev = widget.rows[i - 1];
-    final prevRef = prev.restUtc ?? prev.departure;
-    if (prevRef == null) return null;
-    return current.difference(prevRef);
+    final refIdx = _findRefIndex(i);
+    if (refIdx == null) return null;
+    final ref = widget.rows[refIdx];
+    final refTime = ref.restUtc ?? ref.departure;
+    if (refTime == null) return null;
+    return current.difference(refTime);
+  }
+
+  /// 経過時間の基準行から現在行までの獲得標高合計（メートル）。
+  /// 未チェックインの POI をスキップして合算する。
+  double? _effectiveRawElevGainM(int i) {
+    if (i == 0) return null;
+    final refIdx = _findRefIndex(i);
+    if (refIdx == null) return null;
+    double sum = 0;
+    bool hasAny = false;
+    for (var j = refIdx + 1; j <= i; j++) {
+      final g = widget.rows[j].rawElevationGainM;
+      if (g != null) {
+        sum += g;
+        hasAny = true;
+      }
+    }
+    return hasAny ? sum : null;
+  }
+
+  /// 獲得標高メートル値を表示用文字列（単位なし）に変換する。
+  String _fmtElevGain(double? meters) {
+    if (meters == null) return '--';
+    if (widget.distanceUnit == 1) {
+      return (meters / 0.3048).round().toString();
+    }
+    return meters.round().toString();
+  }
+
+  /// 経過時間の基準行から現在行までの累積距離差（区間距離・速度計算に使う）。
+  /// 直前行が未チェックインの場合は遡った基準行から計算する。
+  double? _effectiveSegKm(int i) {
+    if (i == 0) return null;
+    final refIdx = _findRefIndex(i);
+    if (refIdx == null) return widget.rows[i].segmentDistanceKm;
+    if (refIdx == i - 1) return widget.rows[i].segmentDistanceKm;
+    final refCum = widget.rows[refIdx].cumulativeDistanceKm;
+    final currCum = widget.rows[i].cumulativeDistanceKm;
+    if (refCum == null || currCum == null || currCum < refCum) return null;
+    return currCum - refCum;
   }
 
   String _fmtSpeed(double? segKm, Duration? elapsed) {
@@ -146,16 +210,22 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
     final hours = seconds / 3600.0;
     final dist = widget.distanceUnit == 1 ? segKm / 1.60934 : segKm;
     final speed = dist / hours;
-    final unit = widget.distanceUnit == 1 ? 'mph' : 'km/h';
-    return '${speed.toStringAsFixed(1)} $unit';
+    return speed.toStringAsFixed(1);
+  }
+
+  /// "125.3km" → "125.3"、"1250m" → "1250" のように末尾の単位文字列を除去する。
+  /// スペースあり ("125.3 km") もなし ("125.3km") も対応。
+  static String _numOnly(String? s) {
+    if (s == null || s.isEmpty) return '--';
+    return s.replaceAll(RegExp(r'\s*[a-zA-Z]+$'), '');
   }
 
   String _fmtSegDist(double? km) {
     if (km == null) return '--';
     if (widget.distanceUnit == 1) {
-      return '${(km / 1.60934).toStringAsFixed(1)} mi';
+      return (km / 1.60934).toStringAsFixed(1);
     }
-    return '${km.toStringAsFixed(1)} km';
+    return km.toStringAsFixed(1);
   }
 
   static String _csvField(String s) {
@@ -166,7 +236,10 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
   }
 
   String _buildCsv(String locale) {
-    final distLabel = widget.distanceUnit == 1 ? 'mi' : 'km';
+    final distLabel = 'dist(${widget.distanceUnit == 1 ? 'mi' : 'km'})';
+    final speedLabel = widget.distanceUnit == 1 ? 'mph' : 'km/h';
+    final segLabel = 'seg(${widget.distanceUnit == 1 ? 'mi' : 'km'})';
+    final elevLabel = 'elev(${widget.distanceUnit == 1 ? 'ft' : 'm'})';
     final header = [
       distLabel,
       'point',
@@ -174,11 +247,11 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
       'ATA',
       'ETD',
       'ATD',
-      'diff',
-      'dist',
-      'elev',
       'elapsed',
-      'avg spd',
+      speedLabel,
+      'diff',
+      segLabel,
+      elevLabel,
       'open/close',
     ];
     final lines = <String>[header.join(',')];
@@ -190,25 +263,24 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
       final rest = r.restUtc;
       final sc = r.startClose;
       final elapsed = _computeElapsed(i);
-      final speedStr = _fmtSpeed(r.segmentDistanceKm, elapsed);
+      final effSegKm = _effectiveSegKm(i);
+      final speedStr = _fmtSpeed(effSegKm, elapsed);
       lines.add([
-        _csvField(r.distance ?? ''),
+        _csvField(_numOnly(r.distance)),
         _csvField(r.name ?? ''),
         _csvField(arr != null ? _fmtTime(arr, locale) : ''),
         _csvField(res != null ? _fmtTime(res, locale) : ''),
         _csvField(dep != null ? _fmtTime(dep, locale) : ''),
         _csvField(rest != null ? _fmtTime(rest, locale) : ''),
+        _csvField(elapsed != null ? _fmtElapsed(elapsed) : ''),
+        _csvField(speedStr == '--' ? '' : speedStr),
         _csvField((rest != null && dep != null)
             ? _ahead(dep, rest)
             : (arr != null && res != null)
                 ? _ahead(arr, res)
                 : ''),
-        _csvField(r.segmentDistanceKm != null
-            ? _fmtSegDist(r.segmentDistanceKm)
-            : ''),
-        _csvField(r.elevationGain ?? ''),
-        _csvField(elapsed != null ? _fmtElapsed(elapsed) : ''),
-        _csvField(speedStr == '--' ? '' : speedStr),
+        _csvField(res != null && effSegKm != null ? _fmtSegDist(effSegKm) : ''),
+        _csvField(res != null ? _fmtElevGain(_effectiveRawElevGainM(i)) : ''),
         _csvField(sc != null ? _fmtTime(sc, locale) : ''),
       ].join(','));
     }
@@ -355,7 +427,10 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                         Colors.black.withValues(alpha: 0.04)),
                     columns: [
                       DataColumn(
-                          label: Text(widget.distanceUnit == 1 ? 'mi' : 'km',
+                          label: Text(
+                              isJa
+                                  ? '距離(${widget.distanceUnit == 1 ? 'mi' : 'km'})'
+                                  : 'dist(${widget.distanceUnit == 1 ? 'mi' : 'km'})',
                               style: _kThStyle)),
                       DataColumn(
                           label:
@@ -369,18 +444,26 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                       DataColumn(
                           label: Text(isJa ? '出発実績' : 'ATD', style: _kThStyle)),
                       DataColumn(
-                          label: Text(isJa ? '貯金' : 'diff', style: _kThStyle)),
-                      DataColumn(
-                          label:
-                              Text(isJa ? '区間距離' : 'dist', style: _kThStyle)),
-                      DataColumn(
-                          label:
-                              Text(isJa ? '獲得標高' : 'elev', style: _kThStyle)),
-                      DataColumn(
                           label: Text(isJa ? '経過時間' : 'elapsed',
                               style: _kThStyle)),
                       DataColumn(
-                          label: Text(isJa ? '区間時速' : 'avg spd',
+                          label: Text(
+                              widget.distanceUnit == 1 ? 'mph' : 'km/h',
+                              style: _kThStyle)),
+                      DataColumn(
+                          label: Text(isJa ? '差分' : 'diff',
+                              style: _kThStyle)),
+                      DataColumn(
+                          label: Text(
+                              isJa
+                                  ? '区間(${widget.distanceUnit == 1 ? 'mi' : 'km'})'
+                                  : 'seg(${widget.distanceUnit == 1 ? 'mi' : 'km'})',
+                              style: _kThStyle)),
+                      DataColumn(
+                          label: Text(
+                              isJa
+                                  ? '標高(${widget.distanceUnit == 1 ? 'ft' : 'm'})'
+                                  : 'elev(${widget.distanceUnit == 1 ? 'ft' : 'm'})',
                               style: _kThStyle)),
                       const DataColumn(
                           label: Text('open/close', style: _kThStyle)),
@@ -397,6 +480,7 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                           ? widget.highlightIndex == i
                           : _tappedIndex == i;
                       final elapsed = _computeElapsed(i);
+                      final effSegKm = _effectiveSegKm(i);
                       return DataRow(
                         onSelectChanged: (_) =>
                             setState(() => _tappedIndex = i),
@@ -405,7 +489,7 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                                 Colors.black.withValues(alpha: 0.06))
                             : null,
                         cells: [
-                          DataCell(Text(r.distance ?? '--', style: ts)),
+                          DataCell(Text(_numOnly(r.distance), style: ts)),
                           DataCell(
                             Text(_short(r.name), style: ts),
                             onTap: r.name != null && r.name!.length > 7
@@ -425,6 +509,11 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                               rest != null ? _fmtTime(rest, locale) : '--',
                               style: ts)),
                           DataCell(Text(
+                              elapsed != null ? _fmtElapsed(elapsed) : '--',
+                              style: ts)),
+                          DataCell(Text(_fmtSpeed(effSegKm, elapsed),
+                              style: ts)),
+                          DataCell(Text(
                             (rest != null && dep != null)
                                 ? _ahead(dep, rest)
                                 : (arr != null && res != null)
@@ -432,13 +521,13 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                                     : '--',
                             style: ts,
                           )),
-                          DataCell(Text(_fmtSegDist(r.segmentDistanceKm),
-                              style: ts)),
-                          DataCell(Text(r.elevationGain ?? '--', style: ts)),
                           DataCell(Text(
-                              elapsed != null ? _fmtElapsed(elapsed) : '--',
+                              res != null ? _fmtSegDist(effSegKm) : '--',
                               style: ts)),
-                          DataCell(Text(_fmtSpeed(r.segmentDistanceKm, elapsed),
+                          DataCell(Text(
+                              res != null
+                                  ? _fmtElevGain(_effectiveRawElevGainM(i))
+                                  : '--',
                               style: ts)),
                           DataCell(Text(
                               sc != null ? _fmtTime(sc, locale) : '--',

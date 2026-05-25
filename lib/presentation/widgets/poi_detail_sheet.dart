@@ -448,7 +448,9 @@ class PoiSheetEntry {
     required this.position,
     this.distance,
     this.segmentDistanceKm,
+    this.cumulativeDistanceKm,
     this.elevationGain,
+    this.rawElevationGainM,
     this.arrival,
     this.departure,
     this.close,
@@ -470,7 +472,14 @@ class PoiSheetEntry {
   /// 区間距離（km）。テーブル表示用。distanceUnit に関わらず km で保持する。
   final double? segmentDistanceKm;
 
+  /// スタートからこの POI までの累積距離（km）。テーブルでフィルタ後に区間距離を再計算するために使う。
+  final double? cumulativeDistanceKm;
+
   final String? elevationGain;
+
+  /// 区間獲得標高（メートル値）。テーブルで未チェックイン POI をスキップして合算するために使う。
+  final double? rawElevationGainM;
+
   final String? description;
   final String? url;
   final LatLng position;
@@ -1996,7 +2005,9 @@ class _PoiContentBlock extends StatelessWidget {
           distanceUnit: distanceUnit,
           highlightIndex: newHighlightIndex >= 0 ? newHighlightIndex : null,
           showDownloadButton: isStartOrGoal,
-          rows: filtered.map((e) {
+          rows: filtered.indexed.map((entry) {
+            final fi = entry.$1;
+            final e = entry.$2;
             final resolvedCheckIn =
                 sessionCheckInsByIndex?.containsKey(e.key) == true
                     ? sessionCheckInsByIndex![e.key]
@@ -2004,10 +2015,23 @@ class _PoiContentBlock extends StatelessWidget {
             final resolvedRest = sessionRestsByIndex?.containsKey(e.key) == true
                 ? sessionRestsByIndex![e.key]
                 : e.value.restUtc;
+            // フィルタ後のリストで累積距離から区間距離を再計算する。
+            // ノート POI など arrival/departure のないエントリがフィルタで除外された場合、
+            // 元の segmentDistanceKm は除外前の隣接エントリとの差分なので正しくない。
+            double? segKm;
+            if (fi > 0) {
+              final prevCum = filtered[fi - 1].value.cumulativeDistanceKm;
+              final currCum = e.value.cumulativeDistanceKm;
+              if (currCum != null && prevCum != null && currCum >= prevCum) {
+                segKm = currCum - prevCum;
+              }
+            }
             return PoiScheduleRow(
               distance: e.value.distance,
-              segmentDistanceKm: e.value.segmentDistanceKm,
+              segmentDistanceKm: segKm,
+              cumulativeDistanceKm: e.value.cumulativeDistanceKm,
               elevationGain: e.value.elevationGain,
+              rawElevationGainM: e.value.rawElevationGainM,
               name: e.value.name,
               arrival: e.value.arrival,
               departure: e.value.departure,
