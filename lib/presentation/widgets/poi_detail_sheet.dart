@@ -917,7 +917,11 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   Future<void> _buildChart() async {
     final slice = _slice;
     if (slice == null) {
-      if (mounted) setState(() { _loading = false; _failed = true; });
+      if (mounted)
+        setState(() {
+          _loading = false;
+          _failed = true;
+        });
       return;
     }
     try {
@@ -2147,94 +2151,146 @@ class _PoiContentBlock extends StatelessWidget {
                 onTap: canTapSheetForScheduleTable ? openScheduleTable : null,
                 splashColor: Colors.grey.withValues(alpha: 0.25),
                 highlightColor: Colors.grey.withValues(alpha: 0.12),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    _buildDateBadge(
-                      (checkInResultUtc ?? arrival ?? departure ?? close)!,
+                child: Builder(
+                  builder: (context) {
+                    final scheduleBadgeTime =
+                        (checkInResultUtc ?? arrival ?? departure ?? close)!;
+                    final dateBadge = _buildDateBadge(
+                      scheduleBadgeTime,
                       context,
                       color: hasCheckedIn ? AppColors.checkInResult : null,
                       filled: hasCheckedIn,
-                    ),
-                    const SizedBox(width: 7),
-                    if (hasArrival || hasCheckedIn) ...[
-                      Icon(Icons.arrow_downward,
-                          size: 15,
-                          fontWeight: FontWeight.w600,
-                          color: hasCheckedIn
-                              ? AppColors.checkInResult
-                              : AppColors.muted),
-                      const SizedBox(width: 1),
-                      Text(
-                        _formatTime((checkInResultUtc ?? arrival)!, context),
-                        style: hasCheckedIn
-                            ? AppTextStyles.poiSchedule
-                                .copyWith(color: AppColors.checkInResult)
-                            : AppTextStyles.poiSchedule,
-                      ),
-                    ],
-                    if ((hasArrival || hasCheckedIn) &&
-                        (hasDeparture || hasCheckedOut))
-                      const SizedBox(width: 6),
-                    if (hasDeparture || hasCheckedOut) ...[
-                      Icon(Icons.arrow_upward,
-                          size: 15,
-                          fontWeight: FontWeight.w600,
-                          color: hasCheckedOut
-                              ? AppColors.checkInResult
-                              : AppColors.muted),
-                      const SizedBox(width: 1),
-                      Text(
-                        _formatTime((restUtc ?? departure)!, context),
-                        style: hasCheckedOut
-                            ? AppTextStyles.poiSchedule
-                                .copyWith(color: AppColors.checkInResult)
-                            : AppTextStyles.poiSchedule,
-                      ),
-                      if (scheduleDiffStr != null) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          scheduleDiffStr[0],
-                          style: AppTextStyles.poiSchedule.copyWith(
-                            color: hasCheckedOut
+                    );
+                    final showCloseOnSecondRow = hasCheckedIn && hasClose;
+
+                    final arrivalDepartureDiff = <Widget>[
+                      if (hasArrival || hasCheckedIn) ...[
+                        Icon(Icons.arrow_downward,
+                            size: 15,
+                            fontWeight: FontWeight.w600,
+                            color: hasCheckedIn
                                 ? AppColors.checkInResult
-                                : AppColors.muted,
-                          ),
-                        ),
-                        const SizedBox(width: 3),
+                                : AppColors.muted),
+                        const SizedBox(width: 1),
                         Text(
-                          scheduleDiffStr.substring(1),
-                          style: AppTextStyles.poiSchedule.copyWith(
-                            color: hasCheckedOut
-                                ? AppColors.checkInResult
-                                : AppColors.muted,
-                          ),
+                          _formatTime((checkInResultUtc ?? arrival)!, context),
+                          style: hasCheckedIn
+                              ? AppTextStyles.poiSchedule
+                                  .copyWith(color: AppColors.checkInResult)
+                              : AppTextStyles.poiSchedule,
                         ),
                       ],
-                    ],
-                    if ((hasArrival ||
-                            hasCheckedIn ||
-                            hasDeparture ||
-                            hasCheckedOut) &&
-                        hasClose)
-                      const SizedBox(width: 12),
-                    if (hasClose) ...[
-                      const Icon(Icons.lock_outline,
-                          size: 17, color: AppColors.muted),
-                      const SizedBox(width: 1),
-                      Text(_formatTime(close!, context),
-                          style: AppTextStyles.poiSchedule),
-                    ],
-                    const SizedBox(width: 8),
-                    Transform.translate(
-                      offset: const Offset(0, -1),
-                      child: Icon(Icons.more_time,
-                          size: 18,
-                          color: hasCheckedOut
-                              ? AppColors.checkInResult
-                              : AppColors.muted),
-                    ),
-                  ],
+                      if ((hasArrival || hasCheckedIn) &&
+                          (hasDeparture || hasCheckedOut))
+                        const SizedBox(width: 6),
+                      if (hasDeparture || hasCheckedOut) ...[
+                        Icon(Icons.arrow_upward,
+                            size: 15,
+                            fontWeight: FontWeight.w600,
+                            color: hasCheckedOut
+                                ? AppColors.checkInResult
+                                : AppColors.muted),
+                        const SizedBox(width: 1),
+                        Text(
+                          _formatTime((restUtc ?? departure)!, context),
+                          style: hasCheckedOut
+                              ? AppTextStyles.poiSchedule
+                                  .copyWith(color: AppColors.checkInResult)
+                              : AppTextStyles.poiSchedule,
+                        ),
+                        if (scheduleDiffStr != null) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            scheduleDiffStr[0],
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedOut
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            scheduleDiffStr.substring(1),
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedOut
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ];
+
+                    if (showCloseOnSecondRow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              dateBadge,
+                              const SizedBox(width: 7),
+                              ...arrivalDepartureDiff,
+                            ],
+                          ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Opacity(
+                                opacity: 0,
+                                child: IgnorePointer(child: dateBadge),
+                              ),
+                              const SizedBox(width: 7),
+                              const Icon(Icons.lock_outline,
+                                  size: 17, color: AppColors.muted),
+                              const SizedBox(width: 1),
+                              Text(
+                                _formatTime(close!, context),
+                                style: AppTextStyles.poiSchedule,
+                              ),
+                              const SizedBox(width: 8),
+                              Transform.translate(
+                                offset: const Offset(0, -1),
+                                child: const Icon(Icons.more_time,
+                                    size: 18, color: AppColors.muted),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        dateBadge,
+                        const SizedBox(width: 7),
+                        ...arrivalDepartureDiff,
+                        if ((hasArrival ||
+                                hasCheckedIn ||
+                                hasDeparture ||
+                                hasCheckedOut) &&
+                            hasClose)
+                          const SizedBox(width: 12),
+                        if (hasClose) ...[
+                          const Icon(Icons.lock_outline,
+                              size: 17, color: AppColors.muted),
+                          const SizedBox(width: 1),
+                          Text(_formatTime(close!, context),
+                              style: AppTextStyles.poiSchedule),
+                        ],
+                        if (!hasClose) ...[
+                          const SizedBox(width: 8),
+                          Transform.translate(
+                            offset: const Offset(0, -1),
+                            child: const Icon(Icons.more_time,
+                                size: 18, color: AppColors.muted),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
