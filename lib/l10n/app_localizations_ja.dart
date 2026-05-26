@@ -148,7 +148,13 @@ class AppLocalizationsJa extends AppLocalizations {
   String get plannedClose => 'クローズ';
 
   @override
-  String get arrivalShort => '到着予定';
+  String get poiArrivalActual => '到着実績';
+
+  @override
+  String get poiRestActual => '出発実績';
+
+  @override
+  String get poiCheckOut => 'チェックアウトしますか？';
 
   @override
   String get departureShort => '出発予定';
@@ -161,6 +167,15 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get kmRequired => '距離の入力は必須です';
+
+  @override
+  String get routeLegOutboundShort => '往路';
+
+  @override
+  String get routeLegReturnShort => '復路';
+
+  @override
+  String get routeLegAmbiguousShort => '往復判定不可';
 
   @override
   String get offRoute => 'ルート外';
@@ -246,6 +261,27 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get mapStyleDark => '地図をダーク表示';
+
+  @override
+  String get debugMapTilesMenu => '地図タイル';
+
+  @override
+  String get debugMapTilesDialogTitle => '地図タイル（デバッグ）';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => '既定（OSM）';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager（ラスタ）';
+
+  @override
+  String get debugMapTilesDialogCancel => 'キャンセル';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Voyagerタイルに切り替え';
+
+  @override
+  String get mapStyleDebugCartoLight => 'ライトタイルに切り替え';
 
   @override
   String get showFullRoute => 'ルート全体を表示';
@@ -443,6 +479,15 @@ class AppLocalizationsJa extends AppLocalizations {
   String get locationSharing => '位置情報の共有';
 
   @override
+  String get checkInSettingsTitle => 'チェックイン';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '位置情報をチェックする';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '位置情報をチェックしない';
+
+  @override
   String get aboutApp => 'このアプリについて';
 
   @override
@@ -632,8 +677,42 @@ class AppLocalizationsJa extends AppLocalizations {
       'ver1.2ではPOI情報を大幅に拡充しました！\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！\n\n- POI種別にフォトチェックやコンビニ等を追加\n- POI情報にURLリンク項目を追加\n- PC間の標高グラフ表示\n- PC到着予想時刻の自動設定';
 
   @override
+  String get releaseNotesV13020Message =>
+      'ver1.3では、PCのチェックイン/チェックアウト機能を追加し、走行計画に加え、走行実績を記録できるようになりました！\n記録したデータはテーブル表示で確認でき、CSVファイルのダウンロードも可能です。\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！';
+
+  @override
   String get poiSaveAsNote => 'メモとして保存';
 
   @override
   String get brevetTimeLimitLabel => '制限時間';
+
+  @override
+  String get poiCheckInConfirmMessage => 'チェックインしますか？';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'チェックインするには、このPOIの${thresholdKm}km以内の位置にいる必要があります。';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => '位置情報を取得しています…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'チェックインできません';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => '位置情報を取得できませんでした';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      '現在地を取得できませんでした。屋外などで再度お試しいただくか、GPSおよび端末設定の「位置情報」やアプリの権限を確認してください。';
+
+  @override
+  String get selectPoiAtSameLocation => 'POIを選択';
+
+  @override
+  String get poiScheduleTableTitle => '通過記録';
+
+  @override
+  String get csvDownload => 'CSVダウンロード';
 }

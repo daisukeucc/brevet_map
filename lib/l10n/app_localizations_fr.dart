@@ -150,7 +150,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get plannedClose => 'Heure limite';
 
   @override
-  String get arrivalShort => 'Arrivée';
+  String get poiArrivalActual => 'Arrivée réelle';
+
+  @override
+  String get poiRestActual => 'Départ réel';
+
+  @override
+  String get poiCheckOut => 'Enregistrer le départ ?';
 
   @override
   String get departureShort => 'Départ';
@@ -163,6 +169,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get kmRequired => 'La distance est obligatoire';
+
+  @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
 
   @override
   String get offRoute => 'Hors itinéraire';
@@ -250,6 +265,27 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mapStyleDark => 'Afficher la carte en mode sombre';
+
+  @override
+  String get debugMapTilesMenu => 'Map tiles (debug)';
+
+  @override
+  String get debugMapTilesDialogTitle => 'Debug map tiles';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => 'Default (OSM)';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager raster';
+
+  @override
+  String get debugMapTilesDialogCancel => 'Cancel';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Switch to Voyager raster tile';
+
+  @override
+  String get mapStyleDebugCartoLight => 'Switch to light_all raster tile';
 
   @override
   String get showFullRoute => 'Afficher l\'itinéraire complet';
@@ -454,6 +490,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get locationSharing => 'Partage de position';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => 'Vérifier la position';
+
+  @override
+  String get checkInVerifyLocationRadioOff => 'Ne pas vérifier la position';
+
+  @override
   String get aboutApp => 'À propos de l\'application';
 
   @override
@@ -655,8 +700,43 @@ class AppLocalizationsFr extends AppLocalizations {
       'Dans la version 1.2, les informations POI ont été largement enrichies !\nToutes les fonctionnalités sont débloquées dans cette version, alors n\'hésitez pas à l\'essayer !\n\n- Nouveaux types de POI : contrôle photo, commerces, etc.\n- Champ lien URL dans les informations POI\n- Profil altimétrique entre les points de contrôle\n- Heures d\'arrivée estimées automatiques aux points de contrôle';
 
   @override
+  String get releaseNotesV13020Message =>
+      'La version 1.3 ajoute les fonctionnalités de check-in/check-out aux points de contrôle (PC), vous permettant d\'enregistrer vos performances réelles en plus de votre plan de route !\nLes données enregistrées peuvent être consultées sous forme de tableau et téléchargées au format CSV.\nToutes les fonctionnalités sont débloquées dans cette version, n\'hésitez pas à les essayer !';
+
+  @override
   String get poiSaveAsNote => 'Enregistrer comme note';
 
   @override
   String get brevetTimeLimitLabel => 'Limite de temps';
+
+  @override
+  String get poiCheckInConfirmMessage => 'Enregistrer le passage ?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'Pour enregistrer ce passage, votre position doit se situer à moins de $thresholdKm km de ce POI.';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => 'Récupération de la position…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'Passage impossible';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle =>
+      'Impossible d’obtenir la position';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      'Impossible d’obtenir votre position actuelle. Réessayez si possible en extérieur ou vérifiez le GPS, le menu Position du terminal et les autorisations de l’application.';
+
+  @override
+  String get selectPoiAtSameLocation => 'Sélectionner un POI';
+
+  @override
+  String get poiScheduleTableTitle => 'Historique de pointage';
+
+  @override
+  String get csvDownload => 'Télécharger';
 }

@@ -28,6 +28,9 @@ mixin _BuildMixin
     final locationState = ref.watch(locationStreamProvider);
     final distanceUnit = ref.watch(distanceUnitProvider);
     final tileProviderKey = ref.watch(mapTileProviderKeyProvider);
+    final debugCartoActive = kDebugMode &&
+        ref.watch(debugCartoVoyagerTilesEnabledProvider);
+    final debugCartoLight = ref.watch(debugCartoVoyagerLightProvider);
     final position = _initialPosition ?? _fallbackPosition();
 
     // 位置取得が完了してからルート作成（_fetchPositionInBackground が先に完了した場合はそちらで実行済み）
@@ -59,7 +62,7 @@ mixin _BuildMixin
       streamPosition: _latestStreamPosition,
       fallbackPosition: LatLng(fallbackPos.latitude, fallbackPos.longitude),
       isStreamActive: locationState.isActive,
-      isDarkMode: mapState.mapStyleMode == 2,
+      isDarkMode: mapState.mapStyleMode == 2 && !debugCartoActive,
     );
 
     final notifier = ref.read(mapStateProvider.notifier);
@@ -98,6 +101,8 @@ mixin _BuildMixin
           calloutText: calloutData.text,
           calloutHp: _shareHp,
           mapStyleMode: mapState.mapStyleMode,
+          debugCartoVoyagerActive: debugCartoActive,
+          debugCartoLight: debugCartoLight,
           onCameraIdle: _onCameraIdle,
           onMapCreated: _onMapCreated,
           onMapStyleTap: _onMapStyleTap,
@@ -117,9 +122,13 @@ mixin _BuildMixin
             onLanguageTap: () => showLanguageSelectionFlow(context, ref),
             onBatteryDisplayTap: () => showBatteryDisplayDialog(context, ref),
             onLocationSharingTap: () => shareCurrentLocation(context),
+            onCheckInTap: () => showCheckInSettingsDialog(context, ref),
             onContactUsTap: () => openContactEmail(context),
             onSubscriptionTap: () => showSubscriptionDialog(context),
             onAboutAppTap: () => showAboutAppScreen(context),
+            onDebugMapTilesTap: kDebugMode
+                ? () => showDebugMapTilesDialog(context, ref)
+                : null,
           ),
           onGpxImportTap: () => handleGpxImportTap(
             context,
@@ -225,8 +234,16 @@ mixin _BuildMixin
   }
 
   Future<void> _onMapStyleTap() async {
+    if (kDebugMode && ref.read(debugCartoVoyagerTilesEnabledProvider)) {
+      ref.read(debugCartoVoyagerLightProvider.notifier).state =
+          !ref.read(debugCartoVoyagerLightProvider);
+      ref.read(mapTileProviderKeyProvider.notifier).state++;
+      return;
+    }
     final controller = ref.read(cameraControllerProvider);
     await ref.read(mapStateProvider.notifier).toggleMapStyle(controller);
+    // ColorFiltered 切替だけだとタイルがぼやけるため、デバッグ用 CARTO と同様に再マウントする
+    ref.read(mapTileProviderKeyProvider.notifier).state++;
   }
 
   Widget _buildBody(BuildContext context) {

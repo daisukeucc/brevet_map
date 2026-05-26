@@ -148,7 +148,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get plannedClose => 'Cutoff';
 
   @override
-  String get arrivalShort => 'Arrival';
+  String get poiArrivalActual => 'Actual arrival';
+
+  @override
+  String get poiRestActual => 'Actual departure';
+
+  @override
+  String get poiCheckOut => 'Check out?';
 
   @override
   String get departureShort => 'Departure';
@@ -161,6 +167,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kmRequired => 'Distance is required';
+
+  @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
 
   @override
   String get offRoute => 'Off route';
@@ -247,6 +262,27 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapStyleDark => 'Show map in dark mode';
+
+  @override
+  String get debugMapTilesMenu => 'Map tiles (debug)';
+
+  @override
+  String get debugMapTilesDialogTitle => 'Debug map tiles';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => 'Default (OSM)';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager raster';
+
+  @override
+  String get debugMapTilesDialogCancel => 'Cancel';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Switch to Voyager raster tile';
+
+  @override
+  String get mapStyleDebugCartoLight => 'Switch to light_all raster tile';
 
   @override
   String get showFullRoute => 'Show full route';
@@ -447,6 +483,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationSharing => 'Location Sharing';
+
+  @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => 'Verify location';
+
+  @override
+  String get checkInVerifyLocationRadioOff => 'Don\'t verify location';
 
   @override
   String get aboutApp => 'About this app';
@@ -650,8 +695,42 @@ class AppLocalizationsEn extends AppLocalizations {
       'In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs';
 
   @override
+  String get releaseNotesV13020Message =>
+      'Version 1.3 adds check-in/check-out functionality at checkpoints (PCs), so in addition to your ride plan, you can now record your actual ride progress!\nRecorded data can be viewed in a table, and CSV download is also available.\nAll features are unlocked in this version, so feel free to give it a try!';
+
+  @override
   String get poiSaveAsNote => 'Save as note';
 
   @override
   String get brevetTimeLimitLabel => 'Time limit';
+
+  @override
+  String get poiCheckInConfirmMessage => 'Check in?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'To check in, you must be within $thresholdKm km of this POI.';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => 'Getting location…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'Cannot check in';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => 'Could not get location';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      'Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.';
+
+  @override
+  String get selectPoiAtSameLocation => 'Select POI';
+
+  @override
+  String get poiScheduleTableTitle => 'Check-in Records';
+
+  @override
+  String get csvDownload => 'Download';
 }

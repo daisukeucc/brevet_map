@@ -58,11 +58,16 @@
   "plannedArrival": "Arrival",
   "plannedDeparture": "Departure",
   "plannedClose": "Cutoff",
-  "arrivalShort": "Arrival",
+  "poiArrivalActual": "Actual arrival",
+  "poiRestActual": "Actual departure",
+  "poiCheckOut": "Check out?",
   "departureShort": "Departure",
   "distance": "Distance",
   "titleNone": "(No title)",
   "kmRequired": "Distance is required",
+  "routeLegOutboundShort": "Outbound",
+  "routeLegReturnShort": "Return",
+  "routeLegAmbiguousShort": "Undetermined",
   "offRoute": "Off route",
   "kmPoint": "{km}km point",
   "poiAtKmPoint": "POI at {kmLabel}",
@@ -104,6 +109,13 @@
   "locationFailed": "Failed to get location",
   "mapStyleNormal": "Show map in normal mode",
   "mapStyleDark": "Show map in dark mode",
+  "debugMapTilesMenu": "Map tiles (debug)",
+  "debugMapTilesDialogTitle": "Debug map tiles",
+  "debugMapTilesOptionDefaultOsm": "Default (OSM)",
+  "debugMapTilesOptionCartoVoyager": "CARTO Voyager raster",
+  "debugMapTilesDialogCancel": "Cancel",
+  "mapStyleDebugCartoVoyager": "Switch to Voyager raster tile",
+  "mapStyleDebugCartoLight": "Switch to light_all raster tile",
   "showFullRoute": "Show full route",
   "locationUnavailable": "Location unavailable",
   "locationUnavailableWithRetry": "Location unavailable. Tap \"Show my location\" to retry, or allow location access in settings.",
@@ -225,6 +237,9 @@
   "offlineMapInfoButton": "Download",
   "registerAtPosition": "Add here",
   "locationSharing": "Location Sharing",
+  "checkInSettingsTitle": "Check-in",
+  "checkInVerifyLocationRadioOn": "Verify location",
+  "checkInVerifyLocationRadioOff": "Don't verify location",
   "aboutApp": "About this app",
   "openSourceLicenses": "Open source licenses",
   "rateApp": "Rate this app",
@@ -323,9 +338,28 @@
   "releaseNotesDialogTitle": "Release notes",
   "releaseNotesV11018Message": "In version 1.1, we've added more POI details so you can plan your brevet rides more effectively!\nAll features are unlocked in this version, so feel free to give it a try!",
   "releaseNotesV12019Message": "In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs",
+  "releaseNotesV13020Message": "Version 1.3 adds check-in/check-out functionality at checkpoints (PCs), so in addition to your ride plan, you can now record your actual ride progress!\nRecorded data can be viewed in a table, and CSV download is also available.\nAll features are unlocked in this version, so feel free to give it a try!",
   "poiSaveAsNote": "Save as note",
   "brevetTimeLimitLabel": "Time limit",
   "@brevetTimeLimitLabel": {
     "description": "Label for brevet time limit hours on the start POI elevation dialog (shown before a colon and the hours value)."
-  }
+  },
+  "poiCheckInConfirmMessage": "Check in?",
+  "poiCheckInTooFarFromPoi": "To check in, you must be within {thresholdKm} km of this POI.",
+  "@poiCheckInTooFarFromPoi": {
+    "description": "Body text when GPS shows the device is farther than the allowed radius ({thresholdKm} km) from the POI.",
+    "placeholders": {
+      "thresholdKm": {
+        "type": "String",
+        "example": "1"
+      }
+    }
+  },
+  "poiCheckInFetchingLocation": "Getting location…",
+  "poiCheckInNotAvailableTitle": "Cannot check in",
+  "poiCheckInLocationAcquireFailedTitle": "Could not get location",
+  "poiCheckInLocationUnavailableDetail": "Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.",
+  "selectPoiAtSameLocation": "Select POI",
+  "poiScheduleTableTitle": "Check-in Records",
+  "csvDownload": "Download"
 }

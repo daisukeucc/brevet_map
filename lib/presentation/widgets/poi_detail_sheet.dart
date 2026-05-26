@@ -3,15 +3,19 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart' show compute;
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:latlong2/latlong.dart' show LatLng;
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../domain/services/location_service.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/connectivity_check.dart';
 import '../../utils/map_utils.dart';
-import '../theme/app_text_styles.dart';
+import '../theme/app_text_styles.dart' show AppColors, AppTextStyles;
 import '../utils/snackbar_utils.dart';
+import 'confirm_dialog.dart';
+import 'poi_schedule_table_dialog.dart';
 
 /// POIシートタップ時に [buildElevationSegmentChartData] でグラフを構築するための入力。
 class PoiElevationOnDemand {
@@ -22,6 +26,7 @@ class PoiElevationOnDemand {
     required this.poiIndex,
     required this.distanceUnit,
     this.poiHasDistanceKm,
+    this.poiKmAlongRoute,
     this.chartMetadataName,
     this.chartTimeLimitHours,
   });
@@ -37,6 +42,9 @@ class PoiElevationOnDemand {
   /// [poiPositions] と同長のとき、距離未登録（false）POI は標高区間から除外する（User POI 用）。
   final List<bool>? poiHasDistanceKm;
 
+  /// [poiPositions] と同長のとき、累積距離（km）でトラック上の区間端を決める（往復重複地点の誤判定防止）。
+  final List<double?>? poiKmAlongRoute;
+
   /// スタート POI の標高ダイアログ内、グラフ直上：インポート GPX のファイル名ベース（`<metadata><name>` ではない）
   final String? chartMetadataName;
 
@@ -51,6 +59,386 @@ String? _formatElevationChartTimeLimitHours(double? hours) {
       : hours.toStringAsFixed(1);
 }
 
+/// [_PoiDetailSheetNavigate] 右列（前後 POI）と同一幅。
+const double _poiDetailSheetNavigateColumnWidth = 50;
+
+/// POI チェックイン時、現在地と POI の直線距離がこの値（km）以内であることを要求する。
+/// デバッグで緩めたい場合は 10.0 などに変更する。
+const double kPoiCheckInProximityThresholdKm = 1.0;
+
+String _poiCheckInProximityThresholdKmDisplay(double km) {
+  if (km == km.roundToDouble()) return km.toInt().toString();
+  return km.toStringAsFixed(1);
+}
+
+/// チェックイン系ダイアログ本文の行の高さ（[AppTextStyles.body] の fontSize に対する倍率）。
+const double _poiCheckInDialogBodyLineHeight = 2;
+
+const EdgeInsets _poiCheckInDialogTitlePadding =
+    EdgeInsets.fromLTRB(24, 30, 24, 20);
+const EdgeInsets _poiCheckInDialogContentPadding =
+    EdgeInsets.fromLTRB(24, 0, 24, 0);
+const EdgeInsets _poiCheckInDialogActionsPadding =
+    EdgeInsets.fromLTRB(24, 0, 24, 24);
+
+final TextStyle _poiCheckInDialogBodyStyle =
+    AppTextStyles.body.copyWith(height: _poiCheckInDialogBodyLineHeight);
+
+Widget _poiCheckInDialogTitle(String title) => Text(
+      title,
+      style: AppTextStyles.headlineMedium,
+    );
+
+/// ブルベスタートからの経過時間チャート（POI 本文シートより上の領域に表示。横軸目盛り間隔は [PoiSheetTimeChart.axisTickStepHours]）。
+class PoiSheetTimeChart {
+  const PoiSheetTimeChart({
+    required this.brevetStartUtc,
+    required this.timeLimitHours,
+    required this.axisTickStepHours,
+    this.elapsedHoursFromStart,
+    this.departureElapsedHoursFromStart,
+    required this.drawElapsedBar,
+  });
+
+  final DateTime brevetStartUtc;
+  final double timeLimitHours;
+
+  /// 横軸の目盛り間隔（時間）。公認距離テーブルに基づきコントローラ側で決定する。
+  final double axisTickStepHours;
+
+  /// [brevetStartUtc] から到着予定時刻 [arrival] までの経過（時間）。未設定時は横線なし。
+  final double? elapsedHoursFromStart;
+
+  /// [brevetStartUtc] から出発予定時刻 [departure] までの経過（時間）。チェックアウト済み時の上段バーに使用。
+  final double? departureElapsedHoursFromStart;
+
+  /// スタート POI など、経過横線を描かないとき false。
+  final bool drawElapsedBar;
+}
+
+/// チェックイン時刻までの経過（時間）。[PoiSheetTimeChart.brevetStartUtc] 起点。
+double? poiSheetElapsedHoursFromBrevetStart(
+  DateTime brevetStartUtc,
+  DateTime instant,
+) {
+  final h = instant.difference(brevetStartUtc).inMicroseconds / 3600000000.0;
+  if (!h.isFinite) return null;
+  return h < 0 ? 0.0 : h;
+}
+
+class _PoiElapsedTimeChartPainter extends CustomPainter {
+  _PoiElapsedTimeChartPainter({
+    required this.timeLimitHours,
+    required this.axisTickStepHours,
+    required this.drawBar,
+    this.elapsedHours,
+    this.checkInElapsedHours,
+  });
+
+  final double timeLimitHours;
+  final double axisTickStepHours;
+  final bool drawBar;
+  final double? elapsedHours;
+
+  /// チェックイン OK 後のアニメーション用（復路ルートの緑）。未再生時は null。
+  final double? checkInElapsedHours;
+
+  static String _hoursMiddleLabel(double hours) {
+    final r = hours.roundToDouble();
+    if ((hours - r).abs() < 1e-6) return '${r.toInt()}';
+    return hours.toStringAsFixed(1);
+  }
+
+  /// 右端（終点）ラベル。数値のみ（`h` は付けない）。
+  static String _hoursEndLabel(double hours) {
+    if (hours <= 0) return '0';
+    final r = hours.roundToDouble();
+    if ((hours - r).abs() < 1e-6) return '${r.toInt()}';
+    return hours.toStringAsFixed(1);
+  }
+
+  static const _barStrokeWidth = 4.0;
+  static const _tickH = 6.0;
+  static const _barStackGap = 0.0;
+  static const _axisPadBelowBlueBar = 0.0;
+
+  /// 始点・終点ラベル用の左右インセット。
+  static const _labelEndInset = 3.0;
+
+  static double get _checkInBarCenterY => _barStrokeWidth / 2;
+
+  static double get _scheduleBarCenterY =>
+      _checkInBarCenterY + _barStrokeWidth + _barStackGap;
+
+  static double get _axisY =>
+      _scheduleBarCenterY + _barStrokeWidth / 2 + _axisPadBelowBlueBar;
+
+  /// 縦目盛り下端と時間ラベル上端の間に 1px。
+  static double get _labelY => _axisY + _tickH + 1;
+
+  /// 目盛ラベル下の余白（px）。
+  static const double _labelBottomPadding = 4.0;
+
+  /// ラベル下側までの描画高（[paint] と [CustomPaint] の高さを一致させる）。
+  static double get paintHeight =>
+      _labelY +
+      AppTextStyles.chartTick.fontSize! * AppTextStyles.chartTick.height! +
+      _labelBottomPadding;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (timeLimitHours <= 0 || !timeLimitHours.isFinite) return;
+    final w = size.width;
+    final h = size.height;
+    final limit = timeLimitHours;
+
+    final axisY = _axisY.clamp(0.0, h);
+
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, w, axisY),
+      Paint()..color = AppColors.chartPlotBackground,
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(0, axisY, w, h - axisY),
+      Paint()..color = AppColors.chartLabelStripBackground,
+    );
+
+    final axisPaint = Paint()
+      ..color = AppColors.chartAxis
+      ..strokeWidth = 1;
+    canvas.drawLine(Offset(0, _axisY), Offset(w, _axisY), axisPaint);
+
+    final tickPaint = Paint()
+      ..color = AppColors.chartAxis
+      ..strokeWidth = 0.9;
+
+    final tickStepHours = axisTickStepHours.isFinite && axisTickStepHours > 0
+        ? axisTickStepHours
+        : 1.0;
+
+    /// ループ最後の中間目盛（終点直前）。整数部が終点と同じときはラベルだけ非表示（例: 13 と 13.5 の重なり）。
+    var lastMiddleHour = -1.0;
+    for (var h = 0.0; h < limit - 1e-9; h += tickStepHours) {
+      lastMiddleHour = h;
+    }
+    final hideLastMiddleLabel =
+        lastMiddleHour >= 0 && lastMiddleHour.floor() == limit.floor();
+
+    /// 左端 0h、右端は制限時間。中間は [axisTickStepHours] 間隔。
+    for (var hour = 0.0; hour < limit - 1e-9; hour += tickStepHours) {
+      final x = math.min(hour / limit * w, w);
+      canvas.drawLine(
+        Offset(x, _axisY),
+        Offset(x, _axisY + _tickH),
+        tickPaint,
+      );
+
+      final skipLabel =
+          hideLastMiddleLabel && (hour - lastMiddleHour).abs() < 1e-9;
+      if (!skipLabel) {
+        final labelText = hour < 1e-9 ? '0 h' : _hoursMiddleLabel(hour);
+        final tp = TextPainter(
+          text: TextSpan(text: labelText, style: AppTextStyles.chartTick),
+          textDirection: TextDirection.ltr,
+        );
+        tp.layout();
+        if (hour < 1e-9) {
+          tp.paint(canvas, Offset(_labelEndInset, _labelY));
+        } else {
+          final ox = (x - tp.width / 2)
+              .clamp(0.0, math.max(0.0, w - tp.width))
+              .toDouble();
+          tp.paint(canvas, Offset(ox, _labelY));
+        }
+      }
+    }
+
+    canvas.drawLine(Offset(w, _axisY), Offset(w, _axisY + _tickH), tickPaint);
+    final endTp = TextPainter(
+      text:
+          TextSpan(text: _hoursEndLabel(limit), style: AppTextStyles.chartTick),
+      textDirection: TextDirection.ltr,
+    );
+    endTp.layout();
+    final endOx = math.max(0.0, w - endTp.width - _labelEndInset);
+    endTp.paint(
+      canvas,
+      Offset(endOx, _labelY),
+    );
+
+    if (drawBar) {
+      final eh = elapsedHours;
+      if (eh != null && eh.isFinite && eh > 0) {
+        _drawProgressBar(
+          canvas,
+          w: w,
+          limit: limit,
+          elapsedHours: eh,
+          centerY: _checkInBarCenterY,
+          color: AppColors.chartCheckInBar,
+        );
+      }
+    }
+
+    final ci = checkInElapsedHours;
+    if (ci != null && ci.isFinite && ci >= 0) {
+      _drawProgressBar(
+        canvas,
+        w: w,
+        limit: limit,
+        elapsedHours: ci,
+        centerY: _scheduleBarCenterY,
+        color: AppColors.chartScheduleBar,
+      );
+    }
+  }
+
+  void _drawProgressBar(
+    Canvas canvas, {
+    required double w,
+    required double limit,
+    required double elapsedHours,
+    required double centerY,
+    required Color color,
+  }) {
+    final t = (elapsedHours / limit).clamp(0.0, 1.0);
+    final xEnd = (t * w).clamp(0.0, w);
+    final barPaint = Paint()
+      ..color = color
+      ..strokeWidth = _barStrokeWidth
+      ..strokeCap = StrokeCap.square;
+    if (xEnd < 2) {
+      canvas.drawCircle(Offset(1.5, centerY), _barStrokeWidth, barPaint);
+    } else {
+      canvas.drawLine(Offset(0, centerY), Offset(xEnd, centerY), barPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PoiElapsedTimeChartPainter oldDelegate) =>
+      oldDelegate.timeLimitHours != timeLimitHours ||
+      oldDelegate.axisTickStepHours != axisTickStepHours ||
+      oldDelegate.drawBar != drawBar ||
+      oldDelegate.elapsedHours != elapsedHours ||
+      oldDelegate.checkInElapsedHours != checkInElapsedHours;
+}
+
+class _PoiElapsedTimeChartStrip extends StatelessWidget {
+  const _PoiElapsedTimeChartStrip({
+    required this.data,
+    required this.viewportWidth,
+    this.checkInElapsedHours,
+    this.overrideElapsedHours,
+  });
+
+  final PoiSheetTimeChart data;
+  final double viewportWidth;
+
+  /// 下段バー（実績）の経過時間。
+  final double? checkInElapsedHours;
+
+  /// 上段バーを [data.elapsedHoursFromStart] の代わりに使う値（チェックアウト済み時の出発予定）。
+  final double? overrideElapsedHours;
+
+  @override
+  Widget build(BuildContext context) {
+    final h = _PoiElapsedTimeChartPainter.paintHeight;
+    if (viewportWidth <= 0 || !viewportWidth.isFinite) {
+      return SizedBox(height: h);
+    }
+    final w = viewportWidth;
+    return SizedBox(
+      width: w,
+      height: h,
+      child: CustomPaint(
+        size: Size(w, h),
+        painter: _PoiElapsedTimeChartPainter(
+          timeLimitHours: data.timeLimitHours,
+          axisTickStepHours: data.axisTickStepHours,
+          drawBar: data.drawElapsedBar,
+          elapsedHours: overrideElapsedHours ?? data.elapsedHoursFromStart,
+          checkInElapsedHours: checkInElapsedHours,
+        ),
+      ),
+    );
+  }
+}
+
+/// 経過時間チャートのみ（[showPoiDetailSheet] 内で POI 本文 [_PoiContentBlock] より上に配置）。
+class _PoiSheetTimeChartHeader extends StatelessWidget {
+  const _PoiSheetTimeChartHeader({
+    required this.data,
+    required this.viewportWidth,
+    required this.checkInResultUtcForBar,
+    this.checkInAnimatedElapsedHours,
+    this.restUtcForBar,
+    this.checkOutAnimatedElapsedHours,
+    this.checkOutUpperAnimatedElapsedHours,
+  });
+
+  static const double _horizontalInset = 0;
+
+  final PoiSheetTimeChart data;
+
+  /// 親 [LayoutBuilder] の幅（余白控除前）。
+  final double viewportWidth;
+
+  /// 下段チェックインバーを [BmSchedule.result] に合わせる。セッション上書きがあれば親の解決済み UTC。
+  final DateTime? checkInResultUtcForBar;
+
+  /// チェックイン確定後のアニメーション中の経過時間。非 null のとき [checkInResultUtcForBar] より優先。
+  final double? checkInAnimatedElapsedHours;
+
+  /// チェックアウト実績 UTC ([BmSchedule.rest])。非 null のとき「チェックアウト済み」モード：
+  /// 上段＝出発予定、下段＝出発実績（休憩時間）。
+  final DateTime? restUtcForBar;
+
+  /// チェックアウト確定後アニメーション中の下段（出発実績）経過時間。非 null のとき [restUtcForBar] 算出値より優先。
+  final double? checkOutAnimatedElapsedHours;
+
+  /// チェックアウト確定後アニメーション中の上段（出発予定）経過時間。非 null のとき [data.departureElapsedHoursFromStart] より優先。
+  final double? checkOutUpperAnimatedElapsedHours;
+
+  @override
+  Widget build(BuildContext context) {
+    final innerW = math.max(
+      1.0,
+      viewportWidth - 2 * _horizontalInset,
+    );
+
+    final rest = restUtcForBar;
+    if (rest != null) {
+      // チェックアウト済み: 上段=出発予定、下段=出発実績（アニメーション中は animated 値を優先）
+      final restElapsed =
+          poiSheetElapsedHoursFromBrevetStart(data.brevetStartUtc, rest);
+      return _PoiElapsedTimeChartStrip(
+        data: data,
+        viewportWidth: innerW,
+        overrideElapsedHours: checkOutUpperAnimatedElapsedHours ??
+            data.departureElapsedHoursFromStart,
+        checkInElapsedHours: checkOutAnimatedElapsedHours ?? restElapsed,
+      );
+    }
+
+    // 未チェックイン / チェックイン済み: 上段=到着予定、下段=到着実績（またはアニメーション）
+    final animated = checkInAnimatedElapsedHours;
+    final double? resolvedCheckInElapsed;
+    if (animated != null) {
+      resolvedCheckInElapsed = animated;
+    } else {
+      final r = checkInResultUtcForBar;
+      resolvedCheckInElapsed = r == null
+          ? null
+          : poiSheetElapsedHoursFromBrevetStart(data.brevetStartUtc, r);
+    }
+    return _PoiElapsedTimeChartStrip(
+      data: data,
+      viewportWidth: innerW,
+      checkInElapsedHours: resolvedCheckInElapsed,
+    );
+  }
+}
+
 /// POI 詳細1件（ボトムシート用）
 class PoiSheetEntry {
   const PoiSheetEntry({
@@ -59,20 +447,40 @@ class PoiSheetEntry {
     this.url,
     required this.position,
     this.distance,
+    this.segmentDistanceKm,
+    this.cumulativeDistanceKm,
     this.elevationGain,
+    this.rawElevationGainM,
     this.arrival,
     this.departure,
     this.close,
+    this.timeChart,
     this.elevationSegment,
     this.segmentDistanceLabel,
     this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
+    this.isRouteFinishPoi = false,
+    this.checkInResultUtc,
+    this.onCheckIn,
+    this.restUtc,
+    this.onCheckOut,
   });
 
   final String? name;
   final String? distance;
+
+  /// 区間距離（km）。テーブル表示用。distanceUnit に関わらず km で保持する。
+  final double? segmentDistanceKm;
+
+  /// スタートからこの POI までの累積距離（km）。テーブルでフィルタ後に区間距離を再計算するために使う。
+  final double? cumulativeDistanceKm;
+
   final String? elevationGain;
+
+  /// 区間獲得標高（メートル値）。テーブルで未チェックイン POI をスキップして合算するために使う。
+  final double? rawElevationGainM;
+
   final String? description;
   final String? url;
   final LatLng position;
@@ -85,6 +493,9 @@ class PoiSheetEntry {
 
   /// スケジュール：クローズ時刻（UTC）
   final DateTime? close;
+
+  /// ブルベ設定が揃っているとき、スタートからの経過時間チャート。
+  final PoiSheetTimeChart? timeChart;
 
   /// ルートが読み込まれているとき「直前地点〜このPOI」の標高グラフデータ。
   final ElevationSegmentChartData? elevationSegment;
@@ -100,6 +511,240 @@ class PoiSheetEntry {
 
   /// ルート上の並びで最初の POI（スタート）。スタートでは獲得 0 でも標高行を表示する。
   final bool isRouteStartPoi;
+
+  /// ゴール POI（`bm:type == finish`）またはルート上の最後の POI。チェックアウト UI は出さない。
+  final bool isRouteFinishPoi;
+
+  /// 対応 POI の [BmSchedule.result]。`null` ＝未設定（トグル OFF）、非 null ＝設定済み（トグル ON）。
+  final DateTime? checkInResultUtc;
+
+  /// User POI のチェックイン。[BmSchedule.result] に UTC を書き込む。未設定時のみシートから呼べる。
+  final Future<void> Function(DateTime checkInUtc)? onCheckIn;
+
+  /// 対応 POI の [BmSchedule.rest]（チェックアウト実績時刻）。
+  final DateTime? restUtc;
+
+  /// チェックアウト確定コールバック。[BmSchedule.rest] に UTC を書き込む。
+  final Future<void> Function(DateTime restUtc)? onCheckOut;
+}
+
+/// チェックイントグル：[BmSchedule.result] の有無のみで ON/OFF（保存しているかどうか）。
+bool _poiCheckInToggleOnFromResultUtc(DateTime? resultUtc) => resultUtc != null;
+
+Future<void> _runPoiCheckInToggleTap({
+  required BuildContext context,
+  required LatLng poiPosition,
+  required bool verifyLocationOnCheckIn,
+  required bool turnOn,
+  required PoiSheetTimeChart? timeChart,
+  required void Function(double targetElapsedHours)?
+      onBeginCheckInChartAnimation,
+  required Future<void> Function(DateTime utc)? onCommit,
+  required Future<void> Function()? onClear,
+}) async {
+  if (turnOn) {
+    if (onCommit == null) return;
+    if (!verifyLocationOnCheckIn) {
+      await _showPoiCheckInConfirmDialog(
+        context,
+        onCheckIn: onCommit,
+        timeChart: timeChart,
+        onBeginCheckInChartAnimation: onBeginCheckInChartAnimation,
+      );
+      return;
+    }
+    await _beginPoiCheckInFlowWithLocation(
+      context: context,
+      poiPosition: poiPosition,
+      timeChart: timeChart,
+      onBeginCheckInChartAnimation: onBeginCheckInChartAnimation,
+      onCommit: onCommit,
+    );
+    return;
+  }
+  await onClear?.call();
+}
+
+Future<void> _beginPoiCheckInFlowWithLocation({
+  required BuildContext context,
+  required LatLng poiPosition,
+  required PoiSheetTimeChart? timeChart,
+  required void Function(double targetElapsedHours)?
+      onBeginCheckInChartAnimation,
+  required Future<void> Function(DateTime utc) onCommit,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (ctx) => PopScope(
+      canPop: false,
+      child: AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: const RoundedRectangleBorder(),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 48, vertical: 40),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+        content: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 3),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Text(
+                l10n.poiCheckInFetchingLocation,
+                style: AppTextStyles.body
+                    .copyWith(height: _poiCheckInDialogBodyLineHeight),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  late final PoiCheckInLocationResolveResult resolveResult;
+  try {
+    resolveResult = await resolvePositionForPoiCheckIn();
+  } finally {
+    if (context.mounted) Navigator.of(context).pop();
+  }
+
+  if (!context.mounted) return;
+
+  switch (resolveResult) {
+    case PoiCheckInLocationResolved(:final position):
+      final distanceM = Geolocator.distanceBetween(
+        position.latitude,
+        position.longitude,
+        poiPosition.latitude,
+        poiPosition.longitude,
+      );
+      const thresholdM = kPoiCheckInProximityThresholdKm * 1000;
+      if (distanceM > thresholdM) {
+        await _showPoiCheckInBlockedTooFarDialog(context);
+        return;
+      }
+      await _showPoiCheckInConfirmDialog(
+        context,
+        onCheckIn: onCommit,
+        timeChart: timeChart,
+        onBeginCheckInChartAnimation: onBeginCheckInChartAnimation,
+      );
+    case PoiCheckInLocationFailed(:final reason):
+      await _showPoiCheckInLocationFailureDialog(context, reason);
+  }
+}
+
+Future<void> _showPoiCheckInOkOnlyAlert(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String okLabel,
+}) async {
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      titlePadding: _poiCheckInDialogTitlePadding,
+      contentPadding: _poiCheckInDialogContentPadding,
+      actionsPadding: _poiCheckInDialogActionsPadding,
+      title: _poiCheckInDialogTitle(title),
+      content: Text(message, style: _poiCheckInDialogBodyStyle),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(okLabel, style: AppTextStyles.button),
+        ),
+      ],
+    ),
+  );
+}
+
+Future<void> _showPoiCheckInBlockedTooFarDialog(BuildContext context) async {
+  final l10n = AppLocalizations.of(context)!;
+  await _showPoiCheckInOkOnlyAlert(
+    context,
+    title: l10n.poiCheckInNotAvailableTitle,
+    message: l10n.poiCheckInTooFarFromPoi(
+      _poiCheckInProximityThresholdKmDisplay(kPoiCheckInProximityThresholdKm),
+    ),
+    okLabel: l10n.ok,
+  );
+}
+
+Future<void> _showPoiCheckInLocationFailureDialog(
+  BuildContext context,
+  PoiCheckInLocationFailReason reason,
+) async {
+  final l10n = AppLocalizations.of(context)!;
+  final title = l10n.poiCheckInLocationAcquireFailedTitle;
+
+  final (
+    String message,
+    bool offerSettings,
+    Future<void> Function()? launchSettings
+  ) = switch (reason) {
+    PoiCheckInLocationFailReason.serviceOff => (
+        l10n.locationServiceOff,
+        true,
+        () async {
+          await Geolocator.openLocationSettings();
+        },
+      ),
+    PoiCheckInLocationFailReason.permissionDenied => (
+        l10n.locationPermissionDenied,
+        false,
+        null,
+      ),
+    PoiCheckInLocationFailReason.permissionDeniedForever => (
+        l10n.locationPermissionDeniedForever,
+        true,
+        () async {
+          await Geolocator.openAppSettings();
+        },
+      ),
+    PoiCheckInLocationFailReason.positionUnavailable => (
+        l10n.poiCheckInLocationUnavailableDetail,
+        false,
+        null,
+      ),
+  };
+
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      titlePadding: _poiCheckInDialogTitlePadding,
+      contentPadding: _poiCheckInDialogContentPadding,
+      actionsPadding: _poiCheckInDialogActionsPadding,
+      title: _poiCheckInDialogTitle(title),
+      content: Text(message, style: _poiCheckInDialogBodyStyle),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+        if (offerSettings && launchSettings != null)
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await launchSettings();
+            },
+            child: Text(l10n.openSettings, style: AppTextStyles.button),
+          ),
+      ],
+    ),
+  );
 }
 
 double? _effectiveElevationGainMeters({
@@ -153,6 +798,54 @@ Widget _elevationDialogPanel({
   );
 }
 
+Future<void> _showPoiCheckInConfirmDialog(
+  BuildContext context, {
+  required Future<void> Function(DateTime utc) onCheckIn,
+  PoiSheetTimeChart? timeChart,
+  void Function(double targetElapsedHours)? onBeginCheckInChartAnimation,
+}) async {
+  final l10n = AppLocalizations.of(context)!;
+  final compactButtonStyle = ButtonStyle(
+    minimumSize: WidgetStateProperty.all(Size.zero),
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  );
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      shape: const RoundedRectangleBorder(),
+      contentPadding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+      actionsPadding: _poiCheckInDialogActionsPadding,
+      content: Text(
+        l10n.poiCheckInConfirmMessage,
+        style: _poiCheckInDialogBodyStyle,
+      ),
+      actions: [
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(ctx, false),
+          child: Text(l10n.cancel, style: AppTextStyles.button),
+        ),
+        TextButton(
+          style: compactButtonStyle,
+          onPressed: () => Navigator.pop(ctx, true),
+          child: Text(l10n.ok, style: AppTextStyles.button),
+        ),
+      ],
+    ),
+  );
+  if (ok != true) return;
+  if (!context.mounted) return;
+  final utc = DateTime.now().toUtc();
+  final tc = timeChart;
+  if (tc != null && onBeginCheckInChartAnimation != null) {
+    final th = poiSheetElapsedHoursFromBrevetStart(tc.brevetStartUtc, utc);
+    if (th != null) onBeginCheckInChartAnimation(th);
+  }
+  await onCheckIn(utc);
+}
+
 void _openElevationFromOnDemand(
   BuildContext context,
   PoiElevationOnDemand req,
@@ -178,73 +871,100 @@ class _ElevationOnDemandDialog extends StatefulWidget {
 class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   ElevationSegmentChartData? _chart;
   bool _loading = true;
+  bool _failed = false;
+  bool _cancelled = false;
   String? _previewDistLabel;
   String? _previewGainLabel;
   String? _previewLossLabel;
+
+  // initState で事前計算したスライスデータ（compute に渡すデータ量を区間分に絞る）
+  ({
+    List<LatLng> trackSlice,
+    List<double?> elevationSlice,
+    double segmentKm,
+    double kmAlongRouteStart,
+    double kmAlongRouteEnd,
+    double segmentElevationGainM,
+    double segmentElevationLossM,
+  })? _slice;
 
   @override
   void initState() {
     super.initState();
     final req = widget.req;
-    final alignedElev = req.elevations.length == req.trackPoints.length
-        ? req.elevations
-        : List<double?>.filled(req.trackPoints.length, null);
-    final m = elevationSegmentMetricsPreview(
+    // 区間スライスと計算済みメトリクスをメインスレッドで取得
+    final slice = elevationSegmentSlice(
       trackPoints: req.trackPoints,
-      elevations: alignedElev,
+      elevations: req.elevations,
       poiPositions: req.poiPositions,
       poiIndex: req.poiIndex,
       poiHasDistanceKm: req.poiHasDistanceKm,
+      poiKmAlongRoute: req.poiKmAlongRoute,
     );
-    if (m != null) {
-      _previewDistLabel = formatDistance(m.segmentKm, req.distanceUnit);
-      _previewGainLabel = formatElevationChange(m.gainM, req.distanceUnit);
-      _previewLossLabel = formatElevationChange(m.lossM, req.distanceUnit);
+    if (slice != null) {
+      _slice = slice;
+      _previewDistLabel = formatDistance(slice.segmentKm, req.distanceUnit);
+      _previewGainLabel =
+          formatElevationChange(slice.segmentElevationGainM, req.distanceUnit);
+      _previewLossLabel =
+          formatElevationChange(slice.segmentElevationLossM, req.distanceUnit);
     }
     _buildChart();
   }
 
+  @override
+  void dispose() {
+    _cancelled = true;
+    super.dispose();
+  }
+
   Future<void> _buildChart() async {
+    final slice = _slice;
+    if (slice == null) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _failed = true;
+        });
+      }
+      return;
+    }
     try {
-      final req = widget.req;
       final chart = await compute(
-        computeElevationSegmentChartData,
+        computeElevationChartFromSlice,
         (
-          trackPoints: req.trackPoints,
-          elevations: req.elevations.length == req.trackPoints.length
-              ? req.elevations
-              : List<double?>.filled(req.trackPoints.length, null),
-          poiPositions: req.poiPositions,
-          poiIndex: req.poiIndex,
+          trackSlice: slice.trackSlice,
+          elevationSlice: slice.elevationSlice,
+          segmentKm: slice.segmentKm,
+          kmAlongRouteStart: slice.kmAlongRouteStart,
+          kmAlongRouteEnd: slice.kmAlongRouteEnd,
+          segmentElevationGainM: slice.segmentElevationGainM,
+          segmentElevationLossM: slice.segmentElevationLossM,
           maxSamples: 450,
-          poiHasDistanceKm: req.poiHasDistanceKm,
         ),
       ).timeout(
-        const Duration(seconds: 45),
-        onTimeout: () => throw TimeoutException(
-          'computeElevationSegmentChartData',
-          const Duration(seconds: 45),
-        ),
+        const Duration(seconds: 15),
+        onTimeout: () => null,
       );
-      if (!mounted) return;
-      if (chart == null || !chart.hasElevation) {
-        Navigator.of(context).maybePop();
+      if (_cancelled || !mounted) return;
+      if (chart == null) {
+        setState(() {
+          _loading = false;
+          _failed = true;
+        });
         return;
       }
-      try {
-        setState(() {
-          _chart = chart;
-          _loading = false;
-        });
-      } catch (e, st) {
-        debugPrint('Elevation chart setState failed: $e\n$st');
-        if (!mounted) return;
-        Navigator.of(context).maybePop();
-      }
+      setState(() {
+        _chart = chart;
+        _loading = false;
+      });
     } catch (e, st) {
       debugPrint('Elevation chart compute failed: $e\n$st');
-      if (!mounted) return;
-      Navigator.of(context).maybePop();
+      if (_cancelled || !mounted) return;
+      setState(() {
+        _loading = false;
+        _failed = true;
+      });
     }
   }
 
@@ -337,6 +1057,11 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
                         textDirection: Directionality.of(context),
                       ),
                     )
+                  else if (_failed)
+                    const Center(
+                      child: Icon(Icons.signal_wifi_statusbar_null,
+                          size: 32, color: Colors.black26),
+                    )
                   else
                     const Center(
                       child: SizedBox(
@@ -404,6 +1129,7 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
 void showPoiDetailSheet(
   BuildContext context, {
   required List<PoiSheetEntry> entries,
+  required bool verifyLocationOnCheckIn,
   int initialIndex = 0,
   void Function(LatLng position)? onCenterOnPoi,
 }) {
@@ -420,6 +1146,7 @@ void showPoiDetailSheet(
         return _PoiDetailSheetNavigate(
           entries: entries,
           initialIndex: safeInitial,
+          verifyLocationOnCheckIn: verifyLocationOnCheckIn,
           onCenterOnPoi: onCenterOnPoi,
         );
       }
@@ -429,34 +1156,52 @@ void showPoiDetailSheet(
         elevationGain: entries.first.elevationGain,
         description: entries.first.description,
         url: entries.first.url,
+        position: entries.first.position,
         arrival: entries.first.arrival,
         departure: entries.first.departure,
         close: entries.first.close,
+        timeChart: entries.first.timeChart,
         elevationSegment: entries.first.elevationSegment,
         segmentDistanceLabel: entries.first.segmentDistanceLabel,
         elevationOnDemand: entries.first.elevationOnDemand,
         distanceUnit: entries.first.distanceUnit,
         isRouteStartPoi: entries.first.isRouteStartPoi,
+        isRouteFinishPoi: entries.first.isRouteFinishPoi,
+        checkInResultUtc: entries.first.checkInResultUtc,
+        onCheckIn: entries.first.onCheckIn,
+        restUtc: entries.first.restUtc,
+        onCheckOut: entries.first.onCheckOut,
+        verifyLocationOnCheckIn: verifyLocationOnCheckIn,
+        allEntries: entries,
       );
     },
   );
 }
 
-class _PoiDetailSheetBody extends StatelessWidget {
+class _PoiDetailSheetBody extends StatefulWidget {
   const _PoiDetailSheetBody({
     required this.name,
     required this.distance,
     required this.elevationGain,
     required this.description,
     this.url,
+    required this.position,
     this.arrival,
     this.departure,
     this.close,
+    this.timeChart,
     this.elevationSegment,
     this.segmentDistanceLabel,
     this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
+    this.isRouteFinishPoi = false,
+    this.checkInResultUtc,
+    this.onCheckIn,
+    this.restUtc,
+    this.onCheckOut,
+    required this.verifyLocationOnCheckIn,
+    required this.allEntries,
   });
 
   final String? name;
@@ -464,38 +1209,243 @@ class _PoiDetailSheetBody extends StatelessWidget {
   final String? elevationGain;
   final String? description;
   final String? url;
+  final LatLng position;
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
+  final PoiSheetTimeChart? timeChart;
   final ElevationSegmentChartData? elevationSegment;
   final String? segmentDistanceLabel;
   final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
   final bool isRouteStartPoi;
+  final bool isRouteFinishPoi;
+
+  /// [BmSchedule.result] と同一。[PoiSheetEntry.checkInResultUtc] から渡す。
+  final DateTime? checkInResultUtc;
+  final Future<void> Function(DateTime checkInUtc)? onCheckIn;
+
+  /// [BmSchedule.rest]（チェックアウト実績時刻）。
+  final DateTime? restUtc;
+  final Future<void> Function(DateTime restUtc)? onCheckOut;
+
+  /// false のときチェックインONで位置を取得せず確認ダイアログのみ。
+  final bool verifyLocationOnCheckIn;
+
+  /// テーブルダイアログ用：シートに関連する全エントリ。
+  final List<PoiSheetEntry> allEntries;
+
+  @override
+  State<_PoiDetailSheetBody> createState() => _PoiDetailSheetBodyState();
+}
+
+class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
+    with TickerProviderStateMixin {
+  late final AnimationController _checkInChartAnim;
+  late final CurvedAnimation _checkInChartCurve;
+  bool _checkInChartAnimationActive = false;
+  double _checkInTargetHours = 0;
+  bool _checkInAnimating = false;
+
+  late final AnimationController _checkOutChartAnim;
+  late final CurvedAnimation _checkOutChartCurve;
+  bool _checkOutChartAnimationActive = false;
+  double _checkOutTargetHours = 0;
+  double _checkOutUpperTargetHours = 0;
+
+  /// シート表示中に確定したチェックイン状態（永続化後も [widget.checkInResultUtc] は古いままのため）。
+  bool _sessionCheckInExplicit = false;
+  DateTime? _sessionCheckInUtc;
+
+  /// シート表示中に確定したチェックアウト状態（永続化後も [widget.restUtc] は古いままのため）。
+  bool _sessionCheckOutExplicit = false;
+  DateTime? _sessionRestUtc;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkInChartAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _checkInChartCurve = CurvedAnimation(
+      parent: _checkInChartAnim,
+      curve: Curves.easeOutCubic,
+    );
+    _checkInChartAnim.addListener(() => setState(() {}));
+    _checkInChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkInAnimating = false);
+      }
+    });
+
+    _checkOutChartAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _checkOutChartCurve = CurvedAnimation(
+      parent: _checkOutChartAnim,
+      curve: Curves.easeOutCubic,
+    );
+    _checkOutChartAnim.addListener(() => setState(() {}));
+    _checkOutChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkOutChartAnimationActive = false);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _checkInChartCurve.dispose();
+    _checkInChartAnim.dispose();
+    _checkOutChartCurve.dispose();
+    _checkOutChartAnim.dispose();
+    super.dispose();
+  }
+
+  void _onBeginCheckInChartAnimation(double targetHours) {
+    setState(() {
+      _checkInChartAnimationActive = true;
+      _checkInTargetHours = targetHours;
+    });
+    _checkInChartAnim.forward(from: 0);
+  }
+
+  void _onBeginCheckOutChartAnimation(
+      double upperTargetHours, double lowerTargetHours) {
+    setState(() {
+      _checkOutChartAnimationActive = true;
+      _checkOutUpperTargetHours = upperTargetHours;
+      _checkOutTargetHours = lowerTargetHours;
+    });
+    _checkOutChartAnim.forward(from: 0);
+  }
+
+  double? get _checkInDisplayElapsedHours {
+    if (!_checkInChartAnimationActive) return null;
+    return _checkInChartCurve.value * _checkInTargetHours;
+  }
+
+  double? get _checkOutDisplayElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutTargetHours;
+  }
+
+  double? get _checkOutDisplayUpperElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutUpperTargetHours;
+  }
+
+  DateTime? get _effectiveCheckInResultUtc =>
+      _sessionCheckInExplicit ? _sessionCheckInUtc : widget.checkInResultUtc;
+
+  DateTime? get _effectiveRestUtc =>
+      _sessionCheckOutExplicit ? _sessionRestUtc : widget.restUtc;
+
+  Future<void> _wrapCommitCheckIn(DateTime utc) async {
+    await widget.onCheckIn!(utc);
+    if (!mounted) return;
+    setState(() {
+      _sessionCheckInExplicit = true;
+      _sessionCheckInUtc = utc;
+    });
+  }
+
+  Future<void> _wrapCommitCheckOut(DateTime utc) async {
+    await widget.onCheckOut!(utc);
+    if (!mounted) return;
+    setState(() {
+      _sessionCheckOutExplicit = true;
+      _sessionRestUtc = utc;
+    });
+    if (!mounted) return;
+    final tc = widget.timeChart;
+    if (tc != null) {
+      final lowerTh =
+          poiSheetElapsedHoursFromBrevetStart(tc.brevetStartUtc, utc);
+      final upperTh = tc.departureElapsedHoursFromStart;
+      if (lowerTh != null || upperTh != null) {
+        _onBeginCheckOutChartAnimation(upperTh ?? 0, lowerTh ?? 0);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    const sheetPadding = EdgeInsets.fromLTRB(0, 20, 20, 25);
+    const distanceLeft = 20.0;
     return SizedBox(
       width: double.infinity,
       child: SafeArea(
         bottom: false,
-        child: _PoiContentBlock(
-          name: name,
-          distance: distance,
-          elevationGain: elevationGain,
-          description: description,
-          url: url,
-          arrival: arrival,
-          departure: departure,
-          close: close,
-          elevationSegment: elevationSegment,
-          segmentDistanceLabel: segmentDistanceLabel,
-          elevationOnDemand: elevationOnDemand,
-          distanceUnit: distanceUnit,
-          isRouteStartPoi: isRouteStartPoi,
-          sheetPadding: const EdgeInsets.fromLTRB(0, 20, 20, 25),
-          distanceLeft: 20,
-          contentLeft: 24,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final w = constraints.maxWidth;
+            final chartW = w.isFinite && w > 0 ? w : 1.0;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (widget.timeChart case final tc?)
+                  _PoiSheetTimeChartHeader(
+                    data: tc,
+                    viewportWidth: chartW,
+                    checkInAnimatedElapsedHours: _checkInDisplayElapsedHours,
+                    checkInResultUtcForBar: _effectiveCheckInResultUtc,
+                    restUtcForBar: _effectiveRestUtc,
+                    checkOutAnimatedElapsedHours: _checkOutDisplayElapsedHours,
+                    checkOutUpperAnimatedElapsedHours:
+                        _checkOutDisplayUpperElapsedHours,
+                  ),
+                _PoiContentBlock(
+                  name: widget.name,
+                  distance: widget.distance,
+                  elevationGain: widget.elevationGain,
+                  description: widget.description,
+                  url: widget.url,
+                  poiPosition: widget.position,
+                  arrival: widget.arrival,
+                  departure: widget.departure,
+                  close: widget.close,
+                  elevationSegment: widget.elevationSegment,
+                  segmentDistanceLabel: widget.segmentDistanceLabel,
+                  elevationOnDemand: widget.elevationOnDemand,
+                  distanceUnit: widget.distanceUnit,
+                  isRouteStartPoi: widget.isRouteStartPoi,
+                  isRouteFinishPoi: widget.isRouteFinishPoi,
+                  timeChart: widget.timeChart,
+                  onBeginCheckInChartAnimation: widget.timeChart != null
+                      ? _onBeginCheckInChartAnimation
+                      : null,
+                  checkInTapEntryIndex: 0,
+                  checkInResultUtc: _effectiveCheckInResultUtc,
+                  onCommitCheckInForEntry: widget.onCheckIn == null
+                      ? null
+                      : (_, utc) => _wrapCommitCheckIn(utc),
+                  restUtc: _effectiveRestUtc,
+                  onCommitCheckOutForEntry: widget.onCheckOut == null
+                      ? null
+                      : (_, utc) => _wrapCommitCheckOut(utc),
+                  verifyLocationOnCheckIn: widget.verifyLocationOnCheckIn,
+                  checkInAnimating: _checkInAnimating,
+                  onCheckInTapStart: () =>
+                      setState(() => _checkInAnimating = true),
+                  onCheckInTapCancel: () =>
+                      setState(() => _checkInAnimating = false),
+                  scheduleEntries: widget.allEntries,
+                  sessionCheckInsByIndex:
+                      _sessionCheckInExplicit ? {0: _sessionCheckInUtc} : null,
+                  sessionRestsByIndex:
+                      _sessionCheckOutExplicit ? {0: _sessionRestUtc} : null,
+                  contentLayoutMaxWidth: constraints.maxWidth,
+                  sheetPadding: sheetPadding,
+                  distanceLeft: distanceLeft,
+                  contentLeft: 24,
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -506,11 +1456,13 @@ class _PoiDetailSheetNavigate extends StatefulWidget {
   const _PoiDetailSheetNavigate({
     required this.entries,
     required this.initialIndex,
+    required this.verifyLocationOnCheckIn,
     this.onCenterOnPoi,
   });
 
   final List<PoiSheetEntry> entries;
   final int initialIndex;
+  final bool verifyLocationOnCheckIn;
   final void Function(LatLng position)? onCenterOnPoi;
 
   @override
@@ -518,21 +1470,126 @@ class _PoiDetailSheetNavigate extends StatefulWidget {
       _PoiDetailSheetNavigateState();
 }
 
-class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
+class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
+    with TickerProviderStateMixin {
   late int _index;
+  late final AnimationController _checkInChartAnim;
+  late final CurvedAnimation _checkInChartCurve;
+  bool _checkInChartAnimationActive = false;
+  double _checkInTargetHours = 0;
+  bool _checkInAnimating = false;
+
+  late final AnimationController _checkOutChartAnim;
+  late final CurvedAnimation _checkOutChartCurve;
+  bool _checkOutChartAnimationActive = false;
+  double _checkOutTargetHours = 0;
+  double _checkOutUpperTargetHours = 0;
+
+  final Map<int, DateTime?> _checkInSessionByIndex = {};
+  final Map<int, DateTime?> _restSessionByIndex = {};
 
   @override
   void initState() {
     super.initState();
     _index = widget.initialIndex.clamp(0, widget.entries.length - 1);
+    _checkInChartAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _checkInChartCurve = CurvedAnimation(
+      parent: _checkInChartAnim,
+      curve: Curves.easeOutCubic,
+    );
+    _checkInChartAnim.addListener(() => setState(() {}));
+    _checkInChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkInAnimating = false);
+      }
+    });
+
+    _checkOutChartAnim = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    );
+    _checkOutChartCurve = CurvedAnimation(
+      parent: _checkOutChartAnim,
+      curve: Curves.easeOutCubic,
+    );
+    _checkOutChartAnim.addListener(() => setState(() {}));
+    _checkOutChartAnim.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _checkOutChartAnimationActive = false);
+      }
+    });
   }
 
+  @override
+  void dispose() {
+    _checkInChartCurve.dispose();
+    _checkInChartAnim.dispose();
+    _checkOutChartCurve.dispose();
+    _checkOutChartAnim.dispose();
+    super.dispose();
+  }
+
+  void _resetCheckInChartAnimation() {
+    setState(() {
+      _checkInChartAnimationActive = false;
+      _checkInTargetHours = 0;
+      _checkInAnimating = false;
+    });
+    _checkInChartAnim.reset();
+  }
+
+  void _onBeginCheckInChartAnimation(double targetHours) {
+    setState(() {
+      _checkInChartAnimationActive = true;
+      _checkInTargetHours = targetHours;
+    });
+    _checkInChartAnim.forward(from: 0);
+  }
+
+  void _onBeginCheckOutChartAnimation(
+      double upperTargetHours, double lowerTargetHours) {
+    setState(() {
+      _checkOutChartAnimationActive = true;
+      _checkOutUpperTargetHours = upperTargetHours;
+      _checkOutTargetHours = lowerTargetHours;
+    });
+    _checkOutChartAnim.forward(from: 0);
+  }
+
+  double? get _checkInDisplayElapsedHours {
+    if (!_checkInChartAnimationActive) return null;
+    return _checkInChartCurve.value * _checkInTargetHours;
+  }
+
+  double? get _checkOutDisplayElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutTargetHours;
+  }
+
+  double? get _checkOutDisplayUpperElapsedHours {
+    if (!_checkOutChartAnimationActive) return null;
+    return _checkOutChartCurve.value * _checkOutUpperTargetHours;
+  }
+
+  DateTime? _effectiveCheckInUtc(int i) => _checkInSessionByIndex.containsKey(i)
+      ? _checkInSessionByIndex[i]
+      : widget.entries[i].checkInResultUtc;
+
+  DateTime? _effectiveRestUtc(int i) => _restSessionByIndex.containsKey(i)
+      ? _restSessionByIndex[i]
+      : widget.entries[i].restUtc;
+
   void _goNext() {
+    _resetCheckInChartAnimation();
     setState(() => _index = (_index + 1) % widget.entries.length);
     widget.onCenterOnPoi?.call(widget.entries[_index].position);
   }
 
   void _goPrev() {
+    _resetCheckInChartAnimation();
     setState(() =>
         _index = (_index - 1 + widget.entries.length) % widget.entries.length);
     widget.onCenterOnPoi?.call(widget.entries[_index].position);
@@ -540,88 +1597,181 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate> {
 
   @override
   Widget build(BuildContext context) {
-    final e = widget.entries[_index];
+    final ix = _index;
+    final e = widget.entries[ix];
     final hasDistance = e.distance != null && e.distance!.trim().isNotEmpty;
     final prevPadding = hasDistance
-        ? const EdgeInsets.only(top: 20, bottom: 5)
+        ? const EdgeInsets.only(top: 20, bottom: 10)
         : const EdgeInsets.only(top: 20, bottom: 5);
     final nextPadding = hasDistance
-        ? const EdgeInsets.only(top: 5, bottom: 20)
+        ? const EdgeInsets.only(top: 10, bottom: 20)
         : const EdgeInsets.only(top: 5, bottom: 20);
+    const sheetPadding = EdgeInsets.fromLTRB(0, 18, 15, 25);
     return SizedBox(
       width: double.infinity,
       child: SafeArea(
         bottom: false,
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: _PoiContentBlock(
-                  name: e.name,
-                  distance: e.distance,
-                  elevationGain: e.elevationGain,
-                  description: e.description,
-                  url: e.url,
-                  arrival: e.arrival,
-                  departure: e.departure,
-                  close: e.close,
-                  elevationSegment: e.elevationSegment,
-                  segmentDistanceLabel: e.segmentDistanceLabel,
-                  elevationOnDemand: e.elevationOnDemand,
-                  distanceUnit: e.distanceUnit,
-                  isRouteStartPoi: e.isRouteStartPoi,
-                  sheetPadding: const EdgeInsets.fromLTRB(0, 20, 15, 25),
-                  distanceLeft: 20,
-                  contentLeft: 24,
-                ),
-              ),
-              SizedBox(
-                width: 50,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: InkWell(
-                        onTap: _goPrev,
-                        splashColor: Colors.grey.withValues(alpha: 0.3),
-                        highlightColor: Colors.grey.withValues(alpha: 0.2),
-                        child: Padding(
-                          padding: prevPadding,
-                          child: const Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Icon(
-                              Icons.chevron_left,
-                              size: 36,
-                              color: Colors.black38,
-                            ),
-                          ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final expandedW = math.max(
+              0.0,
+              constraints.maxWidth - _poiDetailSheetNavigateColumnWidth,
+            );
+            const distanceLeft = 20.0;
+            final w = constraints.maxWidth;
+            final chartW = w.isFinite && w > 0 ? w : 1.0;
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (e.timeChart case final tc?)
+                  _PoiSheetTimeChartHeader(
+                    data: tc,
+                    viewportWidth: chartW,
+                    checkInAnimatedElapsedHours: _checkInDisplayElapsedHours,
+                    checkInResultUtcForBar: _effectiveCheckInUtc(ix),
+                    restUtcForBar: _effectiveRestUtc(ix),
+                    checkOutAnimatedElapsedHours: _checkOutDisplayElapsedHours,
+                    checkOutUpperAnimatedElapsedHours:
+                        _checkOutDisplayUpperElapsedHours,
+                  ),
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: _PoiContentBlock(
+                          name: e.name,
+                          distance: e.distance,
+                          elevationGain: e.elevationGain,
+                          description: e.description,
+                          url: e.url,
+                          poiPosition: e.position,
+                          arrival: e.arrival,
+                          departure: e.departure,
+                          close: e.close,
+                          elevationSegment: e.elevationSegment,
+                          segmentDistanceLabel: e.segmentDistanceLabel,
+                          elevationOnDemand: e.elevationOnDemand,
+                          distanceUnit: e.distanceUnit,
+                          isRouteStartPoi: e.isRouteStartPoi,
+                          isRouteFinishPoi: e.isRouteFinishPoi,
+                          timeChart: e.timeChart,
+                          onBeginCheckInChartAnimation: e.timeChart != null
+                              ? _onBeginCheckInChartAnimation
+                              : null,
+                          checkInTapEntryIndex: ix,
+                          checkInResultUtc: _effectiveCheckInUtc(ix),
+                          onCommitCheckInForEntry: e.onCheckIn == null
+                              ? null
+                              : (entryIndex, utc) async {
+                                  await widget
+                                      .entries[entryIndex].onCheckIn!(utc);
+                                  if (!mounted) return;
+                                  setState(
+                                    () => _checkInSessionByIndex[entryIndex] =
+                                        utc,
+                                  );
+                                },
+                          restUtc: _effectiveRestUtc(ix),
+                          onCommitCheckOutForEntry: e.onCheckOut == null
+                              ? null
+                              : (entryIndex, utc) async {
+                                  await widget
+                                      .entries[entryIndex].onCheckOut!(utc);
+                                  if (!mounted) return;
+                                  setState(
+                                    () => _restSessionByIndex[entryIndex] = utc,
+                                  );
+                                  if (!mounted) return;
+                                  final tc =
+                                      widget.entries[entryIndex].timeChart;
+                                  if (tc != null) {
+                                    final lowerTh =
+                                        poiSheetElapsedHoursFromBrevetStart(
+                                            tc.brevetStartUtc, utc);
+                                    final upperTh =
+                                        tc.departureElapsedHoursFromStart;
+                                    if (lowerTh != null || upperTh != null) {
+                                      _onBeginCheckOutChartAnimation(
+                                          upperTh ?? 0, lowerTh ?? 0);
+                                    }
+                                  }
+                                },
+                          verifyLocationOnCheckIn:
+                              widget.verifyLocationOnCheckIn,
+                          checkInAnimating: _checkInAnimating,
+                          onCheckInTapStart: () =>
+                              setState(() => _checkInAnimating = true),
+                          onCheckInTapCancel: () =>
+                              setState(() => _checkInAnimating = false),
+                          scheduleEntries: widget.entries,
+                          sessionCheckInsByIndex: _checkInSessionByIndex.isEmpty
+                              ? null
+                              : Map.of(_checkInSessionByIndex),
+                          sessionRestsByIndex: _restSessionByIndex.isEmpty
+                              ? null
+                              : Map.of(_restSessionByIndex),
+                          contentLayoutMaxWidth: expandedW,
+                          sheetPadding: sheetPadding,
+                          distanceLeft: distanceLeft,
+                          contentLeft: 24,
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: InkWell(
-                        onTap: _goNext,
-                        splashColor: Colors.grey.withValues(alpha: 0.3),
-                        highlightColor: Colors.grey.withValues(alpha: 0.2),
-                        child: Padding(
-                          padding: nextPadding,
-                          child: const Align(
-                            alignment: Alignment.topCenter,
-                            child: Icon(
-                              Icons.chevron_right,
-                              size: 36,
-                              color: Colors.black38,
+                      SizedBox(
+                        width: _poiDetailSheetNavigateColumnWidth,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: _goPrev,
+                                splashColor: Colors.grey.withValues(alpha: 0.3),
+                                highlightColor:
+                                    Colors.grey.withValues(alpha: 0.2),
+                                child: Padding(
+                                  padding: prevPadding,
+                                  child: Align(
+                                    alignment: Alignment.bottomCenter,
+                                    child: Icon(
+                                      Icons.chevron_left,
+                                      size: 36,
+                                      color: AppColors.mutedLarge
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
+                            Expanded(
+                              child: InkWell(
+                                onTap: _goNext,
+                                splashColor: Colors.grey.withValues(alpha: 0.3),
+                                highlightColor:
+                                    Colors.grey.withValues(alpha: 0.2),
+                                child: Padding(
+                                  padding: nextPadding,
+                                  child: Align(
+                                    alignment: Alignment.topCenter,
+                                    child: Icon(
+                                      Icons.chevron_right,
+                                      size: 36,
+                                      color: AppColors.mutedLarge
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -635,7 +1785,9 @@ class _PoiContentBlock extends StatelessWidget {
     required this.distance,
     required this.elevationGain,
     required this.description,
+    required this.contentLayoutMaxWidth,
     this.url,
+    required this.poiPosition,
     this.arrival,
     this.departure,
     this.close,
@@ -647,6 +1799,21 @@ class _PoiContentBlock extends StatelessWidget {
     this.distanceLeft = 0,
     this.contentLeft = 0,
     this.isRouteStartPoi = true,
+    this.isRouteFinishPoi = false,
+    this.timeChart,
+    this.onBeginCheckInChartAnimation,
+    this.checkInTapEntryIndex = 0,
+    this.checkInResultUtc,
+    this.onCommitCheckInForEntry,
+    this.restUtc,
+    this.onCommitCheckOutForEntry,
+    required this.verifyLocationOnCheckIn,
+    this.checkInAnimating = false,
+    this.onCheckInTapStart,
+    this.onCheckInTapCancel,
+    this.scheduleEntries,
+    this.sessionCheckInsByIndex,
+    this.sessionRestsByIndex,
   });
 
   final String? name;
@@ -654,6 +1821,7 @@ class _PoiContentBlock extends StatelessWidget {
   final String? elevationGain;
   final String? description;
   final String? url;
+  final LatLng poiPosition;
   final DateTime? arrival;
   final DateTime? departure;
   final DateTime? close;
@@ -661,14 +1829,69 @@ class _PoiContentBlock extends StatelessWidget {
   final String? segmentDistanceLabel;
   final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
+
+  /// シートのパディング適用前の、このブロックに割り当てられた最大幅（[Expanded] スロット幅）。
+  final double contentLayoutMaxWidth;
+
   final EdgeInsetsGeometry sheetPadding;
   final double distanceLeft;
   final double contentLeft;
   final bool isRouteStartPoi;
+  final bool isRouteFinishPoi;
+  final PoiSheetTimeChart? timeChart;
+  final void Function(double targetElapsedHours)? onBeginCheckInChartAnimation;
+
+  /// チェックイン操作中の非同期完了後に適用する対象 POI インデックス（同一シート内の一覧位置）。
+  final int checkInTapEntryIndex;
+
+  /// 表示中の [BmSchedule.result] の値（各 POI は [PoiSheetEntry.checkInResultUtc] またはシート内セッション反映後）。
+  /// 非 null ＝設定済みでトグル ON。
+  final DateTime? checkInResultUtc;
+
+  /// チェックイン確定（トグル OFF→ON のみ。ON 済みは無効のまま）。
+  final Future<void> Function(int entryIndex, DateTime utc)?
+      onCommitCheckInForEntry;
+
+  /// [BmSchedule.rest]（チェックアウト実績時刻）。非 null ＝チェックアウト済み。
+  final DateTime? restUtc;
+
+  /// チェックアウト確定コールバック。チェックイン済み・チェックアウト未の場合のみ有効。
+  final Future<void> Function(int entryIndex, DateTime utc)?
+      onCommitCheckOutForEntry;
+
+  /// false のとき位置取得・距離判定を省略し確認ダイアログのみ。
+  final bool verifyLocationOnCheckIn;
+
+  /// チェックインバーアニメーション再生中 true（アイコンを bookmark に切り替える）。
+  final bool checkInAnimating;
+
+  /// チェックインアイコンをタップした瞬間に呼ばれるコールバック。
+  final VoidCallback? onCheckInTapStart;
+
+  /// チェックインダイアログでキャンセルされたとき（アニメーション未開始で処理が終了したとき）に呼ばれる。
+  final VoidCallback? onCheckInTapCancel;
+
+  /// view_list タップ時に表示するスケジュールテーブルの全エントリ。
+  final List<PoiSheetEntry>? scheduleEntries;
+
+  /// シート表示中に確定したチェックイン（index → UTC）。[scheduleEntries] の古い値を上書きする。
+  final Map<int, DateTime?>? sessionCheckInsByIndex;
+
+  /// シート表示中に確定したチェックアウト（index → UTC）。[scheduleEntries] の古い値を上書きする。
+  final Map<int, DateTime?>? sessionRestsByIndex;
 
   String _formatTime(DateTime dt, BuildContext context) {
     final locale = Localizations.localeOf(context).toString();
     return DateFormat('H:mm', locale).format(dt.toLocal());
+  }
+
+  static String _fmtDiff(DateTime scheduled, DateTime actual) {
+    final d = scheduled.difference(actual);
+    final abs = d.abs();
+    final h = abs.inHours;
+    final m = (abs.inMinutes % 60).toString().padLeft(2, '0');
+    final sign = (d.isNegative && abs.inMinutes > 0) ? '-' : '+';
+    return '$sign$h:$m';
   }
 
   String _formatDate(DateTime dt, BuildContext context) {
@@ -689,17 +1912,20 @@ class _PoiContentBlock extends StatelessWidget {
     return uri;
   }
 
-  Widget _buildDateBadge(DateTime dt, BuildContext context) {
+  Widget _buildDateBadge(DateTime dt, BuildContext context,
+      {Color? color, bool filled = false}) {
+    final c = color ?? AppColors.poiDateBadge;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
       decoration: BoxDecoration(
-        color: AppColors.muted,
+        color: filled ? c : null,
+        border: Border.all(color: c, width: 1.0),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
         _formatDate(dt, context),
         style: AppTextStyles.bodySmall.copyWith(
-          color: Colors.white,
+          color: filled ? Colors.white : c,
           height: 1.0,
         ),
       ),
@@ -748,7 +1974,20 @@ class _PoiContentBlock extends StatelessWidget {
     final hasArrival = arrival != null;
     final hasDeparture = departure != null;
     final hasClose = close != null;
-    final hasSchedule = hasArrival || hasDeparture || hasClose;
+    final hasCheckedIn = checkInResultUtc != null;
+    final hasCheckedOut = restUtc != null;
+    // 1行目に ↑ 出発行（予定または実績）を出すか。表示条件と 2 行化判定を揃える。
+    final showDepartureRow = hasDeparture || hasCheckedOut;
+    final hasSchedule =
+        hasArrival || hasDeparture || hasClose || hasCheckedIn || hasCheckedOut;
+    final canTapSheetForScheduleTable = hasSchedule && scheduleEntries != null;
+
+    // diff: チェックアウト後は ETD vs ATD、チェックイン後は ETA vs ATA
+    final String? scheduleDiffStr = hasCheckedIn
+        ? (hasCheckedOut && hasDeparture)
+            ? _fmtDiff(departure!, restUtc!)
+            : (hasArrival ? _fmtDiff(arrival!, checkInResultUtc!) : null)
+        : null;
 
     void openElevationChart() {
       if (showSegmentChartPrecomputed) {
@@ -766,11 +2005,76 @@ class _PoiContentBlock extends StatelessWidget {
       }
     }
 
+    void openScheduleTable() {
+      final entries = scheduleEntries!;
+      final isStartOrGoal = entries[checkInTapEntryIndex].isRouteStartPoi ||
+          entries[checkInTapEntryIndex].isRouteFinishPoi;
+      // スケジュールデータのある POI のみ（arrival/departure どちらもない メモ用 POI を除外）
+      final filtered = entries
+          .asMap()
+          .entries
+          .where((e) => e.value.arrival != null || e.value.departure != null)
+          .toList();
+      final newHighlightIndex =
+          filtered.indexWhere((e) => e.key == checkInTapEntryIndex);
+      showDialog<void>(
+        context: context,
+        builder: (_) => PoiScheduleTableDialog(
+          distanceUnit: distanceUnit,
+          highlightIndex: newHighlightIndex >= 0 ? newHighlightIndex : null,
+          showDownloadButton: isStartOrGoal,
+          rows: filtered.indexed.map((entry) {
+            final fi = entry.$1;
+            final e = entry.$2;
+            final resolvedCheckIn =
+                sessionCheckInsByIndex?.containsKey(e.key) == true
+                    ? sessionCheckInsByIndex![e.key]
+                    : e.value.checkInResultUtc;
+            final resolvedRest = sessionRestsByIndex?.containsKey(e.key) == true
+                ? sessionRestsByIndex![e.key]
+                : e.value.restUtc;
+            // フィルタ後のリストで累積距離から区間距離を再計算する。
+            // ノート POI など arrival/departure のないエントリがフィルタで除外された場合、
+            // 元の segmentDistanceKm は除外前の隣接エントリとの差分なので正しくない。
+            double? segKm;
+            if (fi > 0) {
+              final prevCum = filtered[fi - 1].value.cumulativeDistanceKm;
+              final currCum = e.value.cumulativeDistanceKm;
+              if (currCum != null && prevCum != null && currCum >= prevCum) {
+                segKm = currCum - prevCum;
+              }
+            }
+            return PoiScheduleRow(
+              distance: e.value.distance,
+              segmentDistanceKm: segKm,
+              cumulativeDistanceKm: e.value.cumulativeDistanceKm,
+              elevationGain: e.value.elevationGain,
+              rawElevationGainM: e.value.rawElevationGainM,
+              name: e.value.name,
+              arrival: e.value.arrival,
+              departure: e.value.departure,
+              checkInResultUtc: resolvedCheckIn,
+              restUtc: resolvedRest,
+              startClose: e.value.close,
+            );
+          }).toList(),
+        ),
+      );
+    }
+
+    final showCheckInBadge = showElevationGainIcon &&
+        !hasCheckedOut &&
+        !_poiCheckInToggleOnFromResultUtc(checkInResultUtc) &&
+        onCommitCheckInForEntry != null;
+    final showCheckOutBadge = showElevationGainIcon &&
+        !hasCheckedOut &&
+        !isRouteFinishPoi &&
+        _poiCheckInToggleOnFromResultUtc(checkInResultUtc);
+
     final column = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 距離 + 獲得標高（1行）
         if (showStatsRow)
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
@@ -779,17 +2083,76 @@ class _PoiContentBlock extends StatelessWidget {
               children: [
                 if (hasDistance) ...[
                   const Icon(Icons.location_on,
-                      size: 23, color: AppColors.muted),
+                      size: 23, color: AppColors.mutedLarge),
                   const SizedBox(width: 3),
                   Text(distance!, style: AppTextStyles.poiLarge),
+                  const SizedBox(width: 4),
                 ],
                 if (hasDistance && showElevationGainIcon)
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                 if (showElevationGainIcon) ...[
                   const Icon(Icons.trending_up,
-                      size: 23, color: AppColors.muted),
+                      size: 23, color: AppColors.mutedLarge),
                   const SizedBox(width: 3),
                   Text(elevationGain!, style: AppTextStyles.poiLarge),
+                  const SizedBox(width: 5),
+                ],
+                // チェックインバッジ（InkWell の外・タップエリア外）
+                if (showCheckInBadge || showCheckOutBadge) ...[
+                  const SizedBox(width: 12),
+                  if (showCheckOutBadge)
+                    onCommitCheckOutForEntry != null
+                        ? _TappableCheckOutBadge(
+                            onTap: () async {
+                              final l10n = AppLocalizations.of(context)!;
+                              final confirmed = await showConfirmDialog(
+                                context,
+                                message: l10n.poiCheckOut,
+                                cancelText: l10n.cancel,
+                                confirmText: l10n.ok,
+                              );
+                              if (confirmed != true) return;
+                              final utc = DateTime.now().toUtc();
+                              await onCommitCheckOutForEntry!(
+                                  checkInTapEntryIndex, utc);
+                            },
+                          )
+                        : const _CheckInBadge(
+                            label: _kCheckOutBadgeLabel,
+                            color: AppColors.checkInResult)
+                  else
+                    GestureDetector(
+                      onTap: () async {
+                        onCheckInTapStart?.call();
+                        final ei = checkInTapEntryIndex;
+                        var animationStarted = false;
+                        await _runPoiCheckInToggleTap(
+                          context: context,
+                          poiPosition: poiPosition,
+                          verifyLocationOnCheckIn: verifyLocationOnCheckIn,
+                          turnOn: true,
+                          timeChart: timeChart,
+                          onBeginCheckInChartAnimation:
+                              onBeginCheckInChartAnimation == null
+                                  ? null
+                                  : (hours) {
+                                      animationStarted = true;
+                                      onBeginCheckInChartAnimation!(hours);
+                                    },
+                          onCommit: (utc) => onCommitCheckInForEntry!(ei, utc),
+                          onClear: () async {},
+                        );
+                        if (!animationStarted) {
+                          onCheckInTapCancel?.call();
+                        }
+                      },
+                      child: _CheckInBadge(
+                        label: _kCheckInBadgeLabel,
+                        color: checkInAnimating
+                            ? AppColors.checkInResult.withValues(alpha: 0.6)
+                            : AppColors.checkInResult,
+                      ),
+                    ),
                 ],
               ],
             ),
@@ -799,42 +2162,189 @@ class _PoiContentBlock extends StatelessWidget {
           if (showStatsRow) const SizedBox(height: 3),
           Padding(
             padding: const EdgeInsets.only(left: 23),
-            child: Row(
-              children: [
-                _buildDateBadge(
-                  (arrival ?? departure ?? close)!,
-                  context,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: canTapSheetForScheduleTable ? openScheduleTable : null,
+                splashColor: Colors.grey.withValues(alpha: 0.25),
+                highlightColor: Colors.grey.withValues(alpha: 0.12),
+                child: Builder(
+                  builder: (context) {
+                    final scheduleBadgeTime =
+                        (checkInResultUtc ?? arrival ?? departure ?? close)!;
+                    final dateBadge = _buildDateBadge(
+                      scheduleBadgeTime,
+                      context,
+                      color: hasCheckedIn ? AppColors.checkInResult : null,
+                      filled: hasCheckedIn,
+                    );
+                    final showCloseOnSecondRow = hasCheckedIn &&
+                        hasClose &&
+                        showDepartureRow &&
+                        (hasArrival || hasCheckedIn);
+
+                    final arrivalDepartureDiff = <Widget>[
+                      if (hasArrival || hasCheckedIn) ...[
+                        Icon(Icons.arrow_downward,
+                            size: 15,
+                            fontWeight: FontWeight.w600,
+                            color: hasCheckedIn
+                                ? AppColors.checkInResult
+                                : AppColors.muted),
+                        const SizedBox(width: 1),
+                        Text(
+                          _formatTime((checkInResultUtc ?? arrival)!, context),
+                          style: hasCheckedIn
+                              ? AppTextStyles.poiSchedule
+                                  .copyWith(color: AppColors.checkInResult)
+                              : AppTextStyles.poiSchedule,
+                        ),
+                        // ゴール／最終 POI は出発予定が無いことが多い。diff は算出されるが
+                        // 出発行が無いと下のブロックに入れられないため到着の直後に出す。
+                        if (scheduleDiffStr != null && !showDepartureRow) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            scheduleDiffStr[0],
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedIn
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            scheduleDiffStr.substring(1),
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedIn
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                        ],
+                      ],
+                      if ((hasArrival || hasCheckedIn) && showDepartureRow)
+                        const SizedBox(width: 6),
+                      if (showDepartureRow) ...[
+                        Icon(Icons.arrow_upward,
+                            size: 15,
+                            fontWeight: FontWeight.w600,
+                            color: hasCheckedOut
+                                ? AppColors.checkInResult
+                                : AppColors.muted),
+                        const SizedBox(width: 1),
+                        Text(
+                          _formatTime((restUtc ?? departure)!, context),
+                          style: hasCheckedOut
+                              ? AppTextStyles.poiSchedule
+                                  .copyWith(color: AppColors.checkInResult)
+                              : AppTextStyles.poiSchedule,
+                        ),
+                        if (scheduleDiffStr != null) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            scheduleDiffStr[0],
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedOut
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            scheduleDiffStr.substring(1),
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedOut
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ];
+                    final scheduleMoreIcon = Transform.translate(
+                      offset: const Offset(0, -1),
+                      child: const Icon(Icons.more_time,
+                          size: 18, color: AppColors.muted),
+                    );
+
+                    Widget fittableScheduleRow({
+                      required Widget leading,
+                      required List<Widget> contents,
+                    }) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          leading,
+                          const SizedBox(width: 7),
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: contents,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    if (showCloseOnSecondRow) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          fittableScheduleRow(
+                            leading: dateBadge,
+                            contents: arrivalDepartureDiff,
+                          ),
+                          fittableScheduleRow(
+                            leading: Opacity(
+                              opacity: 0,
+                              child: IgnorePointer(child: dateBadge),
+                            ),
+                            contents: [
+                              const Icon(Icons.lock_outline,
+                                  size: 17, color: AppColors.muted),
+                              const SizedBox(width: 1),
+                              Text(
+                                _formatTime(close!, context),
+                                style: AppTextStyles.poiSchedule,
+                              ),
+                              const SizedBox(width: 8),
+                              scheduleMoreIcon,
+                            ],
+                          ),
+                        ],
+                      );
+                    }
+
+                    return fittableScheduleRow(
+                      leading: dateBadge,
+                      contents: [
+                        ...arrivalDepartureDiff,
+                        if ((hasArrival ||
+                                hasCheckedIn ||
+                                hasDeparture ||
+                                hasCheckedOut) &&
+                            hasClose)
+                          const SizedBox(width: 8),
+                        if (hasClose) ...[
+                          const Icon(Icons.lock_outline,
+                              size: 17, color: AppColors.muted),
+                          const SizedBox(width: 1),
+                          Text(_formatTime(close!, context),
+                              style: AppTextStyles.poiSchedule),
+                        ],
+                        const SizedBox(width: 8),
+                        scheduleMoreIcon,
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(width: 6),
-                if (hasArrival) ...[
-                  const Icon(Icons.arrow_downward,
-                      size: 17, color: AppColors.muted),
-                  const SizedBox(width: 1),
-                  Text(
-                    _formatTime(arrival!, context),
-                    style: AppTextStyles.poiSchedule,
-                  ),
-                ],
-                if (hasArrival && hasDeparture) const SizedBox(width: 8),
-                if (hasDeparture) ...[
-                  const Icon(Icons.arrow_upward,
-                      size: 17, color: AppColors.muted),
-                  const SizedBox(width: 1),
-                  Text(
-                    _formatTime(departure!, context),
-                    style: AppTextStyles.poiSchedule,
-                  ),
-                ],
-                if ((hasArrival || hasDeparture) && hasClose)
-                  const SizedBox(width: 12),
-                if (hasClose) ...[
-                  const Icon(Icons.lock_outline,
-                      size: 17, color: AppColors.muted),
-                  const SizedBox(width: 1),
-                  Text(_formatTime(close!, context),
-                      style: AppTextStyles.poiSchedule),
-                ],
-              ],
+              ),
             ),
           ),
         ],
@@ -842,8 +2352,8 @@ class _PoiContentBlock extends StatelessWidget {
           const SizedBox(height: 12),
           Padding(
             padding: EdgeInsets.only(left: distanceLeft),
-            child:
-                const Divider(height: 1, thickness: 1, color: Colors.black26),
+            child: const Divider(
+                height: 1, thickness: 1, color: AppColors.mutedLarge),
           ),
           const SizedBox(height: 12),
         ] else
@@ -1198,7 +2708,8 @@ class _SegmentElevationAreaPainter extends CustomPainter {
     final plotH = chartBottom - chartPlotTop;
     if (plotW <= 0 || plotH <= 0) return;
 
-    final distTickY = chartBottom + 4;
+    /// プロット下端と横軸距離ラベルの間の余白（目盛り＝下端グリッド交点）。
+    final distTickY = chartBottom + 5;
     final kmUnitTop = distTickY + 14;
 
     double txPlot(double k) {
@@ -1397,4 +2908,70 @@ class _SegmentElevationAreaPainter extends CustomPainter {
       oldDelegate.kmAlongRouteEnd != kmAlongRouteEnd ||
       oldDelegate.distanceUnit != distanceUnit ||
       oldDelegate.textScaler != textScaler;
+}
+
+const _kCheckInBadgeLabel = 'C/I';
+const _kCheckOutBadgeLabel = 'C/O';
+
+/// 押下時に背景色を暗くする C/O バッジ（チェックアウトボタン用）。
+class _TappableCheckOutBadge extends StatefulWidget {
+  const _TappableCheckOutBadge({required this.onTap});
+
+  final Future<void> Function() onTap;
+
+  @override
+  State<_TappableCheckOutBadge> createState() => _TappableCheckOutBadgeState();
+}
+
+class _TappableCheckOutBadgeState extends State<_TappableCheckOutBadge> {
+  bool _pressed = false;
+
+  static const _normalColor = AppColors.checkInResult;
+  static final _pressedColor = AppColors.checkInResult.withValues(alpha: 0.6);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTap: () async {
+        await widget.onTap();
+        if (mounted) setState(() => _pressed = false);
+      },
+      child: _CheckInBadge(
+        label: _kCheckOutBadgeLabel,
+        color: _pressed ? _pressedColor : _normalColor,
+      ),
+    );
+  }
+}
+
+/// C/I・C/O テキストバッジ（グレー or カスタム背景・白文字）
+class _CheckInBadge extends StatelessWidget {
+  const _CheckInBadge({required this.label, this.color});
+
+  final String label;
+
+  /// 指定時はこの色を背景に使う。未指定はグレー。
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = color ?? AppColors.mutedLarge;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.bodySmall.copyWith(
+          color: Colors.white,
+          height: 1.0,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
 }

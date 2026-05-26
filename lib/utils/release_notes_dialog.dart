@@ -17,6 +17,8 @@ String? _messageForVersionBuild(
       return l10n.releaseNotesV11018Message;
     case '1.2.0+19':
       return l10n.releaseNotesV12019Message;
+    case '1.3.0+20':
+      return l10n.releaseNotesV13020Message;
     default:
       return null;
   }

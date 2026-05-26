@@ -149,7 +149,13 @@ class AppLocalizationsTh extends AppLocalizations {
   String get plannedClose => 'เวลาปิดรับ';
 
   @override
-  String get arrivalShort => 'มาถึง';
+  String get poiArrivalActual => 'เวลามาถึงจริง';
+
+  @override
+  String get poiRestActual => 'เวลาออกเดินทางจริง';
+
+  @override
+  String get poiCheckOut => 'เช็คเอาต์?';
 
   @override
   String get departureShort => 'ออกเดินทาง';
@@ -162,6 +168,15 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get kmRequired => 'ต้องระบุระยะทาง';
+
+  @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
 
   @override
   String get offRoute => 'ออกนอกเส้นทาง';
@@ -247,6 +262,27 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get mapStyleDark => 'แสดงแผนที่ในโหมดมืด';
+
+  @override
+  String get debugMapTilesMenu => 'Map tiles (debug)';
+
+  @override
+  String get debugMapTilesDialogTitle => 'Debug map tiles';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => 'Default (OSM)';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager raster';
+
+  @override
+  String get debugMapTilesDialogCancel => 'Cancel';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Switch to Voyager raster tile';
+
+  @override
+  String get mapStyleDebugCartoLight => 'Switch to light_all raster tile';
 
   @override
   String get showFullRoute => 'แสดงเส้นทางทั้งหมด';
@@ -447,6 +483,15 @@ class AppLocalizationsTh extends AppLocalizations {
 
   @override
   String get locationSharing => 'แชร์ตำแหน่ง';
+
+  @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => 'ตรวจสอบตำแหน่ง';
+
+  @override
+  String get checkInVerifyLocationRadioOff => 'ไม่ตรวจสอบตำแหน่ง';
 
   @override
   String get aboutApp => 'เกี่ยวกับแอปนี้';
@@ -650,8 +695,42 @@ class AppLocalizationsTh extends AppLocalizations {
       'ในเวอร์ชัน 1.2 เราได้ขยายข้อมูล POI อย่างมาก!\nเวอร์ชันนี้ปลดล็อกทุกฟีเจอร์แล้ว ลองใช้งานดูได้เลย!\n\n- เพิ่มประเภท POI เช่น จุดถ่ายรูปและร้านสะดวกซื้อ\n- เพิ่มช่องลิงก์ URL ในข้อมูล POI\n- แสดงกราฟระดับความสูงระหว่างจุดควบคุม\n- ตั้งเวลาถึงโดยประมาณของจุดควบคุมอัตโนมัติ';
 
   @override
+  String get releaseNotesV13020Message =>
+      'เวอร์ชัน 1.3 เพิ่มฟีเจอร์เช็กอิน/เช็กเอาต์ที่จุดควบคุม (PC) ทำให้นอกจากแผนการปั่นแล้ว ยังบันทึกผลการปั่นจริงได้ด้วย!\nข้อมูลที่บันทึกไว้สามารถดูในรูปแบบตาราง และดาวน์โหลดเป็นไฟล์ CSV ได้\nเวอร์ชันนี้เปิดใช้งานทุกฟีเจอร์แล้ว ลองใช้งานได้เลย!';
+
+  @override
   String get poiSaveAsNote => 'บันทึกเป็นโน้ต';
 
   @override
   String get brevetTimeLimitLabel => 'เวลาจำกัด';
+
+  @override
+  String get poiCheckInConfirmMessage => 'ต้องการเช็คอินหรือไม่?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return 'การเช็คอินได้เมื่อคุณอยู่ภายในระยะไม่เกิน $thresholdKm กม. จาก POI จุดนี้';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => 'กำลังรับข้อมูลตำแหน่ง…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => 'ไม่สามารถเช็คอินได้';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => 'ไม่สามารถรับตำแหน่งได้';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      'รับข้อมูลตำแหน่งปัจจุบันของคุณไม่ได้ ลองอีกครั้งในกลางแจ้งหากเป็นไปได้ หรือตรวจสอบ GPS การตั้งค่า «ตำแหน่ง» ในอุปกรณ์ และสิทธิ์ของแอป';
+
+  @override
+  String get selectPoiAtSameLocation => 'เลือก POI';
+
+  @override
+  String get poiScheduleTableTitle => 'บันทึกการเช็คอิน';
+
+  @override
+  String get csvDownload => 'ดาวน์โหลด';
 }

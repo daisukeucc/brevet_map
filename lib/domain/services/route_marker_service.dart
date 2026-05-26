@@ -236,15 +236,19 @@ Future<List<Marker>> buildRouteMarkers({
           ? LatLng(startPoint.latitude + 0.00008, startPoint.longitude)
           : startPoint;
 
+      // finish UserPoi が無いときは赤マーカーを表示のみとし、タップを下層 POI に通す。
+      final Widget goalMarkerChild = finishPoi != null
+          ? GestureDetector(
+              onTap: () => onUserPoiTap?.call(finishPoi),
+              child: goalIcon,
+            )
+          : IgnorePointer(child: goalIcon);
       markers.add(Marker(
         point: goalPoint,
         width: _markerSize,
         height: _markerSize,
         alignment: Alignment.center,
-        child: GestureDetector(
-          onTap: finishPoi != null ? () => onUserPoiTap?.call(finishPoi) : null,
-          child: goalIcon,
-        ),
+        child: goalMarkerChild,
       ));
       markers.add(Marker(
         point: adjustedStartPoint,

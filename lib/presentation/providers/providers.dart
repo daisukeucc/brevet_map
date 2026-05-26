@@ -26,3 +26,9 @@ final mapStateProvider =
 
 /// キャッシュ削除時にインクリメントし、地図のタイルプロバイダを再生成するためのキー
 final mapTileProviderKeyProvider = StateProvider<int>((ref) => 0);
+
+/// デバッグのみ: CARTO Voyager 系ラスタで地図を表示（永続化しない）
+final debugCartoVoyagerTilesEnabledProvider = StateProvider<bool>((ref) => false);
+
+/// デバッグのみ: true なら light_all、false なら Voyager
+final debugCartoVoyagerLightProvider = StateProvider<bool>((ref) => false);

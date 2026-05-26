@@ -383,11 +383,23 @@ abstract class AppLocalizations {
   /// **'Cutoff'**
   String get plannedClose;
 
-  /// No description provided for @arrivalShort.
+  /// No description provided for @poiArrivalActual.
   ///
   /// In en, this message translates to:
-  /// **'Arrival'**
-  String get arrivalShort;
+  /// **'Actual arrival'**
+  String get poiArrivalActual;
+
+  /// No description provided for @poiRestActual.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual departure'**
+  String get poiRestActual;
+
+  /// No description provided for @poiCheckOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Check out?'**
+  String get poiCheckOut;
 
   /// No description provided for @departureShort.
   ///
@@ -412,6 +424,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Distance is required'**
   String get kmRequired;
+
+  /// No description provided for @routeLegOutboundShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Outbound'**
+  String get routeLegOutboundShort;
+
+  /// No description provided for @routeLegReturnShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get routeLegReturnShort;
+
+  /// No description provided for @routeLegAmbiguousShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Undetermined'**
+  String get routeLegAmbiguousShort;
 
   /// No description provided for @offRoute.
   ///
@@ -574,6 +604,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show map in dark mode'**
   String get mapStyleDark;
+
+  /// No description provided for @debugMapTilesMenu.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles (debug)'**
+  String get debugMapTilesMenu;
+
+  /// No description provided for @debugMapTilesDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Debug map tiles'**
+  String get debugMapTilesDialogTitle;
+
+  /// No description provided for @debugMapTilesOptionDefaultOsm.
+  ///
+  /// In en, this message translates to:
+  /// **'Default (OSM)'**
+  String get debugMapTilesOptionDefaultOsm;
+
+  /// No description provided for @debugMapTilesOptionCartoVoyager.
+  ///
+  /// In en, this message translates to:
+  /// **'CARTO Voyager raster'**
+  String get debugMapTilesOptionCartoVoyager;
+
+  /// No description provided for @debugMapTilesDialogCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get debugMapTilesDialogCancel;
+
+  /// No description provided for @mapStyleDebugCartoVoyager.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to Voyager raster tile'**
+  String get mapStyleDebugCartoVoyager;
+
+  /// No description provided for @mapStyleDebugCartoLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to light_all raster tile'**
+  String get mapStyleDebugCartoLight;
 
   /// No description provided for @showFullRoute.
   ///
@@ -917,6 +989,24 @@ abstract class AppLocalizations {
   /// **'Location Sharing'**
   String get locationSharing;
 
+  /// No description provided for @checkInSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in'**
+  String get checkInSettingsTitle;
+
+  /// No description provided for @checkInVerifyLocationRadioOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify location'**
+  String get checkInVerifyLocationRadioOn;
+
+  /// No description provided for @checkInVerifyLocationRadioOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Don\'t verify location'**
+  String get checkInVerifyLocationRadioOff;
+
   /// No description provided for @aboutApp.
   ///
   /// In en, this message translates to:
@@ -1253,6 +1343,12 @@ abstract class AppLocalizations {
   /// **'In version 1.2, POI information has been significantly enhanced!\nAll features are unlocked in this version, so feel free to give it a try!\n\n- Added new POI types such as photo checks and stores\n- Added URL link support to POI information\n- Added elevation graph display between PCs\n- Added automatic estimated arrival times for PCs'**
   String get releaseNotesV12019Message;
 
+  /// No description provided for @releaseNotesV13020Message.
+  ///
+  /// In en, this message translates to:
+  /// **'Version 1.3 adds check-in/check-out functionality at checkpoints (PCs), so in addition to your ride plan, you can now record your actual ride progress!\nRecorded data can be viewed in a table, and CSV download is also available.\nAll features are unlocked in this version, so feel free to give it a try!'**
+  String get releaseNotesV13020Message;
+
   /// No description provided for @poiSaveAsNote.
   ///
   /// In en, this message translates to:
@@ -1264,6 +1360,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Time limit'**
   String get brevetTimeLimitLabel;
+
+  /// No description provided for @poiCheckInConfirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Check in?'**
+  String get poiCheckInConfirmMessage;
+
+  /// Body text when GPS shows the device is farther than the allowed radius ({thresholdKm} km) from the POI.
+  ///
+  /// In en, this message translates to:
+  /// **'To check in, you must be within {thresholdKm} km of this POI.'**
+  String poiCheckInTooFarFromPoi(String thresholdKm);
+
+  /// No description provided for @poiCheckInFetchingLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting location…'**
+  String get poiCheckInFetchingLocation;
+
+  /// No description provided for @poiCheckInNotAvailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot check in'**
+  String get poiCheckInNotAvailableTitle;
+
+  /// No description provided for @poiCheckInLocationAcquireFailedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not get location'**
+  String get poiCheckInLocationAcquireFailedTitle;
+
+  /// No description provided for @poiCheckInLocationUnavailableDetail.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current location could not be obtained. Try again outdoors if you can, or check GPS, Location in your device settings, and app permissions.'**
+  String get poiCheckInLocationUnavailableDetail;
+
+  /// No description provided for @selectPoiAtSameLocation.
+  ///
+  /// In en, this message translates to:
+  /// **'Select POI'**
+  String get selectPoiAtSameLocation;
+
+  /// No description provided for @poiScheduleTableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in Records'**
+  String get poiScheduleTableTitle;
+
+  /// No description provided for @csvDownload.
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get csvDownload;
 }
 
 class _AppLocalizationsDelegate

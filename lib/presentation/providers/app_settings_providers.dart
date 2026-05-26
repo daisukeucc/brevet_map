@@ -13,6 +13,9 @@ final localeProvider = StateProvider<Locale?>((ref) => null);
 /// バッテリー残量表示。true=表示、false=非表示（デフォルト）
 final batteryDisplayProvider = StateProvider<bool>((ref) => false);
 
+/// チェックイン時に位置情報で距離を検証する。true=検証する（既定）、false=確認のみ
+final checkInVerifyLocationProvider = StateProvider<bool>((ref) => true);
+
 /// main() で事前ロードした初回起動フラグ。ProviderScope.overrides で上書きして使用する。
 /// これにより initState() での非同期待ちを排除し、スプラッシュの固着を防ぐ。
 final cachedFirstLaunchProvider = Provider<bool>((ref) => false);

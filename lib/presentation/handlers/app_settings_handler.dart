@@ -10,9 +10,11 @@ void showAppSettingsScreen(
   required VoidCallback onLanguageTap,
   required VoidCallback onBatteryDisplayTap,
   required VoidCallback onLocationSharingTap,
+  required VoidCallback onCheckInTap,
   required VoidCallback onContactUsTap,
   required VoidCallback onSubscriptionTap,
   required VoidCallback onAboutAppTap,
+  VoidCallback? onDebugMapTilesTap,
 }) {
   Navigator.of(context).push(
     PageRouteBuilder<void>(
@@ -21,9 +23,11 @@ void showAppSettingsScreen(
         onLanguageTap: onLanguageTap,
         onBatteryDisplayTap: onBatteryDisplayTap,
         onLocationSharingTap: onLocationSharingTap,
+        onCheckInTap: onCheckInTap,
         onContactUsTap: onContactUsTap,
         onSubscriptionTap: onSubscriptionTap,
         onAboutAppTap: onAboutAppTap,
+        onDebugMapTilesTap: onDebugMapTilesTap,
       ),
       transitionDuration: const Duration(milliseconds: 300),
       reverseTransitionDuration: const Duration(milliseconds: 250),
@@ -48,18 +52,22 @@ class _AppSettingsScreen extends StatefulWidget {
     required this.onLanguageTap,
     required this.onBatteryDisplayTap,
     required this.onLocationSharingTap,
+    required this.onCheckInTap,
     required this.onContactUsTap,
     required this.onSubscriptionTap,
     required this.onAboutAppTap,
+    this.onDebugMapTilesTap,
   });
 
   final VoidCallback onDistanceUnitTap;
   final VoidCallback onLanguageTap;
   final VoidCallback onBatteryDisplayTap;
   final VoidCallback onLocationSharingTap;
+  final VoidCallback onCheckInTap;
   final VoidCallback onContactUsTap;
   final VoidCallback onSubscriptionTap;
   final VoidCallback onAboutAppTap;
+  final VoidCallback? onDebugMapTilesTap;
 
   @override
   State<_AppSettingsScreen> createState() => _AppSettingsScreenState();
@@ -71,9 +79,12 @@ class _AppSettingsScreenState extends State<_AppSettingsScreen> {
     final l10n = AppLocalizations.of(context)!;
     final items = [
       (label: l10n.locationSharing, onTap: widget.onLocationSharingTap),
+      (label: l10n.checkInSettingsTitle, onTap: widget.onCheckInTap),
       (label: l10n.batteryLevelDisplay, onTap: widget.onBatteryDisplayTap),
       (label: l10n.distanceUnit, onTap: widget.onDistanceUnitTap),
       (label: l10n.language, onTap: widget.onLanguageTap),
+      if (widget.onDebugMapTilesTap != null)
+        (label: l10n.debugMapTilesMenu, onTap: widget.onDebugMapTilesTap!),
       (label: l10n.subscription, onTap: widget.onSubscriptionTap),
       (label: l10n.aboutApp, onTap: widget.onAboutAppTap),
       (label: l10n.contactUs, onTap: widget.onContactUsTap),

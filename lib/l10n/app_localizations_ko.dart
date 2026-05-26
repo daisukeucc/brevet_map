@@ -148,7 +148,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get plannedClose => '마감 시간';
 
   @override
-  String get arrivalShort => '도착';
+  String get poiArrivalActual => '실제 도착';
+
+  @override
+  String get poiRestActual => '실제 출발';
+
+  @override
+  String get poiCheckOut => '체크아웃하시겠습니까?';
 
   @override
   String get departureShort => '출발';
@@ -161,6 +167,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get kmRequired => '거리를 입력해 주세요';
+
+  @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
 
   @override
   String get offRoute => '경로 이탈';
@@ -246,6 +261,27 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get mapStyleDark => '다크 모드로 지도 표시';
+
+  @override
+  String get debugMapTilesMenu => 'Map tiles (debug)';
+
+  @override
+  String get debugMapTilesDialogTitle => 'Debug map tiles';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => 'Default (OSM)';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager raster';
+
+  @override
+  String get debugMapTilesDialogCancel => 'Cancel';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Switch to Voyager raster tile';
+
+  @override
+  String get mapStyleDebugCartoLight => 'Switch to light_all raster tile';
 
   @override
   String get showFullRoute => '전체 경로 표시';
@@ -444,6 +480,15 @@ class AppLocalizationsKo extends AppLocalizations {
   String get locationSharing => '위치 정보 공유';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '위치 확인';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '위치 확인 안 함';
+
+  @override
   String get aboutApp => '이 앱에 대해';
 
   @override
@@ -635,8 +680,42 @@ class AppLocalizationsKo extends AppLocalizations {
       '버전 1.2에서 POI 정보를 대폭 확장했습니다!\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!\n\n- POI 유형에 포토 체크·편의점 등 추가\n- POI 정보에 URL 링크 항목 추가\n- 체크포인트 구간의 고도 그래프 표시\n- 체크포인트 도착 예정 시각 자동 설정';
 
   @override
+  String get releaseNotesV13020Message =>
+      '버전 1.3에서는 PC(체크포인트)의 체크인/체크아웃 기능을 추가하여 주행 계획에 더해 주행 실적을 기록할 수 있게 되었습니다!\n기록한 데이터는 테이블 표시로 확인할 수 있으며 CSV 파일 다운로드도 가능합니다.\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!';
+
+  @override
   String get poiSaveAsNote => '메모로 저장';
 
   @override
   String get brevetTimeLimitLabel => '제한 시간';
+
+  @override
+  String get poiCheckInConfirmMessage => '체크인하시겠습니까?';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return '체크인하려면 이 POI에서 ${thresholdKm}km 이내에 있어야 합니다.';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => '위치 정보를 가져오는 중…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => '체크인할 수 없습니다';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => '위치 정보를 가져올 수 없습니다';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      '현재 위치를 가져오지 못했습니다. 가능하면 실외에서 다시 시도하거나, GPS와 단말 설정의 위치 정보 및 앱 권한을 확인해 주세요.';
+
+  @override
+  String get selectPoiAtSameLocation => 'POI 선택';
+
+  @override
+  String get poiScheduleTableTitle => '체크인 기록';
+
+  @override
+  String get csvDownload => '다운로드';
 }

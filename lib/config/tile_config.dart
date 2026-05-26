@@ -18,6 +18,27 @@ class TileConfig {
     return languageCode == 'ja' ? _tileUrlTemplateJa : _tileUrlTemplateEn;
   }
 
+  /// デバッグ専用: CARTO Voyager ラスタ（kDebugMode のみで使用）
+  static const String debugCartoVoyagerTileUrlTemplate =
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png';
+
+  /// デバッグ専用: CARTO light_all ラスタ（kDebugMode のみで使用）
+  static const String debugCartoLightTileUrlTemplate =
+      'https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png';
+
+  /// デバッグ用 CARTO テンプレートを返す。[light] が true のとき light_all。
+  static String getDebugCartoTileUrlTemplate({required bool light}) {
+    return light ? debugCartoLightTileUrlTemplate : debugCartoVoyagerTileUrlTemplate;
+  }
+
+  /// [urlTemplate] に応じた帰属表示文
+  static String attributionForTemplate(String urlTemplate) {
+    if (urlTemplate.contains('basemaps.cartocdn.com')) {
+      return '© OpenStreetMap contributors © CARTO';
+    }
+    return attribution;
+  }
+
   /// @deprecated 代わりに getTileUrlTemplate(languageCode) を使用する
   static String get tileUrlTemplate => _tileUrlTemplateJa;
 

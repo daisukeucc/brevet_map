@@ -23,6 +23,8 @@ const _keyDistanceUnit = 'distance_unit'; // 0=km, 1=mile
 const _keySleepInfoDismissed = 'sleep_info_dismissed';
 const _keyLocale = 'locale'; // '' = システム設定に従う、それ以外は言語コード
 const _keyBatteryDisplay = 'battery_display'; // true=表示, false=非表示
+const _keyCheckInVerifyLocation =
+    'check_in_verify_location'; // true=チェックイン時に位置を検証（既定）
 const _keyLastShownReleaseNoteId =
     'last_shown_release_note_id'; // 例: 1.1.0+18。一度表示した版は再表示しない
 
@@ -263,6 +265,18 @@ Future<void> saveBatteryDisplay(bool value) async {
 Future<bool> loadBatteryDisplay() async {
   final prefs = await SharedPreferences.getInstance();
   return prefs.getBool(_keyBatteryDisplay) ?? false;
+}
+
+/// チェックイン時に現在地とPOIとの距離を検証する。true=検証する（既定）、false=確認ダイアログのみ
+Future<void> saveCheckInVerifyLocation(bool value) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool(_keyCheckInVerifyLocation, value);
+}
+
+/// 保存済み設定。未設定なら true（位置情報をチェックする）
+Future<bool> loadCheckInVerifyLocation() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool(_keyCheckInVerifyLocation) ?? true;
 }
 
 /// リリースノートダイアログを最後に表示した `version+build`（未表示なら null）

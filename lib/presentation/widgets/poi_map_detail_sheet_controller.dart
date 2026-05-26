@@ -4,11 +4,14 @@ import 'package:latlong2/latlong.dart';
 
 import '../../data/parsers/gpx_parser.dart';
 import '../../data/repositories/first_launch_repository.dart';
+import '../../domain/models/bm_extension.dart';
+import '../../domain/models/brevet_distances.dart';
 import '../../domain/models/user_poi.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/map_utils.dart';
 import '../providers/providers.dart';
 import 'poi_detail_sheet.dart';
+import 'text_menu_dialog.dart';
 
 /// ボトムシート内の POI 表示順。
 abstract final class PoiMapMarkerOrder {
@@ -29,6 +32,154 @@ abstract final class PoiMapMarkerOrder {
 bool _sameGpxPoi(GpxPoi a, GpxPoi b) =>
     (a.lat - b.lat).abs() < 1e-9 && (a.lng - b.lng).abs() < 1e-9;
 
+double? _elapsedHoursFromBrevetStart(DateTime? brevetStartUtc, DateTime? arrival) {
+  if (brevetStartUtc == null || arrival == null) return null;
+  final h =
+      arrival.difference(brevetStartUtc).inMicroseconds / 3600000000.0;
+  if (!h.isFinite) return null;
+  return h < 0 ? 0.0 : h;
+}
+
+/// 時刻チャートの原点。到着推定は [BmSchedule.departure]/[BmSchedule.arrival] と
+/// [estimateArrivalFromRouteStart] でスタート地点の出発を基準にしているため、
+/// メタの `startTime` だけだとデータ不整合で経過が極端に大きくなることがある。
+DateTime? _chartBrevetStartUtcFromGpxPois(
+  List<GpxPoi> ordered,
+  DateTime? metaStart,
+) {
+  for (final p in ordered) {
+    if (GpxPoiTag.isStartType(p.bmPoiExt?.type)) {
+      final s = p.bmPoiExt?.schedule;
+      return s?.departure ?? s?.arrival ?? metaStart;
+    }
+  }
+  return metaStart;
+}
+
+UserPoi _userPoiWithCheckInResult(UserPoi p, DateTime utc) {
+  final ext = p.bmExt;
+  final sched = ext?.schedule ?? const BmSchedule();
+  final newSched = BmSchedule(
+    arrival: sched.arrival,
+    departure: sched.departure,
+    close: sched.close,
+    result: utc,
+    rest: sched.rest,
+  );
+  if (ext != null) {
+    return UserPoi(
+      type: p.type,
+      km: p.km,
+      title: p.title,
+      body: p.body,
+      url: p.url,
+      lat: p.lat,
+      lng: p.lng,
+      gpxCmt: p.gpxCmt,
+      gpxType: p.gpxType,
+      isNote: p.isNote,
+      bmExt: BmPoiExtension(
+        type: ext.type,
+        schedule: newSched,
+        distanceKm: ext.distanceKm,
+        displayOrder: ext.displayOrder,
+        isNote: ext.isNote,
+      ),
+    );
+  }
+  return UserPoi(
+    type: p.type,
+    km: p.km,
+    title: p.title,
+    body: p.body,
+    url: p.url,
+    lat: p.lat,
+    lng: p.lng,
+    gpxCmt: p.gpxCmt,
+    gpxType: p.gpxType,
+    isNote: p.isNote,
+    bmExt: BmPoiExtension(
+      type: p.poiType.defaultBmPoiType,
+      schedule: newSched,
+      distanceKm: p.km ?? 0,
+    ),
+  );
+}
+
+UserPoi _userPoiWithRestResult(UserPoi p, DateTime utc) {
+  final ext = p.bmExt;
+  final sched = ext?.schedule ?? const BmSchedule();
+  final newSched = BmSchedule(
+    arrival: sched.arrival,
+    departure: sched.departure,
+    close: sched.close,
+    result: sched.result,
+    rest: utc,
+  );
+  if (ext != null) {
+    return UserPoi(
+      type: p.type,
+      km: p.km,
+      title: p.title,
+      body: p.body,
+      url: p.url,
+      lat: p.lat,
+      lng: p.lng,
+      gpxCmt: p.gpxCmt,
+      gpxType: p.gpxType,
+      isNote: p.isNote,
+      bmExt: BmPoiExtension(
+        type: ext.type,
+        schedule: newSched,
+        distanceKm: ext.distanceKm,
+        displayOrder: ext.displayOrder,
+        isNote: ext.isNote,
+      ),
+    );
+  }
+  return UserPoi(
+    type: p.type,
+    km: p.km,
+    title: p.title,
+    body: p.body,
+    url: p.url,
+    lat: p.lat,
+    lng: p.lng,
+    gpxCmt: p.gpxCmt,
+    gpxType: p.gpxType,
+    isNote: p.isNote,
+    bmExt: BmPoiExtension(
+      type: p.poiType.defaultBmPoiType,
+      schedule: newSched,
+      distanceKm: p.km ?? 0,
+    ),
+  );
+}
+
+DateTime? _chartBrevetStartUtcFromUserPois(
+  List<UserPoi> ordered,
+  DateTime? metaStart,
+) {
+  for (final p in ordered) {
+    if (GpxPoiTag.isStartType(p.bmExt?.type)) {
+      final s = p.bmExt?.schedule;
+      return s?.departure ?? s?.arrival ?? metaStart;
+    }
+  }
+  return metaStart;
+}
+
+double? _totalRouteKm(List<LatLng> trackPoints) {
+  if (trackPoints.length < 2) return null;
+  final m = distanceAlongTrackFromStart(
+    trackPoints,
+    trackPoints.length - 1,
+  );
+  final km = m / 1000.0;
+  if (!km.isFinite || km <= 0) return null;
+  return km;
+}
+
 /// 地図上の POI タップから詳細ボトムシート表示・シート内移動時の地図追従までを担当する。
 class PoiMapDetailSheetController {
   PoiMapDetailSheetController(this._ref);
@@ -42,6 +193,7 @@ class PoiMapDetailSheetController {
     int poiIndex,
     int distanceUnit, {
     List<bool>? poiHasDistanceKm,
+    List<double?>? poiKmAlongRoute,
     String? chartMetadataName,
     double? chartTimeLimitHours,
   }) {
@@ -53,13 +205,18 @@ class PoiMapDetailSheetController {
       poiIndex: poiIndex,
       distanceUnit: distanceUnit,
       poiHasDistanceKm: poiHasDistanceKm,
+      poiKmAlongRoute: poiKmAlongRoute,
       chartMetadataName: chartMetadataName,
       chartTimeLimitHours: chartTimeLimitHours,
     );
   }
 
-  Future<({String? gpxBasename, double? timeLimitHours})>
-      _loadStartPoiElevationChartFields() async {
+  Future<
+      ({
+        String? gpxBasename,
+        double? timeLimitHours,
+        DateTime? brevetStartUtc,
+      })> _loadStartPoiElevationChartFields() async {
     final routeBasename = await loadGpxImportBasename();
     final meta = await loadBrevetMeta();
     final trimmed = routeBasename?.trim();
@@ -67,7 +224,52 @@ class PoiMapDetailSheetController {
     final rawH = meta?.timeLimitHours ?? 0;
     final hours =
         (rawH > 0 && rawH.isFinite) ? rawH : null;
-    return (gpxBasename: name, timeLimitHours: hours);
+    return (
+      gpxBasename: name,
+      timeLimitHours: hours,
+      brevetStartUtc: meta?.startTime,
+    );
+  }
+
+  /// 出走日・制限時間・スタートが揃うとき、POI シート上段の経過時間チャート。
+  PoiSheetTimeChart? _poiElapsedTimeChart({
+    required DateTime? brevetStartUtc,
+    required double? timeLimitHours,
+    double? routeKm,
+    required DateTime? arrival,
+    required DateTime? departure,
+    required bool isRouteStartPoi,
+  }) {
+    if (brevetStartUtc == null ||
+        timeLimitHours == null ||
+        timeLimitHours <= 0 ||
+        !timeLimitHours.isFinite) {
+      return null;
+    }
+    // 経過時間の意味を持たせるため、スタート以外は到着が無いときチャートを出さない。
+    // スタートは出発のみ設定が通常のため例外。
+    if (!isRouteStartPoi && arrival == null) {
+      return null;
+    }
+    final axisTickStepHours = brevetTimeChartAxisTickStepHours(
+      timeLimitHours,
+      routeKm: routeKm,
+    );
+    // スタート POI も出発のみ設定されているのが通常。軸原点と同じ基準にする。
+    final instant = isRouteStartPoi
+        ? (departure ?? arrival)
+        : (arrival ?? departure);
+    final elapsed = _elapsedHoursFromBrevetStart(brevetStartUtc, instant);
+    final departureElapsed =
+        _elapsedHoursFromBrevetStart(brevetStartUtc, departure);
+    return PoiSheetTimeChart(
+      brevetStartUtc: brevetStartUtc,
+      timeLimitHours: timeLimitHours,
+      axisTickStepHours: axisTickStepHours,
+      elapsedHoursFromStart: elapsed,
+      departureElapsedHoursFromStart: departureElapsed,
+      drawElapsedBar: !isRouteStartPoi,
+    );
   }
 
   Future<void> animateToPoiPreservingZoom(LatLng position) async {
@@ -99,21 +301,45 @@ class PoiMapDetailSheetController {
       double? startTimeLimitHours;
       final needStartHeader = trackPoints.length >= 2 &&
           ordered.any((p) => GpxPoiTag.isStartType(p.bmPoiExt?.type));
+      final fields = await _loadStartPoiElevationChartFields();
+      if (!isMounted() || !context.mounted) return;
       if (needStartHeader) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
-      if (!isMounted() || !context.mounted) return;
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromGpxPois(ordered, fields.brevetStartUtc);
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
         final isStart = GpxPoiTag.isStartType(ordered[i].bmPoiExt?.type);
+        final isFinish = GpxPoiTag.isFinishType(ordered[i].bmPoiExt?.type);
+        final sched = ordered[i].bmPoiExt?.schedule;
+        final currKm = ordered[i].bmPoiExt?.distanceKm;
+        final prevKm = i > 0 ? ordered[i - 1].bmPoiExt?.distanceKm : null;
+        final segKm =
+            (i > 0 && currKm != null && prevKm != null && currKm >= prevKm)
+                ? currKm - prevKm
+                : null;
         entries.add(
           PoiSheetEntry(
             name: ordered[i].name,
             description: ordered[i].description,
             position: ordered[i].position,
-            close: ordered[i].bmPoiExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            checkInResultUtc: sched?.result,
+            restUtc: sched?.rest,
+            segmentDistanceKm: segKm,
+            cumulativeDistanceKm: currKm,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStart,
+            ),
             elevationOnDemand: _elevationOnDemandFor(
               trackPoints,
               elevations,
@@ -125,6 +351,7 @@ class PoiMapDetailSheetController {
             ),
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
+            isRouteFinishPoi: isFinish || i == ordered.length - 1,
           ),
         );
       }
@@ -133,21 +360,32 @@ class PoiMapDetailSheetController {
       showPoiDetailSheet(
         context,
         entries: entries,
+        verifyLocationOnCheckIn:
+            _ref.read(checkInVerifyLocationProvider),
         initialIndex: safeIdx,
         onCenterOnPoi: (pos) {
           animateToPoiPreservingZoom(pos);
         },
       );
     } else {
+      final fields = await _loadStartPoiElevationChartFields();
       String? startMetaName;
       double? startTimeLimitHours;
       if (trackPoints.length >= 2 &&
           GpxPoiTag.isStartType(poi.bmPoiExt?.type)) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;
+      final gpxOrderedForChart = PoiMapMarkerOrder.gpxPois(ms.gpxPois);
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromGpxPois(gpxOrderedForChart, fields.brevetStartUtc);
+      final sched = poi.bmPoiExt?.schedule;
+      final isStart = GpxPoiTag.isStartType(poi.bmPoiExt?.type);
+      final isFinish = GpxPoiTag.isFinishType(poi.bmPoiExt?.type);
+      final gpxIdx = gpxOrderedForChart.indexWhere((p) => _sameGpxPoi(p, poi));
+      final isLastPoi =
+          gpxIdx >= 0 && gpxIdx == gpxOrderedForChart.length - 1;
       showPoiDetailSheet(
         context,
         entries: [
@@ -155,7 +393,18 @@ class PoiMapDetailSheetController {
             name: poi.name,
             description: poi.description,
             position: poi.position,
-            close: poi.bmPoiExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            checkInResultUtc: sched?.result,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStart,
+            ),
             elevationOnDemand: _elevationOnDemandFor(
               trackPoints,
               elevations,
@@ -166,11 +415,21 @@ class PoiMapDetailSheetController {
               chartTimeLimitHours: startTimeLimitHours,
             ),
             distanceUnit: unit,
+            isRouteStartPoi: isStart,
+            isRouteFinishPoi: isFinish || isLastPoi,
           ),
         ],
+        verifyLocationOnCheckIn: _ref.read(checkInVerifyLocationProvider),
       );
     }
   }
+
+  // 同一座標とみなす閾値（約11m）
+  static const _kSameLocationThreshold = 1e-4;
+
+  static bool _isAtSameLocation(UserPoi a, UserPoi b) =>
+      (a.lat - b.lat).abs() < _kSameLocationThreshold &&
+      (a.lng - b.lng).abs() < _kSameLocationThreshold;
 
   Future<void> handleUserPoiTap(
     BuildContext context,
@@ -179,6 +438,45 @@ class PoiMapDetailSheetController {
   ) async {
     await animateToPoiPreservingZoom(poi.position);
     if (!isMounted() || !context.mounted) return;
+
+    // Start・Finish は専用フラグアイコンで一意に識別できるためダイアログをスキップ
+    final isStartOrFinish = GpxPoiTag.isStartType(poi.bmExt?.type) ||
+        GpxPoiTag.isFinishType(poi.bmExt?.type);
+
+    // 同一座標に複数POIがある場合は選択ダイアログを表示
+    final overlapping = isStartOrFinish
+        ? <UserPoi>[]
+        : _ref
+            .read(mapStateProvider)
+            .userPois
+            .where((p) => _isAtSameLocation(p, poi))
+            .toList();
+    if (overlapping.length > 1) {
+      final l10n = AppLocalizations.of(context)!;
+      final unit = _ref.read(distanceUnitProvider);
+      final items = overlapping.map((p) {
+        final title = p.title.isEmpty ? l10n.titleNone : p.title;
+        final dist = p.km != null ? ' (${formatDistance(p.km!, unit)})' : '';
+        return '$title$dist';
+      }).toList();
+      final idx = await showTextMenuDialog(
+        context,
+        items: items,
+        title: l10n.selectPoiAtSameLocation,
+      );
+      if (idx == null || !context.mounted) return;
+      await _showUserPoiDetailSheet(context, overlapping[idx], isMounted);
+      return;
+    }
+
+    await _showUserPoiDetailSheet(context, poi, isMounted);
+  }
+
+  Future<void> _showUserPoiDetailSheet(
+    BuildContext context,
+    UserPoi poi,
+    bool Function() isMounted,
+  ) async {
     final l10n = AppLocalizations.of(context)!;
     final unit = _ref.read(distanceUnitProvider);
 
@@ -203,6 +501,8 @@ class PoiMapDetailSheetController {
           ordered.map((p) => LatLng(p.lat, p.lng)).toList(growable: false);
       final poiHasKm =
           ordered.map((p) => p.km != null && !p.isNote).toList(growable: false);
+      final poiKmAlong =
+          ordered.map<double?>((p) => p.km).toList(growable: false);
 
       String? startMetaName;
       double? startTimeLimitHours;
@@ -213,29 +513,56 @@ class PoiMapDetailSheetController {
                 p.km != null &&
                 !p.isNote,
           );
+      final fields = await _loadStartPoiElevationChartFields();
+      if (!isMounted() || !context.mounted) return;
       if (needStartHeader) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
-      if (!isMounted() || !context.mounted) return;
 
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromUserPois(ordered, fields.brevetStartUtc);
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
         final hasKmForSegment = poiHasKm[i];
+        final sched = ordered[i].bmExt?.schedule;
+        final isStartType = GpxPoiTag.isStartType(ordered[i].bmExt?.type);
+        final isFinishType = GpxPoiTag.isFinishType(ordered[i].bmExt?.type);
+        final poiRef = ordered[i];
+        final currKm = ordered[i].km;
+        final prevKm = i > 0 ? ordered[i - 1].km : null;
+        final segKm = (i > 0 &&
+                hasKmForSegment &&
+                currKm != null &&
+                prevKm != null &&
+                currKm >= prevKm)
+            ? currKm - prevKm
+            : null;
         entries.add(
           PoiSheetEntry(
             name: titleFor(ordered[i]),
             distance: distanceFor(ordered[i]),
+            segmentDistanceKm: segKm,
+            cumulativeDistanceKm: currKm,
             elevationGain: hasKmForSegment && rawGains[i] != null
                 ? formatElevationChange(rawGains[i]!, unit)
                 : null,
+            rawElevationGainM: hasKmForSegment ? rawGains[i] : null,
             description: ordered[i].body,
             url: ordered[i].url,
             position: ordered[i].position,
-            arrival: ordered[i].bmExt?.schedule.arrival,
-            departure: ordered[i].bmExt?.schedule.departure,
-            close: ordered[i].bmExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            checkInResultUtc: sched?.result,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStartType,
+            ),
             elevationOnDemand: hasKmForSegment
                 ? _elevationOnDemandFor(
                     trackPoints,
@@ -244,18 +571,33 @@ class PoiMapDetailSheetController {
                     i,
                     unit,
                     poiHasDistanceKm: poiHasKm,
-                    chartMetadataName:
-                        GpxPoiTag.isStartType(ordered[i].bmExt?.type)
-                            ? startMetaName
-                            : null,
-                    chartTimeLimitHours:
-                        GpxPoiTag.isStartType(ordered[i].bmExt?.type)
-                            ? startTimeLimitHours
-                            : null,
+                    poiKmAlongRoute: poiKmAlong,
+                    chartMetadataName: isStartType ? startMetaName : null,
+                    chartTimeLimitHours: isStartType ? startTimeLimitHours : null,
                   )
                 : null,
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
+            isRouteFinishPoi: isFinishType || i == ordered.length - 1,
+            onCheckIn: (utc) async {
+              final updated = _userPoiWithCheckInResult(poiRef, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(poiRef, updated);
+            },
+            restUtc: sched?.rest,
+            onCheckOut: isFinishType || i == ordered.length - 1
+                ? null
+                : (utc) async {
+              final currentPois = _ref.read(mapStateProvider).userPois;
+              final currentIdx = UserPoi.indexInList(currentPois, poiRef);
+              final currentPoi =
+                  currentIdx >= 0 ? currentPois[currentIdx] : poiRef;
+              final updated = _userPoiWithRestResult(currentPoi, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(currentPoi, updated);
+            },
           ),
         );
       }
@@ -264,23 +606,36 @@ class PoiMapDetailSheetController {
       showPoiDetailSheet(
         context,
         entries: entries,
+        verifyLocationOnCheckIn:
+            _ref.read(checkInVerifyLocationProvider),
         initialIndex: safeIdx,
         onCenterOnPoi: (pos) {
           animateToPoiPreservingZoom(pos);
         },
       );
     } else {
+      final fields = await _loadStartPoiElevationChartFields();
       String? startMetaName;
       double? startTimeLimitHours;
       if (trackPoints.length >= 2 &&
           GpxPoiTag.isStartType(poi.bmExt?.type) &&
           poi.km != null &&
           !poi.isNote) {
-        final fields = await _loadStartPoiElevationChartFields();
         startMetaName = fields.gpxBasename;
         startTimeLimitHours = fields.timeLimitHours;
       }
       if (!isMounted() || !context.mounted) return;
+      final allUserForChart =
+          PoiMapMarkerOrder.userPois(ms.userPois);
+      final chartBrevetStartUtc =
+          _chartBrevetStartUtcFromUserPois(allUserForChart, fields.brevetStartUtc);
+      final sched = poi.bmExt?.schedule;
+      final isStartType = GpxPoiTag.isStartType(poi.bmExt?.type);
+      final isFinishType = GpxPoiTag.isFinishType(poi.bmExt?.type);
+      final userIdx = UserPoi.indexInList(allUserForChart, poi);
+      final isLastPoi =
+          userIdx >= 0 && userIdx == allUserForChart.length - 1;
+      final hideCheckOut = isFinishType || isLastPoi;
       showPoiDetailSheet(
         context,
         entries: [
@@ -291,9 +646,18 @@ class PoiMapDetailSheetController {
             description: poi.body,
             url: poi.url,
             position: poi.position,
-            arrival: poi.bmExt?.schedule.arrival,
-            departure: poi.bmExt?.schedule.departure,
-            close: poi.bmExt?.schedule.close,
+            arrival: sched?.arrival,
+            departure: sched?.departure,
+            close: sched?.close,
+            checkInResultUtc: sched?.result,
+            timeChart: _poiElapsedTimeChart(
+              brevetStartUtc: chartBrevetStartUtc,
+              timeLimitHours: fields.timeLimitHours,
+              routeKm: _totalRouteKm(trackPoints),
+              arrival: sched?.arrival,
+              departure: sched?.departure,
+              isRouteStartPoi: isStartType,
+            ),
             elevationOnDemand: poi.km != null && !poi.isNote
                 ? _elevationOnDemandFor(
                     trackPoints,
@@ -302,13 +666,36 @@ class PoiMapDetailSheetController {
                     0,
                     unit,
                     poiHasDistanceKm: const [true],
+                    poiKmAlongRoute: <double?>[poi.km],
                     chartMetadataName: startMetaName,
                     chartTimeLimitHours: startTimeLimitHours,
                   )
                 : null,
             distanceUnit: unit,
+            isRouteStartPoi: isStartType,
+            isRouteFinishPoi: hideCheckOut,
+            onCheckIn: (utc) async {
+              final updated = _userPoiWithCheckInResult(poi, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(poi, updated);
+            },
+            restUtc: sched?.rest,
+            onCheckOut: hideCheckOut
+                ? null
+                : (utc) async {
+              final currentPois = _ref.read(mapStateProvider).userPois;
+              final currentIdx = UserPoi.indexInList(currentPois, poi);
+              final currentPoi =
+                  currentIdx >= 0 ? currentPois[currentIdx] : poi;
+              final updated = _userPoiWithRestResult(currentPoi, utc);
+              await _ref
+                  .read(mapStateProvider.notifier)
+                  .updateUserPoi(currentPoi, updated);
+            },
           ),
         ],
+        verifyLocationOnCheckIn: _ref.read(checkInVerifyLocationProvider),
       );
     }
   }

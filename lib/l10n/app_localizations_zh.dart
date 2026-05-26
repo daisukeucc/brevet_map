@@ -147,7 +147,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannedClose => '截止时间';
 
   @override
-  String get arrivalShort => '到达';
+  String get poiArrivalActual => '实际到达';
+
+  @override
+  String get poiRestActual => '实际出发';
+
+  @override
+  String get poiCheckOut => '确认出发？';
 
   @override
   String get departureShort => '出发';
@@ -160,6 +166,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get kmRequired => '距离为必填项';
+
+  @override
+  String get routeLegOutboundShort => 'Outbound';
+
+  @override
+  String get routeLegReturnShort => 'Return';
+
+  @override
+  String get routeLegAmbiguousShort => 'Undetermined';
 
   @override
   String get offRoute => '偏离路线';
@@ -245,6 +260,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get mapStyleDark => '以深色模式显示地图';
+
+  @override
+  String get debugMapTilesMenu => 'Map tiles (debug)';
+
+  @override
+  String get debugMapTilesDialogTitle => 'Debug map tiles';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => 'Default (OSM)';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager raster';
+
+  @override
+  String get debugMapTilesDialogCancel => 'Cancel';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Switch to Voyager raster tile';
+
+  @override
+  String get mapStyleDebugCartoLight => 'Switch to light_all raster tile';
 
   @override
   String get showFullRoute => '显示完整路线';
@@ -437,6 +473,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get locationSharing => '位置共享';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '验证位置';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '不验证位置';
+
+  @override
   String get aboutApp => '关于本应用';
 
   @override
@@ -625,10 +670,44 @@ class AppLocalizationsZh extends AppLocalizations {
       '1.2 版本大幅扩充了 POI 信息！\n此版本已解锁全部功能，欢迎体验！\n\n- 新增 POI 类型：拍照检查点、便利店等\n- POI 信息新增 URL 链接字段\n- 检查点之间的海拔剖面图显示\n- 检查点预计到达时间自动设置';
 
   @override
+  String get releaseNotesV13020Message =>
+      '版本1.3新增检查点（PC）的签到/签退功能，除骑行计划外，还可记录实际骑行成绩！\n记录的数据可通过表格查看，还支持下载CSV文件。\n本版本所有功能均已开放，欢迎体验！';
+
+  @override
   String get poiSaveAsNote => '保存为备注';
 
   @override
   String get brevetTimeLimitLabel => '限制时间';
+
+  @override
+  String get poiCheckInConfirmMessage => '要签到吗？';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return '签到须位于该 POI $thresholdKm 公里以内的位置。';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => '正在获取位置…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => '无法签到';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => '无法获取位置';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      '无法获取当前位置。请在室外等场所重试；并检查 GPS，以及终端设置中的位置信息和应用权限。';
+
+  @override
+  String get selectPoiAtSameLocation => '选择 POI';
+
+  @override
+  String get poiScheduleTableTitle => '打卡记录';
+
+  @override
+  String get csvDownload => '下载';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -774,7 +853,13 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get plannedClose => '截止時間';
 
   @override
-  String get arrivalShort => '到達';
+  String get poiArrivalActual => '實際到達';
+
+  @override
+  String get poiRestActual => '實際出發';
+
+  @override
+  String get poiCheckOut => '確認出發？';
 
   @override
   String get departureShort => '出發';
@@ -872,6 +957,27 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get mapStyleDark => '以深色模式顯示地圖';
+
+  @override
+  String get debugMapTilesMenu => 'Map tiles (debug)';
+
+  @override
+  String get debugMapTilesDialogTitle => 'Debug map tiles';
+
+  @override
+  String get debugMapTilesOptionDefaultOsm => 'Default (OSM)';
+
+  @override
+  String get debugMapTilesOptionCartoVoyager => 'CARTO Voyager raster';
+
+  @override
+  String get debugMapTilesDialogCancel => 'Cancel';
+
+  @override
+  String get mapStyleDebugCartoVoyager => 'Switch to Voyager raster tile';
+
+  @override
+  String get mapStyleDebugCartoLight => 'Switch to light_all raster tile';
 
   @override
   String get showFullRoute => '顯示完整路線';
@@ -1064,6 +1170,15 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get locationSharing => '位置分享';
 
   @override
+  String get checkInSettingsTitle => 'Check-in';
+
+  @override
+  String get checkInVerifyLocationRadioOn => '驗證位置';
+
+  @override
+  String get checkInVerifyLocationRadioOff => '不驗證位置';
+
+  @override
   String get aboutApp => '關於本應用程式';
 
   @override
@@ -1252,8 +1367,42 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       '1.2 版本大幅擴充了 POI 資訊！\n此版本已開放所有功能，歡迎體驗！\n\n- 新增 POI 類型：拍照檢查點、便利商店等\n- POI 資訊新增 URL 連結欄位\n- 檢查點之間的標高圖表顯示\n- 檢查點預計抵達時間自動設定';
 
   @override
+  String get releaseNotesV13020Message =>
+      '版本1.3新增檢查點（PC）的簽到/簽退功能，除騎行計劃外，還可記錄實際騎行成績！\n記錄的數據可透過表格查看，還支持下載CSV檔案。\n此版本已開放所有功能，歡迎體驗！';
+
+  @override
   String get poiSaveAsNote => '儲存為備註';
 
   @override
   String get brevetTimeLimitLabel => '限制時間';
+
+  @override
+  String get poiCheckInConfirmMessage => '要簽到嗎？';
+
+  @override
+  String poiCheckInTooFarFromPoi(String thresholdKm) {
+    return '簽到時須位於此 POI $thresholdKm 公里以內的位置。';
+  }
+
+  @override
+  String get poiCheckInFetchingLocation => '正在取得位置…';
+
+  @override
+  String get poiCheckInNotAvailableTitle => '無法簽到';
+
+  @override
+  String get poiCheckInLocationAcquireFailedTitle => '無法取得位置';
+
+  @override
+  String get poiCheckInLocationUnavailableDetail =>
+      '無法取得現在地。請在室外等環境重試；並請確認 GPS，以及終端設定中的「位置資訊」與應用程式的相關權限。';
+
+  @override
+  String get selectPoiAtSameLocation => '選擇 POI';
+
+  @override
+  String get poiScheduleTableTitle => '打卡記錄';
+
+  @override
+  String get csvDownload => '下載';
 }
