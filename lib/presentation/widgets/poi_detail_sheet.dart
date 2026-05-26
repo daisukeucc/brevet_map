@@ -2147,7 +2147,9 @@ class _PoiContentBlock extends StatelessWidget {
                       },
                       child: _CheckInBadge(
                         label: _kCheckInBadgeLabel,
-                        dimmed: checkInAnimating,
+                        color: checkInAnimating
+                            ? AppColors.checkInResult.withValues(alpha: 0.6)
+                            : AppColors.checkInResult,
                       ),
                     ),
                 ],
@@ -2945,17 +2947,16 @@ class _TappableCheckOutBadgeState extends State<_TappableCheckOutBadge> {
 
 /// C/I・C/O テキストバッジ（グレー or カスタム背景・白文字）
 class _CheckInBadge extends StatelessWidget {
-  const _CheckInBadge({required this.label, this.dimmed = false, this.color});
+  const _CheckInBadge({required this.label, this.color});
 
   final String label;
-  final bool dimmed;
 
   /// 指定時はこの色を背景に使う。未指定はグレー。
   final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final bg = color ?? (dimmed ? AppColors.mutedLight : AppColors.mutedLarge);
+    final bg = color ?? AppColors.mutedLarge;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
