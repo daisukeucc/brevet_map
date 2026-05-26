@@ -17,9 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: subosito/flutter-action@v2.22.0
+      - uses: ./.github/actions/setup-flutter
         with:
-          flutter-version: '3.24.x'
+          channel: stable
           cache: true
 
       - name: Set project directory
@@ -80,9 +80,9 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - uses: subosito/flutter-action@v2.22.0
+      - uses: ./.github/actions/setup-flutter
         with:
-          flutter-version: '3.24.x'
+          channel: stable
           cache: true
 
       - name: Set project directory

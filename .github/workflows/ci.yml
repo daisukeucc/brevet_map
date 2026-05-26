@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: subosito/flutter-action@v2.22.0
+      - uses: ./.github/actions/setup-flutter
         with:
           channel: stable
           cache: true
