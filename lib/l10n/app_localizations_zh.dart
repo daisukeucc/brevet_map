@@ -150,7 +150,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get poiArrivalActual => '实际到达';
 
   @override
-  String get poiRestActual => '实际休息';
+  String get poiRestActual => '实际出发';
 
   @override
   String get poiCheckOut => '确认出发？';
@@ -856,7 +856,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
   String get poiArrivalActual => '實際到達';
 
   @override
-  String get poiRestActual => '實際休息';
+  String get poiRestActual => '實際出發';
 
   @override
   String get poiCheckOut => '確認出發？';

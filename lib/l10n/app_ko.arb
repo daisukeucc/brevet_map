@@ -53,7 +53,7 @@
   "plannedDeparture": "출발",
   "plannedClose": "마감 시간",
   "poiArrivalActual": "실제 도착",
-  "poiRestActual": "실제 휴식",
+  "poiRestActual": "실제 출발",
   "poiCheckOut": "체크아웃하시겠습니까?",
   "departureShort": "출발",
   "distance": "거리",

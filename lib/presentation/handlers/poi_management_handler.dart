@@ -2511,46 +2511,63 @@ class _EditPoiTextDialogState extends State<EditPoiTextDialog> {
               ),
               const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  IconButton(
-                    onPressed: (!_saving && widget.onPrev(_currentPoi) != null)
-                        ? _handlePrev
-                        : null,
-                    icon: const Icon(Icons.arrow_back_ios),
-                    color: Colors.black38,
-                    disabledColor: Colors.black12,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
-                  ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  Expanded(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.center,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            onPressed:
+                                (!_saving && widget.onPrev(_currentPoi) != null)
+                                    ? _handlePrev
+                                    : null,
+                            icon: const Icon(Icons.arrow_back_ios),
+                            color: Colors.black38,
+                            disabledColor: Colors.black12,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                                minWidth: 36, minHeight: 36),
+                          ),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed:
+                                _saving ? null : () => Navigator.pop(context),
+                            child:
+                                Text(l10n.cancel, style: AppTextStyles.button),
+                          ),
+                          const SizedBox(width: 8),
+                          TextButton(
+                            style: TextButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 0),
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            ),
+                            onPressed: _saving ? null : _handleChange,
+                            child:
+                                Text(l10n.change, style: AppTextStyles.button),
+                          ),
+                          IconButton(
+                            onPressed:
+                                (!_saving && widget.onNext(_currentPoi) != null)
+                                    ? _handleNext
+                                    : null,
+                            icon: const Icon(Icons.arrow_forward_ios),
+                            color: Colors.black38,
+                            disabledColor: Colors.black12,
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                                minWidth: 36, minHeight: 36),
+                          ),
+                        ],
+                      ),
                     ),
-                    onPressed: _saving ? null : () => Navigator.pop(context),
-                    child: Text(l10n.cancel, style: AppTextStyles.button),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 0),
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    onPressed: _saving ? null : _handleChange,
-                    child: Text(l10n.change, style: AppTextStyles.button),
-                  ),
-                  IconButton(
-                    onPressed: (!_saving && widget.onNext(_currentPoi) != null)
-                        ? _handleNext
-                        : null,
-                    icon: const Icon(Icons.arrow_forward_ios),
-                    color: Colors.black38,
-                    disabledColor: Colors.black12,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 36, minHeight: 36),
                   ),
                 ],
               ),
@@ -2609,7 +2626,16 @@ class _TimePickerRow extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(label, style: labelStyle),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              label,
+              style: labelStyle,
+              maxLines: 1,
+              softWrap: false,
+            ),
+          ),
         ),
         readOnly
             ? dateTimeChip

@@ -53,7 +53,7 @@
   "plannedDeparture": "Départ",
   "plannedClose": "Heure limite",
   "poiArrivalActual": "Arrivée réelle",
-  "poiRestActual": "Repos réel",
+  "poiRestActual": "Départ réel",
   "poiCheckOut": "Enregistrer le départ ?",
   "departureShort": "Départ",
   "distance": "Distance",

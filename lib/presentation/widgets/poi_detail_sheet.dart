@@ -2258,28 +2258,51 @@ class _PoiContentBlock extends StatelessWidget {
                         ],
                       ],
                     ];
+                    final scheduleMoreIcon = Transform.translate(
+                      offset: const Offset(0, -1),
+                      child: const Icon(Icons.more_time,
+                          size: 18, color: AppColors.muted),
+                    );
+
+                    Widget fittableScheduleRow({
+                      required Widget leading,
+                      required List<Widget> contents,
+                    }) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          leading,
+                          const SizedBox(width: 7),
+                          Expanded(
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.centerLeft,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: contents,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
 
                     if (showCloseOnSecondRow) {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              dateBadge,
-                              const SizedBox(width: 7),
-                              ...arrivalDepartureDiff,
-                            ],
+                          fittableScheduleRow(
+                            leading: dateBadge,
+                            contents: arrivalDepartureDiff,
                           ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Opacity(
-                                opacity: 0,
-                                child: IgnorePointer(child: dateBadge),
-                              ),
-                              const SizedBox(width: 7),
+                          fittableScheduleRow(
+                            leading: Opacity(
+                              opacity: 0,
+                              child: IgnorePointer(child: dateBadge),
+                            ),
+                            contents: [
                               const Icon(Icons.lock_outline,
                                   size: 17, color: AppColors.muted),
                               const SizedBox(width: 1),
@@ -2288,22 +2311,16 @@ class _PoiContentBlock extends StatelessWidget {
                                 style: AppTextStyles.poiSchedule,
                               ),
                               const SizedBox(width: 8),
-                              Transform.translate(
-                                offset: const Offset(0, -1),
-                                child: const Icon(Icons.more_time,
-                                    size: 18, color: AppColors.muted),
-                              ),
+                              scheduleMoreIcon,
                             ],
                           ),
                         ],
                       );
                     }
 
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        dateBadge,
-                        const SizedBox(width: 7),
+                    return fittableScheduleRow(
+                      leading: dateBadge,
+                      contents: [
                         ...arrivalDepartureDiff,
                         if ((hasArrival ||
                                 hasCheckedIn ||
@@ -2319,11 +2336,7 @@ class _PoiContentBlock extends StatelessWidget {
                               style: AppTextStyles.poiSchedule),
                         ],
                         const SizedBox(width: 8),
-                        Transform.translate(
-                          offset: const Offset(0, -1),
-                          child: const Icon(Icons.more_time,
-                              size: 18, color: AppColors.muted),
-                        ),
+                        scheduleMoreIcon,
                       ],
                     );
                   },

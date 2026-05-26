@@ -153,7 +153,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get poiArrivalActual => 'Arrivée réelle';
 
   @override
-  String get poiRestActual => 'Repos réel';
+  String get poiRestActual => 'Départ réel';
 
   @override
   String get poiCheckOut => 'Enregistrer le départ ?';

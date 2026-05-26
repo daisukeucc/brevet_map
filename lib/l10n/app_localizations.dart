@@ -392,7 +392,7 @@ abstract class AppLocalizations {
   /// No description provided for @poiRestActual.
   ///
   /// In en, this message translates to:
-  /// **'Actual rest'**
+  /// **'Actual departure'**
   String get poiRestActual;
 
   /// No description provided for @poiCheckOut.

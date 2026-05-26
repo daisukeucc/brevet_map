@@ -53,7 +53,7 @@
   "plannedDeparture": "ออกเดินทาง",
   "plannedClose": "เวลาปิดรับ",
   "poiArrivalActual": "เวลามาถึงจริง",
-  "poiRestActual": "เวลาพักจริง",
+  "poiRestActual": "เวลาออกเดินทางจริง",
   "poiCheckOut": "เช็คเอาต์?",
   "departureShort": "ออกเดินทาง",
   "distance": "ระยะทาง",

@@ -151,7 +151,7 @@ class AppLocalizationsJa extends AppLocalizations {
   String get poiArrivalActual => '到着実績';
 
   @override
-  String get poiRestActual => '休憩実績';
+  String get poiRestActual => '出発実績';
 
   @override
   String get poiCheckOut => 'チェックアウトしますか？';

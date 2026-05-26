@@ -151,7 +151,7 @@ class AppLocalizationsKo extends AppLocalizations {
   String get poiArrivalActual => '실제 도착';
 
   @override
-  String get poiRestActual => '실제 휴식';
+  String get poiRestActual => '실제 출발';
 
   @override
   String get poiCheckOut => '체크아웃하시겠습니까?';

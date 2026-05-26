@@ -59,7 +59,7 @@
   "plannedDeparture": "Departure",
   "plannedClose": "Cutoff",
   "poiArrivalActual": "Actual arrival",
-  "poiRestActual": "Actual rest",
+  "poiRestActual": "Actual departure",
   "poiCheckOut": "Check out?",
   "departureShort": "Departure",
   "distance": "Distance",
