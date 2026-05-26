@@ -61,6 +61,8 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Brevet Map may access your photo library when you choose files or images—for example to
 			import GPX files or shared content.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>Brevet Map does not use the camera to take photos or video. This description is required on iOS because the file-import component used for GPX import may reference camera APIs.</string>
 		<key>NSMotionUsageDescription</key>
 		<string>Brevet Map uses device motion to support compass-related features.</string>
 		<key>UIFileSharingEnabled</key>
