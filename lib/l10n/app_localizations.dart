@@ -1346,7 +1346,7 @@ abstract class AppLocalizations {
   /// No description provided for @releaseNotesV13020Message.
   ///
   /// In en, this message translates to:
-  /// **'Version 1.3 introduces check-in functionality, allowing you to log your actual ride progress at each POI!\nBy comparing with your planned schedule, you can see how far ahead or behind you are and adjust your pace accordingly.\nAll features are unlocked in this version, so feel free to give it a try!'**
+  /// **'Version 1.3 adds check-in/check-out functionality at checkpoints (PCs), so in addition to your ride plan, you can now record your actual ride progress!\nRecorded data can be viewed in a table, and CSV download is also available.\nAll features are unlocked in this version, so feel free to give it a try!'**
   String get releaseNotesV13020Message;
 
   /// No description provided for @poiSaveAsNote.

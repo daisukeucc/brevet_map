@@ -681,7 +681,7 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get releaseNotesV13020Message =>
-      '버전 1.3에서는 체크인 기능을 추가하여 각 POI에서 실제 주행 실적을 기록할 수 있게 되었습니다!\n계획한 일정과 비교하여 얼마나 앞서거나 뒤처지고 있는지 파악하고 이후 페이스 조절에 활용할 수 있습니다.\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!';
+      '버전 1.3에서는 PC(체크포인트)의 체크인/체크아웃 기능을 추가하여 주행 계획에 더해 주행 실적을 기록할 수 있게 되었습니다!\n기록한 데이터는 테이블 표시로 확인할 수 있으며 CSV 파일 다운로드도 가능합니다.\n이번 버전에서는 모든 기능이 개방되어 있으니 꼭 한번 사용해 보세요!';
 
   @override
   String get poiSaveAsNote => '메모로 저장';

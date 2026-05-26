@@ -698,7 +698,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get releaseNotesV13020Message =>
-      'Version 1.3 führt die Check-in-Funktion ein, mit der du deinen tatsächlichen Fahrfortschritt an jedem POI erfassen kannst!\nDurch den Vergleich mit deinem geplanten Zeitplan siehst du, wie weit du voraus oder im Rückstand bist, und kannst dein Tempo entsprechend anpassen.\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!';
+      'Version 1.3 fügt Check-in/Check-out-Funktionen an den Kontrollpunkten (PCs) hinzu, sodass du neben deinem Fahrplan auch deine tatsächlichen Fahrleistungen erfassen kannst!\nDie erfassten Daten können in einer Tabelle angezeigt und als CSV-Datei heruntergeladen werden.\nAlle Funktionen sind in dieser Version freigeschaltet – probiere sie gerne aus!';
 
   @override
   String get poiSaveAsNote => 'Als Notiz speichern';

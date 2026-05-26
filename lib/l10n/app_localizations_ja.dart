@@ -678,7 +678,7 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get releaseNotesV13020Message =>
-      'ver1.3ではチェックイン機能を追加し、各POIに走行実績を登録できるようになりました！\n準備した走行計画と比較することで、先行/遅れが分かり、その後の走り方の目安にすることができます。\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！';
+      'ver1.3では、PCのチェックイン/チェックアウト機能を追加し、走行計画に加え、走行実績を記録できるようになりました！\n記録したデータはテーブル表示で確認でき、CSVファイルのダウンロードも可能です。\nこのバージョンでは全機能を解放しておりますので、是非お試し下さい！';
 
   @override
   String get poiSaveAsNote => 'メモとして保存';

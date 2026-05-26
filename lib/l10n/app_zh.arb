@@ -329,7 +329,7 @@
   "releaseNotesDialogTitle": "发行说明",
   "releaseNotesV11018Message": "在 1.1 版本中，我们增强了 POI 信息，让您可以更高效地规划您的长距离骑行！\n此版本已解锁全部功能，欢迎体验！",
   "releaseNotesV12019Message": "1.2 版本大幅扩充了 POI 信息！\n此版本已解锁全部功能，欢迎体验！\n\n- 新增 POI 类型：拍照检查点、便利店等\n- POI 信息新增 URL 链接字段\n- 检查点之间的海拔剖面图显示\n- 检查点预计到达时间自动设置",
-  "releaseNotesV13020Message": "版本1.3新增打卡功能，可在每个POI记录实际骑行进度！\n通过与计划行程对比，可以了解自己的领先或落后情况，并据此调整骑行节奏。\n本版本所有功能均已开放，欢迎体验！",
+  "releaseNotesV13020Message": "版本1.3新增检查点（PC）的签到/签退功能，除骑行计划外，还可记录实际骑行成绩！\n记录的数据可通过表格查看，还支持下载CSV文件。\n本版本所有功能均已开放，欢迎体验！",
   "poiSaveAsNote": "保存为备注",
   "brevetTimeLimitLabel": "限制时间",
   "poiCheckInConfirmMessage": "要签到吗？",

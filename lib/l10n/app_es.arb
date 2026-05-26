@@ -329,7 +329,7 @@
   "releaseNotesDialogTitle": "Notas de la versión",
   "releaseNotesV11018Message": "En la versión 1.1 hemos añadido más detalles de POI para que puedas planificar mejor tus rutas de larga distancia.\nTodas las funciones están desbloqueadas en esta versión, ¡así que pruébala!",
   "releaseNotesV12019Message": "En la versión 1.2, la información de los POI se ha ampliado considerablemente.\nTodas las funciones están desbloqueadas en esta versión, ¡pruébalas!\n\n- Nuevos tipos de POI: controles con foto, tiendas, etc.\n- Campo de enlace URL en la información del POI\n- Gráfico de elevación entre puntos de control\n- Horas de llegada estimadas automáticas en los puntos de control",
-  "releaseNotesV13020Message": "La versión 1.3 introduce la función de check-in, que te permite registrar tu progreso real en cada POI.\nAl compararlo con tu plan de ruta, podrás saber si vas adelantado o retrasado y ajustar tu ritmo en consecuencia.\nTodas las funciones están disponibles en esta versión, ¡anímate a probarlas!",
+  "releaseNotesV13020Message": "La versión 1.3 añade la función de check-in/check-out en los puntos de control (PC), permitiéndote registrar tu progreso real además de tu plan de ruta.\nLos datos registrados se pueden consultar en formato de tabla y también descargar como archivo CSV.\nTodas las funciones están disponibles en esta versión, ¡anímate a probarlas!",
   "poiSaveAsNote": "Guardar como nota",
   "brevetTimeLimitLabel": "Límite de tiempo",
   "poiCheckInConfirmMessage": "¿Registrar check-in?",

@@ -671,7 +671,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get releaseNotesV13020Message =>
-      '版本1.3新增打卡功能，可在每个POI记录实际骑行进度！\n通过与计划行程对比，可以了解自己的领先或落后情况，并据此调整骑行节奏。\n本版本所有功能均已开放，欢迎体验！';
+      '版本1.3新增检查点（PC）的签到/签退功能，除骑行计划外，还可记录实际骑行成绩！\n记录的数据可通过表格查看，还支持下载CSV文件。\n本版本所有功能均已开放，欢迎体验！';
 
   @override
   String get poiSaveAsNote => '保存为备注';
@@ -1368,7 +1368,7 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get releaseNotesV13020Message =>
-      '版本1.3新增打卡功能，可在每個POI記錄實際騎行進度！\n透過與計劃行程對比，可以了解自己的領先或落後情況，並據此調整騎行節奏。\n本版本所有功能均已開放，歡迎體驗！';
+      '版本1.3新增檢查點（PC）的簽到/簽退功能，除騎行計劃外，還可記錄實際騎行成績！\n記錄的數據可透過表格查看，還支持下載CSV檔案。\n此版本已開放所有功能，歡迎體驗！';
 
   @override
   String get poiSaveAsNote => '儲存為備註';

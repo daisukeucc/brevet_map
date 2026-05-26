@@ -701,7 +701,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get releaseNotesV13020Message =>
-      'La version 1.3 introduit la fonctionnalité de check-in, vous permettant d\'enregistrer votre progression réelle à chaque POI !\nEn comparant avec votre planning prévu, vous pouvez voir si vous êtes en avance ou en retard, et adapter votre allure en conséquence.\nToutes les fonctionnalités sont débloquées dans cette version, n\'hésitez pas à les essayer !';
+      'La version 1.3 ajoute les fonctionnalités de check-in/check-out aux points de contrôle (PC), vous permettant d\'enregistrer vos performances réelles en plus de votre plan de route !\nLes données enregistrées peuvent être consultées sous forme de tableau et téléchargées au format CSV.\nToutes les fonctionnalités sont débloquées dans cette version, n\'hésitez pas à les essayer !';
 
   @override
   String get poiSaveAsNote => 'Enregistrer comme note';
