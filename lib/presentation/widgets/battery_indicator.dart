@@ -20,7 +20,7 @@ class _BatteryIndicatorState extends State<BatteryIndicator>
   StreamSubscription<BatteryState>? _subscription;
   Timer? _timer;
 
-  static IconData _iconForLevel(int level) {
+  static FaIconData _iconForLevel(int level) {
     if (level >= 90) return FontAwesomeIcons.batteryFull;
     if (level >= 75) return FontAwesomeIcons.batteryThreeQuarters;
     if (level >= 40) return FontAwesomeIcons.batteryHalf;
