@@ -2098,7 +2098,7 @@ class _PoiContentBlock extends StatelessWidget {
                 ],
                 // チェックインバッジ（InkWell の外・タップエリア外）
                 if (showCheckInBadge || showCheckOutBadge) ...[
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   if (showCheckOutBadge)
                     onCommitCheckOutForEntry != null
                         ? _TappableCheckOutBadge(
@@ -2198,8 +2198,7 @@ class _PoiContentBlock extends StatelessWidget {
                         ),
                         // ゴール／最終 POI は出発予定が無いことが多い。diff は算出されるが
                         // 出発行が無いと下のブロックに入れられないため到着の直後に出す。
-                        if (scheduleDiffStr != null &&
-                            !showDepartureRow) ...[
+                        if (scheduleDiffStr != null && !showDepartureRow) ...[
                           const SizedBox(width: 8),
                           Text(
                             scheduleDiffStr[0],
@@ -2945,7 +2944,7 @@ class _CheckInBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final bg = color ?? (dimmed ? AppColors.mutedLight : AppColors.mutedLarge);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(4),
