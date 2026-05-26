@@ -1,0 +1,40 @@
+# subosito/flutter-action の codeload 取得失敗を避けるため、
+# checkout 済みリポジトリ内の composite action として Flutter SDK をセットアップする。
+name: Setup Flutter
+description: Install Flutter SDK from git (no third-party action download)
+inputs:
+  channel:
+    description: Flutter channel (stable, beta, master)
+    required: false
+    default: stable
+  flutter-version:
+    description: Optional version or range (e.g. 3.24.5, 3.24.x). Empty = latest on channel.
+    required: false
+    default: ''
+  cache:
+    description: Cache ~/.pub-cache
+    required: false
+    default: 'true'
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v4
+      id: flutter-sdk-cache
+      with:
+        path: ${{ runner.temp }}/flutter-sdk
+        key: flutter-sdk-${{ inputs.channel }}-${{ inputs.flutter-version }}-${{ runner.os }}-v1
+
+    - uses: actions/cache@v4
+      if: inputs.cache == 'true'
+      id: pub-cache
+      with:
+        path: ~/.pub-cache
+        key: pub-cache-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          pub-cache-${{ runner.os }}-
+
+    - shell: bash
+      run: bash "${{ github.action_path }}/setup.sh"
+      env:
+        INPUT_CHANNEL: ${{ inputs.channel }}
+        INPUT_FLUTTER_VERSION: ${{ inputs.flutter-version }}
