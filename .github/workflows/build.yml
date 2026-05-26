@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2.22.0
         with:
           flutter-version: '3.24.x'
           cache: true
@@ -80,7 +80,7 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2.22.0
         with:
           flutter-version: '3.24.x'
           cache: true

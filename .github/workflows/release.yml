@@ -71,7 +71,7 @@ jobs:
           bundler-cache: true
           working-directory: ${{ steps.project-dir.outputs.dir }}
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
           cache: true
@@ -214,7 +214,7 @@ jobs:
           bundler-cache: true
           working-directory: ${{ steps.project-dir.outputs.dir }}
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2.22.0
         with:
           channel: stable
           cache: true
