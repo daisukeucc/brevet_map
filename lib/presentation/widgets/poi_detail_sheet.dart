@@ -921,11 +921,12 @@ class _ElevationOnDemandDialogState extends State<_ElevationOnDemandDialog> {
   Future<void> _buildChart() async {
     final slice = _slice;
     if (slice == null) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _loading = false;
           _failed = true;
         });
+      }
       return;
     }
     try {
