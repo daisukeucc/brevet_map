@@ -312,6 +312,7 @@ class PoiMapDetailSheetController {
       final entries = <PoiSheetEntry>[];
       for (var i = 0; i < ordered.length; i++) {
         final isStart = GpxPoiTag.isStartType(ordered[i].bmPoiExt?.type);
+        final isFinish = GpxPoiTag.isFinishType(ordered[i].bmPoiExt?.type);
         final sched = ordered[i].bmPoiExt?.schedule;
         final currKm = ordered[i].bmPoiExt?.distanceKm;
         final prevKm = i > 0 ? ordered[i - 1].bmPoiExt?.distanceKm : null;
@@ -350,6 +351,7 @@ class PoiMapDetailSheetController {
             ),
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
+            isRouteFinishPoi: isFinish || i == ordered.length - 1,
           ),
         );
       }
@@ -380,6 +382,10 @@ class PoiMapDetailSheetController {
           _chartBrevetStartUtcFromGpxPois(gpxOrderedForChart, fields.brevetStartUtc);
       final sched = poi.bmPoiExt?.schedule;
       final isStart = GpxPoiTag.isStartType(poi.bmPoiExt?.type);
+      final isFinish = GpxPoiTag.isFinishType(poi.bmPoiExt?.type);
+      final gpxIdx = gpxOrderedForChart.indexWhere((p) => _sameGpxPoi(p, poi));
+      final isLastPoi =
+          gpxIdx >= 0 && gpxIdx == gpxOrderedForChart.length - 1;
       showPoiDetailSheet(
         context,
         entries: [
@@ -410,6 +416,7 @@ class PoiMapDetailSheetController {
             ),
             distanceUnit: unit,
             isRouteStartPoi: isStart,
+            isRouteFinishPoi: isFinish || isLastPoi,
           ),
         ],
         verifyLocationOnCheckIn: _ref.read(checkInVerifyLocationProvider),
@@ -520,6 +527,7 @@ class PoiMapDetailSheetController {
         final hasKmForSegment = poiHasKm[i];
         final sched = ordered[i].bmExt?.schedule;
         final isStartType = GpxPoiTag.isStartType(ordered[i].bmExt?.type);
+        final isFinishType = GpxPoiTag.isFinishType(ordered[i].bmExt?.type);
         final poiRef = ordered[i];
         final currKm = ordered[i].km;
         final prevKm = i > 0 ? ordered[i - 1].km : null;
@@ -570,6 +578,7 @@ class PoiMapDetailSheetController {
                 : null,
             distanceUnit: unit,
             isRouteStartPoi: i == 0,
+            isRouteFinishPoi: isFinishType || i == ordered.length - 1,
             onCheckIn: (utc) async {
               final updated = _userPoiWithCheckInResult(poiRef, utc);
               await _ref
@@ -577,7 +586,9 @@ class PoiMapDetailSheetController {
                   .updateUserPoi(poiRef, updated);
             },
             restUtc: sched?.rest,
-            onCheckOut: (utc) async {
+            onCheckOut: isFinishType || i == ordered.length - 1
+                ? null
+                : (utc) async {
               final currentPois = _ref.read(mapStateProvider).userPois;
               final currentIdx = UserPoi.indexInList(currentPois, poiRef);
               final currentPoi =
@@ -620,6 +631,11 @@ class PoiMapDetailSheetController {
           _chartBrevetStartUtcFromUserPois(allUserForChart, fields.brevetStartUtc);
       final sched = poi.bmExt?.schedule;
       final isStartType = GpxPoiTag.isStartType(poi.bmExt?.type);
+      final isFinishType = GpxPoiTag.isFinishType(poi.bmExt?.type);
+      final userIdx = UserPoi.indexInList(allUserForChart, poi);
+      final isLastPoi =
+          userIdx >= 0 && userIdx == allUserForChart.length - 1;
+      final hideCheckOut = isFinishType || isLastPoi;
       showPoiDetailSheet(
         context,
         entries: [
@@ -657,6 +673,7 @@ class PoiMapDetailSheetController {
                 : null,
             distanceUnit: unit,
             isRouteStartPoi: isStartType,
+            isRouteFinishPoi: hideCheckOut,
             onCheckIn: (utc) async {
               final updated = _userPoiWithCheckInResult(poi, utc);
               await _ref
@@ -664,7 +681,9 @@ class PoiMapDetailSheetController {
                   .updateUserPoi(poi, updated);
             },
             restUtc: sched?.rest,
-            onCheckOut: (utc) async {
+            onCheckOut: hideCheckOut
+                ? null
+                : (utc) async {
               final currentPois = _ref.read(mapStateProvider).userPois;
               final currentIdx = UserPoi.indexInList(currentPois, poi);
               final currentPoi =

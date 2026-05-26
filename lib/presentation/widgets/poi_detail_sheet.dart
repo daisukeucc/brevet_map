@@ -460,6 +460,7 @@ class PoiSheetEntry {
     this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
+    this.isRouteFinishPoi = false,
     this.checkInResultUtc,
     this.onCheckIn,
     this.restUtc,
@@ -510,6 +511,9 @@ class PoiSheetEntry {
 
   /// ルート上の並びで最初の POI（スタート）。スタートでは獲得 0 でも標高行を表示する。
   final bool isRouteStartPoi;
+
+  /// ゴール POI（`bm:type == finish`）またはルート上の最後の POI。チェックアウト UI は出さない。
+  final bool isRouteFinishPoi;
 
   /// 対応 POI の [BmSchedule.result]。`null` ＝未設定（トグル OFF）、非 null ＝設定済み（トグル ON）。
   final DateTime? checkInResultUtc;
@@ -1161,6 +1165,7 @@ void showPoiDetailSheet(
         elevationOnDemand: entries.first.elevationOnDemand,
         distanceUnit: entries.first.distanceUnit,
         isRouteStartPoi: entries.first.isRouteStartPoi,
+        isRouteFinishPoi: entries.first.isRouteFinishPoi,
         checkInResultUtc: entries.first.checkInResultUtc,
         onCheckIn: entries.first.onCheckIn,
         restUtc: entries.first.restUtc,
@@ -1189,6 +1194,7 @@ class _PoiDetailSheetBody extends StatefulWidget {
     this.elevationOnDemand,
     this.distanceUnit = 0,
     this.isRouteStartPoi = true,
+    this.isRouteFinishPoi = false,
     this.checkInResultUtc,
     this.onCheckIn,
     this.restUtc,
@@ -1212,6 +1218,7 @@ class _PoiDetailSheetBody extends StatefulWidget {
   final PoiElevationOnDemand? elevationOnDemand;
   final int distanceUnit;
   final bool isRouteStartPoi;
+  final bool isRouteFinishPoi;
 
   /// [BmSchedule.result] と同一。[PoiSheetEntry.checkInResultUtc] から渡す。
   final DateTime? checkInResultUtc;
@@ -1405,6 +1412,7 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
                   elevationOnDemand: widget.elevationOnDemand,
                   distanceUnit: widget.distanceUnit,
                   isRouteStartPoi: widget.isRouteStartPoi,
+                  isRouteFinishPoi: widget.isRouteFinishPoi,
                   timeChart: widget.timeChart,
                   onBeginCheckInChartAnimation: widget.timeChart != null
                       ? _onBeginCheckInChartAnimation
@@ -1646,6 +1654,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
                           elevationOnDemand: e.elevationOnDemand,
                           distanceUnit: e.distanceUnit,
                           isRouteStartPoi: e.isRouteStartPoi,
+                          isRouteFinishPoi: e.isRouteFinishPoi,
                           timeChart: e.timeChart,
                           onBeginCheckInChartAnimation: e.timeChart != null
                               ? _onBeginCheckInChartAnimation
@@ -1789,6 +1798,7 @@ class _PoiContentBlock extends StatelessWidget {
     this.distanceLeft = 0,
     this.contentLeft = 0,
     this.isRouteStartPoi = true,
+    this.isRouteFinishPoi = false,
     this.timeChart,
     this.onBeginCheckInChartAnimation,
     this.checkInTapEntryIndex = 0,
@@ -1826,6 +1836,7 @@ class _PoiContentBlock extends StatelessWidget {
   final double distanceLeft;
   final double contentLeft;
   final bool isRouteStartPoi;
+  final bool isRouteFinishPoi;
   final PoiSheetTimeChart? timeChart;
   final void Function(double targetElapsedHours)? onBeginCheckInChartAnimation;
 
@@ -1964,6 +1975,8 @@ class _PoiContentBlock extends StatelessWidget {
     final hasClose = close != null;
     final hasCheckedIn = checkInResultUtc != null;
     final hasCheckedOut = restUtc != null;
+    // 1行目に ↑ 出発行（予定または実績）を出すか。表示条件と 2 行化判定を揃える。
+    final showDepartureRow = hasDeparture || hasCheckedOut;
     final hasSchedule =
         hasArrival || hasDeparture || hasClose || hasCheckedIn || hasCheckedOut;
     final canTapSheetForScheduleTable = hasSchedule && scheduleEntries != null;
@@ -1994,7 +2007,7 @@ class _PoiContentBlock extends StatelessWidget {
     void openScheduleTable() {
       final entries = scheduleEntries!;
       final isStartOrGoal = entries[checkInTapEntryIndex].isRouteStartPoi ||
-          checkInTapEntryIndex == entries.length - 1;
+          entries[checkInTapEntryIndex].isRouteFinishPoi;
       // スケジュールデータのある POI のみ（arrival/departure どちらもない メモ用 POI を除外）
       final filtered = entries
           .asMap()
@@ -2048,6 +2061,15 @@ class _PoiContentBlock extends StatelessWidget {
       );
     }
 
+    final showCheckInBadge = showElevationGainIcon &&
+        !hasCheckedOut &&
+        !_poiCheckInToggleOnFromResultUtc(checkInResultUtc) &&
+        onCommitCheckInForEntry != null;
+    final showCheckOutBadge = showElevationGainIcon &&
+        !hasCheckedOut &&
+        !isRouteFinishPoi &&
+        _poiCheckInToggleOnFromResultUtc(checkInResultUtc);
+
     final column = Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2075,36 +2097,29 @@ class _PoiContentBlock extends StatelessWidget {
                   const SizedBox(width: 5),
                 ],
                 // チェックインバッジ（InkWell の外・タップエリア外）
-                if (showElevationGainIcon &&
-                    !hasCheckedOut &&
-                    (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) ||
-                        onCommitCheckInForEntry != null)) ...[
+                if (showCheckInBadge || showCheckOutBadge) ...[
                   const SizedBox(width: 10),
-                  if (_poiCheckInToggleOnFromResultUtc(checkInResultUtc) &&
-                      !hasCheckedOut) ...[
-                    // チェックイン済み・チェックアウト前: C/O バッジ（タップでチェックアウト）
-                    if (onCommitCheckOutForEntry != null)
-                      _TappableCheckOutBadge(
-                        onTap: () async {
-                          final l10n = AppLocalizations.of(context)!;
-                          final confirmed = await showConfirmDialog(
-                            context,
-                            message: l10n.poiCheckOut,
-                            cancelText: l10n.cancel,
-                            confirmText: l10n.ok,
-                          );
-                          if (confirmed != true) return;
-                          final utc = DateTime.now().toUtc();
-                          await onCommitCheckOutForEntry!(
-                              checkInTapEntryIndex, utc);
-                        },
-                      )
-                    else
-                      const _CheckInBadge(
-                          label: _kCheckOutBadgeLabel,
-                          color: AppColors.checkInResult),
-                  ] else if (onCommitCheckInForEntry != null) ...[
-                    // 未チェックイン: C/I バッジ（タップでチェックイン）
+                  if (showCheckOutBadge)
+                    onCommitCheckOutForEntry != null
+                        ? _TappableCheckOutBadge(
+                            onTap: () async {
+                              final l10n = AppLocalizations.of(context)!;
+                              final confirmed = await showConfirmDialog(
+                                context,
+                                message: l10n.poiCheckOut,
+                                cancelText: l10n.cancel,
+                                confirmText: l10n.ok,
+                              );
+                              if (confirmed != true) return;
+                              final utc = DateTime.now().toUtc();
+                              await onCommitCheckOutForEntry!(
+                                  checkInTapEntryIndex, utc);
+                            },
+                          )
+                        : const _CheckInBadge(
+                            label: _kCheckOutBadgeLabel,
+                            color: AppColors.checkInResult)
+                  else
                     GestureDetector(
                       onTap: () async {
                         onCheckInTapStart?.call();
@@ -2135,7 +2150,6 @@ class _PoiContentBlock extends StatelessWidget {
                         dimmed: checkInAnimating,
                       ),
                     ),
-                  ],
                 ],
               ],
             ),
@@ -2161,7 +2175,10 @@ class _PoiContentBlock extends StatelessWidget {
                       color: hasCheckedIn ? AppColors.checkInResult : null,
                       filled: hasCheckedIn,
                     );
-                    final showCloseOnSecondRow = hasCheckedIn && hasClose;
+                    final showCloseOnSecondRow = hasCheckedIn &&
+                        hasClose &&
+                        showDepartureRow &&
+                        (hasArrival || hasCheckedIn);
 
                     final arrivalDepartureDiff = <Widget>[
                       if (hasArrival || hasCheckedIn) ...[
@@ -2179,11 +2196,33 @@ class _PoiContentBlock extends StatelessWidget {
                                   .copyWith(color: AppColors.checkInResult)
                               : AppTextStyles.poiSchedule,
                         ),
+                        // ゴール／最終 POI は出発予定が無いことが多い。diff は算出されるが
+                        // 出発行が無いと下のブロックに入れられないため到着の直後に出す。
+                        if (scheduleDiffStr != null &&
+                            !showDepartureRow) ...[
+                          const SizedBox(width: 8),
+                          Text(
+                            scheduleDiffStr[0],
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedIn
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            scheduleDiffStr.substring(1),
+                            style: AppTextStyles.poiSchedule.copyWith(
+                              color: hasCheckedIn
+                                  ? AppColors.checkInResult
+                                  : AppColors.muted,
+                            ),
+                          ),
+                        ],
                       ],
-                      if ((hasArrival || hasCheckedIn) &&
-                          (hasDeparture || hasCheckedOut))
+                      if ((hasArrival || hasCheckedIn) && showDepartureRow)
                         const SizedBox(width: 6),
-                      if (hasDeparture || hasCheckedOut) ...[
+                      if (showDepartureRow) ...[
                         Icon(Icons.arrow_upward,
                             size: 15,
                             fontWeight: FontWeight.w600,
@@ -2272,7 +2311,7 @@ class _PoiContentBlock extends StatelessWidget {
                                 hasDeparture ||
                                 hasCheckedOut) &&
                             hasClose)
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                         if (hasClose) ...[
                           const Icon(Icons.lock_outline,
                               size: 17, color: AppColors.muted),
@@ -2280,14 +2319,12 @@ class _PoiContentBlock extends StatelessWidget {
                           Text(_formatTime(close!, context),
                               style: AppTextStyles.poiSchedule),
                         ],
-                        if (!hasClose) ...[
-                          const SizedBox(width: 8),
-                          Transform.translate(
-                            offset: const Offset(0, -1),
-                            child: const Icon(Icons.more_time,
-                                size: 18, color: AppColors.muted),
-                          ),
-                        ],
+                        const SizedBox(width: 8),
+                        Transform.translate(
+                          offset: const Offset(0, -1),
+                          child: const Icon(Icons.more_time,
+                              size: 18, color: AppColors.muted),
+                        ),
                       ],
                     );
                   },

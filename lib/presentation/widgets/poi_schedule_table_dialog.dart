@@ -247,9 +247,9 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
       'ATA',
       'ETD',
       'ATD',
-      'elapsed',
-      speedLabel,
       'diff',
+      speedLabel,
+      'elapsed',
       segLabel,
       elevLabel,
       'open/close',
@@ -272,13 +272,13 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
         _csvField(res != null ? _fmtTime(res, locale) : ''),
         _csvField(dep != null ? _fmtTime(dep, locale) : ''),
         _csvField(rest != null ? _fmtTime(rest, locale) : ''),
-        _csvField(elapsed != null ? _fmtElapsed(elapsed) : ''),
-        _csvField(speedStr == '--' ? '' : speedStr),
         _csvField((rest != null && dep != null)
             ? _ahead(dep, rest)
             : (arr != null && res != null)
                 ? _ahead(arr, res)
                 : ''),
+        _csvField(speedStr == '--' ? '' : speedStr),
+        _csvField(elapsed != null ? _fmtElapsed(elapsed) : ''),
         _csvField(res != null && effSegKm != null ? _fmtSegDist(effSegKm) : ''),
         _csvField(res != null ? _fmtElevGain(_effectiveRawElevGainM(i)) : ''),
         _csvField(sc != null ? _fmtTime(sc, locale) : ''),
@@ -444,14 +444,14 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                       DataColumn(
                           label: Text(isJa ? '出発実績' : 'ATD', style: _kThStyle)),
                       DataColumn(
-                          label: Text(isJa ? '経過時間' : 'elapsed',
+                          label: Text(isJa ? '差分' : 'diff',
                               style: _kThStyle)),
                       DataColumn(
                           label: Text(
                               widget.distanceUnit == 1 ? 'mph' : 'km/h',
                               style: _kThStyle)),
                       DataColumn(
-                          label: Text(isJa ? '差分' : 'diff',
+                          label: Text(isJa ? '経過時間' : 'elapsed',
                               style: _kThStyle)),
                       DataColumn(
                           label: Text(
@@ -509,11 +509,6 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                               rest != null ? _fmtTime(rest, locale) : '--',
                               style: ts)),
                           DataCell(Text(
-                              elapsed != null ? _fmtElapsed(elapsed) : '--',
-                              style: ts)),
-                          DataCell(Text(_fmtSpeed(effSegKm, elapsed),
-                              style: ts)),
-                          DataCell(Text(
                             (rest != null && dep != null)
                                 ? _ahead(dep, rest)
                                 : (arr != null && res != null)
@@ -521,6 +516,11 @@ class _PoiScheduleTableDialogState extends State<PoiScheduleTableDialog> {
                                     : '--',
                             style: ts,
                           )),
+                          DataCell(Text(_fmtSpeed(effSegKm, elapsed),
+                              style: ts)),
+                          DataCell(Text(
+                              elapsed != null ? _fmtElapsed(elapsed) : '--',
+                              style: ts)),
                           DataCell(Text(
                               res != null ? _fmtSegDist(effSegKm) : '--',
                               style: ts)),
