@@ -576,20 +576,29 @@ class MapStateNotifier extends Notifier<MapState> {
     _currentDisplayIsSecondHalf = null;
     // 前半/後半判定用に最大500点にダウンサンプリングし、累積距離をキャッシュする。
     // 1000点超のルートでも位置更新ごとの最近傍検索を O(500) に抑える。
+    // 累積距離は間引き点同士の直線和ではなく、元トラック上の沿線距離を使う
+    // （曲がりの多い GPX で弦距離が短くなるのを防ぐ）。
     const maxSamples = 500;
     final step = fullPoints.length <= maxSamples
         ? 1
         : (fullPoints.length / maxSamples).ceil();
     final sampled = <LatLng>[];
+    final sampledSourceIndices = <int>[];
     for (var i = 0; i < fullPoints.length; i += step) {
       sampled.add(fullPoints[i]);
+      sampledSourceIndices.add(i);
     }
-    if (sampled.last != fullPoints.last) sampled.add(fullPoints.last);
-    final cumDist = List<double>.filled(sampled.length, 0);
-    for (var i = 1; i < sampled.length; i++) {
-      cumDist[i] =
-          cumDist[i - 1] + distanceBetweenLatLng(sampled[i - 1], sampled[i]);
+    if (sampled.last != fullPoints.last) {
+      sampled.add(fullPoints.last);
+      sampledSourceIndices.add(fullPoints.length - 1);
     }
+    final fullCumDist = List<double>.filled(fullPoints.length, 0);
+    for (var i = 1; i < fullPoints.length; i++) {
+      fullCumDist[i] = fullCumDist[i - 1] +
+          distanceBetweenLatLng(fullPoints[i - 1], fullPoints[i]);
+    }
+    final cumDist =
+        sampledSourceIndices.map((idx) => fullCumDist[idx]).toList();
     _sampledRoutePoints = sampled;
     _sampledCumulativeDistances = cumDist;
     _halfRouteDistanceM = cumDist.isNotEmpty ? cumDist.last / 2 : 0;
