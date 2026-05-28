@@ -52,6 +52,10 @@ class PoiElevationOnDemand {
   final double? chartTimeLimitHours;
 }
 
+/// ボトムシート下端: Android は3ボタンナビ回避、iOS は従来どおり下端まで。
+bool _poiSheetSafeAreaBottom(BuildContext context) =>
+    Theme.of(context).platform == TargetPlatform.android;
+
 String? _formatElevationChartTimeLimitHours(double? hours) {
   if (hours == null || hours <= 0 || !hours.isFinite) return null;
   return hours == hours.roundToDouble()
@@ -1378,7 +1382,7 @@ class _PoiDetailSheetBodyState extends State<_PoiDetailSheetBody>
     return SizedBox(
       width: double.infinity,
       child: SafeArea(
-        bottom: false,
+        bottom: _poiSheetSafeAreaBottom(context),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final w = constraints.maxWidth;
@@ -1610,7 +1614,7 @@ class _PoiDetailSheetNavigateState extends State<_PoiDetailSheetNavigate>
     return SizedBox(
       width: double.infinity,
       child: SafeArea(
-        bottom: false,
+        bottom: _poiSheetSafeAreaBottom(context),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final expandedW = math.max(

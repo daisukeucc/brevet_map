@@ -13,9 +13,16 @@ class LocationBottomBar extends StatelessWidget {
   final VoidCallback onTap;
   final ValueNotifier<double>? progressBarValue;
 
+  static const _barHeight = 80.0;
+
   @override
   Widget build(BuildContext context) {
     final barColor = isStreamActive ? Colors.blue : Colors.green;
+    // Android: 3ボタンナビ等の不透明なシステムバーにアイコンが隠れるためインセットを適用。
+    // iOS: ホームインジケーターは細く半透明なため、従来どおり下端まで使う。
+    final bottomInset = Theme.of(context).platform == TargetPlatform.android
+        ? MediaQuery.viewPaddingOf(context).bottom
+        : 0.0;
 
     return ColoredBox(
       color: barColor,
@@ -28,12 +35,15 @@ class LocationBottomBar extends StatelessWidget {
               color: barColor,
               child: SizedBox(
                 width: double.infinity,
-                height: 80,
-                child: Center(
-                  child: Icon(
-                    isStreamActive ? Icons.stop : Icons.play_arrow,
-                    color: Colors.white,
-                    size: 48,
+                height: _barHeight + bottomInset,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: bottomInset),
+                  child: Center(
+                    child: Icon(
+                      isStreamActive ? Icons.stop : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 48,
+                    ),
                   ),
                 ),
               ),

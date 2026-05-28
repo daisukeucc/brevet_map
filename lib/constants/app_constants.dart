@@ -25,6 +25,7 @@ const Set<String> kAppVersionsWithFullFeatureUnlock = {
   '1.2.0+19',
   '1.3.0+20',
   '1.3.1+21',
+  '1.3.2+22',
 };
 
 /// リリースノート（バージョン説明）ダイアログを出す [pubspec] の `x.y.z+build` 一覧。文言は l10n（例: releaseNotesV11018Message）と `release_notes_dialog` の分岐を対に追加する。
@@ -33,4 +34,5 @@ const Set<String> kReleaseNoteDialogVersionBuildIds = {
   '1.2.0+19',
   '1.3.0+20',
   '1.3.1+21',
+  '1.3.2+22',
 };
