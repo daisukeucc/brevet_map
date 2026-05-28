@@ -68,7 +68,8 @@ mixin _PoiModeMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
           color: Colors.black.withValues(alpha: 0.6),
           child: SafeArea(
             top: false,
-            bottom: false,
+            // Android: 3ボタンナビ回避。iOS: 従来どおり下端まで。
+            bottom: Theme.of(context).platform == TargetPlatform.android,
             child: SizedBox(
               height: 96,
               child: Padding(
@@ -149,7 +150,8 @@ mixin _PoiModeMixin on ConsumerState<MyHomePage>, _ShareUrlMixin {
           color: Colors.grey.shade800,
           child: SafeArea(
             top: false,
-            bottom: false,
+            // Android: 3ボタンナビ回避。iOS: 従来どおり下端まで。
+            bottom: Theme.of(context).platform == TargetPlatform.android,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 25,
