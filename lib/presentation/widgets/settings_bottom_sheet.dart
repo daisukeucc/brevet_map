@@ -58,8 +58,9 @@ class _SettingsBottomSheetState extends State<SettingsBottomSheet> {
       //   ),
     ];
 
+    // Android: 3ボタンナビ回避。iOS: 従来どおり下端まで。
     return SafeArea(
-      bottom: false,
+      bottom: Theme.of(context).platform == TargetPlatform.android,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
