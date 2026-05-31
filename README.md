@@ -85,7 +85,6 @@ flutter run --release
 
 ### 補足
 
-- **同じビルド番号の再アップロード**はストア側で拒否されやすいです。再実行する前に `pubspec.yaml` の `version:` の **`+` 右（ビルド番号）**を上げることを推奨します。
 | ワークフロー | いつ動くか | 何をするか |
 |--------------|------------|------------|
 | **CI**（`.github/workflows/ci.yml`） | `main` / `master` への push、または PR の作成・更新 | `flutter pub get` → `flutter analyze` → `flutter test` |
