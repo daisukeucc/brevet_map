@@ -54,14 +54,6 @@ cp env.example .env
 flutter run --dart-define=GOOGLE_MAPS_API_KEY=あなたのキー
 ```
 
-## iOS での動作確認
-
-iOS 14 以降では、デバッグモード（`flutter run`）でアプリをタスクキル後に再起動するとクラッシュする場合があります。本番動作に近い挙動の確認には、リリース版で実行することを推奨します。
-
-```bash
-flutter run --release
-```
-
 ## CI とリリース（GitHub Actions）
 
 ### 全体の流れ
