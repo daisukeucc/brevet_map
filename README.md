@@ -82,26 +82,3 @@ flutter run --release
 3. **platform** で `android` / `ios` / `both` を選んで実行する。
 
 ビルドとアップロードの具体的なコマンドは **Fastlane**（`ios/fastlane/Fastfile`、`android/fastlane/Fastfile`）に定義されています。CI の YAML は環境構築のあと `bundle exec fastlane …` を呼び出します。
-
-### 補足
-
-| ワークフロー | いつ動くか | 何をするか |
-|--------------|------------|------------|
-| **CI**（`.github/workflows/ci.yml`） | `main` / `master` への push、または PR の作成・更新 | `flutter pub get` → `flutter analyze` → `flutter test` |
-| **Release (Fastlane)**（`release.yml`） | **手動のみ**（Actions の「Run workflow」） | 署名付きビルド → **TestFlight**（iOS）／**Play internal**（Android）へアップロード |
-| **Build**（`build.yml`） | **手動のみ** | リリース APK と、`--no-codesign` の iOS ビルドを **Artifact** に保存（ストアには上げない） |
-
-- **ストアへ実際にビルドを載せる**のは **Release ワークフロー**だけです。CI や Build ではアップロードしません。
-- **App Store の審査提出・本番公開**は、このリポジトリのワークフローでは自動化していません。**App Store Connect** 上の操作が必要です。
-
-### リリース（TestFlight / Play internal）の手順
-
-1. **GitHub Secrets** に、`.github/workflows/release.yml` 先頭コメントに記載の名前で必要な値を登録する（iOS は Distribution `.p12`、App Store 用プロビジョニングプロファイル 2 本、Team ID、App Store Connect API キーなど）。
-2. リポジトリの **Actions** → **Release (Fastlane)** → **Run workflow**。
-3. **platform** で `android` / `ios` / `both` を選んで実行する。
-
-ビルドとアップロードの具体的なコマンドは **Fastlane**（`ios/fastlane/Fastfile`、`android/fastlane/Fastfile`）に定義されています。CI の YAML は環境構築のあと `bundle exec fastlane …` を呼び出します。
-
-### 補足
-
-- **同じビルド番号の再アップロード**はストア側で拒否されやすいです。再実行する前に `pubspec.yaml` の `version:` の **`+` 右（ビルド番号）**を上げることを推奨します。
