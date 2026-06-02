@@ -32,32 +32,6 @@ flutter run --release
 
 ### 全体の流れ
 
-# brevet_map
-
-Flutter アプリ（brevet_map）。
-
-## Google Maps API キーの必須設定
-
-地図・Directions 用のキーは、プロジェクトルートの **`.env`**（`flutter_dotenv`）に記述します。`.env` は `.gitignore` 済みです。
-
-```bash
-cp env.example .env
-```
-
-`.env` を開き、`GOOGLE_MAPS_API_KEY=あなたのキー` を記述。
-
-### 別の方法（.env を使わない場合）
-
-`--dart-define` で渡すことも可能（.env より優先）:
-
-```bash
-flutter run --dart-define=GOOGLE_MAPS_API_KEY=あなたのキー
-```
-
-## CI とリリース（GitHub Actions）
-
-### 全体の流れ
-
 | ワークフロー | いつ動くか | 何をするか |
 |--------------|------------|------------|
 | **CI**（`.github/workflows/ci.yml`） | `main` / `master` への push、または PR の作成・更新 | `flutter pub get` → `flutter analyze` → `flutter test` |
